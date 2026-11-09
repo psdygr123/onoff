@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>연결 시험 화면</title>
+<style>
+  :root { --bg: #F8F6F0; --ink: #302F2A; --line: #DCD3C0; --btn: #4F6757; --on-btn: #fff; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #1D1F1B; --ink: #EEEADF; --line: #3A3E36; --btn: #8FAE9A; --on-btn: #14201A; } }
+  body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: var(--bg); color: var(--ink); font-family: "Noto Sans KR", system-ui, sans-serif; text-align: center; padding: 16px; }
+  main { max-width: 440px; display: grid; gap: 14px; }
+  h1 { font-size: 1.25rem; margin: 0; }
+  p { margin: 0; font-size: 0.9375rem; }
+  button { min-height: 44px; border-radius: 999px; border: 1.5px solid var(--btn); background: var(--btn); color: var(--on-btn); font: inherit; font-weight: 700; padding: 8px 20px; cursor: pointer; }
+  button.ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+  pre { background: transparent; border: 1px solid var(--line); border-radius: 10px; padding: 10px; font-size: 0.75rem; text-align: left; white-space: pre-wrap; margin: 0; }
+</style>
+</head>
+<body>
+<main>
+  <h1>연결 시험 화면</h1>
+  <p>실제 게임이 아니라, 플랫폼과 게임이 메시지를 주고받는지 확인하는 빈 화면입니다.</p>
+  <pre id="log">플랫폼의 시작 정보를 기다리는 중…</pre>
+  <button id="save" type="button">진행 상태 보내기 (시험)</button>
+  <button id="exit" class="ghost" type="button">플랫폼으로 돌아가기</button>
+</main>
+<script>
+  var log = document.getElementById("log");
+  window.addEventListener("message", function (e) {
+    var m = e.data;
+    if (!m || m.source !== "onoff-platform" || m.type !== "init") return;
+    log.textContent = "시작 정보 수신\n게임: " + m.gameId + "\n저장 키: " + m.saveKey + "\n이어하기 상태: " + (m.savedProgress ? m.savedProgress.label : "없음");
+  });
+  document.getElementById("save").addEventListener("click", function () {
+    parent.postMessage({ source: "onoff-game", type: "progress", payload: { label: "연결 시험 기록", percent: 5 } }, "*");
+    log.textContent += "\n진행 상태를 보냈습니다.";
+  });
+  document.getElementById("exit").addEventListener("click", function () {
+    parent.postMessage({ source: "onoff-game", type: "exit" }, "*");
+  });
+  parent.postMessage({ source: "onoff-game", type: "ready" }, "*");
+</script>
+</body>
+</html>

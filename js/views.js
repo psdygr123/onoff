@@ -1,0 +1,395 @@
+/* 화면별 구조. 각 화면은 { title, render(ctx) -> html, mount(root, ctx) } 형태입니다. */
+window.OnOff = window.OnOff || {};
+OnOff.Views = (function () {
+  const { esc, field, checks, V, setError, toast, val, vals, icons } = OnOff.UI;
+  const S = OnOff.State;
+  const GAMES = OnOff.GAMES;
+  const first = () => GAMES.find((g) => g.status !== "soon");
+  const go = (to) => { location.hash = to; };
+
+  /* ---------- 공통 조각 ---------- */
+  function gameCard(g) {
+    const user = S.user;
+    const soon = g.status === "soon";
+    const save = user ? S.getSave(g.id) : null;
+    let cta;
+    if (soon) cta = `<button class="btn ghost sm" type="button" disabled aria-disabled="true">준비 중</button>`;
+    else cta = `<button class="btn sm" type="button" data-action="open-game" data-id="${g.id}">${save ? "이어하기" : "게임 시작"}</button>`;
+    const art = soon
+      ? `<div class="card-art soon">${icons.soon}<span class="badge soon">${esc(g.statusLabel)}</span></div>`
+      : `<div class="card-art"><img src="${g.cover}" alt="${esc(g.title)} 대표 이미지: 노을 진 항구에 정박한 범선" loading="lazy" width="1000" height="720"><span class="badge">${esc(g.statusLabel)}</span></div>`;
+    return `<article class="card">${art}<div class="card-body">
+      <h3>${esc(g.title)}</h3>
+      <div class="card-meta">${esc(g.genre)}${soon ? "" : " · 플레이 연결 전 (시제품)"}</div>
+      <div><p>${esc(g.summary)}</p>${g.audienceNote ? `<p class="card-aud">${esc(g.audienceNote)}</p>` : ""}</div>
+      <div class="card-foot">${cta}${!soon ? `<button class="btn ghost sm" type="button" data-action="go" data-to="intro-${g.id}">시작 전 안내</button>` : ""}</div>
+    </div></article>`;
+  }
+
+  /* ---------- 홈 ---------- */
+  const home = {
+    render() {
+      const user = S.user, g = first(), save = user ? S.getSave(g.id) : null;
+      return `
+      <div class="wrap">
+        <section class="hero" aria-labelledby="hero-title">
+          <div>
+            <p class="eyebrow">게임 플랫폼 온앤오프</p>
+            <h1 id="hero-title" style="margin-top:12px"><span>일상 밖의 모험,</span><span><em>일상 속</em>의 성장</span></h1>
+            <p class="lead">심리학에서 출발한 여러 게임을 하나의 계정으로 즐기는 곳입니다. 게임 속에서 겪은 모험이 현실의 작은 행동과 새로운 경험으로 이어지도록 만들었습니다.</p>
+            <div class="hero-actions">
+              <button class="btn" type="button" data-action="start">${save ? "이어서 모험하기" : "모험 시작하기"}</button>
+              <button class="btn ghost" type="button" data-action="go" data-to="games">게임 둘러보기</button>
+            </div>
+            <p class="hero-foot">온앤오프는 진단이나 치료를 목적으로 하지 않는 자기성장·웰빙 서비스입니다.</p>
+          </div>
+          <div class="hero-art">
+            <img src="img/hero.webp" alt="노을빛 바다와 언덕 위 마을이 내려다보이는 판타지 풍경" width="1280" height="720" fetchpriority="high">
+            <span class="hero-chip"><i></i>첫 번째 게임 · 마음 모험기 (가칭)</span>
+          </div>
+        </section>
+      </div>
+      <section class="section tint" aria-labelledby="lib-title"><div class="wrap">
+        <div class="section-head"><p class="eyebrow">게임 라이브러리</p><h2 id="lib-title">지금 만날 수 있는 게임</h2><p>하나의 계정으로 게임을 고르고, 게임마다 따로 저장됩니다.</p></div>
+        <div class="cards">${GAMES.map(gameCard).join("")}</div>
+      </div></section>
+      <section class="section" aria-labelledby="feat-title"><div class="wrap">
+        <div class="section-head"><p class="eyebrow">온앤오프의 방식</p><h2 id="feat-title">즐기다 보면, 현실이 조금 달라집니다</h2></div>
+        <div class="features">
+          <div class="feature"><div class="ico">${icons.compass}</div><h3>새로운 세계를 탐험하는 즐거움</h3><p>낯선 지도를 걷고, 이야기의 단서를 모으고, 캐릭터를 키우는 모험 자체가 먼저입니다.</p></div>
+          <div class="feature"><div class="ico">${icons.branch}</div><h3>선택과 경험을 통한 성장</h3><p>이야기 속에서 마주치는 선택이 쌓이면서, 내가 어떤 선택을 좋아하는지 천천히 보입니다.</p></div>
+          <div class="feature"><div class="ico">${icons.link}</div><h3>게임과 현실의 연결</h3><p>게임에서 해 본 것을 현실에서도 작게 해 볼 수 있도록, 부담 없는 실천 과제를 함께 둡니다.</p></div>
+        </div>
+      </div></section>
+      <section class="section tint" aria-labelledby="about-title"><div class="wrap split">
+        <div class="art"><img src="img/about-forest.webp" alt="햇살이 비치는 숲길" loading="lazy" width="1100" height="720"></div>
+        <div class="copy">
+          <p class="eyebrow">서비스 소개</p>
+          <h2 id="about-title">게임이 먼저, 그다음이 성장</h2>
+          <p class="lead">온앤오프는 심리학 이론을 바탕으로 만든 게임들을 한곳에 모은 플랫폼입니다. 게임을 현실을 피하는 수단으로만 쓰지 않고, 게임에서의 경험이 일상의 작은 행동으로 이어지도록 돕는 것을 지향합니다.</p>
+          <ul class="checklist">
+            <li>진단이나 치료를 위한 서비스가 아니며, 효과가 입증되었다고 말하지 않습니다.</li>
+            <li>가입과 게임 이용은 연구 참여와 별개입니다.</li>
+            <li>게임마다 캐릭터와 저장 데이터가 따로 관리됩니다.</li>
+          </ul>
+          <div><button class="btn ghost" type="button" data-action="go" data-to="about">자세히 보기</button></div>
+        </div>
+      </div></section>`;
+    }
+  };
+
+  /* ---------- 게임 둘러보기 ---------- */
+  const games = {
+    render() {
+      return `<div class="wrap page">
+        <div class="section-head"><p class="eyebrow">게임 라이브러리</p><h1 style="font-family:var(--font-display);font-size:var(--fs-2xl)">게임 둘러보기</h1>
+        <p>${S.user ? "이용 중인 게임은 ‘이어하기’로 표시됩니다." : "게임을 시작하려면 로그인이 필요합니다."}</p></div>
+        <div class="cards">${GAMES.map(gameCard).join("")}</div>
+        <p class="note" style="margin-top:28px">출시 예정 카드는 자리만 마련해 둔 것이며, 장르와 일정은 정해진 것이 없습니다.</p>
+      </div>`;
+    }
+  };
+
+  /* ---------- 서비스 소개 ---------- */
+  const about = {
+    render() {
+      return `<div class="wrap page"><div class="page-narrow" style="max-width:720px;display:grid;gap:28px">
+        <div class="section-head" style="margin:0"><p class="eyebrow">서비스 소개</p><h1 style="font-family:var(--font-display);font-size:var(--fs-2xl)">일상 밖의 모험, 일상 속의 성장</h1></div>
+        <p class="lead" style="max-width:none">온앤오프는 심리학 이론을 바탕으로 만든 여러 게임을 하나의 계정으로 이용하는 게임 플랫폼입니다. 게임 속 모험과 성장이 현실의 작은 행동과 새로운 경험으로 이어지는 것을 지향하고, 이용자의 행복과 자기성장에 보탬이 되는 것을 목표로 합니다.</p>
+        <div class="panel"><h2>온앤오프가 하지 않는 것</h2><ul class="checklist"><li>정신질환을 진단하거나 치료하지 않습니다.</li><li>치료 효과나 정신건강 개선이 입증되었다고 말하지 않습니다.</li><li>연구 참여를 가입의 조건으로 요구하지 않습니다.</li></ul></div>
+        <div class="panel"><h2>계정과 저장 데이터</h2><p>하나의 계정으로 여러 게임을 이용합니다. 게임별 캐릭터와 진행 기록은 서로 독립적으로 저장되도록 설계했습니다.</p></div>
+        <div><button class="btn" type="button" data-action="go" data-to="games">게임 둘러보기</button></div>
+      </div></div>`;
+    }
+  };
+
+  /* ---------- 로그인 ---------- */
+  const login = {
+    render() {
+      const why = S.pending ? `<div class="note">게임을 시작하려면 로그인이 필요합니다. 로그인하면 바로 이어서 진행합니다.</div>` : "";
+      return `<div class="wrap page"><div class="page-narrow">
+        <form class="panel" id="login-form" novalidate>
+          <h1>로그인</h1>${why}
+          <div class="note err summary-err" id="login-summary" role="alert" tabindex="-1"></div>
+          ${field({ id: "li-email", name: "email", label: "이메일", type: "email", auto: "email", required: true })}
+          ${field({ id: "li-pw", name: "password", label: "비밀번호", type: "password", auto: "current-password", required: true })}
+          <button class="btn block" type="submit">로그인</button>
+          <div class="link-row"><button type="button" data-action="go" data-to="reset">비밀번호를 잊으셨나요?</button><button type="button" data-action="go" data-to="signup">회원가입</button></div>
+          <hr style="border:0;border-top:1px solid var(--line);width:100%">
+          <div class="note"><strong>시제품 안내</strong> 실제 인증은 아직 없습니다. 이 화면에서 가입한 계정으로만 로그인되며, 새로고침하면 사라집니다. 화면 구성을 보려면 체험 계정을 쓰세요.</div>
+          <button class="btn ghost block" type="button" data-action="demo">체험 계정으로 둘러보기</button>
+        </form></div></div>`;
+    },
+    mount(root) {
+      const form = root.querySelector("#login-form"), sum = root.querySelector("#login-summary");
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const email = val(form, "email").trim(), pw = val(form, "password");
+        const e1 = V.email(email), e2 = pw ? "" : "비밀번호를 입력해 주세요.";
+        setError(form, "li-email", e1); setError(form, "li-pw", e2);
+        sum.classList.remove("show");
+        if (e1 || e2) { form.querySelector(e1 ? "#li-email" : "#li-pw").focus(); return; }
+        const r = S.login(email, pw);
+        if (!r.ok) { sum.textContent = "이메일 또는 비밀번호가 맞지 않습니다. 시제품에서는 이 화면에서 가입한 계정만 쓸 수 있습니다."; sum.classList.add("show"); sum.focus(); return; }
+        toast("로그인했습니다.");
+        const p = S.pending; S.pending = null; go(p || "games");
+      });
+    }
+  };
+
+  /* ---------- 비밀번호 재설정 ---------- */
+  const reset = {
+    render() {
+      return `<div class="wrap page"><div class="page-narrow">
+        <form class="panel" id="reset-form" novalidate>
+          <h1>비밀번호 재설정</h1>
+          <p style="color:var(--ink-2)">가입한 이메일을 입력하면 재설정 안내를 받는 화면입니다.</p>
+          ${field({ id: "rs-email", name: "email", label: "이메일", type: "email", auto: "email", required: true })}
+          <button class="btn block" type="submit">재설정 안내 요청</button>
+          <div id="reset-result" role="status"></div>
+          <div class="link-row"><button type="button" data-action="go" data-to="login">로그인으로 돌아가기</button></div>
+        </form></div></div>`;
+    },
+    mount(root) {
+      const form = root.querySelector("#reset-form"), out = root.querySelector("#reset-result");
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const em = val(form, "email").trim(), err = V.email(em);
+        setError(form, "rs-email", err);
+        if (err) { out.innerHTML = ""; form.querySelector("#rs-email").focus(); return; }
+        out.innerHTML = `<div class="note"><strong>시제품 안내</strong> 입력한 형식은 올바릅니다. 시제품에는 메일 서버가 없어 실제로 메일을 보내지 않았습니다. 서비스 출시 때 이 자리에서 재설정 안내를 보냅니다.</div>`;
+      });
+    }
+  };
+
+  /* ---------- 회원가입 (4단계) ---------- */
+  const STEPS = ["계정", "기본정보", "이용 목표", "동의"];
+  const signup = {
+    render() {
+      return `<div class="wrap page"><div class="page-narrow">
+        <form class="panel" id="su-form" novalidate>
+          <h1>회원가입</h1>
+          <ol class="steps" aria-label="가입 단계">${STEPS.map((s, i) => `<li data-step="${i}">${i + 1}. ${s}</li>`).join("")}</ol>
+          <div class="note err summary-err" id="su-summary" role="alert" tabindex="-1"></div>
+
+          <fieldset data-pane="0" style="border:0;padding:0;margin:0;display:grid;gap:20px;min-width:0"><legend class="sr-only">계정 만들기</legend>
+            ${field({ id: "su-email", name: "email", label: "이메일", type: "email", auto: "email", required: true })}
+            ${field({ id: "su-pw", name: "password", label: "비밀번호", type: "password", auto: "new-password", required: true, hint: "8자 이상, 영문과 숫자를 함께 넣어 주세요." })}
+            ${field({ id: "su-pw2", name: "password2", label: "비밀번호 확인", type: "password", auto: "new-password", required: true })}
+          </fieldset>
+
+          <fieldset data-pane="1" hidden style="border:0;padding:0;margin:0;display:grid;gap:20px;min-width:0"><legend class="sr-only">기본정보</legend>
+            ${field({ id: "su-name", name: "name", label: "이름", auto: "name", required: true })}
+            <div class="field"><span class="legend" id="su-gender-l">성별</span>${checks("gender", OnOff.GENDERS, ["n"], "radio", true)}</div>
+            <div class="field" data-field="su-adult"><label class="choice"><input type="checkbox" id="su-adult" name="adult"><span>만 19세 이상 성인입니다.</span></label><div class="err-msg" id="su-adult-err" role="alert"></div></div>
+          </fieldset>
+
+          <fieldset data-pane="2" hidden style="border:0;padding:0;margin:0;display:grid;gap:20px;min-width:0"><legend class="sr-only">이용 목표</legend>
+            <div class="field"><span class="legend">온앤오프를 통해 얻고 싶은 점 <span class="hint">(여러 개 선택, 건너뛰어도 됩니다)</span></span>${checks("goals", OnOff.GOALS, [], "checkbox", true)}</div>
+            ${field({ id: "su-goal-free", name: "goalsFree", label: "직접 적기", area: true, max: 200 })}
+          </fieldset>
+
+          <fieldset data-pane="3" hidden style="border:0;padding:0;margin:0;display:grid;gap:16px;min-width:0"><legend class="sr-only">약관 동의</legend>
+            <div class="field" data-field="su-terms"><label class="choice"><input type="checkbox" id="su-terms" name="terms"><span><b>[필수]</b> 서비스 이용약관에 동의합니다. <a href="#terms" target="_blank" rel="noopener">내용 보기</a></span></label><div class="err-msg" id="su-terms-err" role="alert"></div></div>
+            <div class="field" data-field="su-privacy"><label class="choice"><input type="checkbox" id="su-privacy" name="privacy"><span><b>[필수]</b> 개인정보 처리 안내를 확인했습니다. <a href="#privacy" target="_blank" rel="noopener">내용 보기</a></span></label><div class="err-msg" id="su-privacy-err" role="alert"></div></div>
+            <div class="note"><strong>연구 참여는 가입과 별개입니다.</strong> 연구 참여 안내와 동의는 절차가 정해진 뒤 별도로 제공되며, 이 가입 과정에 포함되지 않습니다.</div>
+            <div class="note"><strong>시제품 안내</strong> 입력한 정보는 서버로 전송되지 않고, 이 탭을 새로고침하면 사라집니다. 실제 개인정보는 입력하지 않아도 됩니다.</div>
+          </fieldset>
+
+          <div class="form-actions">
+            <button class="btn ghost" type="button" data-su="prev">이전</button>
+            <button class="btn" type="button" data-su="next">다음</button>
+            <button class="btn" type="submit" data-su="done" hidden>가입 완료</button>
+          </div>
+          <div class="link-row"><span>이미 계정이 있나요?</span><button type="button" data-action="go" data-to="login">로그인</button></div>
+        </form></div></div>`;
+    },
+    mount(root) {
+      const form = root.querySelector("#su-form"), sum = root.querySelector("#su-summary");
+      const panes = Array.from(form.querySelectorAll("[data-pane]")), lis = Array.from(form.querySelectorAll(".steps li"));
+      const prev = form.querySelector('[data-su="prev"]'), next = form.querySelector('[data-su="next"]'), done = form.querySelector('[data-su="done"]');
+      let step = 0;
+
+      const validate = (n) => {
+        let first = null;
+        const set = (id, msg) => { setError(form, id, msg); if (msg && !first) first = form.querySelector("#" + id); };
+        if (n === 0) {
+          const em = val(form, "email").trim(), pw = val(form, "password"), p2 = val(form, "password2");
+          let e1 = V.email(em); if (!e1 && S.emailTaken(em)) e1 = "이미 이 화면에서 가입한 이메일입니다.";
+          set("su-email", e1); set("su-pw", V.password(pw));
+          set("su-pw2", p2 ? (p2 === pw ? "" : "비밀번호가 서로 다릅니다.") : "비밀번호를 한 번 더 입력해 주세요.");
+        }
+        if (n === 1) {
+          set("su-name", V.required(val(form, "name"), "이름을 입력해 주세요."));
+          set("su-adult", form.querySelector("#su-adult").checked ? "" : "성인만 가입할 수 있습니다. 확인란을 체크해 주세요.");
+        }
+        if (n === 3) {
+          set("su-terms", form.querySelector("#su-terms").checked ? "" : "이용약관 동의가 필요합니다.");
+          set("su-privacy", form.querySelector("#su-privacy").checked ? "" : "개인정보 처리 안내 확인이 필요합니다.");
+        }
+        sum.classList.remove("show");
+        if (first) { sum.textContent = "입력을 확인해 주세요. 표시된 항목을 고치면 다음으로 넘어갈 수 있습니다."; sum.classList.add("show"); first.focus(); return false; }
+        return true;
+      };
+      const show = (n) => {
+        step = n;
+        panes.forEach((p, i) => { p.hidden = i !== n; });
+        lis.forEach((li, i) => { li.toggleAttribute("aria-current", i === n); if (i === n) li.setAttribute("aria-current", "step"); li.classList.toggle("done", i < n); });
+        prev.hidden = n === 0; next.hidden = n === STEPS.length - 1; done.hidden = n !== STEPS.length - 1;
+        const f = panes[n].querySelector("input,textarea"); if (f) f.focus();
+      };
+      next.addEventListener("click", () => { if (validate(step)) show(step + 1); });
+      prev.addEventListener("click", () => show(step - 1));
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        if (!validate(3)) return;
+        const r = S.register({
+          email: val(form, "email").trim(), name: val(form, "name").trim(), gender: vals(form, "gender")[0] || "n", adult: true,
+          goals: vals(form, "goals"), goalsFree: val(form, "goalsFree").trim(),
+          consents: { terms: new Date().toLocaleDateString("ko-KR"), privacy: new Date().toLocaleDateString("ko-KR") }
+        }, val(form, "password"));
+        if (!r.ok) { show(0); setError(form, "su-email", "이미 이 화면에서 가입한 이메일입니다."); return; }
+        toast("가입했습니다. (시제품: 실제 계정은 만들어지지 않았습니다)");
+        const p = S.pending; S.pending = null; go(p || "games");
+      });
+      show(0);
+    }
+  };
+
+  /* ---------- 마이페이지 ---------- */
+  const mypage = {
+    render() {
+      const u = S.user;
+      const gname = (OnOff.GENDERS.find((g) => g.id === u.gender) || {}).label || "응답하지 않음";
+      const goals = u.goals.map((id) => (OnOff.GOALS.find((g) => g.id === id) || {}).label).filter(Boolean);
+      const rows = GAMES.filter((g) => g.status !== "soon").map((g) => {
+        const sv = S.getSave(g.id);
+        return `<div class="game-row"><img src="${g.cover}" alt="" width="96" height="64"><div><h3>${esc(g.title)}</h3>
+          <p>${sv ? `${esc(sv.label)}${sv.percent != null ? " · " + sv.percent + "%" : ""} · 마지막 기록 ${esc(sv.updatedAt)}` : "아직 시작하지 않았습니다."}</p>
+          ${sv && sv.example ? '<span class="tag example">예시 데이터</span>' : ""}${sv && sv.test ? '<span class="tag example">연결 시험 기록</span>' : ""}</div>
+          <button class="btn sm ${sv ? "" : "ghost"}" type="button" data-action="open-game" data-id="${g.id}">${sv ? "이어하기" : "게임 시작"}</button></div>`;
+      }).join("");
+      return `<div class="wrap page"><div class="account-grid">
+        <nav class="side" aria-label="마이페이지 메뉴">
+          <a href="#mypage" data-action="scroll" data-target="sec-account">계정 정보</a>
+          <a href="#mypage" data-action="scroll" data-target="sec-goals">이용 목표</a>
+          <a href="#mypage" data-action="scroll" data-target="sec-games">이용 중인 게임</a>
+          <a href="#mypage" data-action="scroll" data-target="sec-consent">동의 관리</a>
+          <a href="#mypage" data-action="scroll" data-target="sec-leave">로그아웃·탈퇴</a>
+        </nav>
+        <div class="stack">
+          <h1 style="font-family:var(--font-display);font-size:var(--fs-2xl)">마이페이지</h1>
+          ${u.demo ? '<div class="note"><strong>체험 계정</strong> 화면 구성을 보여 주기 위한 예시 데이터입니다. 실제 이용 기록이 아닙니다.</div>' : ""}
+
+          <section class="panel" id="sec-account" aria-labelledby="h-account"><h2 id="h-account">계정 정보</h2>
+            <dl class="kv"><dt>이메일</dt><dd>${esc(u.email)}</dd><dt>이름</dt><dd>${esc(u.name)}</dd><dt>성별</dt><dd>${esc(gname)}</dd><dt>가입일</dt><dd>${esc(u.joined)}</dd></dl>
+            <form id="profile-form" novalidate style="display:grid;gap:16px"><h3>기본정보 수정</h3>
+              ${field({ id: "mp-name", name: "name", label: "이름", value: u.name, auto: "name", required: true })}
+              <div class="field"><span class="legend">성별</span>${checks("gender", OnOff.GENDERS, [u.gender], "radio", true)}</div>
+              <div><button class="btn sm" type="submit">저장</button></div></form>
+          </section>
+
+          <section class="panel" id="sec-goals" aria-labelledby="h-goals"><h2 id="h-goals">서비스 이용 목표</h2>
+            <p style="color:var(--ink-2);font-size:var(--fs-sm)">이 목표는 개별 게임이 아니라 온앤오프 전체에 적용됩니다.${goals.length ? " 현재: " + esc(goals.join(", ")) : " 현재 선택한 목표가 없습니다."}</p>
+            <form id="goal-form" style="display:grid;gap:16px">${checks("goals", OnOff.GOALS, u.goals, "checkbox", true)}
+              ${field({ id: "mp-free", name: "goalsFree", label: "직접 적기", area: true, value: u.goalsFree })}
+              <div><button class="btn sm" type="submit">저장</button></div></form>
+          </section>
+
+          <section class="panel" id="sec-games" aria-labelledby="h-games"><h2 id="h-games">이용 중인 게임</h2><div>${rows}</div>
+            <p style="color:var(--ink-2);font-size:var(--fs-xs)">게임별 진행 기록은 서로 독립적으로 저장됩니다.</p></section>
+
+          <section class="panel" id="sec-consent" aria-labelledby="h-consent"><h2 id="h-consent">개인정보 및 이용 동의</h2>
+            <dl class="kv"><dt>이용약관</dt><dd>동의함 (${esc((u.consents || {}).terms || "-")})</dd><dt>개인정보 처리 안내</dt><dd>확인함 (${esc((u.consents || {}).privacy || "-")})</dd><dt>연구 참여</dt><dd>해당 없음. 절차가 정해지면 별도로 안내합니다.</dd></dl>
+            <div><button class="btn ghost sm" type="button" disabled aria-disabled="true">동의 철회 (서버 연동 후 제공)</button></div>
+          </section>
+
+          <section class="panel" id="sec-leave" aria-labelledby="h-leave"><h2 id="h-leave">로그아웃 · 계정 탈퇴</h2>
+            <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn ghost" type="button" data-action="logout">로그아웃</button><button class="btn danger" type="button" id="leave-btn" aria-expanded="false" aria-controls="leave-info">계정 탈퇴 안내</button></div>
+            <div id="leave-info" hidden class="note"><strong>시제품에서는 탈퇴와 삭제가 되지 않습니다.</strong> 계정 삭제와 개인정보 삭제는 서버가 있어야 처리할 수 있어 아직 구현되지 않았습니다. 이 화면의 데이터는 새로고침하면 사라지는 임시 데이터입니다. 서비스 출시 때 이 자리에서 탈퇴를 요청하게 됩니다.</div>
+          </section>
+        </div></div></div>`;
+    },
+    mount(root) {
+      const pf = root.querySelector("#profile-form"), gf = root.querySelector("#goal-form");
+      pf.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const err = V.required(val(pf, "name"), "이름을 입력해 주세요."); setError(pf, "mp-name", err);
+        if (err) { pf.querySelector("#mp-name").focus(); return; }
+        S.updateUser({ name: val(pf, "name").trim(), gender: vals(pf, "gender")[0] || "n" });
+        toast("저장했습니다. (시제품: 이 탭에서만 유지됩니다)"); OnOff.App.render();
+      });
+      gf.addEventListener("submit", (e) => {
+        e.preventDefault();
+        S.updateUser({ goals: vals(gf, "goals"), goalsFree: val(gf, "goalsFree").trim() });
+        toast("이용 목표를 저장했습니다."); OnOff.App.render();
+      });
+      const lb = root.querySelector("#leave-btn"), li = root.querySelector("#leave-info");
+      lb.addEventListener("click", () => { li.hidden = !li.hidden; lb.setAttribute("aria-expanded", String(!li.hidden)); });
+    }
+  };
+
+  /* ---------- 게임 시작 전 안내 ---------- */
+  const intro = {
+    render(ctx) {
+      const g = GAMES.find((x) => x.id === ctx.param);
+      if (!g || g.status === "soon") return notfound.render();
+      return `<div class="wrap page"><div class="intro">
+        <div class="art"><img src="${g.cover}" alt="${esc(g.title)} 대표 이미지" width="1000" height="720"></div>
+        <div class="panel">
+          <p class="eyebrow">시작 전 안내</p><h1>${esc(g.title)}</h1>
+          <div><h3>이런 분을 위해 만들었습니다</h3><p style="color:var(--ink-2);font-size:var(--fs-sm)">${esc(g.intro.who)}</p></div>
+          <div><h3>만든 목적</h3><p style="color:var(--ink-2);font-size:var(--fs-sm)">${esc(g.intro.purpose)}. 이런 주제에 관심 있는 분이 편하게 해 보시길 바랍니다.</p></div>
+          <div><h3>게임 구성</h3><ul class="checklist">${g.intro.parts.map((p) => `<li>${esc(p)}</li>`).join("")}</ul><p style="color:var(--ink-2);font-size:var(--fs-xs);margin-top:8px">${esc(g.intro.partsNote)}</p></div>
+          <div class="note"><strong>알아 두세요.</strong> 이 게임은 진단이나 치료를 위한 것이 아닙니다. 하다가 불편하면 언제든 멈춰도 됩니다. 마음이 많이 힘들다면 가까운 전문 상담기관이나 의료기관의 도움을 받아 보세요. 가입과 게임 이용은 연구 참여와 별개입니다.</div>
+          <label class="choice"><input type="checkbox" id="intro-ok"><span>안내를 읽었습니다.</span></label>
+          <div class="form-actions"><button class="btn ghost" type="button" data-action="go" data-to="games">뒤로</button><button class="btn" type="button" id="intro-go" disabled aria-disabled="true">모험 시작</button></div>
+        </div></div></div>`;
+    },
+    mount(root, ctx) {
+      const ok = root.querySelector("#intro-ok"), btn = root.querySelector("#intro-go");
+      if (!ok) return;
+      ok.addEventListener("change", () => { btn.disabled = !ok.checked; btn.setAttribute("aria-disabled", String(!ok.checked)); });
+      btn.addEventListener("click", () => { if (ok.checked) go("play-" + ctx.param); });
+    }
+  };
+
+  /* ---------- 게임 실행 ---------- */
+  let disposeBridge = null;
+  const play = {
+    render(ctx) {
+      const g = GAMES.find((x) => x.id === ctx.param);
+      if (!g || g.status === "soon") return notfound.render();
+      return `<div class="wrap page">
+        <div class="play-bar"><h1>${esc(g.title)}</h1><button class="btn ghost sm" type="button" data-action="go" data-to="games">플랫폼으로 돌아가기</button></div>
+        <div class="stage" id="stage" aria-live="polite"></div>
+        <p class="bridge-log" id="bridge-log" role="status"></p>
+        <details class="dev"><summary>개발용: 게임 연결 규격</summary>
+          <p style="font-size:var(--fs-sm);color:var(--ink-2);margin:8px 0">게임 파일을 <code>${esc(g.entry)}</code> 에 넣으면 이 영역에 iframe으로 열립니다. 플랫폼과 게임은 아래 메시지로만 대화하며, 이름·이메일 같은 개인정보는 게임에 전달하지 않습니다.</p>
+          <pre>${esc(OnOff.Bridge.SPEC)}</pre></details>
+      </div>`;
+    },
+    mount(root, ctx) {
+      const g = GAMES.find((x) => x.id === ctx.param);
+      if (!g) return;
+      const stage = root.querySelector("#stage"), log = root.querySelector("#bridge-log");
+      const open = (override) => {
+        if (disposeBridge) { disposeBridge(); disposeBridge = null; }
+        OnOff.Bridge.mount(stage, g, { entryOverride: override, onLog: (m) => { log.textContent = m; }, onExit: () => { toast("플랫폼으로 돌아왔습니다."); go("games"); } })
+          .then((d) => { disposeBridge = d; });
+      };
+      stage.addEventListener("click", (e) => { if (e.target.closest('[data-action="stub-open"]')) open("games/_stub/index.html"); });
+      open(null);
+    },
+    unmount() { if (disposeBridge) { disposeBridge(); disposeBridge = null; } }
+  };
+
+  /* ---------- 정책·문의·없는 화면 ---------- */
+  const policy = (title, body) => ({ render() { return `<div class="wrap page"><div class="page-narrow"><div class="panel"><h1>${title}</h1><div class="note"><strong>준비 중</strong> ${body}</div><div><button class="btn ghost" type="button" data-action="go" data-to="home">홈으로</button></div></div></div></div>`; } });
+  const terms = policy("이용약관", "정식 약관은 아직 작성되지 않았습니다. 문서가 준비되면 이 위치에 연결됩니다.");
+  const privacy = policy("개인정보처리방침", "정식 처리방침은 아직 작성되지 않았습니다. 문서가 준비되면 이 위치에 연결됩니다.");
+  const contact = policy("문의", "문의 창구는 아직 마련되지 않았습니다. 창구가 정해지면 이곳에 안내합니다.");
+  const notfound = { render() { return `<div class="wrap page"><div class="page-narrow"><div class="panel"><h1>찾을 수 없는 화면입니다</h1><p>주소가 바뀌었거나 아직 없는 화면입니다.</p><div><button class="btn" type="button" data-action="go" data-to="home">홈으로</button></div></div></div></div>`; } };
+
+  return { home, games, about, login, reset, signup, mypage, intro, play, terms, privacy, contact, notfound, GATED: { mypage: true } };
+})();

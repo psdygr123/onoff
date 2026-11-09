@@ -1,0 +1,94 @@
+/* 온앤오프 디자인 토큰: 모든 색·글꼴·간격은 여기서만 정의합니다.
+   레이아웃 개념: 따뜻한 종이색 바탕 위에 큰 풍경 한 장을 두고, 나머지는 조용한 카드와 넉넉한 여백으로 둡니다. */
+:root {
+  --bg: #F8F6F0;
+  --bg-2: #EAE3D5;
+  --surface: #FFFDF9;
+  --ink: #302F2A;
+  --ink-2: #5C5A51;
+  --line: #DCD3C0;
+  --accent: #637D6B;
+  --accent-ink: #4A6354;
+  --btn: #4F6757;
+  --on-btn: #FFFFFF;
+  --btn-hover: #425849;
+  --bronze: #B58B59;
+  --bronze-ink: #80592F;
+  --danger: #B03A2A;
+  --danger-bg: #FBEDEA;
+  --ok: #2F6F47;
+  --ok-bg: #E8F2EA;
+  --note-bg: #F3EBD9;
+  --focus: #2F5D8A;
+  --scrim: rgba(24, 24, 20, 0.55);
+  --shadow: 0 1px 2px rgba(48, 47, 42, 0.06), 0 10px 28px rgba(48, 47, 42, 0.08);
+
+  --font-ui: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --font-display: "Gowun Batang", "Noto Serif KR", "Batang", serif;
+
+  --fs-xs: 0.8125rem;
+  --fs-sm: 0.9375rem;
+  --fs-md: 1.0625rem;
+  --fs-lg: 1.25rem;
+  --fs-xl: 1.625rem;
+  --fs-2xl: 2.25rem;
+  --fs-hero: clamp(2.15rem, 5vw + 0.5rem, 3.6rem);
+
+  --r-sm: 8px;
+  --r-md: 14px;
+  --r-lg: 22px;
+  --gap: 24px;
+  --maxw: 1160px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1D1F1B;
+    --bg-2: #272A24;
+    --surface: #242721;
+    --ink: #EEEADF;
+    --ink-2: #B9B4A6;
+    --line: #3A3E36;
+    --accent: #8FAE9A;
+    --accent-ink: #A8C4B2;
+    --btn: #8FAE9A;
+    --on-btn: #14201A;
+    --btn-hover: #A3C0AE;
+    --bronze: #C9A273;
+    --bronze-ink: #D9B88C;
+    --danger: #F0907F;
+    --danger-bg: #3A2521;
+    --ok: #8FCBA2;
+    --ok-bg: #1F2F25;
+    --note-bg: #2D2B22;
+    --focus: #8DB8E8;
+    --scrim: rgba(0, 0, 0, 0.65);
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 10px 28px rgba(0, 0, 0, 0.3);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #1D1F1B;
+  --bg-2: #272A24;
+  --surface: #242721;
+  --ink: #EEEADF;
+  --ink-2: #B9B4A6;
+  --line: #3A3E36;
+  --accent: #8FAE9A;
+  --accent-ink: #A8C4B2;
+  --btn: #8FAE9A;
+  --on-btn: #14201A;
+  --btn-hover: #A3C0AE;
+  --bronze: #C9A273;
+  --bronze-ink: #D9B88C;
+  --danger: #F0907F;
+  --danger-bg: #3A2521;
+  --ok: #8FCBA2;
+  --ok-bg: #1F2F25;
+  --note-bg: #2D2B22;
+  --focus: #8DB8E8;
+  --scrim: rgba(0, 0, 0, 0.65);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 10px 28px rgba(0, 0, 0, 0.3);
+  color-scheme: dark;
+}
