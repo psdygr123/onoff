@@ -34,18 +34,18 @@ OnOff.Views = (function () {
       <div class="wrap">
         <section class="hero" aria-labelledby="hero-title">
           <div>
-            <p class="eyebrow">게임 플랫폼 온앤오프</p>
+            <p class="eyebrow">심리학 전공자들이 만든 성장형 게임</p>
             <h1 id="hero-title" style="margin-top:12px"><span>일상 밖의 모험,</span><span><em>일상 속</em>의 성장</span></h1>
-            <p class="lead">심리학에서 출발한 여러 게임을 하나의 계정으로 즐기는 곳입니다. 게임 속에서 겪은 모험이 현실의 작은 행동과 새로운 경험으로 이어지도록 만들었습니다.</p>
+            <p class="lead">온앤오프는 게임을 통해 당신의 행복과 정신건강이 한 걸음 더 나아가기를 바라는 마음으로 만들었습니다. 이야기 속 작은 선택과 경험이 쌓여, 일상의 변화로 이어지는 여정을 함께합니다.</p>
             <div class="hero-actions">
               <button class="btn" type="button" data-action="start">${save ? "이어서 모험하기" : "모험 시작하기"}</button>
               <button class="btn ghost" type="button" data-action="go" data-to="games">게임 둘러보기</button>
             </div>
-            <p class="hero-foot">온앤오프는 진단이나 치료를 목적으로 하지 않는 자기성장·웰빙 서비스입니다.</p>
+            <p class="hero-foot">치료를 기반으로 한 서비스는 아니지만, 성장과 행복 그리고 정신건강에 도움이 되고자 정성껏 만들었습니다.</p>
           </div>
           <div class="hero-art">
             <img src="img/hero.webp" alt="노을빛 바다와 언덕 위 마을이 내려다보이는 판타지 풍경" width="1280" height="720" fetchpriority="high">
-            <span class="hero-chip"><i></i>첫 번째 게임 · 마음 모험기 (가칭)</span>
+            <span class="hero-chip"><i></i>첫 번째 게임 · 아우텔리아</span>
           </div>
         </section>
       </div>
@@ -54,23 +54,23 @@ OnOff.Views = (function () {
         <div class="cards">${GAMES.map(gameCard).join("")}</div>
       </div></section>
       <section class="section" aria-labelledby="feat-title"><div class="wrap">
-        <div class="section-head"><p class="eyebrow">온앤오프의 방식</p><h2 id="feat-title">즐기다 보면, 현실이 조금 달라집니다</h2></div>
+        <div class="section-head"><p class="eyebrow">온앤오프의 방식</p><h2 id="feat-title">천천히, 내 속도로 즐기는 모험</h2></div>
         <div class="features">
-          <div class="feature"><div class="ico">${icons.compass}</div><h3>새로운 세계를 탐험하는 즐거움</h3><p>낯선 지도를 걷고, 이야기의 단서를 모으고, 캐릭터를 키우는 모험 자체가 먼저입니다.</p></div>
-          <div class="feature"><div class="ico">${icons.branch}</div><h3>선택과 경험을 통한 성장</h3><p>이야기 속에서 마주치는 선택이 쌓이면서, 내가 어떤 선택을 좋아하는지 천천히 보입니다.</p></div>
-          <div class="feature"><div class="ico">${icons.link}</div><h3>게임과 현실의 연결</h3><p>게임에서 해 본 것을 현실에서도 작게 해 볼 수 있도록, 부담 없는 실천 과제를 함께 둡니다.</p></div>
+          <div class="feature"><div class="ico">${icons.compass}</div><h3>이야기 속에서 즐기는 모험</h3><p>낯선 지도를 걷고, 단서를 모으고, 캐릭터를 키웁니다. 재미있는 모험이 먼저입니다.</p></div>
+          <div class="feature"><div class="ico">${icons.branch}</div><h3>선택이 쌓이며 보이는 나</h3><p>갈림길에서 내린 선택들이 모이면서, 내가 어떤 선택을 좋아하는지 자연스럽게 알게 됩니다.</p></div>
+          <div class="feature"><div class="ico">${icons.link}</div><h3>쉬어 가도 괜찮은 여정</h3><p>하루에 몇 분이어도 좋습니다. 게임마다 진행 기록이 따로 저장되어, 언제든 이어서 할 수 있습니다.</p></div>
         </div>
       </div></section>
       <section class="section tint" aria-labelledby="about-title"><div class="wrap split">
         <div class="art"><img src="img/about-forest.webp" alt="햇살이 비치는 숲길" loading="lazy" width="1100" height="720"></div>
         <div class="copy">
           <p class="eyebrow">서비스 소개</p>
-          <h2 id="about-title">게임이 먼저, 그다음이 성장</h2>
-          <p class="lead">온앤오프는 심리학 이론을 바탕으로 만든 게임들을 한곳에 모은 플랫폼입니다. 게임을 현실을 피하는 수단으로만 쓰지 않고, 게임에서의 경험이 일상의 작은 행동으로 이어지도록 돕는 것을 지향합니다.</p>
+          <h2 id="about-title">게임 속 경험이 일상에 닿기를</h2>
+          <p class="lead">온앤오프는 정신건강에 관심을 가진 성인을 위해 기획했습니다. 이용하시는 분들의 행복을 기원하고, 성장을 함께 꿈꾸는 마음으로 만들었습니다.</p><p class="lead">현실에서 잠시 벗어나 쉬어 가는 곳에 머물지 않고, 게임에서 쌓은 경험이 현실의 하루에도 좋은 영향을 주기를 바랍니다.</p>
           <ul class="checklist">
-            <li>진단이나 치료를 위한 서비스가 아니며, 효과가 입증되었다고 말하지 않습니다.</li>
+            <li>심리학 이론을 바탕으로, 심리학을 전공한 사람들이 직접 만듭니다.</li>
+            <li>효과가 입증되었다고 말하지 않고, 할 수 있는 만큼만 약속합니다.</li>
             <li>가입과 게임 이용은 연구 참여와 별개입니다.</li>
-            <li>게임마다 캐릭터와 저장 데이터가 따로 관리됩니다.</li>
           </ul>
           <div><button class="btn ghost" type="button" data-action="go" data-to="about">자세히 보기</button></div>
         </div>
@@ -95,8 +95,8 @@ OnOff.Views = (function () {
     render() {
       return `<div class="wrap page"><div class="page-narrow" style="max-width:720px;display:grid;gap:28px">
         <div class="section-head" style="margin:0"><p class="eyebrow">서비스 소개</p><h1 style="font-family:var(--font-display);font-size:var(--fs-2xl)">일상 밖의 모험, 일상 속의 성장</h1></div>
-        <p class="lead" style="max-width:none">온앤오프는 심리학 이론을 바탕으로 만든 여러 게임을 하나의 계정으로 이용하는 게임 플랫폼입니다. 게임 속 모험과 성장이 현실의 작은 행동과 새로운 경험으로 이어지는 것을 지향하고, 이용자의 행복과 자기성장에 보탬이 되는 것을 목표로 합니다.</p>
-        <div class="panel"><h2>온앤오프가 하지 않는 것</h2><ul class="checklist"><li>정신질환을 진단하거나 치료하지 않습니다.</li><li>치료 효과나 정신건강 개선이 입증되었다고 말하지 않습니다.</li><li>연구 참여를 가입의 조건으로 요구하지 않습니다.</li></ul></div>
+        <p class="lead" style="max-width:none">온앤오프는 심리학 전공자들이 만든 성장형 게임 플랫폼입니다. 정신건강에 관심을 가진 성인이 하나의 계정으로 여러 게임을 즐기며, 행복과 성장에 한 걸음 가까워지기를 바랍니다.</p>
+        <div class="panel"><h2>미리 알려 드립니다</h2><ul class="checklist"><li>치료를 기반으로 한 서비스는 아니며, 의료·상담을 대신하지 않습니다.</li><li>효과가 입증되었다고 말하지 않습니다.</li><li>연구 참여를 가입의 조건으로 요구하지 않습니다.</li></ul></div>
         <div class="panel"><h2>계정과 저장 데이터</h2><p>하나의 계정으로 여러 게임을 이용합니다. 게임별 캐릭터와 진행 기록은 서로 독립적으로 저장되도록 설계했습니다.</p></div>
         <div><button class="btn" type="button" data-action="go" data-to="games">게임 둘러보기</button></div>
       </div></div>`;
@@ -180,7 +180,7 @@ OnOff.Views = (function () {
 
           <fieldset data-pane="1" hidden style="border:0;padding:0;margin:0;display:grid;gap:20px;min-width:0"><legend class="sr-only">기본정보</legend>
             ${field({ id: "su-name", name: "name", label: "이름", auto: "name", required: true })}
-            <div class="field"><span class="legend" id="su-gender-l">성별</span>${checks("gender", OnOff.GENDERS, ["n"], "radio", true)}</div>
+            <div class="field" data-field="su-gender" id="su-gender" tabindex="-1"><span class="legend" id="su-gender-l">성별</span>${checks("gender", OnOff.GENDERS, [], "radio", true)}<div class="err-msg" id="su-gender-err" role="alert"></div></div>
             <div class="field" data-field="su-adult"><label class="choice"><input type="checkbox" id="su-adult" name="adult"><span>만 19세 이상 성인입니다.</span></label><div class="err-msg" id="su-adult-err" role="alert"></div></div>
           </fieldset>
 
@@ -221,6 +221,7 @@ OnOff.Views = (function () {
         }
         if (n === 1) {
           set("su-name", V.required(val(form, "name"), "이름을 입력해 주세요."));
+          set("su-gender", vals(form, "gender").length ? "" : "성별을 선택해 주세요.");
           set("su-adult", form.querySelector("#su-adult").checked ? "" : "성인만 가입할 수 있습니다. 확인란을 체크해 주세요.");
         }
         if (n === 3) {
@@ -244,7 +245,7 @@ OnOff.Views = (function () {
         e.preventDefault();
         if (!validate(3)) return;
         const r = S.register({
-          email: val(form, "email").trim(), name: val(form, "name").trim(), gender: vals(form, "gender")[0] || "n", adult: true,
+          email: val(form, "email").trim(), name: val(form, "name").trim(), gender: vals(form, "gender")[0] || "", adult: true,
           goals: vals(form, "goals"), goalsFree: val(form, "goalsFree").trim(),
           consents: { terms: new Date().toLocaleDateString("ko-KR"), privacy: new Date().toLocaleDateString("ko-KR") }
         }, val(form, "password"));
@@ -260,7 +261,7 @@ OnOff.Views = (function () {
   const mypage = {
     render() {
       const u = S.user;
-      const gname = (OnOff.GENDERS.find((g) => g.id === u.gender) || {}).label || "응답하지 않음";
+      const gname = (OnOff.GENDERS.find((g) => g.id === u.gender) || {}).label || "입력 안 함";
       const goals = u.goals.map((id) => (OnOff.GOALS.find((g) => g.id === id) || {}).label).filter(Boolean);
       const rows = GAMES.filter((g) => g.status !== "soon").map((g) => {
         const sv = S.getSave(g.id);
@@ -316,7 +317,7 @@ OnOff.Views = (function () {
         e.preventDefault();
         const err = V.required(val(pf, "name"), "이름을 입력해 주세요."); setError(pf, "mp-name", err);
         if (err) { pf.querySelector("#mp-name").focus(); return; }
-        S.updateUser({ name: val(pf, "name").trim(), gender: vals(pf, "gender")[0] || "n" });
+        S.updateUser({ name: val(pf, "name").trim(), gender: vals(pf, "gender")[0] || u.gender || "" });
         toast("저장했습니다. (시제품: 이 탭에서만 유지됩니다)"); OnOff.App.render();
       });
       gf.addEventListener("submit", (e) => {
@@ -339,9 +340,9 @@ OnOff.Views = (function () {
         <div class="panel">
           <p class="eyebrow">시작 전 안내</p><h1>${esc(g.title)}</h1>
           <div><h3>이런 분을 위해 만들었습니다</h3><p style="color:var(--ink-2);font-size:var(--fs-sm)">${esc(g.intro.who)}</p></div>
-          <div><h3>만든 목적</h3><p style="color:var(--ink-2);font-size:var(--fs-sm)">${esc(g.intro.purpose)}. 이런 주제에 관심 있는 분이 편하게 해 보시길 바랍니다.</p></div>
+          <div><h3>만든 목적</h3><p style="color:var(--ink-2);font-size:var(--fs-sm)">${esc(g.intro.purpose)}</p></div>
           <div><h3>게임 구성</h3><ul class="checklist">${g.intro.parts.map((p) => `<li>${esc(p)}</li>`).join("")}</ul><p style="color:var(--ink-2);font-size:var(--fs-xs);margin-top:8px">${esc(g.intro.partsNote)}</p></div>
-          <div class="note"><strong>알아 두세요.</strong> 이 게임은 진단이나 치료를 위한 것이 아닙니다. 하다가 불편하면 언제든 멈춰도 됩니다. 마음이 많이 힘들다면 가까운 전문 상담기관이나 의료기관의 도움을 받아 보세요. 가입과 게임 이용은 연구 참여와 별개입니다.</div>
+          <div class="note"><strong>알아 두세요.</strong> 이 게임은 의료·상담을 대신하지 않습니다. 하다가 마음이 불편해지면 언제든 멈추셔도 됩니다. 마음이 많이 힘들 때는 가까운 전문 상담기관이나 의료기관의 도움을 받아 보세요. 가입과 게임 이용은 연구 참여와 별개입니다.</div>
           <label class="choice"><input type="checkbox" id="intro-ok"><span>안내를 읽었습니다.</span></label>
           <div class="form-actions"><button class="btn ghost" type="button" data-action="go" data-to="games">뒤로</button><button class="btn" type="button" id="intro-go" disabled aria-disabled="true">모험 시작</button></div>
         </div></div></div>`;
@@ -385,10 +386,28 @@ OnOff.Views = (function () {
   };
 
   /* ---------- 정책·문의·없는 화면 ---------- */
-  const policy = (title, body) => ({ render() { return `<div class="wrap page"><div class="page-narrow"><div class="panel"><h1>${title}</h1><div class="note"><strong>준비 중</strong> ${body}</div><div><button class="btn ghost" type="button" data-action="go" data-to="home">홈으로</button></div></div></div></div>`; } });
-  const terms = policy("이용약관", "정식 약관은 아직 작성되지 않았습니다. 문서가 준비되면 이 위치에 연결됩니다.");
-  const privacy = policy("개인정보처리방침", "정식 처리방침은 아직 작성되지 않았습니다. 문서가 준비되면 이 위치에 연결됩니다.");
-  const contact = policy("문의", "문의 창구는 아직 마련되지 않았습니다. 창구가 정해지면 이곳에 안내합니다.");
+  /* 시연용 안내문: 법적 효력이 있는 정식 문서가 아닙니다. 정식 문서가 정해지면 이 부분만 교체합니다. */
+  const doc = (title, lead, sections) => ({
+    render() {
+      const body = sections.map((s) => `<section style="display:grid;gap:8px"><h2 style="font-size:var(--fs-lg)">${s[0]}</h2>${s[1].map((t) => `<p>${t}</p>`).join("")}</section>`).join("");
+      return `<div class="wrap page"><div class="page-narrow"><div class="panel" style="display:grid;gap:22px"><h1>${title}</h1><div class="note"><strong>시연용 안내문</strong> ${lead}</div>${body}<div><button class="btn ghost" type="button" data-action="go" data-to="home">홈으로</button></div></div></div></div>`;
+    }
+  });
+  const terms = doc("이용약관", "이 문서는 시연을 위한 안내문이며, 법적 효력이 있는 정식 약관이 아닙니다. 정식 약관은 서비스 공개 전에 따로 마련됩니다.", [
+    ["1. 서비스의 성격", ["온앤오프는 심리학 전공자들이 만든 성장형 게임 플랫폼의 시제품입니다. 치료를 기반으로 한 서비스가 아니며, 의료·상담이나 전문가의 판단을 대신하지 않습니다."]],
+    ["2. 시연 중 이용", ["현재 화면은 기능을 보여 드리기 위한 시제품입니다. 가입과 로그인은 실제 계정을 만들지 않으며, 입력한 내용은 새로고침하면 사라집니다.", "게임 본편은 개발 중이어서 일부 기능은 연결 시험 화면으로 대체되어 있습니다."]],
+    ["3. 이용자 안내", ["시연 중에는 실제 이름이나 이메일 대신 가상의 값을 입력하셔도 됩니다.", "마음이 많이 힘들거나 위기 상황이라면 이 서비스에 의존하지 마시고 가까운 전문 기관이나 상담 창구에 연락해 주세요."]],
+    ["4. 변경", ["정식 공개 전에 약관의 내용이 바뀔 수 있으며, 바뀌면 이 화면에 안내합니다."]]
+  ]);
+  const privacy = doc("개인정보처리방침", "이 문서는 시연을 위한 안내문이며, 법적 효력이 있는 정식 처리방침이 아닙니다. 연구 참여와 관련한 동의는 이 화면과 별도로, 연구 절차가 정해진 뒤에 따로 받습니다.", [
+    ["1. 현재 시연에서 다루는 정보", ["가입 화면에서는 이메일, 이름, 성별, 이용 목표 등을 입력할 수 있습니다. 시연 중에는 어떤 정보도 가상의 값으로 입력하셔도 됩니다."]],
+    ["2. 저장과 전송", ["입력한 정보는 이 브라우저 화면 안에서만 임시로 쓰이며 서버로 전송되거나 저장되지 않습니다. 새로고침하거나 창을 닫으면 사라집니다.", "게임 연결 화면으로 전달되는 정보에도 이름·이메일 같은 개인정보는 포함되지 않습니다."]],
+    ["3. 정식 공개 시", ["정식 공개 때에는 수집 항목, 이용 목적, 보관 기간, 제3자 제공 여부, 삭제 요청 방법 등을 이 화면에 구체적으로 안내합니다.", "연구 참여 자료로 쓰이는 정보가 있다면 연구 기관의 윤리 심의 절차에 따라 별도의 동의를 받은 뒤에만 수집합니다."]]
+  ]);
+  const contact = doc("문의", "정식 문의 창구는 아직 마련되지 않았습니다.", [
+    ["시연 중 문의", ["시연 중 궁금한 점이나 불편한 점은 시연을 안내해 드린 담당자에게 직접 말씀해 주세요."]],
+    ["정식 공개 시", ["정식 공개 때에는 문의 이메일과 응답 시간을 이 화면에 안내합니다."]]
+  ]);
   const notfound = { render() { return `<div class="wrap page"><div class="page-narrow"><div class="panel"><h1>찾을 수 없는 화면입니다</h1><p>주소가 바뀌었거나 아직 없는 화면입니다.</p><div><button class="btn" type="button" data-action="go" data-to="home">홈으로</button></div></div></div></div>`; } };
 
   return { home, games, about, login, reset, signup, mypage, intro, play, terms, privacy, contact, notfound, GATED: { mypage: true } };
