@@ -31,7 +31,7 @@ OnOff.App = (function () {
   function footer() {
     return `<div class="wrap footer-row">
       <div><a class="brand" href="#home" style="font-size:1.125rem">${logo(30)}<span>On &amp; Off</span></a>
-      <p class="footer-copy" style="margin-top:10px">온앤오프는 진단이나 치료를 목적으로 하지 않는 자기성장·웰빙 게임 플랫폼입니다.</p></div>
+      <p class="footer-copy" style="margin-top:10px">심리학 전공자들이 만든 성장형 게임 플랫폼</p></div>
       <div><ul class="footer-links"><li><a href="#terms">이용약관</a></li><li><a href="#privacy">개인정보처리방침</a></li><li><a href="#contact">문의</a></li></ul>
       <p class="footer-copy" style="margin-top:10px">© 2026 On &amp; Off</p></div></div>`;
   }

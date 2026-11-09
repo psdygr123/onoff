@@ -39,11 +39,11 @@ OnOff.State = (function () {
     demoLogin() {
       const id = "demo";
       s.user = {
-        id, demo: true, email: "체험 계정 (실제 이메일 없음)", name: "체험 이용자", gender: "n", adult: true,
+        id, demo: true, email: "체험 계정 (실제 이메일 없음)", name: "체험 이용자", gender: "", adult: true,
         goals: ["happiness", "growth"], goalsFree: "", joined: today(),
         consents: { terms: today(), privacy: today() }
       };
-      s.saves[id] = s.saves[id] || { "maeum-moheomgi": { label: "프롤로그 진행 중", percent: 12, updatedAt: today(), example: true } };
+      s.saves[id] = s.saves[id] || { "autelia": { label: "견습 모험가 Lv.3", percent: 30, updatedAt: today(), example: true } };
       emit();
     },
 
