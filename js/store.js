@@ -41,7 +41,7 @@ OnOff.State = (function () {
       s.user = {
         id, demo: true, email: "체험 계정 (실제 이메일 없음)", name: "체험 이용자", gender: "", adult: true,
         goals: ["happiness", "growth"], goalsFree: "", joined: today(),
-        consents: { terms: today(), privacy: today() }
+        consents: { terms: today(), privacy: today(), research: today() }
       };
       s.saves[id] = s.saves[id] || { "autelia": { label: "견습 모험가 Lv.3", percent: 30, updatedAt: today(), example: true } };
       emit();
