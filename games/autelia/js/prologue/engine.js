@@ -353,7 +353,7 @@ window.AU = window.AU || {};
     drawEnt(ctx, e) {
       if (e.hidden) return; if (e.draw) { e.draw(ctx, e, this); return; }
       const w = AU.World, bob = e.walking ? Math.abs(Math.sin(this.time * 9 + e.x)) * 4 : 0, y = (e.y || GROUND) - bob;
-      if (e.sprite) { if (!w.sprite(ctx, e.sprite, e.x, y, e.h, e.face, e.frame || 0)) { ctx.fillStyle = "#C9B8A0"; w.rr(ctx, e.x - 28, y - e.h, 56, e.h, 18); ctx.fill(); } }
+      if (e.sprite) { if (!w.sprite(ctx, e.sprite, e.x, y, e.h, e.face, e.idle ? (Math.floor(this.time * 0.7 + e.x * 0.013) % 2) : (e.frame || 0))) { ctx.fillStyle = "#C9B8A0"; w.rr(ctx, e.x - 28, y - e.h, 56, e.h, 18); ctx.fill(); } }
       if (e.name) w.nameTag(ctx, e.name, e.x, y - e.h - 10);
       if (e.mark && !this.locked()) { const by = y - e.h - 44 + Math.sin(this.time * 4) * 4; ctx.fillStyle = "#E8B94E"; ctx.strokeStyle = "#fff"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(e.x - 11, by - 12); ctx.lineTo(e.x + 11, by - 12); ctx.lineTo(e.x, by + 4); ctx.closePath(); ctx.fill(); ctx.stroke(); }
     },

@@ -44,7 +44,13 @@ window.AU = window.AU || {};
   /* ============================================================
      맵별 그리기 (back: 배경 바로 위 / mid: 인물 뒤·개체 / front: 인물 앞)
      ============================================================ */
-  const artSpr = (art, fb) => (A.has(art) ? art : fb);  // 정식 그림이 있으면 그것, 없으면 이전 시제품 그림
+  const artSpr = (art, fb) => (A.has(art) ? art : fb);
+  /* 서 있는 NPC: 대기 자세 시트(villager_?_idle, 2프레임을 천천히 교대)가 있으면 그것, 없으면 환호2 자세(이전 방식). 반환값은 npc()의 sprite·h·extra 조각 */
+  const standing = (k, fb) => {
+    const key = "pc_villager_" + k + "_idle", m = AU.PRO_ART && AU.PRO_ART.ch && AU.PRO_ART.ch["villager_" + k + "_idle"];
+    if (A.has(key) && m) return { sprite: key, h: Math.round(m.ch * 0.5), extra: { idle: true } };
+    const act = "pc_villager_" + k + "_actions"; return { sprite: artSpr(act, fb), h: 150, extra: { frame: A.sprFrame(act, "cheer2") } };
+  };  // 정식 그림이 있으면 그것, 없으면 이전 시제품 그림
   function drawCrowd(ctx, P) { // 축제 군중(정식 주민 시트): 가까운 곳에 NPC가 있어 피해서 배치, 깊이감을 위해 살짝 작고 위에 선다
     const L = LAY.plaza, c = P.v.cheer == null ? 0.12 : P.v.cheer, xs = [60, 130, 330, 470, 545, 650, 905, 1010, 1100, 1200], sh = ["f", "d", "g", "a", "j", "l", "b", "i", "e", "m"].map((k, i) => (A.has("pc_villager_" + k + "_actions") ? k : "abc"[i % 3]));
     xs.forEach((x, i) => { const bob = Math.abs(Math.sin(P.time * (3 + c * 5) + i * 1.7)) * (2 + c * 9); A.spr(ctx, "pc_villager_" + sh[i] + "_actions", c > 0.45 ? "cheer1" : "cheer2", x + (i % 2 ? 6 : -6), 566 - bob, i % 3 === 0 ? -1 : 1, 0.86); });
@@ -123,10 +129,10 @@ window.AU = window.AU || {};
     P.limits = { max: M.limit, msg: "길 끝의 기념비를 먼저 읽어 보세요." };
     const chat = (id, spk, sprite, x, h, label, key, extra) => npc(P, id, spk, sprite, x, h, Object.assign({ range: 100, interact: { label, fn: () => P.cutscene(() => P.say(T[key])) } }, extra || {}));
     chat("child", "child", artSpr("pc_festival_child", "villager_b"), M.child, 118, "대화: 축제 어린이", "s0_child");
-    chat("baker", "vendor", artSpr("pc_villager_b_actions", "baker"), M.baker, 150, "대화: 빵을 나누는 주민", "s0_baker", { frame: A.sprFrame("pc_villager_b_actions", "cheer2") });
-    chat("elder", "elder", artSpr("pc_villager_c_actions", "villager_a"), M.elder, 150, "대화: 나이 든 주민", "s0_elder", { frame: A.sprFrame("pc_villager_c_actions", "cheer2") });
-    chat("farmer", "farmer", artSpr("pc_villager_d_actions", "villager_a"), M.farmer, 150, "대화: 젊은 농부", "s0_farmer", { frame: A.sprFrame("pc_villager_d_actions", "cheer2") });
-    chat("priest", "priest", artSpr("pc_villager_j_actions", "villager_a"), M.priest, 150, "대화: 신관", "s0_priest", { frame: A.sprFrame("pc_villager_j_actions", "cheer2") });
+    { const s = standing("b", "baker"); chat("baker", "vendor", s.sprite, M.baker, s.h, "대화: 빵을 나누는 주민", "s0_baker", s.extra); }
+    { const s = standing("c", "villager_a"); chat("elder", "elder", s.sprite, M.elder, s.h, "대화: 나이 든 주민", "s0_elder", s.extra); }
+    { const s = standing("d", "villager_a"); chat("farmer", "farmer", s.sprite, M.farmer, s.h, "대화: 젊은 농부", "s0_farmer", s.extra); }
+    { const s = standing("j", "villager_a"); chat("priest", "priest", s.sprite, M.priest, s.h, "대화: 신관", "s0_priest", s.extra); }
     const stele = P.addEnt({ id: "stele", x: M.stele, range: 110, layer: "mid", mark: true, interact: { label: "기념비 읽기", fn: async () => {
       await P.cutscene(async () => { await P.say(T.s0_stele); }); if (P.flag("stele_read")) return;
       P.setFlag("stele_read"); stele.mark = false; P.limits = null; P.obj(OBJ.s0_exit);
@@ -151,10 +157,11 @@ window.AU = window.AU || {};
   function setupBanners(P) {
     const R = LAY.road, B = R.b; P.variant = "peace"; P.tint = { color: "#FFC98A", a: 0.2 }; P.vig = 0.24;
     const st = { talk: false, done: 0 }; P.limits = { max: B.elder + 150, msg: "먼저 마을 사람에게 말을 걸어 보세요." };
-    const elder = npc(P, "elder", "elder", artSpr("pc_villager_c_actions", "villager_a"), B.elder, 150, { frame: A.sprFrame("pc_villager_c_actions", "cheer2"), range: 110, mark: true });
-    npc(P, "baker", "vendor", artSpr("pc_villager_b_actions", "baker"), B.baker, 150, { frame: A.sprFrame("pc_villager_b_actions", "cheer2"), range: 110, interact: { label: "대화: 빵을 나누는 주민", fn: () => P.cutscene(() => P.say(T.s1b_baker)) } });
-    npc(P, "musician", "musician", artSpr("pc_villager_f_actions", "villager_a"), B.musician, 150, { frame: A.sprFrame("pc_villager_f_actions", "cheer2"), range: 100, interact: { label: "대화: 악사", fn: () => P.cutscene(() => P.say(T.s1b_musician)) } });
-    npc(P, "scribe", "scribe", artSpr("pc_villager_k_actions", "villager_a"), B.scribe, 150, { frame: A.sprFrame("pc_villager_k_actions", "cheer2"), range: 100, interact: { label: "대화: 서기", fn: () => P.cutscene(() => P.say(T.s1b_scribe)) } });
+    const sE = standing("c", "villager_a"), sB = standing("b", "baker"), sM = standing("f", "villager_a"), sS = standing("k", "villager_a");
+    const elder = npc(P, "elder", "elder", sE.sprite, B.elder, sE.h, Object.assign({}, sE.extra, { range: 110, mark: true }));
+    npc(P, "baker", "vendor", sB.sprite, B.baker, sB.h, Object.assign({}, sB.extra, { range: 110, interact: { label: "대화: 빵을 나누는 주민", fn: () => P.cutscene(() => P.say(T.s1b_baker)) } }));
+    npc(P, "musician", "musician", sM.sprite, B.musician, sM.h, Object.assign({}, sM.extra, { range: 100, interact: { label: "대화: 악사", fn: () => P.cutscene(() => P.say(T.s1b_musician)) } }));
+    npc(P, "scribe", "scribe", sS.sprite, B.scribe, sS.h, Object.assign({}, sS.extra, { range: 100, interact: { label: "대화: 서기", fn: () => P.cutscene(() => P.say(T.s1b_scribe)) } }));
     const cols = ["#C0573E", "#E3B24A", "#4F8A6B"];
     const poles = B.poles.map((x, i) => P.addEnt({ id: "pole" + i, x, f: 0, col: cols[i % 3], range: 90, layer: "mid", draw: drawPole, interact: { label: "깃발 달기", off: true, fn: () => hang(poles[i]) } }));
     elder.interact = { label: "대화: 나이 든 주민", fn: async () => {
