@@ -307,7 +307,7 @@ window.AU = window.AU || {};
       }
     },
     drawBackground(ctx, cx) {
-      const key = this.map.bg;
+      const PR = AU.Prologue, key = (PR && PR.on && PR.variant === "attack" && this.map.bgAtk) || this.map.bg;   // 프롤로그: 습격 상태는 같은 구도의 별도 그림
       if (AU.Img.has(key)) {
         const im = AU.Img.get(key), sw = im.naturalWidth * (H / im.naturalHeight);
         if (this.map.bgFlip) { ctx.save(); ctx.translate(sw - cx, 0); ctx.scale(-1, 1); ctx.drawImage(im, 0, 0, sw, H); ctx.restore(); } // 좌우 반전(임시 배경 재사용)
@@ -370,7 +370,8 @@ window.AU = window.AU || {};
       const frame = moving ? Math.floor(this.time * 9) % 4 : (p.rope ? Math.floor(p.anim) % 2 : 0);
       const lean = p.atkT > 0 ? p.dir * 6 : 0, PR = AU.Prologue, pro = !!(PR && PR.on), pose = pro ? PR.poseOf(p) : null;
       if (pose) { ctx.save(); ctx.translate(p.x + (pose.dx || 0), p.y); ctx.rotate(pose.rot || 0); ctx.scale(pose.sx || 1, pose.sy || 1); ctx.translate(-p.x, -p.y); }
-      if (!this.sprite(ctx, key, p.x + lean, p.y, C.player.spriteHeight, p.dir, frame)) { ctx.fillStyle = "#FFB3C7"; this.rr(ctx, p.x - 22, p.y - 118, 44, 118, 16); ctx.fill(); }
+      if (pro && PR.drawHero(ctx, p, pose, moving)) { /* 프롤로그 정식 그림 */ }
+      else if (!this.sprite(ctx, key, p.x + lean, p.y, C.player.spriteHeight, p.dir, frame)) { ctx.fillStyle = "#FFB3C7"; this.rr(ctx, p.x - 22, p.y - 118, 44, 118, 16); ctx.fill(); }
       if (pose) ctx.restore();
       ctx.globalAlpha = 1;
       if (pro) PR.drawPlayerExtras(ctx, p, pose); // 들고 있는 목재·망치·등에 멘 가방

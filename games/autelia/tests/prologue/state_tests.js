@@ -36,7 +36,7 @@ const R = []; const ok = (n, c, d) => { R.push([n, !!c]); console.log((c ? 'PASS
   { const T = await open(); const { p, ev } = T; await T.fresh(); await T.start(); await T.idle();
     await p.keyboard.press('Escape'); await sleep(200); let w = await ev(() => AU.UI.curName); ok('T21a 조작 가능 구간에서 Esc → 메뉴 열림', w === 'menu', 'cur=' + w); await p.keyboard.press('Escape'); await sleep(150);
     // 컷신 중 Esc/Ctrl/Alt 무시
-    await ev(() => AU.Prologue.devJump(1)); await T.idle(); await T.walk(880); await p.keyboard.press('Space'); await sleep(300); await T.dialogs(); await T.idle(); await T.walk(1245, 10, 30000); await sleep(1200);
+    await ev(() => AU.Prologue.devJump(1)); await T.idle(); await T.walk(790); await p.keyboard.press('Space'); await sleep(300); await T.dialogs(); await T.idle(); await T.walk(1045, 10, 30000); await sleep(1200);
     const cs = await ev(() => !!AU.Prologue.cs); await p.keyboard.press('Escape'); await p.keyboard.press('Control'); await p.keyboard.press('Alt'); await sleep(200);
     const cur = await ev(() => AU.UI.curName); ok('T21b 컷신 중 Esc/Ctrl/Alt가 아무 창도 열지 않음', cs && !cur, 'cs=' + cs + ' cur=' + cur);
     ok('T21 오류 없음', T.errs.length === 0, T.errs.join('|')); await T.b.close(); }

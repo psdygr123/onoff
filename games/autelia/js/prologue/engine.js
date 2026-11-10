@@ -297,8 +297,21 @@ window.AU = window.AU || {};
       if (hit && L.msg) this.hintOnce(L.msg);
     },
     allowWin(name) { return name === "inventory" || name === "keysettings"; },
+    heroKey(sheet) { return "pc_player_" + (AU.PRO_GENDER || "m") + "_" + sheet; },
+    heroArt() { return AU.Img.has(this.heroKey("actions")) && AU.Img.has(this.heroKey("locomotion")); },
+    /* 주인공 정식 그림: 동작 시트(대기·망치·무릎·으쓱·뒤돌아보기) + 이동 시트(걷기 4·점프 2). 프레임 이름은 artmeta.js 기준 */
+    drawHero(ctx, p, pose, moving) {
+      if (!this.heroArt()) return false;
+      const A = AU.PArt, nm = p.pose && p.pose.name; let sheet = "actions", fr = "idle";
+      if (nm === "hammer") fr = (this.v.swing || 0) > 0.5 ? "hammer2" : "hammer1";
+      else if (nm === "kneel") fr = "kneel"; else if (nm === "shrug") fr = "shrug"; else if (nm === "lookback") fr = "lookback";
+      else if (!p.onGround) { sheet = "locomotion"; fr = p.vy < 0 ? "jump_up" : "jump_down"; }
+      else if (moving) { sheet = "locomotion"; fr = "walk" + (1 + (Math.floor(AU.World.time * 9) % 4)); }
+      return A.spr(ctx, this.heroKey(sheet), fr, p.x, p.y, p.dir);
+    },
     poseOf(p) {
       const q = p.pose; if (!q) return null; const t = q.t;
+      if (this.heroArt()) return q.name === "stagger" ? { sx: 1, sy: 1, rot: 0.1 * p.dir, dx: 0 } : { sx: 1, sy: 1, rot: 0, dx: 0, hammer: q.name === "hammer", art: true };
       if (q.name === "kneel") return { sx: 1.06, sy: 0.78, rot: 0, dx: p.dir * 4 };
       if (q.name === "hammer") return { sx: 1, sy: 1, rot: 0, dx: 0, hammer: true };
       if (q.name === "shrug") return { sx: 1, sy: 1 - Math.sin(Math.min(1, t) * Math.PI) * 0.05, rot: Math.sin(Math.min(1, t) * Math.PI) * 0.05 * p.dir, dx: 0 };
@@ -321,7 +334,7 @@ window.AU = window.AU || {};
     drawEnt(ctx, e) {
       if (e.hidden) return; if (e.draw) { e.draw(ctx, e, this); return; }
       const w = AU.World, bob = e.walking ? Math.abs(Math.sin(this.time * 9 + e.x)) * 4 : 0, y = (e.y || GROUND) - bob;
-      if (e.sprite) { if (!w.sprite(ctx, e.sprite, e.x, y, e.h, e.face, 0)) { ctx.fillStyle = "#C9B8A0"; w.rr(ctx, e.x - 28, y - e.h, 56, e.h, 18); ctx.fill(); } }
+      if (e.sprite) { if (!w.sprite(ctx, e.sprite, e.x, y, e.h, e.face, e.frame || 0)) { ctx.fillStyle = "#C9B8A0"; w.rr(ctx, e.x - 28, y - e.h, 56, e.h, 18); ctx.fill(); } }
       if (e.name) w.nameTag(ctx, e.name, e.x, y - e.h - 10);
       if (e.mark && !this.locked()) { const by = y - e.h - 44 + Math.sin(this.time * 4) * 4; ctx.fillStyle = "#E8B94E"; ctx.strokeStyle = "#fff"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(e.x - 11, by - 12); ctx.lineTo(e.x + 11, by - 12); ctx.lineTo(e.x, by + 4); ctx.closePath(); ctx.fill(); ctx.stroke(); }
     },
@@ -337,9 +350,10 @@ window.AU = window.AU || {};
       ctx.globalAlpha = 1;
     },
     drawPlayerExtras(ctx, p, pose) {
-      const A = AU.PArt, d = p.dir;
-      if (this.v.bag || this.flag("carpenter_bag_acquired")) A.bag(ctx, p.x - d * 22, p.y - 70, 0.62, d * 0.1);
-      if (this.v.carry) A.plank(ctx, p.x + d * 4, p.y - 126, 120, -0.06 * d);
+      const A = AU.PArt, d = p.dir, art = this.heroArt();
+      if (this.v.bag || this.flag("carpenter_bag_acquired")) { if (!A.bagBack(ctx, p.x - d * 20, p.y - 74, 58, d)) A.bag(ctx, p.x - d * 22, p.y - 70, 0.62, d * 0.1); }
+      if (this.v.carry) A.plank(ctx, p.x + d * 4, p.y - (art ? 96 : 126), 120, -0.06 * d);
+      if (art) return; // 정식 그림은 망치를 손에 든 모습으로 그려져 있음
       if (pose && pose.hammer) { const sw = this.v.swing || 0; A.hammer(ctx, p.x + d * 30, p.y - 82, d * (0.6 + sw * 1.5), 1); }
       else if (this.v.tool) A.hammer(ctx, p.x + d * 26, p.y - 62, d * 0.3, 0.8);
     },
@@ -350,7 +364,7 @@ window.AU = window.AU || {};
       if (this.closeup && this.closeup.a > 0.01) {
         const c = this.closeup; ctx.save(); ctx.globalAlpha = c.a; ctx.fillStyle = "rgba(8,5,6,.82)"; ctx.fillRect(0, 0, W, H);
         const g = ctx.createRadialGradient(W / 2, 320, 20, W / 2, 320, 360); g.addColorStop(0, "rgba(160,50,40,.35)"); g.addColorStop(1, "rgba(160,50,40,0)"); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-        AU.PArt.fragment(ctx, W / 2, 330, 3.7, -0.28 + Math.sin(this.time * 0.8) * 0.02, this.time);
+        AU.PArt.fragment(ctx, W / 2, 322, AU.Img.has("po_metal_fragment_big") ? 2.7 : 3.7, -0.28 + Math.sin(this.time * 0.8) * 0.02, this.time);
         ctx.font = "500 22px 'Noto Sans KR', sans-serif"; ctx.textAlign = "center"; ctx.fillStyle = "rgba(255,255,255,.9)"; ctx.fillText("의문의 금속 조각", W / 2, 560); ctx.restore();
       }
       if (this.barsS.a > 0.01) { ctx.fillStyle = "#000"; const b = 56 * this.barsS.a; ctx.fillRect(0, 0, W, b); ctx.fillRect(0, H - b, W, b); }

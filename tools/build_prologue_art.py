@@ -23,7 +23,7 @@ def save_bg(arr, name, q=86):
     Image.fromarray(cv2.cvtColor(arr, cv2.COLOR_BGR2RGB)).save(f"{OUT}/bg/{name}.webp", quality=q, method=6)
 
 # ---------- 배경 ----------
-def clean_left_tree(B):
+def clean_left_tree(B, clear_sky=True):
     """이어붙일 오른쪽 장의 왼쪽 가장자리 나무(잎·가지·줄기)를 하늘로 지움(집 지붕은 색(주황)으로 보호)."""
     hsv = cv2.cvtColor(B, cv2.COLOR_BGR2HSV); h, s, v = [hsv[..., i].astype(int) for i in range(3)]
     m = np.zeros(B.shape[:2], np.uint8)
@@ -32,9 +32,14 @@ def clean_left_tree(B):
     m[((h >= 5) & (h <= 22) & (s > 60) & (v < 200)) & (reg2 == 1)] = 255
     m = cv2.dilate(m, np.ones((5, 5), np.uint8))
     out = cv2.inpaint(B, m, 7, cv2.INPAINT_TELEA)
-    col = np.median(out[:105, 420:470], axis=1).astype(np.float32)           # 상단 하늘 띠는 깨끗한 하늘 열로 덮음
-    for x in range(0, 345):
-        a = 1.0 if x < 300 else max(0, (345 - x) / 45); out[:105, x] = (col * a + out[:105, x] * (1 - a)).astype(np.uint8)
+    if clear_sky:
+        col = np.median(out[:105, 420:470], axis=1).astype(np.float32)       # 상단 하늘 띠는 깨끗한 하늘 열로 덮음(맑은 하늘)
+        for x in range(0, 345):
+            a = 1.0 if x < 300 else max(0, (345 - x) / 45); out[:105, x] = (col * a + out[:105, x] * (1 - a)).astype(np.uint8)
+    else:                                                                   # 연기 낀 하늘(습격 상태): 오른쪽 하늘 조각을 좌우 반전해 덮고 가장자리만 부드럽게
+        patch = out[:122, 700:1050][:, ::-1].astype(np.float32); h_, w_ = patch.shape[:2]
+        wy = np.clip((122 - np.arange(h_)) / 24.0, 0, 1)[:, None]; wx = np.clip((w_ - np.arange(w_)) / 40.0, 0, 1)[None, :]
+        wgt = (wy * wx)[..., None]; out[:122, :350] = (patch * wgt + out[:122, :350] * (1 - wgt)).astype(np.uint8)
     m2 = np.zeros(B.shape[:2], np.uint8); m2[60:260, :78] = 255
     return cv2.inpaint(out, m2, 15, cv2.INPAINT_NS)
 
@@ -58,7 +63,7 @@ def build_backgrounds():
     def reg(name, arr): save_bg(arr, name); info[name] = arr.shape[1]
     # 마을길(평화/습격 같은 구도): 왼쪽 장 1000px + 오른쪽 장 40px부터
     for tag, (a, b) in {"road": ("bg02_road_1", "bg02_road_2"), "road_atk": ("bg02_road_v01_1", "bg02_road_v01_2")}.items():
-        A, B = bgr_from(a), bgr_from(b); reg(tag, join(A[:, :1000], clean_left_tree(B)[:, 40:], 90))
+        A, B = bgr_from(a), bgr_from(b); reg(tag, join(A[:, :1000], clean_left_tree(B, tag == "road")[:, 40:], 90))
     A, B = bgr_from("bg01_temple_1"), bgr_from("bg01_temple_2"); reg("temple", join(A[:, :1010], B[:, 360 - 110:], 200))
     for tag, n in {"plaza": "bg03_plaza", "plaza_atk": "bg03_plaza_v02", "house_atk": "bg04_house_attack", "house": "bg04_house_peace", "temple_fire": "bg_v03_temple_fire"}.items():
         reg(tag, bgr_from(n))
