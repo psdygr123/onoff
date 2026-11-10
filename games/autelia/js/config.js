@@ -2,7 +2,7 @@
    밸런스 수치(경험치, 스탯 효과, 자원, 미션 한도)는 모두 여기서만 바꿉니다.
    표시 [임시] = 요청서가 "임시값·밸런스 검증 전"이라고 밝힌 값, [미정] = 아직 정하지 않은 규칙(기능만 열어 둠). */
 window.AU = window.AU || {};
-AU.VERSION = "0.1.0-proto";
+AU.VERSION = "0.2.0-prologue";
 
 AU.CONFIG = {
   W: 1280, H: 720, GROUND: 590,
@@ -45,7 +45,7 @@ AU.CONFIG = {
   // [미정] 지급 기준·주간 한도는 설정으로만 관리. 값은 임시
   missions: { weeklyPointCap: 6, partialPoints: 0 },
 
-  save: { key: "autelia.save", settingsKey: "autelia.settings", version: 1, autosaveSec: 30 }
+  save: { key: "autelia.save", settingsKey: "autelia.settings", version: 2, autosaveSec: 30 }
 };
 
 // 키 동작 목록. 물리 키(KeyboardEvent.code) 기준이라 한글 입력 상태에서도 동작함

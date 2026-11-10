@@ -51,8 +51,9 @@ window.AU = window.AU || {};
       stats: Object.assign({}, C.stats.base), alloc: { STR: 0, VIT: 0, AGI: 0, DEX: 0, WIL: 0 },
       freePoints: 0, trainingPoints: 0,
       hp: 1, resource: C.resource.max, resourceMax: C.resource.max, resourceWeek: AU.weekId(),
-      silver: 0, inv: { potion: 2 }, equip: { weapon: null, armor: null, accessory: null },
-      map: "arche", x: AU.MAPS.arche.start, visited: { arche: true },
+      silver: 0, inv: {}, equip: { weapon: null, armor: null, accessory: null },
+      map: "pro_temple", x: AU.MAPS.pro_temple.start, visited: { pro_temple: true },
+      prologue: { state: "NOT_STARTED", flags: {}, seen: {} }, // 신규 시작은 프롤로그부터. 기본 소지품(회복약)은 프롤로그 완료 시 지급
       quests: {}, skills: { unlocked: [], slots: [null, null, null] },
       flags: { missionsUnlocked: false, guideMet: false },
       missions: { states: {}, weekId: AU.weekId(), weekPoints: 0, log: [] },

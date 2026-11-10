@@ -16,7 +16,7 @@ window.AU = window.AU || {};
       this.enterMap(S.map, S.x, true);
       AU.Ev.on("floater", (f) => { if (f.onPlayer) this.floater(this.player.x, this.player.y - 130, f.text, f.color); });
     },
-    isBlocked() { return this.blockedFn() || !!this.trans || this.player.dead; },
+    isBlocked() { return this.blockedFn() || !!this.trans || this.player.dead || !!(AU.Prologue && AU.Prologue.on && AU.Prologue.locked()); },
 
     /* ---------- 맵 입장 ---------- */
     enterMap(id, x, silent) {
@@ -83,15 +83,21 @@ window.AU = window.AU || {};
       // 안전 지역 자연 회복
       if (this.map.safe && !p.dead) { const mx = AU.G.d().maxHp; if (S.hp < mx) S.hp = Math.min(mx, S.hp + mx * C.combat.safeRegenPerSec * dt); }
       this.bossCheckT += dt; if (this.bossCheckT > 1) { this.bossCheckT = 0; this.syncBoss(); }
-      // 카메라
-      const target = Math.max(0, Math.min(this.map.width - W, p.x - W / 2));
-      this.camX += (target - this.camX) * Math.min(1, dt * 6);
+      this.updateCam(dt);
       S.x = p.x;
+    },
+    // 카메라: 평소에는 플레이어를 따라가고, 프롤로그 컷신 중에는 엔진이 지정한 위치로 고정
+    updateCam(dt) {
+      const P = AU.Prologue, p = this.player, mw = this.map.width;
+      if (P && P.on && P.cam.mode === "fixed") { this.camX = Math.max(0, Math.min(mw - W, P.cam.x - W / 2)); return; }
+      const target = Math.max(0, Math.min(mw - W, p.x - W / 2));
+      this.camX += (target - this.camX) * Math.min(1, dt * 6);
     },
 
     updatePlayer(dt, blocked) {
       const p = this.player, I = AU.Input, M = C.move, map = this.map;
-      const left = !blocked && I.isHeld("left"), right = !blocked && I.isHeld("right"), up = !blocked && I.isHeld("up"), down = !blocked && I.isHeld("down");
+      const virt = this.virt; // 컷신이 주인공을 걷게 할 때(프롤로그)는 키 입력 대신 가상 입력을 씀
+      const left = virt ? virt.dir < 0 : !blocked && I.isHeld("left"), right = virt ? virt.dir > 0 : !blocked && I.isHeld("right"), up = !blocked && I.isHeld("up"), down = !blocked && I.isHeld("down");
       const mv = (right ? 1 : 0) - (left ? 1 : 0);
       this.nearNpc = null; this.nearPortal = null;
 
@@ -104,8 +110,8 @@ window.AU = window.AU || {};
         return;
       }
       // 좌우 이동: 부드러운 가속·감속
-      const target = mv * M.speed;
-      if (mv) { p.dir = mv; p.vx += Math.sign(target - p.vx) * M.accel * dt; if (Math.abs(p.vx) > M.speed) p.vx = target; }
+      const sp = M.speed * (virt && virt.k || 1), target = mv * sp;
+      if (mv) { p.dir = mv; p.vx += Math.sign(target - p.vx) * M.accel * dt; if (Math.abs(p.vx) > sp) p.vx = target; }
       else { const dv = M.decel * dt; p.vx = Math.abs(p.vx) <= dv ? 0 : p.vx - Math.sign(p.vx) * dv; }
       if (p.dead) p.vx = 0;
       // 밧줄 잡기
@@ -119,6 +125,7 @@ window.AU = window.AU || {};
       p.vy = Math.min(M.maxFall, p.vy + M.gravity * dt);
       p.x += p.vx * dt; p.y += p.vy * dt;
       p.x = Math.max(24, Math.min(map.width - 24, p.x));
+      if (AU.Prologue && AU.Prologue.on) AU.Prologue.clampLimits(p); // 장면 진행 조건을 채우기 전에는 출구를 막음
       p.drop = Math.max(0, p.drop - dt);
       // 단단한 바위·턱: 옆에서 막음
       for (const pl of map.platforms) {
@@ -142,7 +149,7 @@ window.AU = window.AU || {};
 
       // 기본 공격(누르고 있으면 공격 속도에 맞춰 반복)
       p.atkBuf = Math.max(0, (p.atkBuf || 0) - dt); // 짧게 눌렀다 뗀 입력도 0.15초간 기억(프레임 사이에 사라지는 것 방지)
-      if ((I.isHeld("attack") || p.atkBuf > 0) && p.atkCD <= 0 && !p.dead) { p.atkBuf = 0; this.basicAttack(); }
+      if ((I.isHeld("attack") || p.atkBuf > 0) && p.atkCD <= 0 && !p.dead && !(AU.Prologue && AU.Prologue.on)) { p.atkBuf = 0; this.basicAttack(); }
     },
 
     // 근처 NPC·포털 찾기(매 프레임 + 입력 순간에도 다시 계산)
@@ -151,11 +158,14 @@ window.AU = window.AU || {};
       for (const n of map.npcs || []) if (Math.abs(p.x - n.x) < 90) { if (!this.nearNpc || Math.abs(p.x - n.x) < Math.abs(p.x - this.nearNpc.x)) this.nearNpc = n; }
       for (const pt of map.portals || []) if (Math.abs(p.x - pt.x) < 70 && p.onGround) this.nearPortal = pt;
       this.prompt = this.nearNpc ? "Space 대화: " + AU.NPCS[this.nearNpc.id].name : this.nearPortal ? "↑ 이동: " + this.nearPortal.label : "";
+      if (AU.Prologue && AU.Prologue.on) AU.Prologue.scan(this);
     },
 
     /* ---------- 입력 이벤트(눌렀을 때 한 번) ---------- */
     onAction(id) {
       if (this.isBlocked()) return;
+      const PR = AU.Prologue;
+      if (PR && PR.on) { if (id === "interact") { PR.interactNear(); return; } if (id === "attack" || id.startsWith("skill")) return; } // 프롤로그에서는 전투·스킬 없음
       const p = this.player; if (id === "interact" || id === "up") this.scan();
       if (id === "jump") {
         if (p.rope) { p.rope = null; p.vy = -C.move.jump * 0.85; p.vx = p.dir * 160; p.onGround = false; return; }
@@ -271,19 +281,26 @@ window.AU = window.AU || {};
 
     /* ---------- 그리기 ---------- */
     draw(ctx) {
+      const PR = AU.Prologue, pro = !!(PR && PR.on);
+      if (pro && PR.shotFn) { PR.shotFn(ctx); PR.drawOverlay(ctx); return; } // 시간 경과 연출처럼 화면 전체를 직접 그리는 컷
       const cx = Math.round(this.camX), map = this.map, p = this.player;
+      ctx.save(); if (pro) PR.beginFrame(ctx);
       this.drawBackground(ctx, cx);
       ctx.save(); ctx.translate(-cx, 0);
+      if (pro) PR.drawLayer(ctx, "back");
       this.drawStructures(ctx);
       for (const n of map.npcs || []) this.drawNpc(ctx, n);
       for (const m of this.monsters) if (m.alive) this.drawMonster(ctx, m);
+      if (pro) PR.drawLayer(ctx, "mid");
       this.drawPlayer(ctx, p);
+      if (pro) PR.drawLayer(ctx, "front");
       for (const f of this.fx) this.drawFx(ctx, f);
       for (const f of this.floaters) {
         ctx.globalAlpha = Math.max(0, 1 - f.t / 0.9); ctx.font = "700 22px 'Noto Sans KR', sans-serif"; ctx.textAlign = "center"; ctx.lineJoin = "round";
         ctx.lineWidth = 4; ctx.strokeStyle = "rgba(30,22,15,.7)"; ctx.strokeText(f.text, f.x, f.y - f.t * 50); ctx.fillStyle = f.color; ctx.fillText(f.text, f.x, f.y - f.t * 50); ctx.globalAlpha = 1;
       }
-      ctx.restore();
+      ctx.restore(); ctx.restore();
+      if (pro) PR.drawOverlay(ctx);
       if (this.trans) {
         const t = this.trans, a = t.t < t.dur / 2 ? t.t / (t.dur / 2) : 1 - (t.t - t.dur / 2) / (t.dur / 2);
         ctx.fillStyle = "rgba(255,248,232," + Math.max(0, Math.min(1, a)) + ")"; ctx.fillRect(0, 0, W, H);
@@ -293,7 +310,8 @@ window.AU = window.AU || {};
       const key = this.map.bg;
       if (AU.Img.has(key)) {
         const im = AU.Img.get(key), sw = im.naturalWidth * (H / im.naturalHeight);
-        ctx.drawImage(im, -cx, 0, sw, H);
+        if (this.map.bgFlip) { ctx.save(); ctx.translate(sw - cx, 0); ctx.scale(-1, 1); ctx.drawImage(im, 0, 0, sw, H); ctx.restore(); } // 좌우 반전(임시 배경 재사용)
+        else ctx.drawImage(im, -cx, 0, sw, H);
       } else {
         const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "#BFE6F7"); g.addColorStop(1, "#FFE9B8");
         ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
@@ -350,9 +368,12 @@ window.AU = window.AU || {};
       if (p.dead) ctx.globalAlpha = 0.5;
       const key = AU.Img.has("player_male") ? "player_male" : "player_female", moving = Math.abs(p.vx) > 20 && p.onGround;
       const frame = moving ? Math.floor(this.time * 9) % 4 : (p.rope ? Math.floor(p.anim) % 2 : 0);
-      const lean = p.atkT > 0 ? p.dir * 6 : 0;
+      const lean = p.atkT > 0 ? p.dir * 6 : 0, PR = AU.Prologue, pro = !!(PR && PR.on), pose = pro ? PR.poseOf(p) : null;
+      if (pose) { ctx.save(); ctx.translate(p.x + (pose.dx || 0), p.y); ctx.rotate(pose.rot || 0); ctx.scale(pose.sx || 1, pose.sy || 1); ctx.translate(-p.x, -p.y); }
       if (!this.sprite(ctx, key, p.x + lean, p.y, C.player.spriteHeight, p.dir, frame)) { ctx.fillStyle = "#FFB3C7"; this.rr(ctx, p.x - 22, p.y - 118, 44, 118, 16); ctx.fill(); }
+      if (pose) ctx.restore();
       ctx.globalAlpha = 1;
+      if (pro) PR.drawPlayerExtras(ctx, p, pose); // 들고 있는 목재·망치·등에 멘 가방
       if (p.flash > 0) { ctx.fillStyle = "rgba(255,90,90," + (p.flash * 2) + ")"; this.rr(ctx, p.x - 26, p.y - 124, 52, 124, 18); ctx.fill(); }
     },
     drawFx(ctx, f) {
