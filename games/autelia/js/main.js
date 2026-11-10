@@ -91,7 +91,7 @@ window.AU = window.AU || {};
     const openSetup = (mode, onDone) => AU.Profile.openSetup(t, { mode, initial: AU.Profile.get(), onBack: () => buildTitle(hasSave), onDone });
     b1.onclick = needSetup ? () => openSetup("new", (name, gender) => { AU.Profile.set(name, gender); AU.G.save("profile"); start(); }) : start;
     const box = document.createElement("div"); box.className = "panel titlebox";
-    box.innerHTML = '<div class="tlogo">아우텔리아</div><div class="tsub">시제품 · 프롤로그 + 1~10레벨 · 임시 콘텐츠 포함 (v' + AU.VERSION + ')</div>';
+    box.innerHTML = '<div class="tlogo">아우텔리아</div><div class="tsub">프롤로그 체험 · 시제품 v' + AU.VERSION + '</div>';
     box.append(b1);
     if (hasSave && !inPro) { const bp = document.createElement("button"); bp.type = "button"; bp.className = "btn"; bp.id = "btn-replay"; bp.textContent = "프롤로그 다시 보기"; bp.onclick = () => { t.classList.add("hidden"); main.running = true; window.focus(); P.startReplay(); }; box.append(bp); }
     if (hasSave) { const b2 = document.createElement("button"); b2.type = "button"; b2.className = "btn"; b2.id = "btn-new"; b2.textContent = "처음부터 시작"; b2.onclick = () => AU.UI.confirm("저장된 기록을 지우고 처음부터 시작할까요?", "지우고 시작", main.resetAll); box.append(b2); }
@@ -106,6 +106,7 @@ window.AU = window.AU || {};
     const dt = Math.min(0.05, Math.max(0, (ts - last) / 1000)); last = ts;
     try {
       if (main.running) { const paused = AU.UI.anyOpen(); AU.Prologue.update(dt, paused); if (!paused) AU.World.update(dt); else if (AU.Prologue.on) AU.World.updateCam(dt); }
+      if (AU.Bgm) AU.Bgm.tick(dt);
       const ctx = document.getElementById("cv").getContext("2d");
       ctx.clearRect(0, 0, C.W, C.H); AU.World.draw(ctx); AU.UI.updateHud();
     } catch (err) { console.error("[아우텔리아] 오류(게임은 계속 실행):", err); AU.main.lastError = String(err && err.stack || err); }
