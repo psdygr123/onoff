@@ -18,3 +18,9 @@ python3 tools/build_prologue_art.py <원화 폴더> games/autelia/assets/prologu
 python3 tools/build_prologue_art2.py <추가 원화 폴더> games/autelia/assets/prologue
 ```
 장애물 3종·이음 골조(`ob/`), 초상화 8장(`pt/`, 512×512), 불꽃·연기 스트립(`fx/`)을 만듭니다. 마젠타 제거 도우미는 `build_prologue_art.py`를 가져다 씁니다. 불타는 신전(`temple_burn`)은 연기에 비친 마젠타 번짐을 `despill_all` 옵션으로 추가 보정합니다(`python3 tools/build_prologue_art.py <원화> <출력> ob`).
+
+## NPC 다양화 패키지(주민 10종) 변환: `build_prologue_art3.py`
+```bash
+python3 tools/build_prologue_art3.py <Autelia_NPC_Diversity 폴더> games/autelia/assets/prologue
+```
+시트 10장(`villager_d`~`villager_m`: 환호1·2, 도주1·2)을 `ch/`에 만들고 `js/prologue/artmeta.js`에 시트 정보를 **덧붙입니다**(`build_prologue_art.py all`을 다시 돌렸다면 이 도구도 다시 실행). 크기는 팔·모자를 든 환호 자세가 아니라 **도주1의 몸높이**를 기준으로, 기존 성인 주민(a~c)의 몸높이(시트 기준 282px) × 인물별 상대 키(manifest)로 맞춥니다.

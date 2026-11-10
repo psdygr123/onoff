@@ -5,7 +5,7 @@ window.AU = window.AU || {};
   const W = 1280, H = 720, G = 590, LAY = AU.PRO_LAY, A = AU.PArt, T = AU.PRO_TEXT, OBJ = AU.PRO_OBJ, SP = AU.PRO_SPEAKERS;
   const rnd = (a, b) => a + Math.random() * (b - a);
   const D = AU.PRO_DRAW = {};
-  const SC = AU.PRO_SCENES = [];
+  const SC = AU.PRO_SCENES = {};
 
   /* ---------- 공통 도우미 ---------- */
   function npc(P, id, speaker, sprite, x, h, extra) { return P.addEnt(Object.assign({ id, x, sprite, h, name: SP[speaker].name, faceP: true }, extra || {})); }
@@ -14,9 +14,11 @@ window.AU = window.AU || {};
       update(e, dt) { if (e.min == null) return; e.x += e.face * 26 * dt; if (e.x > e.max) e.face = -1; if (e.x < e.min) e.face = 1; },
       draw(ctx, e, P) { ctx.save(); ctx.globalAlpha = e.alpha == null ? (A.has("pc_raider_actions") ? 1 : 0.78) : e.alpha; A.raider(ctx, e.x, e.y, e.s, P.time, e.face); ctx.restore(); } });
   }
+  const SHEETS = "abcdefghijklm".split("").filter(() => true); // 주민 동작 시트(a~c 1차, d~m NPC 다양화). 없는 시트는 runner/crowd 에서 건너뜀
+  const pickSheet = () => { const ok = SHEETS.filter((c) => A.has("pc_villager_" + c + "_actions")); return ok.length ? ok[(Math.random() * ok.length) | 0] : "a"; };
   // 도망치는 주민 실루엣(배경 연출용, 충돌 없음)
   function runner(P, x, dir, speed) {
-    const C = ["#8C6A52", "#6E7F8C", "#A5775A", "#7C8A66", "#9A6F7A", "#C0A06C"], col = C[(Math.random() * C.length) | 0], s = rnd(0.8, 1.05), sheet = "pc_villager_" + "abc"[(Math.random() * 3) | 0] + "_actions";
+    const C = ["#8C6A52", "#6E7F8C", "#A5775A", "#7C8A66", "#9A6F7A", "#C0A06C"], col = C[(Math.random() * C.length) | 0], s = rnd(0.8, 1.05), sheet = "pc_villager_" + pickSheet() + "_actions";
     return P.addEnt({ id: "run" + Math.random(), x, dir, speed, s, col, sheet, ph: Math.random() * 6, range: 0, layer: "mid", runner: true,
       update(e, dt, P) { e.x += e.dir * e.speed * dt; if (e.x < -200 || e.x > AU.World.map.width + 200) P.ents = P.ents.filter((q) => q !== e); },
       draw(ctx, e, P) { const t = P.time * 11 + e.ph;
@@ -44,8 +46,8 @@ window.AU = window.AU || {};
      ============================================================ */
   const artSpr = (art, fb) => (A.has(art) ? art : fb);  // 정식 그림이 있으면 그것, 없으면 이전 시제품 그림
   function drawCrowd(ctx, P) { // 축제 군중(정식 주민 시트): 가까운 곳에 NPC가 있어 피해서 배치, 깊이감을 위해 살짝 작고 위에 선다
-    const L = LAY.plaza, c = P.v.cheer == null ? 0.12 : P.v.cheer, xs = [115, 330, 545, 650, 905, 1010, 1100, 1200], sh = ["a", "b", "c"];
-    xs.forEach((x, i) => { const bob = Math.abs(Math.sin(P.time * (3 + c * 5) + i * 1.7)) * (2 + c * 9); A.spr(ctx, "pc_villager_" + sh[i % 3] + "_actions", c > 0.45 ? "cheer1" : "cheer2", x + (i % 2 ? 6 : -6), 566 - bob, i % 3 === 0 ? -1 : 1, 0.86); });
+    const L = LAY.plaza, c = P.v.cheer == null ? 0.12 : P.v.cheer, xs = [60, 130, 330, 470, 545, 650, 905, 1010, 1100, 1200], sh = ["f", "d", "g", "a", "j", "l", "b", "i", "e", "m"].map((k, i) => (A.has("pc_villager_" + k + "_actions") ? k : "abc"[i % 3]));
+    xs.forEach((x, i) => { const bob = Math.abs(Math.sin(P.time * (3 + c * 5) + i * 1.7)) * (2 + c * 9); A.spr(ctx, "pc_villager_" + sh[i] + "_actions", c > 0.45 ? "cheer1" : "cheer2", x + (i % 2 ? 6 : -6), 566 - bob, i % 3 === 0 ? -1 : 1, 0.86); });
   }
   D.pro_temple = { // BG-01 신전 건축 현장 / 완공 상태
     back(ctx, P) { const v = P.v, L = LAY.temple, fa = v.scaff == null ? 1 : v.scaff;
@@ -98,6 +100,81 @@ window.AU = window.AU || {};
       for (let i = 0; i < 4; i++) A.gull(ctx, 500 + ((P.time * 40 + i * 330) % 1100), 120 + i * 38 + Math.sin(P.time + i) * 12, 1 - i * 0.12, P.time + i);
     }
   };
+
+  /* ============================================================
+     SCENE 00 — 아침의 아르케아 (시작 글 카드 → 마을길 → 기념비)  /  SCENE 01B — 해 질 녘의 마을길(축제 깃발)
+     그림: 배경은 기존 마을길(평화), 주민은 기존 주민 시트. 기념비·깃대는 코드 도형(정식 그림이 오면 교체)
+     ============================================================ */
+  function arrowMark(ctx, P, x, by) { if (P.locked()) return; const y = by + Math.sin(P.time * 4) * 4; ctx.fillStyle = "#E8B94E"; ctx.strokeStyle = "#fff"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(x - 11, y - 12); ctx.lineTo(x + 11, y - 12); ctx.lineTo(x, y + 4); ctx.closePath(); ctx.fill(); ctx.stroke(); }
+  function drawStele(ctx, x, y) { // 빛의 승리 기념비: 돌비석 + 태양 문양 + 새긴 글줄
+    ctx.save(); ctx.translate(x, y); ctx.lineJoin = "round"; ctx.strokeStyle = "#5b4126"; ctx.lineWidth = 3;
+    ctx.fillStyle = "rgba(60,40,20,.26)"; ctx.beginPath(); ctx.ellipse(0, 3, 70, 9, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = "#b4a68e"; A.rrect(ctx, -58, -28, 116, 28, 6); ctx.fill(); ctx.stroke();
+    const g = ctx.createLinearGradient(-44, -196, 44, -28); g.addColorStop(0, "#e6dcc6"); g.addColorStop(1, "#b0a189");
+    ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(-44, -28); ctx.lineTo(-44, -150); ctx.quadraticCurveTo(-44, -196, 0, -198); ctx.quadraticCurveTo(44, -196, 44, -150); ctx.lineTo(44, -28); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.strokeStyle = "rgba(91,65,38,.28)"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-30, -58); ctx.lineTo(-26, -120); ctx.moveTo(24, -70); ctx.lineTo(30, -40); ctx.stroke();   // 돌결
+    ctx.fillStyle = "#E3B24A"; ctx.strokeStyle = "#8a5f1f"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(0, -150, 14, 0, 7); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); for (let i = 0; i < 12; i++) { const a = i * Math.PI / 6; ctx.moveTo(Math.cos(a) * 19, -150 + Math.sin(a) * 19); ctx.lineTo(Math.cos(a) * 27, -150 + Math.sin(a) * 27); } ctx.stroke();
+    ctx.strokeStyle = "rgba(91,65,38,.5)"; ctx.lineWidth = 3; ctx.lineCap = "round"; for (const [yy, w] of [[-112, 54], [-96, 62], [-80, 48], [-64, 58]]) { ctx.beginPath(); ctx.moveTo(-w / 2, yy); ctx.lineTo(w / 2, yy); ctx.stroke(); }
+    ctx.restore();
+  }
+  function setupMorning(P) {
+    const R = LAY.road, M = R.m; P.variant = "peace"; P.tint = { color: "#EAF1FF", a: 0.07 }; P.vig = 0.15;
+    P.limits = { max: M.limit, msg: "길 끝의 기념비를 먼저 읽어 보세요." };
+    const chat = (id, spk, sprite, x, h, label, key, extra) => npc(P, id, spk, sprite, x, h, Object.assign({ range: 100, interact: { label, fn: () => P.cutscene(() => P.say(T[key])) } }, extra || {}));
+    chat("child", "child", artSpr("pc_festival_child", "villager_b"), M.child, 118, "대화: 축제 어린이", "s0_child");
+    chat("baker", "vendor", artSpr("pc_villager_b_actions", "baker"), M.baker, 150, "대화: 빵을 나누는 주민", "s0_baker", { frame: A.sprFrame("pc_villager_b_actions", "cheer2") });
+    chat("elder", "elder", artSpr("pc_villager_c_actions", "villager_a"), M.elder, 150, "대화: 나이 든 주민", "s0_elder", { frame: A.sprFrame("pc_villager_c_actions", "cheer2") });
+    chat("farmer", "farmer", artSpr("pc_villager_d_actions", "villager_a"), M.farmer, 150, "대화: 젊은 농부", "s0_farmer", { frame: A.sprFrame("pc_villager_d_actions", "cheer2") });
+    chat("priest", "priest", artSpr("pc_villager_j_actions", "villager_a"), M.priest, 150, "대화: 신관", "s0_priest", { frame: A.sprFrame("pc_villager_j_actions", "cheer2") });
+    const stele = P.addEnt({ id: "stele", x: M.stele, range: 110, layer: "mid", mark: true, interact: { label: "기념비 읽기", fn: async () => {
+      await P.cutscene(async () => { await P.say(T.s0_stele); }); if (P.flag("stele_read")) return;
+      P.setFlag("stele_read"); stele.mark = false; P.limits = null; P.obj(OBJ.s0_exit);
+      P.trigger({ id: "s0end", test: (p) => p.x >= R.end, fn: () => { P.frozen = true; P.advance(); } }); } },
+      draw(ctx, e, P) { drawStele(ctx, e.x, G); if (e.mark) arrowMark(ctx, P, e.x, G - 232); } });
+  }
+  SC.SCENE_00_MORNING = { name: "아침의 아르케아", async enter(P) {
+    const g = P.gen; P.room("pro_road", LAY.road.m.start, (P) => setupMorning(P));
+    await P.cutscene(async () => { await P.wait(0.9); await P.cards(T.cards); await P.fade(0, 1.8); await P.caption(T.cap1, 3.4); }, { id: "cs00a", skip: true });
+    if (!live(P, g)) return; P.obj(OBJ.s0_walk); const k = P.keys(); P.hint("이동 " + k.move + " · 점프 " + k.jump + " · 상호작용 " + k.act, 9);
+  } };
+
+  function drawPole(ctx, e, P) { // 깃대와 축제 깃발(e.f: 0 말려 있음 → 1 꼭대기까지 올라감)
+    const x = e.x, top = G - 250, fy = G - 78 - e.f * 150, wv = Math.sin(P.time * 3 + x) * 5 * e.f;
+    ctx.save(); ctx.strokeStyle = "#5b4126"; ctx.lineWidth = 3; ctx.lineCap = "round"; ctx.fillStyle = "#9a6b3a";
+    ctx.fillRect(x - 4, top, 8, G - top); ctx.strokeRect(x - 4, top, 8, G - top); ctx.fillStyle = "#E3B24A"; ctx.beginPath(); ctx.arc(x, top - 4, 7, 0, 7); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = e.col; ctx.beginPath();
+    if (e.f < 0.05) { ctx.rect(x + 4, fy, 22, 12); } else { ctx.moveTo(x + 4, fy); ctx.quadraticCurveTo(x + 36, fy - 6 + wv, x + 72 + wv, fy + 20); ctx.quadraticCurveTo(x + 36, fy + 34 + wv * 0.5, x + 4, fy + 40); ctx.closePath(); }
+    ctx.fill(); ctx.stroke(); if (e.f >= 0.05) { ctx.fillStyle = "rgba(255,255,255,.55)"; ctx.beginPath(); ctx.arc(x + 26, fy + 20, 7, 0, 7); ctx.fill(); }
+    ctx.restore(); if (e.mark) arrowMark(ctx, P, x, top - 40);
+  }
+  function setupBanners(P) {
+    const R = LAY.road, B = R.b; P.variant = "peace"; P.tint = { color: "#FFC98A", a: 0.2 }; P.vig = 0.24;
+    const st = { talk: false, done: 0 }; P.limits = { max: B.elder + 150, msg: "먼저 마을 사람에게 말을 걸어 보세요." };
+    const elder = npc(P, "elder", "elder", artSpr("pc_villager_c_actions", "villager_a"), B.elder, 150, { frame: A.sprFrame("pc_villager_c_actions", "cheer2"), range: 110, mark: true });
+    npc(P, "baker", "vendor", artSpr("pc_villager_b_actions", "baker"), B.baker, 150, { frame: A.sprFrame("pc_villager_b_actions", "cheer2"), range: 110, interact: { label: "대화: 빵을 나누는 주민", fn: () => P.cutscene(() => P.say(T.s1b_baker)) } });
+    npc(P, "musician", "musician", artSpr("pc_villager_f_actions", "villager_a"), B.musician, 150, { frame: A.sprFrame("pc_villager_f_actions", "cheer2"), range: 100, interact: { label: "대화: 악사", fn: () => P.cutscene(() => P.say(T.s1b_musician)) } });
+    npc(P, "scribe", "scribe", artSpr("pc_villager_k_actions", "villager_a"), B.scribe, 150, { frame: A.sprFrame("pc_villager_k_actions", "cheer2"), range: 100, interact: { label: "대화: 서기", fn: () => P.cutscene(() => P.say(T.s1b_scribe)) } });
+    const cols = ["#C0573E", "#E3B24A", "#4F8A6B"];
+    const poles = B.poles.map((x, i) => P.addEnt({ id: "pole" + i, x, f: 0, col: cols[i % 3], range: 90, layer: "mid", draw: drawPole, interact: { label: "깃발 달기", off: true, fn: () => hang(poles[i]) } }));
+    elder.interact = { label: "대화: 나이 든 주민", fn: async () => {
+      if (!st.talk) { st.talk = true; await P.cutscene(async () => { await P.say(T.s1b_elder); }); elder.mark = false; P.limits = { max: B.poles[2] + 130, msg: "먼저 깃발을 달아 주세요." };
+        poles.forEach((q) => { q.interact.off = false; q.mark = true; }); P.obj(OBJ.s1b_flags.replace("{n}", 0)); return; }
+      await P.cutscene(async () => { await P.say(T.s1b_elder2); }); } };
+    async function hang(q) {
+      if (q.hung) return; q.hung = true; q.mark = false; q.interact.off = true;
+      await P.cutscene(async () => { await P.walkTo(q.x - 48, 1); P.face(1); await P.wait(0.2); P.sfx("pick"); await P.tween(q, { f: 1 }, 1.0, (k) => k); P.sfx("item"); await P.wait(0.25); });
+      st.done++; P.obj(OBJ.s1b_flags.replace("{n}", st.done));
+      if (st.done < 3) return;
+      await P.cutscene(async () => { await P.say(T.s1b_done); }); P.setFlag("banners_done"); P.limits = null; P.obj(OBJ.s1b_exit);
+      P.trigger({ id: "s1bend", test: (p) => p.x >= B.limit, fn: () => { P.frozen = true; P.advance(); } });
+    }
+  }
+  SC.SCENE_01B_BANNERS = { name: "해 질 녘의 마을길", async enter(P) {
+    const g = P.gen; P.room("pro_road", LAY.road.start, (P) => setupBanners(P));
+    await P.cutscene(async () => { await P.fade(0, 1.4); await P.caption(T.cap1c, 2.8); }, { id: "cs01c", skip: true });
+    if (!live(P, g)) return; P.obj(OBJ.s1b_talk);
+  } };
 
   /* ============================================================
      SCENE 01 — 마지막 망치질 (신전 건축 현장 → 마을길)
@@ -158,15 +235,13 @@ window.AU = window.AU || {};
         P.setFlag("father_final_conversation_complete");
       }, { id: "cs01b", skip: true, bars: true });
       father.mark = false; P.limits = null; P.obj(OBJ.s1_exit); father.working = false;
-      P.trigger({ id: "s1exit", test: (p) => p.x >= L.exit, fn: () => toRoad() });
+      P.trigger({ id: "s1exit", test: (p) => p.x >= L.exit, fn: () => { P.frozen = true; P.advance(); } });
     }
-    async function toRoad() { await go(P, "pro_road", LAY.road.start, (P) => setupRoad(P, "peace", 1)); }
   }
   function setupRoad(P, variant, scene) {
     P.variant = variant;
-    if (variant === "peace") { P.tint = { color: "#FFF1DA", a: 0.1 }; P.vig = 0.15;
-      P.trigger({ id: "s1end", test: (p) => p.x >= LAY.road.end, fn: () => { P.frozen = true; P.advance(); } }); }
-    else { // BG-V01 마을길 습격 상태
+    if (variant === "peace") return;
+    { // BG-V01 마을길 습격 상태
       P.tint = { color: "#c9a79f", a: 0.5 }; P.vig = 0.4; P.setPlatforms(LAY.road.obst);
       flames(P, [{ x: 560, y: G, s: 1.1 }, { x: 760, y: G, s: 0.8 }, { x: 1240, y: G, s: 1.2 }, { x: 1900, y: G, s: 1.0 }, { x: 2130, y: G, s: 0.9 }, { x: 180, y: 300, s: 1.5 }, { x: 300, y: 285, s: 1.8 }, { x: 400, y: 310, s: 1.3 }]);
       fireEmitters(P, LAY.road.w, 150, 560, 1); for (const [i, r] of LAY.road.raiders.entries()) raider(P, "r" + (i + 1), r[0], r[1], 0.5 - i * 0.05, -1, r[2], r[3]); runnerSpawner(P, 2.2);
@@ -176,11 +251,11 @@ window.AU = window.AU || {};
   }
   async function houseDoor() { const P = AU.Prologue, g = P.gen; await P.cutscene(async () => { await P.walkTo(LAY.road.doorX, 1); P.sfx("thud"); await P.wait(0.5); }); if (live(P, g)) { P.frozen = true; P.advance(); } }
 
-  SC[0] = { name: "마지막 망치질", async enter(P) {
+  SC.SCENE_01_TEMPLE = { name: "마지막 망치질", async enter(P) {
     const g = P.gen; P.room("pro_temple", LAY.temple.start, (P) => setupTemple(P));
     await P.cutscene(async () => { // 검은 화면에서 망치 소리 → 서서히 밝아짐 → 자막
       P.sfx("hammer"); await P.wait(0.9); P.sfx("hammer"); await P.wait(0.8); P.sfx("hammer"); await P.wait(0.7); P.sfx("hammer"); await P.wait(0.6);
-      P.fade(0, 2.4); await P.wait(1.4); await P.caption(T.cap1, 3.6);
+      P.fade(0, 2.4); await P.wait(1.4); await P.caption(T.cap1b, 3.2);
     }, { id: "cs00", skip: true });
     if (!live(P, g)) return; P.obj(OBJ.s1_talk); const k = P.keys(); P.hint("이동 " + k.move + " · 점프 " + k.jump + " · 상호작용 " + k.act, 9);
   } };
@@ -218,7 +293,7 @@ window.AU = window.AU || {};
     }, { id: "cs02a", skip: true, bars: true });
     if (live(P, g)) { P.frozen = true; P.advance("#fff"); }
   }
-  SC[1] = { name: "빛의 승리 100주년", async enter(P) {
+  SC.SCENE_02_FESTIVAL = { name: "빛의 승리 100주년", async enter(P) {
     const g = P.gen; P.room("pro_plaza", LAY.plaza.start, (P) => setupPlaza(P, "peace"));
     await P.cutscene(async () => { await P.fade(0, 1.4); });
     if (!live(P, g)) return; P.obj(OBJ.s2_talk);
@@ -227,7 +302,7 @@ window.AU = window.AU || {};
   /* ============================================================
      SCENE 03 — 검은 화염 (광장 → 마을길 → 집 앞)
      ============================================================ */
-  SC[2] = { name: "검은 화염", async enter(P) {
+  SC.SCENE_03_ATTACK = { name: "검은 화염", async enter(P) {
     const g = P.gen; P.room("pro_plaza", LAY.plaza.w - 180, (P) => setupPlaza(P, "attack")); P.fadeS.color = "#fff"; P.fadeS.a = 1; P.setFlag("attack_triggered"); P.face(1);
     await P.cutscene(async () => { // CS-02 축제 습격
       await P.wait(0.5); P.amb("fire", true); P.sfx("boom"); P.shake(12, 1.4); P.fade(0, 1.6);
@@ -294,7 +369,7 @@ window.AU = window.AU || {};
     }, { id: "cs03", skip: true, bars: true });
     if (!live(P, g)) return; bag.hidden = false; P.obj(OBJ.s4_bag); P.limits = { min: 120, max: null, msg: "도구 가방을 챙겨야 합니다." };
   }
-  SC[3] = { name: "아버지의 마지막 유언", async enter(P) {
+  SC.SCENE_04_FATHER = { name: "아버지의 마지막 유언", async enter(P) {
     const g = P.gen; P.room("pro_house", LAY.house.start, (P) => setupHouse(P)); P.amb("fire", true);
     await P.cutscene(async () => { await P.fade(0, 1.6); }); if (!live(P, g)) return; P.obj(OBJ.s3_dad);
   } };
@@ -314,7 +389,7 @@ window.AU = window.AU || {};
       else { const g = ctx.createRadialGradient(W * 0.5, 330, 10, W * 0.5, 330, 520); g.addColorStop(0, "rgba(255,230,160,.6)"); g.addColorStop(1, "rgba(255,200,120,0)"); ctx.globalCompositeOperation = "lighter"; ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); ctx.globalCompositeOperation = "source-over"; }
       const px = 260 + local * 120, bob = Math.abs(Math.sin(local * 7)) * 3; if (!A.spr(ctx, "pc_player_" + (AU.PRO_GENDER || "m") + "_locomotion", "walk" + (1 + Math.floor(local * 8) % 4), px, G + 6 - bob, 1)) AU.World.sprite(ctx, "player_male", px, G + 6 - bob, 150, 1, Math.floor(local * 8) % 4); ctx.restore(); }
   }
-  SC[4] = { name: "잿더미를 뒤로하고", async enter(P) {
+  SC.SCENE_05_ESCAPE = { name: "잿더미를 뒤로하고", async enter(P) {
     const g = P.gen, k = P.keys();
     P.room("pro_escape", LAY.escape.start, (P) => {
       P.variant = "night"; P.tint = { color: "#8c9cc8", a: 0.22 }; P.vig = 0.38;
@@ -349,7 +424,7 @@ window.AU = window.AU || {};
   /* ============================================================
      SCENE 06 — 중립도시 포르투 노바 (외곽 언덕 → 종료 화면)
      ============================================================ */
-  SC[5] = { name: "중립도시 포르투 노바", async enter(P) {
+  SC.SCENE_06_PORT_VIEW = { name: "중립도시 포르투 노바", async enter(P) {
     const g = P.gen;
     P.room("pro_hill", LAY.hill.start, (P) => { P.variant = "dawn"; P.v.reveal = 0; P.tint = { color: "#FFE6C8", a: 0.12 }; P.vig = 0.2; P.emitter({ kind: "glow", x0: 300, x1: 1300, y0: 300, y1: 500, rate: 3 }); });
     P.amb("waves", true); P.face(1);

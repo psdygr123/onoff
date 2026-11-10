@@ -515,7 +515,7 @@ window.AU = window.AU || {};
           btn("전직 시험 퀘스트 바로 완료 준비", "mini", () => { if (!S.jobChanged && S.level >= 10) { S.quests.q_job = { state: "ready", prog: [1] }; AU.G.changed(); AU.G.toast("전직 담당에게 가면 전직합니다.", "info"); } else AU.G.toast("10레벨 이상 · 미전직 상태에서만 가능합니다.", "warn"); })),
         h("div", null, h("h4", { text: "마음 기록 인터페이스 시험" }), btn("PSS 샘플 기록 추가", "mini", () => AU.G.addCheckin({ scale: "PSS", score: 12, items: null, source: "dev-sample" })), h("p", { class: "note", text: "기록 " + S.mind.checkins.length + "건. 게임 자원과 별도 저장되며, 점수→" + C.resource.name + " 환산은 하지 않습니다." }))));
     const PR = AU.Prologue, grid = b.querySelector(".devgrid");
-    if (PR && grid) grid.append(h("div", null, h("h4", { text: "프롤로그" }), h("div", { class: "devrow" }, [1, 2, 3, 4, 5, 6].map((n) => btn("장면 " + n, "mini", () => { UI.close(); PR.devJump(n - 1); }))),
+    if (PR && grid) grid.append(h("div", null, h("h4", { text: "프롤로그" }), h("div", { class: "devrow" }, PR.ORDER.map((_, n) => btn("장면 " + (n + 1), "mini", () => { UI.close(); PR.devJump(n); }))),
       btn("즉시 완료 → 포르투 노바", "mini", () => { UI.close(); PR.debugComplete("porto"); }), btn("컷신 건너뛰기", "mini", () => { UI.close(); PR.skip(); }),
       h("p", { class: "note", text: "상태 " + PR.st().state + " · 깃발 " + Object.keys(PR.st().flags).filter((k) => PR.st().flags[k]).length + "개" + (PR.replay ? " (다시 보기 중: 저장 기록은 바뀌지 않음)" : "") })));
   };

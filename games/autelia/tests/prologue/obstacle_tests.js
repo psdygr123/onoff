@@ -3,7 +3,7 @@ const { open, sleep } = require('./lib.js');
 const R = []; const ok = (n, c, d) => { R.push([n, !!c]); console.log((c ? 'PASS ' : 'FAIL ') + n + (d ? '  ' + d : '')); };
 (async () => {
   const T = await open(); const { p, ev } = T; await T.fresh(); await T.start(); await T.idle();
-  await ev(() => AU.Prologue.devJump(2)); await T.idle(); await sleep(800);
+  await ev(() => AU.Prologue.devJump('SCENE_03_ATTACK')); await T.idle(); await sleep(800);
   const ob = await ev(() => AU.PRO_LAY.plaza.obst[0]); await ev((o) => { AU.World.player.x = o.x + o.w + 120; AU.World.player.y = 590; }, ob); await sleep(200);
   await p.keyboard.down('ArrowLeft'); let jumped = false, onTop = false, passed = false;
   for (let i = 0; i < 120; i++) { await sleep(40); const s = await ev(() => ({ x: AU.World.player.x, y: AU.World.player.y, g: AU.World.player.onGround }));

@@ -27,7 +27,7 @@ const R = []; const ok = (n, c, d) => { R.push([n, !!c]); console.log((c ? 'PASS
   // P05 확정(Enter) → 저장 + 프롤로그 시작 + 여성형 그림
   await p.press('#sname', 'Enter'); await sleep(500);
   s = await ev(() => ({ on: AU.Prologue.on, st: AU.G.S.prologue.state, pr: AU.G.S.profile, g: AU.PRO_GENDER, hk: AU.Prologue.heroKey('actions'), has: AU.Img.has(AU.Prologue.heroKey('actions')), saved: JSON.parse(localStorage.getItem(Object.keys(localStorage).find((k) => /autelia\.save/.test(k)))).profile }));
-  ok('P05a Enter로 확정하면 프롤로그 시작', s.on && /SCENE_01/.test(s.st), JSON.stringify(s));
+  ok('P05a Enter로 확정하면 프롤로그 시작', s.on && /SCENE_00/.test(s.st), JSON.stringify(s));
   ok('P05b 프로필 저장(메모리·저장소 모두)', s.pr.name === '하늘' && s.pr.gender === 'f' && s.saved.name === '하늘' && s.saved.gender === 'f', JSON.stringify(s.saved));
   ok('P05c 여성 주인공 그림 사용', s.g === 'f' && s.hk === 'pc_player_f_actions' && s.has, s.hk);
   await sleep(1500); await T.shot('profile_f_prologue');

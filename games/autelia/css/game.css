@@ -188,3 +188,14 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
 .setupbox .sprev { margin-top: 18px; padding: 12px 14px; background: var(--paper2); border-radius: 10px; font-size: 15px; line-height: 1.6; } .setupbox .sprevl { font-size: 12px; color: var(--ink2); margin-bottom: 2px; letter-spacing: .04em; }
 .setupbox .sfoot { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
 .btn:disabled { opacity: .45; cursor: not-allowed; }
+
+/* 프롤로그 시작 글 카드(검은 화면 위 글, Space·Enter·클릭으로 넘김) */
+.procards { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; flex-direction: column; color: #f4ead6; text-align: center; cursor: pointer; z-index: 5; }
+.procards.on { display: flex; }
+.procards .cd { opacity: 0; transform: translateY(8px); transition: opacity 1s ease, transform 1s ease; }
+.procards.show .cd { opacity: 1; transform: none; }
+.procards .cd p { margin: 0 0 18px; font-size: 34px; font-weight: 300; line-height: 1.5; letter-spacing: .08em; text-shadow: 0 2px 18px rgba(0, 0, 0, .8); }
+.procards .cd p.l0 { color: #fff7e4; }
+.procards .cn { position: absolute; bottom: 7%; font-size: 15px; letter-spacing: .1em; color: rgba(244, 234, 214, .55); opacity: 0; transition: opacity .8s ease 1.4s; }
+.procards.show .cn { opacity: 1; animation: cardblink 2.4s ease-in-out 2.6s infinite; }
+@keyframes cardblink { 50% { opacity: .35; } }

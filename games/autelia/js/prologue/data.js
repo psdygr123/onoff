@@ -30,7 +30,7 @@ window.AU = window.AU || {};
   // 장면별 배치 좌표(그림이 바뀌면 여기만 고칩니다)
   const L = AU.PRO_LAY = {
     temple: { w: BW("temple", 1839), start: 250, pile: 470, father: 700, joint: 905, tx: 1215, tBase: 548, tW: 720, limit: 1720, exit: 1790, hammerAt: 1010 },
-    road:   { w: BW("road", 2149), start: 90, doorX: 268, end: 2050, obst: [{ x: 800, y: 527, w: 190, h: 63 }, { x: 1270, y: 527, w: 190, h: 63 }], raiders: [[1150, 505, 1000, 1350], [1500, 500, 1350, 1750]] },
+    road:   { w: BW("road", 2149), start: 90, doorX: 268, end: 2050, m: { start: 300, farmer: 760, child: 600, baker: 930, elder: 1260, priest: 1480, stele: 1700, limit: 1780 }, b: { elder: 430, musician: 640, baker: 1000, scribe: 1520, poles: [800, 1300, 1750], limit: 2050 }, obst: [{ x: 800, y: 527, w: 190, h: 63 }, { x: 1270, y: 527, w: 190, h: 63 }], raiders: [[1150, 505, 1000, 1350], [1500, 500, 1350, 1750]] },
     plaza:  { w: BW("plaza", 1279), start: 90, elder: 240, child: 430, vendor: 790, limit: 950, center: 1030, exit: 70, tx: 640, tBase: 520, tW: 520, obst: [{ x: 690, y: 527, w: 190, h: 63 }] },
     house:  { w: BW("house", 1279), start: 170, father: 860, bag: 420, find: 470, exit: 100 },
     escape: { w: BW("escape", 3083), start: 90, recall: 1500, look: 2780, end: 3020 },
@@ -56,6 +56,8 @@ window.AU = window.AU || {};
     vendor: { name: "빵을 나누는 주민", portrait: "pt_pro_baker", alt: "pt_baker" },
     child:  { name: "축제 어린이", portrait: "pt_pro_child", alt: "pt_villager_b" },
     elder:  { name: "나이 든 주민", portrait: "pt_pro_elder", alt: "pt_villager_a" },
+    stele:  { name: "기념비", portrait: "" },
+    farmer: { name: "젊은 농부", portrait: "" }, priest: { name: "신관", portrait: "" }, musician: { name: "악사", portrait: "" }, scribe: { name: "서기", portrait: "" },   // 초상화는 아직 없음(요청 예정)
     resA:   { name: "주민", portrait: "pt_villager_a" },
     resB:   { name: "주민", portrait: "pt_villager_b" },
     resC:   { name: "주민", portrait: "pt_baker" }
@@ -84,6 +86,8 @@ window.AU = window.AU || {};
 
   /* ---------- 목표 문구 ---------- */
   AU.PRO_OBJ = {
+    s0_walk: "마을길을 따라 걸어 보세요. 길 끝에 기념비가 있습니다.", s0_stele: "길 끝의 기념비를 읽어 보세요.", s0_exit: "신전 건축 현장으로 이동하세요.",
+    s1b_talk: "마을 사람에게 말을 걸어 보세요.", s1b_flags: "깃대에 축제 깃발을 달아 주세요. ({n}/3)", s1b_exit: "축제 광장으로 이동하세요.",
     s1_talk: "아버지에게 말을 걸어 보세요.", s1_lumber: "아버지에게 목재를 가져다주세요.", s1_joint: "신전의 이음새를 고정하세요.", s1_back: "아버지에게 돌아가세요.", s1_exit: "축제 광장으로 이동하세요.",
     s2_talk: "광장에서 주민과 이야기를 나눠 보세요.", s2_center: "광장 중앙으로 가 보세요.",
     s3_dad: "아버지를 찾아 돌아가세요.", s4_bag: "도구 가방을 챙겨 집을 빠져나가세요.", s4_exit: "집을 빠져나가세요.", s5_escape: "아르케아를 탈출하세요."

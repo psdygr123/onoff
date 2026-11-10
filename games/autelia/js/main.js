@@ -35,7 +35,7 @@ window.AU = window.AU || {};
   }
   main.reportProgress = function () {
     if (!embedded || !AU.G.S) return;
-    const S = AU.G.S; if (AU.Prologue && AU.Prologue.on) { main.post("progress", { label: "프롤로그 · 장면 " + Math.max(1, AU.Prologue.sceneIdx + 1) + "/6", percent: 0 }); return; }
+    const S = AU.G.S; if (AU.Prologue && AU.Prologue.on) { main.post("progress", { label: "프롤로그 · 장면 " + Math.max(1, AU.Prologue.sceneIdx + 1) + "/" + AU.Prologue.ORDER.length, percent: 0 }); return; }
     main.post("progress", { label: AU.jobName(S) + " Lv." + S.level, percent: Math.min(100, Math.round(S.level / 10 * 100)) });
   };
 

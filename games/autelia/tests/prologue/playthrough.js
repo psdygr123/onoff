@@ -20,14 +20,22 @@ const { open, sleep } = require('./lib.js');
   if (process.env.SKIP) { T.idle = async (max = 40000) => { const t0 = Date.now(); while (Date.now() - t0 < max) { const s = await T.P(); if (s.dlg) { await p.keyboard.press('Space'); await sleep(130); continue; } if (s.cs) { await p.keyboard.press('Enter'); await sleep(120); continue; } if (!s.frozen && s.fade < 0.05) return true; await sleep(100); } return false; }; }
   if (process.env.SKIP) { T.until = async (cond, max = 40000, arg) => { const t0 = Date.now(); while (Date.now() - t0 < max) { if (await ev(cond, arg)) return true; const d = await ev(() => ({ dlg: !!AU.UI.dialog, cs: !!AU.Prologue.cs })); if (d.dlg) await p.keyboard.press('Space'); else if (d.cs) await p.keyboard.press('Enter'); await sleep(110); } return false; }; }
   const SK = !!process.env.SKIP; const SS = (n) => SK ? 0 : T.shot(n); T.shot = async (n) => { if (!SK) await p.screenshot({ path: (process.env.SHOTS || '/tmp/claude-0/shots') + '/' + n + '.png' }); };
-  const L = await (async () => { await T.fresh(); return ev(() => AU.PRO_LAY); })(); await T.fresh(); await T.start(); await sleep(6500); await T.shot('r3_s1_cs'); await T.idle(); await T.shot('r3_s1_start');
+  const L = await (async () => { await T.fresh(); return ev(() => AU.PRO_LAY); })(); await T.fresh(); await T.start(); await sleep(1500); await T.idle(); await T.shot('r4_s0_start');
+  // ---- S0 (도입 글 카드 → 마을길 → 기념비) ----
+  const RM = L.road.m; await T.walk(RM.child); await p.keyboard.press('Space'); await sleep(300); await T.dialogs(); await T.idle();
+  await T.walk(RM.limit + 200, 12, 20000); log('S0 limit x=', (await T.P()).x, '(<=' + RM.limit + ' expected)'); await T.walk(RM.stele - 60, 12, 20000); await p.keyboard.press('Space'); await sleep(300); await T.dialogs(); await T.idle(); await T.shot('r4_s0_stele');
+  await T.walk(L.road.end + 20, 12, 40000); await T.until(() => AU.Prologue.st().state === 'SCENE_01_TEMPLE', 20000); lap('S0'); await sleep(4500); await T.idle(); await T.shot('r3_s1_start');
   // ---- S1 ----
   await T.walk(L.temple.father - 80); await p.keyboard.press('Space'); await sleep(250); await T.dialogs(); await T.idle();
   await T.walk(L.temple.pile); await T.shot('r3_s1_pile'); await p.keyboard.press('Space'); await sleep(200);
   await T.walk(L.temple.father - 50); await p.keyboard.press('Space'); await T.until(() => !AU.Prologue.cs, 20000); await T.idle();
   await T.walk(L.temple.joint - 50); await p.keyboard.press('Space'); await sleep(900); await T.shot('r3_s1_hammer'); await T.until(() => AU.Prologue.v.done, 20000); await sleep(1500); await T.shot('r3_s1_done_a'); await sleep(3500); await T.shot('r3_s1_done_b'); await T.idle(); await T.shot('r3_s1_done_c');
   await T.walk(L.temple.father - 20); await p.keyboard.press('Space'); await sleep(400); await T.dialogs(); await T.idle();
-  await T.walk(L.temple.exit + 10, 12, 20000); await T.until(() => AU.World.mapId === 'pro_road', 20000); await sleep(1500); await T.shot('r3_s1_road'); await T.idle(); await T.walk(L.road.end + 20, 12, 40000); await T.idle(); log('S1 end', JSON.stringify(await T.P())); lap('S1');
+  await T.walk(L.temple.exit + 10, 12, 20000); await T.until(() => AU.Prologue.st().state === 'SCENE_01B_BANNERS', 20000); await sleep(1500); await T.idle(); lap('S1');
+  // ---- S1B (깃발 달기) ----
+  const RB = L.road.b; await T.walk(RB.elder - 70); await p.keyboard.press('Space'); await sleep(300); await T.dialogs(); await T.idle(); await T.shot('r4_s1b_obj');
+  for (const x of RB.poles) { await T.walk(x - 60, 12, 20000); await p.keyboard.press('Space'); await sleep(400); await T.until(() => !AU.Prologue.cs, 15000); await sleep(200); }
+  await T.dialogs(); await T.idle(); await T.shot('r4_s1b_done'); log('S1B end', JSON.stringify(await T.P())); await T.walk(RB.limit + 20, 12, 40000); await T.until(() => AU.Prologue.st().state === 'SCENE_02_FESTIVAL', 20000); await T.idle(); lap('S1B');
   // ---- S2 ----
   await T.shot('r2_s2_start');
   await T.walk(L.plaza.limit + 150, 12, 15000); log('limit test x=', (await T.P()).x, '(<=' + L.plaza.limit + ' expected)'); await T.shot('r2_s2_limit');

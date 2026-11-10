@@ -14,7 +14,7 @@ async function open(opts = {}) {
       if (await page.$('#charsetup')) { await page.click('#sg-' + g); await page.fill('#sname', name); await page.click('#setup-ok'); }
     },
     async start() { await p.click('#btn-start'); await sleep(200); await T.setup(); await sleep(200); },
-    async idle(max = 40000) { const t0 = Date.now(); while (Date.now() - t0 < max) { const s = await T.P(); if (s.dlg) { await p.keyboard.press('Space'); await sleep(130); continue; } if (!s.cs && !s.frozen && s.fade < 0.05) return true; await sleep(100); } return false; },
+    async idle(max = 40000) { const t0 = Date.now(); while (Date.now() - t0 < max) { const s = await T.P(); if (s.dlg) { await p.keyboard.press('Space'); await sleep(130); continue; } if (await ev(() => !!(AU.Prologue.cardRes && AU.Prologue.cardReady))) { await p.keyboard.press('Space'); await sleep(200); continue; } if (!s.cs && !s.frozen && s.fade < 0.05) return true; await sleep(100); } return false; },
     async until(cond, max = 40000, arg) { const t0 = Date.now(); while (Date.now() - t0 < max) { const s = await ev(cond, arg); if (s) return true; const d = await ev(() => !!AU.UI.dialog); if (d) { await p.keyboard.press('Space'); await sleep(130); } else await sleep(80); } return false; },
     async walk(x, tol = 12, max = 25000) {
       const t0 = Date.now();

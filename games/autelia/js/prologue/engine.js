@@ -6,10 +6,12 @@ window.AU = window.AU || {};
   const C = AU.CONFIG, W = C.W, H = C.H, GROUND = C.GROUND;
   const CANCEL = { cancelled: true };
   window.addEventListener("unhandledrejection", (e) => { if (e.reason === CANCEL) e.preventDefault(); }); // 장면 전환으로 취소된 연출 약속은 오류가 아님
-  const ORDER = ["SCENE_01_TEMPLE", "SCENE_02_FESTIVAL", "SCENE_03_ATTACK", "SCENE_04_FATHER", "SCENE_05_ESCAPE", "SCENE_06_PORT_VIEW"];
+  const ORDER = ["SCENE_00_MORNING", "SCENE_01_TEMPLE", "SCENE_01B_BANNERS", "SCENE_02_FESTIVAL", "SCENE_03_ATTACK", "SCENE_04_FATHER", "SCENE_05_ESCAPE", "SCENE_06_PORT_VIEW"];
   // 장면이 '소유'하는 플래그·아이템: 장면에 (다시) 들어갈 때 비워서, 재진입해도 중복 지급·중복 진행이 생기지 않게 함
   const OWN = [
+    { flags: ["stele_read"], items: [] },
     { flags: ["temple_work_complete", "father_final_conversation_complete"], items: [] },
+    { flags: ["banners_done"], items: [] },
     { flags: ["festival_interaction_complete"], items: [] },
     { flags: ["attack_triggered"], items: [] },
     { flags: ["father_final_words_seen", "metal_fragment_acquired", "carpenter_bag_acquired"], items: ["metal_fragment", "carpenter_bag"] },
@@ -84,14 +86,15 @@ window.AU = window.AU || {};
     init() {
       this.normalize();
       const R = AU.UI.root; const mk = (tag, cls, html) => { const e = document.createElement(tag); e.className = cls; if (html != null) e.innerHTML = html; return e; };
-      this.objEl = mk("div", "panel objective hidden"); this.hintEl = mk("div", "prohint"); this.capEl = mk("div", "procap"); this.recallEl = mk("div", "prorecall");
+      this.objEl = mk("div", "panel objective hidden"); this.hintEl = mk("div", "prohint"); this.capEl = mk("div", "procap"); this.cardsEl = mk("div", "procards"); this.cardsEl.onclick = () => this.nextCard(); this.recallEl = mk("div", "prorecall");
       this.skipEl = mk("button", "btn skipbtn hidden", "건너뛰기 <em>Enter</em>"); this.skipEl.type = "button"; this.skipEl.onclick = () => this.skip();
       this.muteEl = mk("button", "btn mutebtn hidden"); this.muteEl.type = "button"; this.muteEl.onclick = () => { AU.UI.settings.mute = !AU.UI.settings.mute; if (AU.UI.settings.mute) Au.stopAll(); AU.main.saveSettings(); this.syncMute(); };
-      this.endEl = mk("div", "endscreen hidden"); R.append(this.objEl, this.hintEl, this.capEl, this.recallEl, this.skipEl, this.muteEl, this.endEl);
+      this.endEl = mk("div", "endscreen hidden"); R.append(this.objEl, this.hintEl, this.capEl, this.cardsEl, this.recallEl, this.skipEl, this.muteEl, this.endEl);
       this.syncMute();
       AU.Input.rawHandlers.push((e) => {
         if (!this.on) return false;
         if (!this.endEl.classList.contains("hidden") && ["Enter", "Space", "NumpadEnter"].includes(e.code)) { if (!e.repeat) { const b = this.endEl.querySelector("button"); if (b) b.click(); } return true; }
+        if (this.cardRes && ["Space", "Enter", "NumpadEnter"].includes(e.code) && !(this.cs && this.cs.skip && e.code === "Enter")) { if (!e.repeat) this.nextCard(); return true; }
         if (this.cs && this.cs.skip && e.code === "Enter") { if (!e.repeat) this.skip(); return true; }
         return false;
       });
@@ -107,7 +110,7 @@ window.AU = window.AU || {};
       if (p.state === "COMPLETED" && AU.MAPS[S.map] && AU.MAPS[S.map].prologue) { S.map = "porto"; S.x = AU.MAPS.porto.start; } // 완료 뒤 프롤로그 맵에 남아 있으면 본편으로
     },
     inProgress() { const s = AU.G.S.prologue; return !!s && s.state !== "COMPLETED"; },
-    titleLabel() { const s = AU.G.S.prologue; return s.state === "NOT_STARTED" ? "모험 시작" : "프롤로그 이어하기 (장면 " + this.sceneNo(s.state) + " / 6)"; },
+    titleLabel() { const s = AU.G.S.prologue; return s.state === "NOT_STARTED" ? "모험 시작" : "프롤로그 이어하기 (장면 " + this.sceneNo(s.state) + " / " + ORDER.length + ")"; },
     onGameStart() { // 제목 화면에서 시작/이어하기를 누른 순간
       Au.ensure(); this.normalize(); const s = AU.G.S.prologue;
       if (s.state === "COMPLETED") return false;
@@ -127,10 +130,11 @@ window.AU = window.AU || {};
     cancelAll() {
       for (const r of Array.from(this.rejects)) { try { r.rej(CANCEL); } catch (e) { /* 무시 */ } } this.rejects.clear(); this.timers = []; this.tweens = []; this.walk = null;
       if (this.dialogOpen) { const U = AU.UI; U.dialog = null; U.dlgEl.classList.add("hidden"); U.dlgEl.innerHTML = ""; this.dialogOpen = false; }
+      this.cardRes = null; this.cardsEl.classList.remove("on", "show"); this.cardsEl.innerHTML = "";
       this.cs = null; this.skipping = false; this.frozen = false;
     },
     beginScene(i) {
-      this.cancelAll(); this.gen++; const S = AU.G.S, st = this.st(), sc = AU.PRO_SCENES[i];
+      this.cancelAll(); this.gen++; const S = AU.G.S, st = this.st(), sc = AU.PRO_SCENES[ORDER[i]];
       this.on = true; this.sceneIdx = i; this.setHud(true); this.holdFade = false; this.endEl.classList.add("hidden"); this.endEl.innerHTML = "";
       this.resetMapRuntime(); this.fadeS = { a: 1, color: "#000" }; Au.stopAll(); this.v.carry = false;
       for (let j = i; j < OWN.length; j++) { for (const f of OWN[j].flags) delete st.flags[f]; if (!this.replay) for (const it of OWN[j].items) delete S.inv[it]; }
@@ -175,8 +179,9 @@ window.AU = window.AU || {};
       this.cs = null; this.skipping = false; this.frozen = false; this.fadeS.a = 0; this.barsS.a = 0; if (AU.World) AU.World.virt = null; this.skipEl.classList.add("hidden");
     },
     // 개발·시험 전용
-    devPrepare(i) { const st = this.st(); for (let j = 0; j < i; j++) for (const f of OWN[j].flags) st.flags[f] = true; if (i > 3 && !this.replay) { AU.G.S.inv.metal_fragment = 1; AU.G.S.inv.carpenter_bag = 1; } },
-    devJump(i) { if (this.isDone() && !this.replay) { const S = AU.G.S; this.replay = true; this.rs = { state: "NOT_STARTED", flags: {}, seen: {} }; this.ret = { map: S.map, x: S.x }; } this.devPrepare(i); this.on = true; this.beginScene(i); },
+    devIdx(i) { return typeof i === "string" ? ORDER.indexOf(i) : i; },
+    devPrepare(i) { i = this.devIdx(i); const st = this.st(); for (let j = 0; j < i; j++) for (const f of OWN[j].flags) st.flags[f] = true; if (i > ORDER.indexOf("SCENE_04_FATHER") && !this.replay) { AU.G.S.inv.metal_fragment = 1; AU.G.S.inv.carpenter_bag = 1; } },
+    devJump(i) { i = this.devIdx(i); if (this.isDone() && !this.replay) { const S = AU.G.S; this.replay = true; this.rs = { state: "NOT_STARTED", flags: {}, seen: {} }; this.ret = { map: S.map, x: S.x }; } this.devPrepare(i); this.on = true; this.beginScene(i); },
     debugComplete(mapId) {
       const S = AU.G.S; this.cancelAll(); this.replay = false; this.rs = null; this.on = false; this.setHud(false); this.resetMapRuntime(); this.fadeS = { a: 0, color: "#000" }; this.holdFade = false; this.endEl.classList.add("hidden"); Au.stopAll();
       const st = S.prologue; st.state = "COMPLETED"; for (const o of OWN) for (const f of o.flags) st.flags[f] = true;
@@ -200,7 +205,7 @@ window.AU = window.AU || {};
       for (const t of this.timers.splice(0)) t.res();
       for (const tw of this.tweens.splice(0)) { Object.assign(tw.obj, tw.to); tw.res(); }
       if (this.walk) { AU.World.player.x = this.walk.x; AU.World.player.vx = 0; AU.World.virt = null; const r = this.walk.res; this.walk = null; r(); }
-      this.capEl.classList.remove("show");
+      this.capEl.classList.remove("show"); this.nextCard(true);
       if (this.dialogOpen) AU.UI.finishDialog(null);
     },
     wait(s) { if (this.skipping || s <= 0) return Promise.resolve(); return this._pend((res) => this.timers.push({ t: s, res })); },
@@ -220,6 +225,19 @@ window.AU = window.AU || {};
     async caption(lines, hold) {
       if (this.skipping) return; this.capEl.innerHTML = lines.map((l, i) => '<div class="l' + i + '">' + esc(l) + "</div>").join(""); this.capEl.classList.remove("show"); void this.capEl.offsetWidth; this.capEl.classList.add("show");
       await this.wait(hold || 3.6); this.capEl.classList.remove("show"); await this.wait(0.7);
+    },
+    /* 시작 글 카드: 검은 화면 위에 줄 목록을 한 장씩 보여 줌. 읽을 시간(최소 1.4초) 뒤 Space/Enter/클릭으로 넘김. force=true면 즉시 닫음(건너뛰기) */
+    nextCard(force) { if (!this.cardRes || (!force && !this.cardReady)) return; const r = this.cardRes; this.cardRes = null; this.cardReady = false; r(); },
+    async cards(list) {
+      if (this.skipping) return; const el = this.cardsEl; el.classList.add("on");
+      for (const lines of list) {
+        if (this.skipping) break; const k = AU.keyLabel(AU.Input.bindings.interact);
+        el.innerHTML = '<div class="cd">' + lines.map((l, i) => '<p class="l' + i + '">' + esc(l) + "</p>").join("") + '</div><div class="cn">' + esc(k) + " · Enter 또는 클릭으로 넘기기</div>"; el.classList.remove("show"); void el.offsetWidth; el.classList.add("show");
+        this.cardReady = false; await this.wait(1.4); if (this.skipping) break;
+        this.cardReady = true; await this._pend((res) => { this.cardRes = res; });
+        el.classList.remove("show"); await this.wait(0.7);
+      }
+      this.cardReady = false; el.classList.remove("on", "show"); el.innerHTML = "";
     },
     recall(text, sec) { this.recallEl.textContent = text; this.recallEl.classList.add("show"); clearTimeout(this._rt); this._rt = setTimeout(() => this.recallEl.classList.remove("show"), (sec || 5) * 1000); },
     // 대사: [[화자키, 문장], …]. 화자는 data.js의 AU.PRO_SPEAKERS
