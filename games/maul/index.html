@@ -117,7 +117,7 @@
       <form id="bubbleForm" class="w-full max-w-md flex gap-2">
         <input type="text" id="bubbleInput" maxlength="35" placeholder="마음에 남은 어떤 생각이라도 적어보세요..." 
           class="flex-1 bg-slate-900/60 border border-slate-700/60 focus:border-purple-400/80 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 outline-none backdrop-blur-md transition-all shadow-inner">
-        <button type="submit" class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-sm font-medium px-4 py-2.5 rounded-xl shadow-lg shadow-purple-900/30 transition-all flex items-center gap-1 shrink-0">
+        <button type="button" id="bubbleAddBtn" class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-sm font-medium px-4 py-2.5 rounded-xl shadow-lg shadow-purple-900/30 transition-all flex items-center gap-1 shrink-0">
           <i data-lucide="plus" class="w-4 h-4"></i>
           <span>띄우기</span>
         </button>
@@ -192,7 +192,6 @@
   <!-- Footer Tip -->
   <footer class="w-full max-w-4xl px-4 py-3 mb-2 text-center text-xs text-slate-500 z-10 flex flex-col sm:flex-row justify-between items-center gap-2 border-t border-slate-800/60">
     <span class="flex items-center gap-1.5"><i data-lucide="shield-check" class="w-3.5 h-3.5 text-purple-400"></i> 작성하신 모든 생각은 브라우저 어디에도 저장되지 않고 바로 소멸됩니다.</span>
-    <span class="text-slate-600">Mind & Calm &copy; Peaceful Zen Mini-Game</span>
   </footer>
 
   <!-- Web Audio & Game Logic -->
@@ -583,15 +582,22 @@
     const bubbleForm = document.getElementById('bubbleForm');
     const bubbleInput = document.getElementById('bubbleInput');
 
-    bubbleForm.addEventListener('submit', (e) => {
-      e.preventDefault();
+    // 온앤오프 연결용 수정: 플랫폼(iframe)에서는 폼 전송이 막혀 있어 "띄우기"가 동작하지 않았습니다.
+    // 폼 전송(submit)에 기대지 않고 버튼 클릭/Enter 키로 직접 풍선을 만듭니다.
+    function addWorryBubble() {
       const txt = bubbleInput.value.trim();
-      if (txt) {
-        audio.init();
-        bubbles.push(new Bubble(txt));
-        bubbleInput.value = '';
-        document.getElementById('bubbleHint').classList.add('opacity-0');
-      }
+      if (!txt) { bubbleInput.focus(); return; }
+      audio.init();
+      const b = new Bubble(txt);
+      b.y = bubbleCanvas.clientHeight - b.radius - 10; // 바로 보이도록 화면 아래쪽에서 시작
+      bubbles.push(b);
+      bubbleInput.value = '';
+      document.getElementById('bubbleHint').classList.add('opacity-0');
+    }
+    bubbleForm.addEventListener('submit', (e) => { e.preventDefault(); addWorryBubble(); });
+    document.getElementById('bubbleAddBtn').addEventListener('click', addWorryBubble);
+    bubbleInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); addWorryBubble(); } // 한글 입력 중 Enter(조합 확정)는 제외
     });
 
     // Bubble Canvas Click/Tap Listener
