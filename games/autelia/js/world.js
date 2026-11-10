@@ -130,7 +130,7 @@ window.AU = window.AU || {};
       // 단단한 바위·턱: 옆에서 막음
       for (const pl of map.platforms) {
         if (!pl.h) continue;
-        if (p.y > pl.y + 4 && p.y - C.player.height < pl.y + pl.h && p.x + C.player.halfW > pl.x && p.x - C.player.halfW < pl.x + pl.w) {
+        if (p.y > pl.y + 4 && prevY > pl.y + 1 && p.y - C.player.height < pl.y + pl.h && p.x + C.player.halfW > pl.x && p.x - C.player.halfW < pl.x + pl.w) {   // prevY 조건: 위에서 내려오다 윗면에 닿는 프레임은 옆 충돌로 보지 않음(빠르게 떨어질 때 윗면 대신 옆으로 튕겨 나가던 문제)
           const fromLeft = (p.x - pl.x) < pl.w / 2; p.x = fromLeft ? pl.x - C.player.halfW : pl.x + pl.w + C.player.halfW; p.vx = 0;
         }
       }
@@ -366,7 +366,7 @@ window.AU = window.AU || {};
     drawPlayer(ctx, p) {
       if (p.invuln > 0 && Math.floor(this.time * 20) % 2 === 0 && !p.dead) ctx.globalAlpha = 0.45;
       if (p.dead) ctx.globalAlpha = 0.5;
-      const key = AU.Img.has("player_male") ? "player_male" : "player_female", moving = Math.abs(p.vx) > 20 && p.onGround;
+      const gk = AU.Profile.gender() === "f" ? ["player_female", "player_male"] : ["player_male", "player_female"], key = AU.Img.has(gk[0]) ? gk[0] : gk[1], moving = Math.abs(p.vx) > 20 && p.onGround;
       const frame = moving ? Math.floor(this.time * 9) % 4 : (p.rope ? Math.floor(p.anim) % 2 : 0);
       const lean = p.atkT > 0 ? p.dir * 6 : 0, PR = AU.Prologue, pro = !!(PR && PR.on), pose = pro ? PR.poseOf(p) : null;
       if (pose) { ctx.save(); ctx.translate(p.x + (pose.dx || 0), p.y); ctx.rotate(pose.rot || 0); ctx.scale(pose.sx || 1, pose.sy || 1); ctx.translate(-p.x, -p.y); }

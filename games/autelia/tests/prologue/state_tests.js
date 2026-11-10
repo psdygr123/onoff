@@ -10,7 +10,8 @@ const R = []; const ok = (n, c, d) => { R.push([n, !!c]); console.log((c ? 'PASS
     const label = await p.textContent('#btn-start'); ok('T18b 제목 버튼이 프롤로그 이어하기 표기', /프롤로그 이어하기 \(장면 4 \/ 6\)/.test(label), label);
     await T.start(); await T.idle(); s = await T.P(); ok('T18c 장면 4 처음 위치에서 재개', s.st === 'SCENE_04_FATHER' && s.map === 'pro_house' && s.x < 250, JSON.stringify({ st: s.st, x: s.x, map: s.map }));
     ok('T18d 재진입 직후 장면 소유 아이템/플래그 초기화(중복 지급 방지)', !s.inv.includes('metal_fragment') && !s.flags.includes('metal_fragment_acquired'), s.inv + ' ' + s.flags);
-    await T.walk(500, 12, 15000); await sleep(500); await T.idle(60000); await T.walk(420, 12, 15000); await p.keyboard.press('Space'); await sleep(300);
+    await T.walk(500, 12, 15000); await sleep(500); await T.idle(60000); await T.walk(420, 12, 15000); await p.keyboard.press('Space');
+    for (let i = 0; i < 40; i++) { await sleep(150); if ((await T.P()).inv.includes('carpenter_bag')) break; } for (let i = 0; i < 40 && (await T.P()).cs; i++) await sleep(150); await sleep(200); // 가방 줍기 연출(걷기·무릎·들기·마무리) 종료 대기
     s = await T.P(); const inv = JSON.parse(s.inv); ok('T18e 다시 진행해도 조각/가방 각 1개', inv.metal_fragment === 1 && inv.carpenter_bag === 1, s.inv);
     // 장면 5 도중 저장 → 이전 장면 아이템 유지
     await ev(() => AU.Prologue.devJump(4)); await T.idle(); await ev(() => AU.G.save('test')); await p.reload(); await p.waitForSelector('#btn-start'); await T.start(); await T.idle(); s = await T.P();
@@ -44,7 +45,7 @@ const R = []; const ok = (n, c, d) => { R.push([n, !!c]); console.log((c ? 'PASS
   // ===== T22 플랫폼 임베드(postMessage) =====
   { const T = await open(); const { p } = T;
     await p.goto('http://localhost:8802/harness.html'); await sleep(3000); const fr = p.frames().find((f) => /8801/.test(f.url())); const ns = await fr.evaluate(() => AU.Store.ns); ok('T22a init 수신 후 저장 칸 이름 설정', ns === 'onoff:test-user-1', ns);
-    await fr.click('#btn-start'); await sleep(1500); const msgs = await p.evaluate(() => window.msgs.map((m) => m.type + ':' + JSON.stringify(m.payload || '')));
+    await fr.click('#btn-start'); await sleep(300); await T.setup(fr); await sleep(1200); const msgs = await p.evaluate(() => window.msgs.map((m) => m.type + ':' + JSON.stringify(m.payload || '')));
     ok('T22b ready 전송', msgs.some((m) => m.startsWith('ready')), msgs.join(' | ')); ok('T22c progress에 프롤로그 장면 표기', msgs.some((m) => /progress:.*프롤로그 · 장면 1\/6/.test(m)), msgs.join(' | '));
     ok('T22 오류 없음', T.errs.length === 0, T.errs.join('|')); await T.b.close(); }
 

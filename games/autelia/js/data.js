@@ -21,6 +21,7 @@ AU.ASSETS = {
   mon_rat:   { path: "assets/monster/rat.webp", optional: true },
   mon_crab:  { path: "assets/monster/crab.webp", optional: true },
   pt_player_male: { path: "assets/portrait/player_male.webp" },
+  pt_player_female: { path: "assets/portrait/player_female.webp" },
   pt_villager_a: { path: "assets/portrait/villager_a.webp" },
   pt_villager_b: { path: "assets/portrait/villager_b.webp" },
   pt_smith:      { path: "assets/portrait/smith.webp" },

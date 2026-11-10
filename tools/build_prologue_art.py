@@ -73,8 +73,9 @@ def build_backgrounds():
     return info
 
 # ---------- 마젠타 제거 ----------
-def key_magenta(path):
-    """마젠타 배경 제거. 엄격한 마젠타는 몸 사이 구멍까지 모두 투명, 윤곽의 분홍 번짐은 알파·색 보정."""
+def key_magenta(path, despill_all=False):
+    """마젠타 배경 제거. 엄격한 마젠타는 몸 사이 구멍까지 모두 투명, 윤곽의 분홍 번짐은 알파·색 보정.
+    despill_all=True: 윤곽뿐 아니라 그림 안쪽에서 마젠타가 비쳐 보라색이 된 반투명 부분(연기 등)도 회갈색으로 보정(불타는 신전)."""
     a = np.array(Image.open(path).convert("RGB")).astype(np.float32); R, G, B = a[..., 0], a[..., 1], a[..., 2]
     spill = np.minimum(R, B) - G
     strict = (R > 170) & (B > 170) & (G < 110)
@@ -83,6 +84,7 @@ def key_magenta(path):
     out = a.copy()
     fix = near & ~strict
     lim = G + 28
+    if despill_all: fix = fix | ((spill > 12) & ~strict); lim = np.where(near, G + 28, G + 12)
     out[..., 0] = np.where(fix, np.minimum(R, lim), R); out[..., 2] = np.where(fix, np.minimum(B, lim), B)
     alpha = cv2.GaussianBlur(alpha.astype(np.float32), (3, 3), 0.6) * (~strict)
     return np.dstack([out.clip(0, 255), (alpha * 255).clip(0, 255)]).astype(np.uint8)
@@ -100,7 +102,7 @@ def fit(arr, maxside):
 def build_objects():
     meta = {}
     # 신전 3상태: 같은 합집합 상자로 잘라 위치가 어긋나지 않게
-    st = {n: key_magenta(f"{SRC}/objects/{n}.png") for n in ("temple_frame", "temple_done", "temple_burn")}
+    st = {n: key_magenta(f"{SRC}/objects/{n}.png", despill_all=(n == "temple_burn")) for n in ("temple_frame", "temple_done", "temple_burn")}
     bb = [bbox(a) for a in st.values()]; x0 = min(b[0] for b in bb); y0 = min(b[1] for b in bb); x1 = max(b[2] for b in bb); y1 = max(b[3] for b in bb)
     for n, a in st.items():
         c = fit(a[y0:y1, x0:x1], 900); save_rgba(c, f"{OUT}/ob/{n}.webp"); meta[n] = {"w": c.shape[1], "h": c.shape[0]}

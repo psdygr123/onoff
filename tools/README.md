@@ -12,3 +12,9 @@ python3 tools/build_prologue_art.py <원화 폴더> games/autelia/assets/prologu
 - 인물 시트: 시트 격자 등분이 아니라 실루엣 경계(연결 성분)로 프레임을 찾아 접지점(발) 기준 공통 캔버스로 정렬한 가로 스트립으로 저장합니다. 누운 아버지·팔 조각은 따로 저장합니다.
 - `all`이면 게임이 읽는 `games/autelia/js/prologue/artmeta.js`(프레임 이름·캔버스 크기·배경 폭)도 갱신합니다. 이 파일은 직접 고치지 마세요.
 - 장면별 배치 좌표(NPC·트리거·신전 위치)는 `games/autelia/js/prologue/data.js`의 `AU.PRO_LAY`에서 한곳에서 고칩니다.
+
+## 추가 그림(2차 패키지) 변환: `build_prologue_art2.py`
+```bash
+python3 tools/build_prologue_art2.py <추가 원화 폴더> games/autelia/assets/prologue
+```
+장애물 3종·이음 골조(`ob/`), 초상화 8장(`pt/`, 512×512), 불꽃·연기 스트립(`fx/`)을 만듭니다. 마젠타 제거 도우미는 `build_prologue_art.py`를 가져다 씁니다. 불타는 신전(`temple_burn`)은 연기에 비친 마젠타 번짐을 `despill_all` 옵션으로 추가 보정합니다(`python3 tools/build_prologue_art.py <원화> <출력> ob`).

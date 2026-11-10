@@ -45,7 +45,7 @@ window.AU = window.AU || {};
   A.fragment = function (ctx, x, y, s, rot, t) { if (!A.picC(ctx, "po_metal_fragment_big", x, y, 150 * s, rot || 0)) oldFrag(ctx, x, y, s, rot, t); };
   const oldBag = A.bag;
   A.bag = function (ctx, x, y, s, ang) { if (!A.pic(ctx, "po_bag_floor", x, y, 74 * s, 1, ang || 0)) oldBag(ctx, x, y, s, ang); };
-  A.bagBack = function (ctx, x, y, h, d) { return A.pic(ctx, "po_bag_back", x, y + h / 2, h, d); };
+  A.bagBack = function (ctx, x, y, h, d, rot) { if (!has("po_bag_back")) return false; const im = img("po_bag_back"); return A.picC(ctx, "po_bag_back", x, y + h / 2, h * im.naturalWidth / im.naturalHeight, rot || 0, d < 0); };
 
   /* 흑철 갑옷 습격자: 서기/걷기 2프레임. s=0.5가 키 150 */
   const oldRaider = A.raider;
@@ -92,11 +92,26 @@ window.AU = window.AU || {};
     ctx.save(); ctx.globalCompositeOperation = "lighter"; const k = 0.5 + 0.5 * Math.sin(t * 6 + x); const f = ctx.createRadialGradient(x + w * 0.5, base - 6, 1, x + w * 0.5, base - 6, 22); f.addColorStop(0, "rgba(255,150,50," + (0.4 + 0.3 * k) + ")"); f.addColorStop(1, "rgba(255,120,40,0)"); ctx.fillStyle = f; ctx.fillRect(x + w * 0.5 - 24, base - 30, 48, 36); ctx.restore();
   }
   const oldObs = A.obstacle, oldStall = A.stall;
+  const OBST = { rock: "po_obst_rock", log: "po_obst_log", beam: "po_obst_burnt_beams" };
   A.obstacle = function (ctx, pl, kind, t) {
+    const key = OBST[kind] || OBST.beam;   // 정식 장애물 그림(바위·통나무·불탄 들보). 발판 상자(폭×높이)에 그림 비율이 맞도록 데이터 좌표를 잡아 둠
+    if (A.has(key)) { const base = pl.y + (pl.h || 40); shadow(ctx, pl.x + pl.w / 2, base - 1, pl.w * 1.08); A.pic(ctx, key, pl.x + pl.w / 2, base + 1, pl.h || 40, 1); return; }
     if (!A.has("po_plank_a")) return oldObs(ctx, pl, kind, t);
     const h = pl.h || 40; ctx.save();
     if (kind === "rock") rock(ctx, pl.x, pl.y, pl.w, h); else if (kind === "log") log(ctx, pl.x, pl.y, pl.w, h); else debris(ctx, pl.x, pl.y, pl.w, h, t);
     ctx.restore();
   };
-  A.stall = function (ctx, x, by, w, t) { if (!A.has("po_plank_a")) return oldStall(ctx, x, by, w, t); const o = (AU.PRO_LAY && AU.PRO_LAY.plaza.obst[0]) || { x: x - 50, y: by - 50, w: 100, h: 50 }; debris(ctx, o.x, o.y, o.w, o.h, t); };
+  A.stall = function (ctx, x, by, w, t) { if (!A.has("po_plank_a")) return oldStall(ctx, x, by, w, t); const o = (AU.PRO_LAY && AU.PRO_LAY.plaza.obst[0]) || { x: x - 50, y: by - 50, w: 100, h: 50 }; if (A.has("po_obst_burnt_beams")) A.obstacle(ctx, o, "beam", t); else debris(ctx, o.x, o.y, o.w, o.h, t); };
+
+  /* ---------- 불꽃·연기 효과(2차 그림): 프레임을 돌려 가며 그림. 발 위치(x,y) 기준 ---------- */
+  A.fire = function (ctx, x, y, h, t, seed) {
+    if (!A.has("fx_fire")) return false; const im = AU.Img.get("fx_fire"), n = 6, fw = im.naturalWidth / n, fh = im.naturalHeight, w = h * fw / fh;
+    const f = Math.floor(((t || 0) * 9 + (seed || 0) * 1.7) % n + n) % n, wob = 1 + 0.05 * Math.sin((t || 0) * 11 + (seed || 0));
+    ctx.save(); ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = 0.28; const g = ctx.createRadialGradient(x, y - h * 0.4, 2, x, y - h * 0.4, h * 0.95); g.addColorStop(0, "rgba(255,170,70,1)"); g.addColorStop(1, "rgba(255,90,20,0)"); ctx.fillStyle = g; ctx.fillRect(x - h, y - h * 1.5, h * 2, h * 1.8); ctx.restore();
+    ctx.drawImage(im, f * fw, 0, fw, fh, x - w * wob / 2, y - h * wob, w * wob, h * wob); return true;
+  };
+  A.smoke = function (ctx, x, y, h, age, alpha, seed) {   // age 0..1: 아래에서 위로 올라가며 커지고 흐려지는 연기 한 덩이
+    if (!A.has("fx_smoke")) return false; const im = AU.Img.get("fx_smoke"), n = 4, fw = im.naturalWidth / n, fh = im.naturalHeight, f = Math.min(n - 1, Math.floor(age * n)), s = 0.55 + age * 0.9, hh = h * s, w = hh * fw / fh;
+    ctx.save(); ctx.globalAlpha = (alpha == null ? 0.5 : alpha) * Math.sin(Math.min(1, age) * Math.PI) ; ctx.filter = "brightness(0.42) sepia(0.25)"; ctx.drawImage(im, f * fw, 0, fw, fh, x - w / 2 + Math.sin(age * 5 + (seed || 0)) * 12, y - age * h * 1.6 - hh, w, hh); ctx.restore(); return true;
+  };
 })();

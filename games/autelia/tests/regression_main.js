@@ -13,7 +13,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const ev = (fn, arg) => p.evaluate(fn, arg);
   const S = () => ev(() => { const g = AU.G.S, w = AU.World, d = AU.G.d(); return { lv: g.level, exp: g.exp, hp: Math.round(g.hp * 10) / 10, maxHp: d.maxHp, atk: d.atk, res: g.resource, x: Math.round(w.player.x), y: Math.round(w.player.y), map: w.mapId, stats: JSON.stringify(g.stats), silver: g.silver, tp: g.trainingPoints, fp: g.freePoints, job: g.job, ui: AU.UI.curName, dlg: !!AU.UI.dialog }; });
   const win = () => ev(() => { const t = document.querySelector('.window .wtitle span'); return t ? t.textContent : null; });
-  const fresh = async () => { await p.goto(URL); await ev(() => localStorage.clear()); await p.goto(URL); await p.waitForSelector('#btn-start'); await p.click('#btn-start'); await sleep(300); await ev(() => AU.Prologue.debugComplete('arche')); await sleep(200); };
+  const fresh = async () => { await p.goto(URL); await ev(() => localStorage.clear()); await p.goto(URL); await p.waitForSelector('#btn-start'); await p.click('#btn-start'); await sleep(300); if (await p.$('#charsetup')) { await p.fill('#sname', '시험용'); await p.click('#setup-ok'); await sleep(300); } await ev(() => AU.Prologue.debugComplete('arche')); await sleep(200); };
   const holdUntil = async (key, cond, max = 6000, step = 80) => { await p.keyboard.down(key); const t0 = Date.now(); let ok = false; while (Date.now() - t0 < max) { if (await ev(cond)) { ok = true; break; } await sleep(step); } await p.keyboard.up(key); return ok; };
   // 가까이 붙여 놓고 Ctrl로 때려서 처치(체력이 위험하면 테스트 쪽에서 HP만 보충: 전투 결과가 아니라 시험 안정성 목적)
   const kill = async (type, max = 14000) => {

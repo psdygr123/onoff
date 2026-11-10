@@ -188,12 +188,13 @@ window.AU = window.AU || {};
     // fn(비동기 함수)을 실행하는 동안 조작을 잠금. opt.id가 있으면 건너뛰기 버튼 표시. 건너뛰어도 fn 안의 set/give/이동은 모두 실행됨
     async cutscene(fn, opt) {
       opt = opt || {}; if (this.cs) return fn();
-      const g = this.gen; this.cs = { id: opt.id || null, skip: !!opt.skip }; this.skipping = false; this.nearEnt = null; AU.World.prompt = "";
+      const g = this.gen; this.cs = { id: opt.id || null, skip: !!opt.skip && this.canSkip() }; this.skipping = false; this.nearEnt = null; AU.World.prompt = "";
       if (opt.bars) this.tweenNow(this.barsS, { a: 1 }, 0.5);
       try { await fn(); if (this.gen === g && opt.id && !this.replay) this.st().seen[opt.id] = true; }
       catch (e) { if (e !== CANCEL) { console.error("[프롤로그] 컷신 오류:", e); this.recover(); } }
       finally { if (this.gen === g) { this.cs = null; this.skipping = false; AU.World.virt = null; this.walk = null; if (opt.bars) this.tweenNow(this.barsS, { a: 0 }, 0.5); this.capEl.classList.remove("show"); } }
     },
+    canSkip() { return !!this.replay || !!(AU.UI && AU.UI.devVisible); }, // 컷신 건너뛰기: 처음 하는 사람에게는 주지 않고, '프롤로그 다시 보기'(개발 모드 포함)에서만 허용
     skip() {
       if (!this.cs || !this.cs.skip || this.skipping) return; this.skipping = true;
       for (const t of this.timers.splice(0)) t.res();
@@ -349,9 +350,21 @@ window.AU = window.AU || {};
       }
       ctx.globalAlpha = 1;
     },
+    /* 등에 멘 가방의 움직임: 달릴 때 위아래로 출렁이고 기울며, 점프 때는 늦게 따라오고, 무릎 꿇을 때는 내려가며 흔들림이 서서히 가라앉음(스프링) */
+    bagKick(v) { const S = this.bagS || (this.bagS = { y: 0, vy: 0, r: 0, vr: 0, t: this.time || 0 }); S.vy += v; },
+    bagDyn(p) {
+      const S = this.bagS || (this.bagS = { y: 0, vy: 0, r: 0, vr: 0, t: this.time || 0 }), t = this.time || 0, dt = Math.min(0.05, Math.max(0, t - S.t)); S.t = t;
+      const moving = Math.abs(p.vx) > 20 && p.onGround, kn = !!(p.pose && p.pose.name === "kneel"), sh = !!(p.pose && p.pose.name === "shrug");
+      const air = p.onGround ? 0 : Math.max(-9, Math.min(9, -(p.vy || 0) * 0.012));
+      const ty = (kn ? 26 : 0) + air + (moving ? Math.sin(t * 17) * 2.2 : 0) + (sh ? -2 : 0);
+      const tr = (kn ? 0.28 * p.dir : 0) - Math.max(-1, Math.min(1, (p.vx || 0) / 260)) * 0.11 + (moving ? Math.sin(t * 17 + 1) * 0.035 : 0);
+      for (let i = 0; i < Math.max(1, Math.round(dt / 0.008)); i++) { const h = dt / Math.max(1, Math.round(dt / 0.008)); S.vy += (130 * (ty - S.y) - 15 * S.vy) * h; S.y += S.vy * h; S.vr += (110 * (tr - S.r) - 13 * S.vr) * h; S.r += S.vr * h; }
+      if (!isFinite(S.y) || !isFinite(S.r)) { S.y = 0; S.vy = 0; S.r = 0; S.vr = 0; }
+      return S;
+    },
     drawPlayerExtras(ctx, p, pose) {
       const A = AU.PArt, d = p.dir, art = this.heroArt();
-      if (this.v.bag || this.flag("carpenter_bag_acquired")) { if (!A.bagBack(ctx, p.x - d * 20, p.y - 74, 58, d)) A.bag(ctx, p.x - d * 22, p.y - 70, 0.62, d * 0.1); }
+      if (this.v.bag || this.flag("carpenter_bag_acquired")) { const b = this.bagDyn(p); if (!A.bagBack(ctx, p.x - d * 20, p.y - 74 + b.y, 58, d, b.r)) A.bag(ctx, p.x - d * 22, p.y - 70 + b.y, 0.62, d * 0.1 + b.r); }
       if (this.v.carry) A.plank(ctx, p.x + d * 4, p.y - (art ? 96 : 126), 120, -0.06 * d);
       if (art) return; // 정식 그림은 망치를 손에 든 모습으로 그려져 있음
       if (pose && pose.hammer) { const sw = this.v.swing || 0; A.hammer(ctx, p.x + d * 30, p.y - 82, d * (0.6 + sw * 1.5), 1); }
