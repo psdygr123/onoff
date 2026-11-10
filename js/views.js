@@ -41,7 +41,7 @@ OnOff.Views = (function () {
               <button class="btn" type="button" data-action="start">${save ? "이어서 모험하기" : "모험 시작하기"}</button>
               <button class="btn ghost" type="button" data-action="go" data-to="games">게임 둘러보기</button>
             </div>
-            <p class="hero-foot">치료를 기반으로 한 서비스는 아니지만, 성장과 행복 그리고 정신건강에 도움이 되고자 정성껏 만들었습니다.</p>
+            <p class="hero-foot">당신의 성장과 행복 그리고 정신건강에 도움을 제공하는 심리서비스</p>
           </div>
           <div class="hero-art">
             <img src="img/hero.webp" alt="노을빛 바다와 언덕 위 마을이 내려다보이는 판타지 풍경" width="1280" height="720" fetchpriority="high">
