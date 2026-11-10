@@ -144,3 +144,28 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
 #title { position: absolute; inset: 0; display: grid; place-items: center; background: linear-gradient(rgba(20, 14, 8, .55), rgba(20, 14, 8, .7)); z-index: 4; }
 .titlebox { width: 520px; padding: 40px 44px 30px; text-align: center; display: grid; gap: 14px; } .tlogo { font-size: 44px; font-weight: 300; letter-spacing: .3em; padding-left: .3em; line-height: 1.2; } .tsub { font-size: 13px; color: var(--ink2); letter-spacing: .04em; }
 #title .btn, #title .note { pointer-events: auto; }
+
+/* ----- 프롤로그 ----- */
+#stage.pro #hudpanel, #stage.pro .slots, #stage.pro .topleft, #stage.pro .tracker, #stage.pro .minimap { display: none !important; } /* 프롤로그 중에는 성장·전투 UI를 숨김 */
+.objective { position: absolute; left: 20px; top: 70px; padding: 9px 18px 10px; font-size: 17px; font-weight: 500; max-width: 440px; background: rgba(251, 247, 238, .93); border-left: 4px solid var(--gold); line-height: 1.45; }
+.objective::before { content: "목표"; display: block; font-size: 11px; letter-spacing: .16em; color: var(--gold-d); font-weight: 700; margin-bottom: 2px; }
+.objective.flash { animation: objflash 1.6s ease; } @keyframes objflash { 0% { transform: translateX(-14px); opacity: 0; } 15% { opacity: 1; transform: none; } 40% { box-shadow: 0 0 0 5px rgba(232, 185, 78, .55), var(--shadow); } 100% { box-shadow: var(--shadow); } }
+.prohint { position: absolute; left: 50%; top: 76px; transform: translateX(-50%); background: rgba(30, 24, 18, .8); color: #fff; padding: 8px 22px; border-radius: 8px; font-size: 16px; opacity: 0; transition: opacity .35s; white-space: nowrap; }
+.prohint.show { opacity: 1; }
+.procap { position: absolute; left: 0; right: 0; top: 13%; text-align: center; color: #fff; padding: 34px 0 64px; background: linear-gradient(to bottom, rgba(0,0,0,0), rgba(10,8,6,.62) 28%, rgba(10,8,6,.62) 72%, rgba(0,0,0,0)); text-shadow: 0 2px 16px rgba(0, 0, 0, .85), 0 0 3px rgba(0, 0, 0, .6); opacity: 0; transition: opacity .7s; }
+.procap.show { opacity: 1; } .procap .l0 { font-size: 42px; font-weight: 300; letter-spacing: .18em; padding-left: .18em; } .procap .l1 { font-size: 26px; font-weight: 300; letter-spacing: .14em; margin-top: 16px; opacity: 0; padding-left: .14em; }
+.procap.show .l1 { animation: capl1 1.2s ease 1.2s forwards; } @keyframes capl1 { to { opacity: 1; } }
+.prorecall { position: absolute; left: 50%; bottom: 150px; transform: translateX(-50%); font-size: 23px; font-style: italic; font-weight: 300; color: #fff; text-shadow: 0 2px 12px rgba(0, 0, 0, .9); opacity: 0; transition: opacity 1.2s; white-space: nowrap; letter-spacing: .04em; }
+.prorecall.show { opacity: .94; }
+.skipbtn, .mutebtn { position: absolute; top: 18px; pointer-events: auto !important; font-size: 13px; padding: 7px 14px; background: rgba(251, 247, 238, .9); z-index: 3; }
+.mutebtn { right: 166px; } .skipbtn { right: 282px; } .skipbtn em { font-style: normal; font-size: 11px; color: var(--ink2); margin-left: 6px; }
+.endscreen { position: absolute; inset: 0; background: #000; display: grid; place-items: center; pointer-events: auto !important; z-index: 6; opacity: 0; transition: opacity 1.6s; }
+.endscreen.show { opacity: 1; } .endscreen .eb { text-align: center; color: #fff; display: grid; gap: 10px; justify-items: center; }
+.endscreen .e1 { font-size: 54px; font-weight: 300; letter-spacing: .3em; padding-left: .3em; } .endscreen .e2 { font-size: 28px; font-weight: 300; letter-spacing: .2em; margin-top: 6px; color: #F2DFA8; padding-left: .2em; }
+.endscreen .e3 { margin-top: 40px; font-size: 15px; letter-spacing: .22em; color: rgba(255, 255, 255, .65); } .endscreen .e4 { font-size: 26px; letter-spacing: .1em; margin-bottom: 28px; }
+.itype.t-story { background: #F6E8C6; color: var(--gold-d); }
+.devrow { display: flex; gap: 4px; flex-wrap: wrap; }
+/* 프롤로그 대화창: 아래쪽에 있으면 인물·연출을 가리므로 화면 위쪽(하늘·천장 영역)에 띄움 */
+#stage.pro .dialog { bottom: auto; top: 150px; place-items: start center; padding-bottom: 0; }
+#stage.pro .dlgbox { width: 860px; min-height: 124px; padding: 14px 22px; gap: 18px; }
+#stage.pro .dlgbox .pt { width: 92px; height: 92px; } #stage.pro .dline { font-size: 19px; line-height: 1.6; min-height: 30px; }

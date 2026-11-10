@@ -43,7 +43,7 @@ window.AU = window.AU || {};
       AU.Ev.on("levelup", (d) => this.levelBanner(d.level));
       AU.Ev.on("jobchange", () => { this.afterDialog.push("jobcard"); if (!this.dialog) this.flushAfter(); });
       AU.Ev.on("saved", (d) => this.savedFlash(d.reason));
-      AU.Ev.on("mapchange", (d) => { this.mapBanner(AU.MAPS[d.id].name); });
+      AU.Ev.on("mapchange", (d) => { if (!AU.MAPS[d.id].prologue) this.mapBanner(AU.MAPS[d.id].name); });
       AU.Ev.on("dead", () => this.toast("쓰러졌습니다…", "warn"));
     },
     el(sel) { return $(sel, this.root); },
@@ -163,7 +163,7 @@ window.AU = window.AU || {};
     },
     savedFlash(reason) {
       if (reason === "autosave") return;
-      const s = this.hud.save; s.textContent = "저장됨"; s.classList.add("show"); clearTimeout(this._st); this._st = setTimeout(() => s.classList.remove("show"), 1200);
+      const s = this.hud.save; s.textContent = reason === "checkpoint" ? "자동 저장됨" : "저장됨"; s.classList.add("show"); clearTimeout(this._st); this._st = setTimeout(() => s.classList.remove("show"), 1200);
     },
 
     /* ============ 창 열고 닫기 ============ */
@@ -221,10 +221,10 @@ window.AU = window.AU || {};
     },
     renderDialog() {
       const d = this.dialog; if (!d) return;
-      const last = d.i >= d.lines.length - 1, np = d.npc;
+      const last = d.i >= d.lines.length - 1, cur = d.lines[d.i], isObj = cur && typeof cur === "object", np = isObj ? cur.npc : d.npc, text = isObj ? cur.t : cur;
       const pt = AU.Img.has(np.portrait) ? h("img", { src: AU.ASSETS[np.portrait].path, alt: "" }) : h("div", { class: "ptfallback", text: np.name.slice(0, 1) });
       const choices = last && d.opt.choices ? h("div", { class: "choices" }, d.opt.choices.map((c) => btn(c.label + "  (" + keyOf(c.key) + ")", c.key === "interact" ? "primary" : "", () => this.finishDialog(c)))) : null;
-      this.dlgEl.innerHTML = ""; this.dlgEl.append(h("div", { class: "panel dlgbox" }, h("div", { class: "pt" }, pt), h("div", { class: "dtext" }, h("div", { class: "dname", text: np.name }), h("div", { class: "dline", text: d.lines[d.i] }),
+      this.dlgEl.innerHTML = ""; this.dlgEl.append(h("div", { class: "panel dlgbox" }, h("div", { class: "pt" }, pt), h("div", { class: "dtext" }, h("div", { class: "dname", text: np.name }), h("div", { class: "dline", text: text }),
         choices || h("div", { class: "dnext" }, btn(last ? "닫기 (" + keyOf("interact") + ")" : "다음 ▶ (" + keyOf("interact") + ")", "", () => this.advanceDialog())))));
     },
     advanceDialog() {
@@ -241,6 +241,7 @@ window.AU = window.AU || {};
     },
     cancelDialog() { // Esc: 선택지가 있으면 '거절'로 처리
       const d = this.dialog; if (!d) return;
+      if (d.opt.noCancel) return;
       if (d.opt.choices) { const c = d.opt.choices.find((x) => x.key === "menu"); this.finishDialog(c || null); }
       else this.finishDialog(null);
     },
@@ -261,6 +262,8 @@ window.AU = window.AU || {};
         if (id === "interact") this.advanceDialog(); else if (id === "menu") this.cancelDialog();
         return true;
       }
+      const PR = AU.Prologue;
+      if (PR && PR.on) { if (PR.locked()) return true; if (WIN_KEYS[id] && !PR.allowWin(WIN_KEYS[id])) return true; } // 프롤로그: 컷신 중 메뉴 금지, 인벤토리·키 설정만 허용
       if (id === "menu") { if (this.cur) this.close(); else this.open("menu"); return true; }
       if (WIN_KEYS[id]) { this.toggleWin(WIN_KEYS[id]); return true; }
       return !!this.cur; // 창이 열려 있으면 게임 입력 차단
@@ -272,7 +275,8 @@ window.AU = window.AU || {};
 
   R.menu = function (b) {
     const S = AU.G.S;
-    const items = [["인벤토리", "inventory"], ["장비", "equipment"], ["스탯", "stats"], ["월드맵", "worldmap"], ["퀘스트", "quests"], ["스킬", "skills"], ["모험일지", "journal"], ["키보드 설정", "keysettings"]];
+    let items = [["인벤토리", "inventory"], ["장비", "equipment"], ["스탯", "stats"], ["월드맵", "worldmap"], ["퀘스트", "quests"], ["스킬", "skills"], ["모험일지", "journal"], ["키보드 설정", "keysettings"]];
+    if (AU.Prologue && AU.Prologue.on) items = items.filter(([, n]) => AU.Prologue.allowWin(n)); // 프롤로그 중에는 필요한 메뉴만
     b.append(h("div", { class: "menugrid" }, items.map(([label, name]) => btn(h("span", null, label, h("em", { text: "[" + keyOf(WIN_KEYS[name]) + "]" })), "menuitem", () => this.open(name)))));
     const row = h("div", { class: "menurow" },
       btn("이어하기", "primary", () => this.close()), btn("지금 저장", "", () => { AU.G.save("manual"); AU.G.toast("저장했습니다.", "good"); }),
@@ -285,7 +289,7 @@ window.AU = window.AU || {};
   R.inventory = function (b) {
     const S = AU.G.S, ids = Object.keys(S.inv), sel = UI.selected.inv && S.inv[UI.selected.inv] ? UI.selected.inv : ids[0];
     UI.selected.inv = sel;
-    const TYPE = { equip: "장비", use: "소비", etc: "기타", quest: "퀘스트" };
+    const TYPE = { equip: "장비", use: "소비", etc: "기타", quest: "퀘스트", story: "중요 물품" };
     const grid = h("div", { class: "itemgrid" });
     if (!ids.length) grid.append(h("p", { class: "empty", text: "가방이 비어 있습니다." }));
     ids.forEach((id) => { const it = AU.ITEMS[id]; grid.append(h("button", { type: "button", class: "item" + (id === sel ? " sel" : ""), onclick: () => { UI.selected.inv = id; UI.renderWin(); } }, h("span", { class: "iname", text: it.name.replace(" (임시)", "") }), h("span", { class: "itype t-" + it.type, text: TYPE[it.type] }), h("span", { class: "icount", text: "×" + S.inv[id] }))); });
@@ -296,6 +300,7 @@ window.AU = window.AU || {};
       if (it.type === "use") det.append(btn("사용", "primary", () => AU.G.useItem(sel)));
       if (it.type === "equip") det.append(btn("장착", "primary", () => AU.G.equip(sel)), btn("장비창에서 비교", "", () => { UI.selected.eq = sel; UI.open("equipment"); }));
       if (it.type === "quest") det.append(h("p", { class: "note", text: "퀘스트용 아이템입니다. 사용하거나 장착할 수 없습니다." }));
+      if (it.type === "story") det.append(h("p", { class: "note", text: "이야기와 관련된 중요한 물건입니다. 사용하거나 버릴 수 없고, 본편에서도 계속 간직합니다." }));
     } else det.append(h("p", { class: "empty", text: "아이템을 선택하면 설명이 표시됩니다." }));
     b.append(h("div", { class: "silver", text: "은화 " + S.silver }), h("div", { class: "split" }, grid, det));
   };
@@ -354,7 +359,7 @@ window.AU = window.AU || {};
     const dest = new Set();
     for (const [id, rec] of Object.entries(S.quests)) {
       if (rec.state === "done") continue; const q = AU.QUESTS[id];
-      const mapOfNpc = (nid) => Object.keys(AU.MAPS).find((m) => (AU.MAPS[m].npcs || []).some((n) => n.id === nid));
+      const mapOfNpc = (nid) => Object.keys(AU.MAPS).find((m) => !AU.MAPS[m].prologue && (!AU.MAPS[m].hidden || S.visited[m]) && (AU.MAPS[m].npcs || []).some((n) => n.id === nid));
       if (rec.state === "ready") { dest.add(mapOfNpc(q.giver)); continue; }
       q.objectives.forEach((o, i) => { if (AU.G.objectiveDone(q, rec, i)) return;
         if (o.kind === "kill") for (const m of Object.keys(AU.MAPS)) { const mp = AU.MAPS[m]; if ((mp.spawns || []).some((s) => s.type === o.target) || (mp.boss && mp.boss.type === o.target)) dest.add(m); }
@@ -368,6 +373,7 @@ window.AU = window.AU || {};
     }
     map.append(svg);
     for (const [id, m] of Object.entries(AU.MAPS)) {
+      if (m.prologue || (m.hidden && !S.visited[id])) continue; // 프롤로그 맵과 가지 못하는 지역은 월드맵에 표시하지 않음
       const seen = !!S.visited[id];
       map.append(h("button", { type: "button", class: "node" + (id === cur ? " here" : "") + (seen ? "" : " unseen") + (id === sel ? " sel" : ""), style: "left:" + m.area.x + "%;top:" + m.area.y + "%", onclick: () => { UI.selected.map = id; UI.renderWin(); } },
         h("i", { text: seen ? (id === cur ? "●" : "○") : "?" }), h("span", { text: seen ? m.name.replace(" (임시 명칭)", "") : "미발견" }), dest.has(id) ? h("u", { text: "★" }) : null));
@@ -470,7 +476,9 @@ window.AU = window.AU || {};
     const unl = UI.settings && UI.settings.confirmUnload !== false;
     b.append(h("p", { class: "note", text: "바꿀 키를 누른 뒤 새 키를 누르세요. 이미 쓰는 키면 교체 여부를 묻습니다. 변경은 바로 저장됩니다. 한글 입력 상태에서도 키 위치(물리 키) 기준으로 동작합니다." }), msg, rows,
       h("div", { class: "keyfoot" }, btn("기본값으로 복원", "", () => { I.reset(); AU.main.saveSettings(); UI.keyMsg = "기본 키로 복원했습니다."; UI.renderWin(); }),
-        h("label", { class: "chk" }, h("input", { type: "checkbox", checked: unl ? "" : null, onchange: (e) => { UI.settings.confirmUnload = e.target.checked; AU.main.saveSettings(); } }), " 탭을 닫기 전에 확인 창 표시")),
+        h("label", { class: "chk" }, h("input", { type: "checkbox", checked: unl ? "" : null, onchange: (e) => { UI.settings.confirmUnload = e.target.checked; AU.main.saveSettings(); } }), " 탭을 닫기 전에 확인 창 표시"),
+        h("label", { class: "chk" }, h("input", { type: "checkbox", checked: UI.settings.reduceFx ? "" : null, onchange: (e) => { UI.settings.reduceFx = e.target.checked; AU.main.saveSettings(); } }), " 화면 흔들림·번쩍임 줄이기"),
+        h("label", { class: "chk" }, h("input", { type: "checkbox", checked: UI.settings.mute ? "" : null, onchange: (e) => { UI.settings.mute = e.target.checked; if (UI.settings.mute && AU.Prologue) AU.Prologue.Au.stopAll(); AU.main.saveSettings(); if (AU.Prologue && AU.Prologue.muteEl) AU.Prologue.syncMute(); } }), " 소리 끄기")),
       h("p", { class: "note", text: "참고: 브라우저 단축키(Ctrl+W 탭 닫기 등)는 게임이 막을 수 없습니다. Ctrl을 공격에 쓰는 경우 W 키(월드맵)와 함께 누르지 않도록 주의하거나 키를 바꿔 주세요. 진행 상황은 자동 저장됩니다." }));
   };
   UI.listenKey = function (id) {
@@ -506,6 +514,10 @@ window.AU = window.AU || {};
         h("div", null, h("h4", { text: "기타" }), btn("HP 전부 회복", "mini", () => { S.hp = AU.G.d().maxHp; AU.G.changed(); }), btn("은화 +100", "mini", () => { AU.G.gainSilver(100); AU.G.changed(); }), btn("훈련 포인트 +3 (지급 경로 우회)", "mini", () => { S.trainingPoints += 3; AU.G.changed(); }),
           btn("전직 시험 퀘스트 바로 완료 준비", "mini", () => { if (!S.jobChanged && S.level >= 10) { S.quests.q_job = { state: "ready", prog: [1] }; AU.G.changed(); AU.G.toast("전직 담당에게 가면 전직합니다.", "info"); } else AU.G.toast("10레벨 이상 · 미전직 상태에서만 가능합니다.", "warn"); })),
         h("div", null, h("h4", { text: "마음 기록 인터페이스 시험" }), btn("PSS 샘플 기록 추가", "mini", () => AU.G.addCheckin({ scale: "PSS", score: 12, items: null, source: "dev-sample" })), h("p", { class: "note", text: "기록 " + S.mind.checkins.length + "건. 게임 자원과 별도 저장되며, 점수→" + C.resource.name + " 환산은 하지 않습니다." }))));
+    const PR = AU.Prologue, grid = b.querySelector(".devgrid");
+    if (PR && grid) grid.append(h("div", null, h("h4", { text: "프롤로그" }), h("div", { class: "devrow" }, [1, 2, 3, 4, 5, 6].map((n) => btn("장면 " + n, "mini", () => { UI.close(); PR.devJump(n - 1); }))),
+      btn("즉시 완료 → 포르투 노바", "mini", () => { UI.close(); PR.debugComplete("porto"); }), btn("컷신 건너뛰기", "mini", () => { UI.close(); PR.skip(); }),
+      h("p", { class: "note", text: "상태 " + PR.st().state + " · 깃발 " + Object.keys(PR.st().flags).filter((k) => PR.st().flags[k]).length + "개" + (PR.replay ? " (다시 보기 중: 저장 기록은 바뀌지 않음)" : "") })));
   };
-  UI.settings = { confirmUnload: true }; UI.devVisible = false;
+  UI.settings = { confirmUnload: true, reduceFx: false, mute: false }; UI.devVisible = false;
 })();
