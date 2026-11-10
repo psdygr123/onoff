@@ -21,6 +21,7 @@ window.AU = window.AU || {};
     /* ---------- 경험치·레벨 ---------- */
     gainExp(n, label) {
       const S = this.S; n = Math.round(n); if (n <= 0) return;
+      if (AU.Prologue && AU.Prologue.on) return; // 프롤로그에서는 경험치·레벨업이 없음
       const cap = AU.levelCap(S);
       if (S.level >= cap) {
         // 전직 전에는 10레벨에서 멈춤: 경험치는 쌓지 않고 안내만 한다
@@ -266,11 +267,15 @@ window.AU = window.AU || {};
 
     /* ---------- 저장·불러오기 ---------- */
     save(reason) {
+      let bak = null;
       try {
         const S = this.S; S.savedAt = new Date().toISOString();
+        // 프롤로그 '다시 보기' 중에는 진행 기록을 바꾸지 않도록, 돌아갈 위치로 바꿔서 저장
+        if (AU.Prologue && AU.Prologue.replay && AU.Prologue.ret) { bak = { map: S.map, x: S.x }; S.map = AU.Prologue.ret.map; S.x = AU.Prologue.ret.x; }
         AU.Store.set(C.save.key, S);
         AU.Ev.emit("saved", { reason });
       } catch (e) { console.warn("[저장 실패]", e); }
+      if (bak) { this.S.map = bak.map; this.S.x = bak.x; }
     },
     load() {
       const raw = AU.Store.get(C.save.key); if (!raw || typeof raw !== "object") return null;
@@ -279,6 +284,8 @@ window.AU = window.AU || {};
       const merged = Object.assign(base, raw);
       for (const k of ["stats", "alloc", "equip", "flags", "skills", "missions", "mind"]) merged[k] = Object.assign(base[k], raw[k] || {});
       merged.v = C.save.version; merged.inv = raw.inv || {}; merged.quests = raw.quests || {}; merged.visited = raw.visited || { arche: true };
+      // 프롤로그 추가 전(v1) 저장: 이미 시작한 본편 진행을 그대로 유지하고 프롤로그는 '완료'로 간주(필요하면 제목 화면에서 다시 볼 수 있음)
+      merged.prologue = raw.prologue && typeof raw.prologue === "object" ? raw.prologue : { state: "COMPLETED", flags: {}, seen: {}, legacy: true };
       return merged;
     }
   };

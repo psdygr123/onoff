@@ -31,7 +31,8 @@ AU.ASSETS = {
 // 지역 이름은 요청서에 나온 아르케아·포르투 노바만 확정. 나머지 이름은 임시 일반 명칭입니다(TODO).
 AU.MAPS = {
   arche: {
-    name: "아르케아 마을", bg: "plaza", width: 2484, safe: true,
+    // 프롤로그 이후 이야기에서 아르케아는 습격으로 파괴된 마을이라 신규 플레이어는 갈 수 없음. 기존(프롤로그 이전) 저장을 위해 데이터는 유지.
+    name: "아르케아 마을", bg: "plaza", width: 2484, safe: true, hidden: true,
     platforms: [{ x: 0, y: 590, w: 2484 }], ropes: [],
     portals: [{ x: 2420, to: "forest", toX: 90, label: "숲길" }],
     npcs: [{ id: "arche_guide", x: 620 }],
@@ -44,7 +45,7 @@ AU.MAPS = {
     platforms: [{ x: 0, y: 590, w: 3000 }, { x: 630, y: 542, w: 100, h: 48 }, { x: 900, y: 520, w: 110, h: 70 },
                 { x: 1350, y: 390, w: 650, h: 200 }, { x: 2000, y: 460, w: 85, h: 130 }, { x: 2085, y: 530, w: 85, h: 60 }], // h가 있으면 옆이 막힌 단단한 바위·턱
     ropes: [{ x: 1315, top: 370, bottom: 590 }],
-    portals: [{ x: 50, to: "arche", toX: 2330, label: "아르케아 마을" }, { x: 2950, to: "harbor_road", toX: 90, label: "항구 길" }],
+    portals: [{ x: 2950, to: "harbor_road", toX: 90, label: "항구 길" }],
     npcs: [],
     spawns: [
       { type: "fox", x: 520 }, { type: "fox", x: 880 }, { type: "fox", x: 1250 }, { type: "fox", x: 1600, y: 390, min: 1370, max: 1990 },
@@ -59,7 +60,7 @@ AU.MAPS = {
     npcs: [],
     spawns: [
       { type: "snake", x: 600 }, { type: "rat", x: 900 }, { type: "rat", x: 1200 }, { type: "rat", x: 1500 },
-      { type: "snake", x: 1750 }, { type: "rat", x: 2000 }, { type: "rat", x: 2250 }
+      { type: "snake", x: 1750 }, { type: "fox", x: 2000 }, { type: "fox", x: 2250 }
     ],
     area: { x: 58, y: 56, desc: "포르투 노바로 이어지는 바닷가 길입니다. (임시 설명)" }
   },
@@ -67,7 +68,7 @@ AU.MAPS = {
     name: "포르투 노바", bg: "harbor", width: 1600, safe: true,
     platforms: [{ x: 0, y: 590, w: 1600 }], ropes: [],
     portals: [{ x: 40, to: "harbor_road", toX: 2330, label: "항구 길" }, { x: 1560, to: "docks", toX: 90, label: "선창 외곽" }],
-    npcs: [{ id: "porto_guild", x: 520 }, { id: "job_npc", x: 900 }, { id: "guide_npc", x: 1220 }],
+    npcs: [{ id: "arche_guide", x: 330 }, { id: "porto_guild", x: 520 }, { id: "job_npc", x: 900 }, { id: "guide_npc", x: 1220 }],
     spawns: [], start: 160,
     area: { x: 78, y: 40, desc: "중립 항구도시입니다. 선창 길드가 의뢰를 받습니다. (요청서 기준)" }
   },
@@ -83,7 +84,7 @@ AU.MAPS = {
     area: { x: 90, y: 64, desc: "항구 바깥 선창 지대입니다. 길드 의뢰의 사냥터입니다. (임시 설명)" }
   }
 };
-AU.AREA_LINKS = [["arche", "forest"], ["forest", "harbor_road"], ["harbor_road", "porto"], ["porto", "docks"]];
+AU.AREA_LINKS = [["forest", "harbor_road"], ["harbor_road", "porto"], ["porto", "docks"]];
 
 /* ---------- 적 ---------- */
 // sprite/sw: 정식 그림(assets/monster/*.webp, 투명 배경, 오른쪽을 보는 옆모습 1장)이 있으면 그 그림을 sw(가로 px)로 그리고, 없으면 임시 도형으로 표시합니다.
