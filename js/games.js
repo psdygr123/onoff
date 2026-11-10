@@ -7,6 +7,7 @@ OnOff.GAMES = [
     title: "아우텔리아",
     genre: "2D 횡스크롤 스토리 RPG",
     status: "dev", // dev: 개발 중, soon: 출시 예정
+    pcOnly: true, // 키보드 조작 전용: 터치(휴대폰·태블릿) 기기에서는 시작하지 못하고 PC 안내를 보여 줍니다
     statusLabel: "시제품 체험",
     summary: "판타지 세계를 탐험하며 캐릭터를 키우는 스토리형 RPG입니다. 이야기의 갈림길에서 내린 선택이 현실에서 해 보는 작은 실천으로 이어집니다.",
     audienceNote: "정신건강에 관심을 가진 성인이라면 누구나 즐길 수 있습니다.",
@@ -58,7 +59,7 @@ OnOff.GAMES = [
     statusLabel: "임시 체험",
     metaNote: "임시 연결 (체험용)",
     startLabel: "시작하기",
-    summary: "방향키로 공을 굴려 미로를 통과하는 3단계 미니게임입니다. 너무 빠르게 달리면 공이 과열되어 부서지고, 속도를 늦추고 멈춰 숨을 고르는 구간을 지나야 도착할 수 있습니다.",
+    summary: "방향키(휴대폰은 화면 조이스틱)로 공을 굴려 미로를 통과하는 3단계 미니게임입니다. 너무 빠르게 달리면 공이 과열되어 부서지고, 속도를 늦추고 멈춰 숨을 고르는 구간을 지나야 도착할 수 있습니다.",
     audienceNote: "숏폼처럼 빠른 자극에 익숙해져 조급해지기 쉬운 분, 승패 부담 없이 차분한 손끝 조작에 집중하고 싶은 분께 맞춘 임시 체험용입니다.",
     cover: "img/card-maze.webp", // 임시 대표 이미지(코드로 만든 그림). 정식 이미지가 정해지면 교체
     coverAlt: "인내의 미로 대표 이미지: 어두운 미로 안의 파란 공과 초록 도착 지점",
@@ -89,3 +90,10 @@ OnOff.GOALS = [
 OnOff.GENDERS = [
   { id: "f", label: "여성" }, { id: "m", label: "남성" }
 ];
+
+/* 기기 구분: 터치가 주 입력인 기기(휴대폰·태블릿)인지. 창 크기가 아니라 입력 방식으로 판단하므로, 좁게 줄인 PC 창은 PC로 취급합니다. */
+OnOff.Device = {
+  touch() { return !!(window.matchMedia && matchMedia("(pointer: coarse)").matches); },
+  canPlay(g) { return !(g && g.pcOnly && OnOff.Device.touch()); }
+};
+OnOff.PC_ONLY_NOTE = "이 게임은 키보드로 조작하는 게임이라 PC에서만 이용할 수 있습니다. PC에서 접속해 주세요.";

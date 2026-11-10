@@ -5,7 +5,7 @@ OnOff.App = (function () {
   const S = OnOff.State, Vw = OnOff.Views, GAMES = OnOff.GAMES;
   let current = null, firstRender = true;
   const go = (to) => { location.hash = to; };
-  const firstGame = () => GAMES.find((g) => g.status !== "soon");
+  const firstGame = () => GAMES.find((g) => g.status !== "soon" && OnOff.Device.canPlay(g)) || GAMES.find((g) => g.status !== "soon");
 
   function parse() {
     const raw = (location.hash || "#home").slice(1) || "home";
@@ -57,6 +57,8 @@ OnOff.App = (function () {
   }
 
   function openGame(id) {
+    const gm = GAMES.find((x) => x.id === id);
+    if (gm && !OnOff.Device.canPlay(gm)) { toast(OnOff.PC_ONLY_NOTE); return; }
     const u = S.user, save = u ? S.getSave(id) : null;
     if (!u) { S.pending = "intro-" + id; return go("login"); }
     go((save ? "play-" : "intro-") + id);

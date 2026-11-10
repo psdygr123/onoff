@@ -241,17 +241,18 @@ main { display: block; outline: none; }
 .slide.on { opacity: 1; visibility: visible; }
 .slide img { width: 100%; height: 100%; object-fit: cover; transform: scale(1.06); transition: transform 7s ease-out; }
 .slide.on img { transform: scale(1); }
-.slide-shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(20, 30, 25, .8), rgba(20, 30, 25, .35) 55%, rgba(20, 30, 25, .05)); }
-.slide-copy { position: absolute; left: clamp(22px, 4vw, 48px); bottom: clamp(26px, 4vw, 46px); right: 24px; max-width: 520px; color: #fff; display: grid; gap: 12px; transform: translateY(14px); opacity: 0; transition: transform .7s ease .15s, opacity .7s ease .15s; }
+/* 배너 그림은 밝은 크림색 수채화이므로 글자는 어두운 색을 씁니다(다크 모드에서도 그림이 바뀌지 않아 고정색). */
+.slide-shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(248, 244, 232, .78), rgba(248, 244, 232, .42) 48%, rgba(248, 244, 232, 0) 72%); }
+.slide-copy { position: absolute; left: clamp(22px, 4vw, 48px); bottom: clamp(26px, 4vw, 46px); right: 24px; max-width: 520px; color: #302F2A; display: grid; gap: 12px; transform: translateY(14px); opacity: 0; transition: transform .7s ease .15s, opacity .7s ease .15s; }
 .slide.on .slide-copy { transform: none; opacity: 1; }
-.slide-copy .eyebrow { color: rgba(255, 255, 255, .85); }
+.slide-copy .eyebrow { color: #5C5A51; }
 .slide-title { font-family: var(--font-display); font-size: clamp(1.9rem, 3.6vw + .4rem, 3.1rem); line-height: 1.2; letter-spacing: -.01em; }
 .slide-title span { display: block; }
-.slide-title em { font-style: normal; color: #F3D9A8; }
+.slide-title em { font-style: normal; color: #80592F; }
 .slide-copy p:not(.eyebrow) { font-size: var(--fs-md); line-height: 1.65; opacity: .95; }
 .slide-copy .hero-actions { margin-top: 6px; }
-.slide-copy .btn { background: #fff; color: #2b3a30; border-color: #fff; }
-.slide-copy .btn:hover { background: #F3EFE4; }
+.slide-copy .btn { background: #4F6757; color: #fff; border-color: #4F6757; }
+.slide-copy .btn:hover { background: #425849; border-color: #425849; }
 .banner-ctrl { position: absolute; right: 14px; top: 14px; z-index: 3; min-width: 40px; height: 40px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, .6); background: rgba(20, 30, 25, .5); color: #fff; cursor: pointer; font-size: 13px; }
 .banner-ctrl:hover { background: rgba(20, 30, 25, .75); }
 .banner-dots { position: absolute; right: 18px; bottom: 16px; display: none; gap: 6px; z-index: 3; }
@@ -316,3 +317,13 @@ main { display: block; outline: none; }
 .consent-more summary:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
 .consent-more ol { margin: 8px 0 0; padding-left: 20px; display: grid; gap: 8px; line-height: 1.6; }
 .consent-more .kv { margin: 8px 0 0; }
+
+/* 좁은 화면: 글자가 그림 위 전체에 놓이므로 아래쪽을 더 진하게 덮어 읽기 쉽게 합니다. */
+@media (max-width: 760px) {
+  .slide-shade { background: linear-gradient(180deg, rgba(248, 244, 232, .5) 0%, rgba(248, 244, 232, .82) 55%, rgba(248, 244, 232, .9) 100%); }
+}
+
+/* 모바일(터치) 화면: 게임 영역을 세로로 넉넉하게 */
+@media (max-width: 760px) {
+  .stage { aspect-ratio: auto; height: max(560px, calc(100dvh - 190px)); }
+}

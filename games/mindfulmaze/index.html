@@ -67,17 +67,17 @@
             color: #EBCB8B;
         }
         canvas {
+            max-width: 100%; height: auto; touch-action: none; /* 온앤오프 연결용 수정(모바일): 화면 폭에 맞춰 축소 */
             background: #0F1017;
             border-radius: 12px;
             box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
             cursor: pointer;
         }
+        #stage-wrap { position: relative; max-width: 100%; line-height: 0; }
         #ui-overlay {
+            line-height: normal;
             position: absolute;
-            top: 80px;
-            left: 20px;
-            right: 20px;
-            bottom: 70px;
+            inset: 0; /* 온앤오프 연결용 수정(모바일): 캔버스 크기를 그대로 따라가도록 */
             pointer-events: none;
             display: flex;
             flex-direction: column;
@@ -157,6 +157,33 @@
             color: #D8DEE9;
             font-size: 0.8rem;
         }
+        /* ===== 온앤오프 연결용 추가: 터치 조작(가상 조이스틱) ===== */
+        #joy { display: none; margin-top: 14px; width: 150px; height: 150px; border-radius: 50%;
+               background: rgba(136,192,208,0.10); border: 2px solid rgba(136,192,208,0.35);
+               position: relative; touch-action: none; }
+        #joy-knob { position: absolute; left: 50%; top: 50%; width: 60px; height: 60px; margin: -30px 0 0 -30px; border-radius: 50%;
+               background: linear-gradient(135deg, #88C0D0 0%, #81A1C1 100%); box-shadow: 0 4px 12px rgba(0,0,0,0.5); pointer-events: none; }
+        .keys-only { display: inline; }
+        .touch-only { display: none; }
+        @media (pointer: coarse) {
+            #joy { display: block; }
+            .keys-only { display: none; }
+            .touch-only { display: inline; }
+        }
+        @media (max-width: 640px) {
+            body { min-height: 100dvh; overflow-y: auto; justify-content: flex-start; padding: 8px 0; }
+            #game-container { padding: 12px; width: 100%; max-width: 100%; border-radius: 12px; box-shadow: none; }
+            header { flex-wrap: wrap; gap: 6px; padding: 0; }
+            h1 { font-size: 1.05rem; }
+            .stats-bar { gap: 8px; }
+            .stat-item { font-size: 0.78rem; padding: 4px 9px; }
+            .modal-card { padding: 16px; max-width: 92%; }
+            .modal-card h2 { font-size: 1.3rem; margin-bottom: 8px; }
+            .modal-card p { font-size: 0.85rem; margin-bottom: 14px; line-height: 1.5; }
+            .btn { padding: 10px 24px; }
+            footer { flex-direction: column; align-items: stretch; gap: 8px; }
+            .speed-meter-container { width: 140px; }
+        }
     </style>
 </head>
 <body>
@@ -170,6 +197,7 @@
         </div>
     </header>
 
+    <div id="stage-wrap">
     <canvas id="gameCanvas" width="600" height="500"></canvas>
 
     <div id="ui-overlay" class="active">
@@ -182,9 +210,11 @@
             <button id="start-btn" class="btn">시작하기</button>
         </div>
     </div>
+    </div>
+    <div id="joy" aria-label="이동 조이스틱"><div id="joy-knob"></div></div>
 
     <footer>
-        <div class="guide-text">조작: 방향키(전후좌우) 또는 WASD</div>
+        <div class="guide-text"><span class="keys-only">조작: 방향키(전후좌우) 또는 WASD</span><span class="touch-only">조작: 아래 동그라미를 손가락으로 밀어 이동 (살살 밀면 천천히)</span></div>
         <div style="display:flex; align-items:center; gap:8px;">
             <span>충동 게이지:</span>
             <div class="speed-meter-container">
@@ -295,6 +325,7 @@
     let attempts = 0;
     let gameState = 'START'; // START, PLAYING, GAMEOVER, CLEAR
     let keys = {};
+    const joy = { x: 0, y: 0 }; // 가상 조이스틱 입력(-1~1)
 
     const MAX_SAFE_SPEED = 4.2;
     const DANGER_SPEED = 6.0;
@@ -341,6 +372,7 @@
             if (keys['ArrowRight'] || keys['d']) this.ax += accel;
             if (keys['ArrowUp'] || keys['w']) this.ay -= accel;
             if (keys['ArrowDown'] || keys['s']) this.ay += accel;
+            this.ax += joy.x * accel; this.ay += joy.y * accel; /* 온앤오프 연결용 수정: 조이스틱(아날로그) 입력 */
 
             // 속도 적용 및 마찰력 계산
             const friction = 0.94;
@@ -650,6 +682,33 @@
         initStage(currentStage);
         gameState = 'PLAYING';
     });
+
+    // --- 터치 조이스틱 (온앤오프 연결용 추가) ---
+    (function () {
+        const pad = document.getElementById('joy'), knob = document.getElementById('joy-knob');
+        let pid = null;
+        function move(e) {
+            const r = pad.getBoundingClientRect();
+            const R = r.width / 2;
+            let dx = e.clientX - (r.left + R), dy = e.clientY - (r.top + R);
+            const d = Math.hypot(dx, dy);
+            const max = R - 10;
+            if (d > max) { dx = dx / d * max; dy = dy / d * max; }
+            knob.style.transform = 'translate(' + dx + 'px,' + dy + 'px)';
+            let jx = dx / max, jy = dy / max;
+            if (Math.hypot(jx, jy) < 0.15) { jx = 0; jy = 0; } // 손떨림 무시
+            joy.x = jx; joy.y = jy;
+        }
+        function end(e) {
+            if (pid !== null && e.pointerId !== pid) return;
+            pid = null; joy.x = 0; joy.y = 0; knob.style.transform = '';
+        }
+        pad.addEventListener('pointerdown', e => { e.preventDefault(); pid = e.pointerId; try { pad.setPointerCapture(pid); } catch (_) {} move(e); });
+        pad.addEventListener('pointermove', e => { if (e.pointerId === pid) { e.preventDefault(); move(e); } });
+        pad.addEventListener('pointerup', end);
+        pad.addEventListener('pointercancel', end);
+        window.addEventListener('blur', () => end({ pointerId: pid }));
+    })();
 
     // --- Input Listener ---
     window.addEventListener('keydown', e => { if (e.key.indexOf('Arrow') === 0) e.preventDefault(); keys[e.key] = true; });   /* 온앤오프 연결용 수정: 방향키가 바깥 페이지를 스크롤하지 않게 */

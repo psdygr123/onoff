@@ -4,7 +4,7 @@ OnOff.Views = (function () {
   const { esc, field, checks, V, setError, toast, val, vals, icons } = OnOff.UI;
   const S = OnOff.State;
   const GAMES = OnOff.GAMES;
-  const first = () => GAMES.find((g) => g.status !== "soon");
+  const first = () => GAMES.find((g) => g.status !== "soon" && OnOff.Device.canPlay(g)) || GAMES.find((g) => g.status !== "soon");
   const go = (to) => { location.hash = to; };
 
   /* ---------- 공통 조각 ---------- */
@@ -14,6 +14,7 @@ OnOff.Views = (function () {
     const save = user ? S.getSave(g.id) : null;
     let cta;
     if (soon) cta = `<button class="btn ghost sm" type="button" disabled aria-disabled="true">준비 중</button>`;
+    else if (!OnOff.Device.canPlay(g)) cta = `<button class="btn ghost sm" type="button" disabled aria-disabled="true">PC에서 이용</button>`;
     else cta = `<button class="btn sm" type="button" data-action="open-game" data-id="${g.id}">${save ? "이어하기" : "게임 시작"}</button>`;
     const art = soon
       ? (g.cover ? `<div class="card-art"><img src="${g.cover}" alt="${esc(g.coverAlt || "")}" loading="lazy" width="1000" height="720"><span class="badge soon">${esc(g.statusLabel)}</span></div>` : `<div class="card-art soon">${icons.soon}<span class="badge soon">${esc(g.statusLabel)}</span></div>`)
@@ -21,7 +22,7 @@ OnOff.Views = (function () {
     return `<article class="card">${art}<div class="card-body">
       <h3>${esc(g.title)}</h3>
       <div class="card-meta">${esc(g.genre)}${soon ? "" : " · " + (g.metaNote || "플레이 연결 전 (시제품)")}</div>
-      <div><p>${esc(g.summary)}</p>${g.audienceNote ? `<p class="card-aud">${esc(g.audienceNote)}</p>` : ""}</div>
+      <div><p>${esc(g.summary)}</p>${g.audienceNote ? `<p class="card-aud">${esc(g.audienceNote)}</p>` : ""}${!soon && !OnOff.Device.canPlay(g) ? `<p class="card-aud pc-note">${esc(OnOff.PC_ONLY_NOTE)}</p>` : ""}</div>
       <div class="card-foot">${cta}${!soon ? `<button class="btn ghost sm" type="button" data-action="go" data-to="intro-${g.id}">시작 전 안내</button>` : ""}</div>
     </div></article>`;
   }
@@ -51,14 +52,14 @@ OnOff.Views = (function () {
   // 홈 배너: 게임이 아니라 서비스·이용 방식을 소개합니다. 문구는 기존 홈·서비스 소개 화면의 내용을 그대로 씁니다.
   const BANNERS = [
     { label: "일상 밖의 모험", sub: "온앤오프 소개", kicker: "심리학 전공자들이 만든 성장형 게임", title: "<span>일상 밖의 모험,</span><span><em>일상 속</em>의 성장</span>",
-      text: "이야기 속 작은 선택과 경험이 쌓여, 일상의 변화로 이어지는 여정을 함께합니다.", img: "img/hero.webp", pos: "50% 30%",
-      alt: "노을빛 바다와 언덕 위 마을이 내려다보이는 판타지 풍경", cta: '<button class="btn" type="button" data-action="scroll" data-target="lib">게임 둘러보기</button>' },
+      text: "이야기 속 작은 선택과 경험이 쌓여, 일상의 변화로 이어지는 여정을 함께합니다.", img: "img/banner-1.webp", pos: "72% 50%",
+      alt: "비가 갠 창가에 켜진 램프와 찻잔, 화분이 놓인 아늑한 풍경", cta: '<button class="btn" type="button" data-action="scroll" data-target="lib">게임 둘러보기</button>' },
     { label: "직접 만듭니다", sub: "심리학 전공자들", kicker: "온앤오프의 약속", title: "<span>심리학 전공자들이</span><span>직접 만듭니다</span>",
-      text: "심리학 이론을 바탕으로 기획하고, 효과가 입증되었다고 말하지 않으며 할 수 있는 만큼만 약속합니다.", img: "img/about-forest.webp", pos: "50% 60%",
-      alt: "햇살이 비치는 숲길", cta: '<button class="btn" type="button" data-action="go" data-to="about">서비스 소개 보기</button>' },
+      text: "심리학 이론을 바탕으로 기획하고, 효과가 입증되었다고 말하지 않으며 할 수 있는 만큼만 약속합니다.", img: "img/banner-2.webp", pos: "72% 55%",
+      alt: "창가 책상 위에 켜진 스탠드, 펼친 노트와 연필, 찻잔, 화분, 실타래", cta: '<button class="btn" type="button" data-action="go" data-to="about">서비스 소개 보기</button>' },
     { label: "하루 몇 분이어도", sub: "쉬어 가도 괜찮은 여정", kicker: "내 속도로", title: "<span>하루 몇 분이어도</span><span>괜찮아요</span>",
-      text: "게임마다 진행 기록이 따로 저장되어, 언제든 이어서 할 수 있습니다.", img: "img/game-maeum.webp", pos: "30% 60%",
-      alt: "노을 진 항구에 정박한 범선", cta: '<button class="btn" type="button" data-action="start">모험 시작하기</button>' }
+      text: "게임마다 진행 기록이 따로 저장되어, 언제든 이어서 할 수 있습니다.", img: "img/banner-3.webp", pos: "78% 55%",
+      alt: "햇살 드는 나무 아래 벤치와 김 나는 찻잔, 담요, 잔잔한 호수", cta: '<button class="btn" type="button" data-action="start">모험 시작하기</button>' }
   ];
 
   const home = {
@@ -350,7 +351,7 @@ OnOff.Views = (function () {
         return `<div class="game-row"><img src="${g.cover}" alt="" width="96" height="64"><div><h3>${esc(g.title)}</h3>
           <p>${sv ? `${esc(sv.label)}${sv.percent != null ? " · " + sv.percent + "%" : ""} · 마지막 기록 ${esc(sv.updatedAt)}` : "아직 시작하지 않았습니다."}</p>
           ${sv && sv.example ? '<span class="tag example">예시 데이터</span>' : ""}${sv && sv.test ? '<span class="tag example">연결 시험 기록</span>' : ""}</div>
-          <button class="btn sm ${sv ? "" : "ghost"}" type="button" data-action="open-game" data-id="${g.id}">${sv ? "이어하기" : "게임 시작"}</button></div>`;
+          ${OnOff.Device.canPlay(g) ? `<button class="btn sm ${sv ? "" : "ghost"}" type="button" data-action="open-game" data-id="${g.id}">${sv ? "이어하기" : "게임 시작"}</button>` : `<button class="btn ghost sm" type="button" disabled aria-disabled="true">PC에서 이용</button>`}</div>`;
       }).join("");
       return `<div class="wrap page"><div class="account-grid">
         <nav class="side" aria-label="마이페이지 메뉴">
@@ -425,15 +426,17 @@ OnOff.Views = (function () {
           <div><h3>만든 목적</h3><p style="color:var(--ink-2);font-size:var(--fs-sm)">${esc(g.intro.purpose)}</p></div>
           <div><h3>게임 구성</h3><ul class="checklist">${g.intro.parts.map((p) => `<li>${esc(p)}</li>`).join("")}</ul><p style="color:var(--ink-2);font-size:var(--fs-xs);margin-top:8px">${esc(g.intro.partsNote)}</p></div>
           <div class="note"><strong>알아 두세요.</strong> 이 게임은 의료·상담을 대신하지 않습니다. 하다가 마음이 불편해지면 언제든 멈추셔도 됩니다. 마음이 많이 힘들 때는 가까운 전문 상담기관이나 의료기관의 도움을 받아 보세요. 이 게임에서 입력하거나 응답한 내용은 가입 때 연구 활용에 동의하신 경우에 한해 심리학 연구 자료로 활용될 수 있습니다.</div>
+          ${OnOff.Device.canPlay(g) ? "" : `<div class="note"><strong>PC 전용 게임입니다.</strong> ${esc(OnOff.PC_ONLY_NOTE)}</div>`}
           <label class="choice"><input type="checkbox" id="intro-ok"><span>안내를 읽었습니다.</span></label>
-          <div class="form-actions"><button class="btn ghost" type="button" data-action="go" data-to="games">뒤로</button><button class="btn" type="button" id="intro-go" disabled aria-disabled="true">${esc(g.startLabel || "모험 시작")}</button></div>
+          <div class="form-actions"><button class="btn ghost" type="button" data-action="go" data-to="games">뒤로</button><button class="btn" type="button" id="intro-go" disabled aria-disabled="true" ${OnOff.Device.canPlay(g) ? "" : 'data-blocked="1"'}>${esc(g.startLabel || "모험 시작")}</button></div>
         </div></div></div>`;
     },
     mount(root, ctx) {
       const ok = root.querySelector("#intro-ok"), btn = root.querySelector("#intro-go");
       if (!ok) return;
-      ok.addEventListener("change", () => { btn.disabled = !ok.checked; btn.setAttribute("aria-disabled", String(!ok.checked)); });
-      btn.addEventListener("click", () => { if (ok.checked) go("play-" + ctx.param); });
+      const blocked = !!btn.dataset.blocked;
+      ok.addEventListener("change", () => { const off = !ok.checked || blocked; btn.disabled = off; btn.setAttribute("aria-disabled", String(off)); });
+      btn.addEventListener("click", () => { if (ok.checked && !blocked) go("play-" + ctx.param); });
     }
   };
 
@@ -443,6 +446,7 @@ OnOff.Views = (function () {
     render(ctx) {
       const g = GAMES.find((x) => x.id === ctx.param);
       if (!g || g.status === "soon") return notfound.render();
+      if (!OnOff.Device.canPlay(g)) return `<div class="wrap page"><div class="page-narrow"><div class="panel"><h1>${esc(g.title)}</h1><p>${esc(OnOff.PC_ONLY_NOTE)}</p><div><button class="btn" type="button" data-action="go" data-to="games">게임 둘러보기</button></div></div></div></div>`;
       return `<div class="wrap page">
         <div class="play-bar"><h1>${esc(g.title)}</h1><button class="btn ghost sm" type="button" data-action="go" data-to="games">플랫폼으로 돌아가기</button></div>
         <div class="stage" id="stage" aria-live="polite"></div>
@@ -454,7 +458,7 @@ OnOff.Views = (function () {
     },
     mount(root, ctx) {
       const g = GAMES.find((x) => x.id === ctx.param);
-      if (!g) return;
+      if (!g || !OnOff.Device.canPlay(g)) return;
       const stage = root.querySelector("#stage"), log = root.querySelector("#bridge-log");
       const open = (override) => {
         if (disposeBridge) { disposeBridge(); disposeBridge = null; }
