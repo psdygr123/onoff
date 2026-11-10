@@ -19,7 +19,7 @@ OnOff.App = (function () {
     const actions = u
       ? `<span class="who">${esc(u.name)}님</span><button class="btn ghost sm" type="button" data-action="go" data-to="mypage">마이페이지</button><button class="btn ghost sm" type="button" data-action="logout">로그아웃</button>`
       : `<button class="btn ghost sm" type="button" data-action="go" data-to="login">로그인</button><button class="btn sm" type="button" data-action="go" data-to="signup">회원가입</button>`;
-    return `<div class="proto-bar"><div class="wrap"><b>시제품</b><span>실제 계정 인증과 서버 저장은 아직 없습니다. 입력한 내용은 서버로 전송되지 않으며, 새로고침하면 사라집니다.</span></div></div>
+    return `<div class="proto-bar"><div class="wrap">${OnOff.Cloud && OnOff.Cloud.enabled ? "<b>시험 운영</b><span>가입 정보는 서버(서울)에 저장됩니다. 정식 공개 전이므로 실제 개인정보 대신 가상의 정보를 입력해 주세요.</span>" : "<b>시제품</b><span>실제 계정 인증과 서버 저장은 아직 없습니다. 입력한 내용은 서버로 전송되지 않으며, 새로고침하면 사라집니다.</span>"}</div></div>
     <header class="site-header" id="site-header"><div class="wrap header-row">
       <a class="brand" href="#home" aria-label="온앤오프 홈">${logo(36)}<span>On &amp; Off</span><small>온앤오프</small></a>
       <nav class="nav" aria-label="주 메뉴"><a href="#home"${cur("home")}>홈</a><a href="#games"${cur("games")}>게임 둘러보기</a><a href="#about"${cur("about")}>서비스 소개</a></nav>

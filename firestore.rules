@@ -1,0 +1,76 @@
+rules_version = '2';
+
+// 온앤오프 보안 규칙 (Cloud Firestore, 프로젝트 onandoffdb)
+// 원칙: 로그인한 본인만 자기 문서를 읽고 쓸 수 있고, 삭제는 막으며, 저장할 수 있는 항목과 길이를 제한합니다.
+// 동의 기록(consentLog)은 추가만 가능하고 수정·삭제할 수 없습니다.
+// 변경 후에는 Firebase 콘솔 > Firestore > 규칙 에서 게시해야 적용됩니다.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function isOwner(uid) { return signedIn() && request.auth.uid == uid; }
+
+    function validProfile(d) {
+      return d.keys().hasOnly(['name', 'gender', 'adult', 'goals', 'goalsFree', 'consents', 'joined', 'createdAt', 'updatedAt'])
+        && d.name is string && d.name.size() >= 1 && d.name.size() <= 40
+        && d.gender is string && d.gender.size() <= 10
+        && d.adult == true
+        && d.goals is list && d.goals.size() <= 12
+        && d.goalsFree is string && d.goalsFree.size() <= 200
+        && d.consents is map
+        && d.consents.keys().hasOnly(['terms', 'privacy', 'research'])
+        && d.consents.terms is string && d.consents.terms.size() <= 30
+        && d.consents.privacy is string && d.consents.privacy.size() <= 30
+        && d.consents.research is string && d.consents.research.size() <= 30
+        && d.joined is string && d.joined.size() <= 30
+        && d.createdAt is timestamp
+        && (!('updatedAt' in d) || d.updatedAt is timestamp);
+    }
+
+    match /users/{uid} {
+      allow read: if isOwner(uid);
+      // 가입: 필수 동의(약관·개인정보)가 기록되어 있어야 만들 수 있습니다.
+      allow create: if isOwner(uid)
+        && validProfile(request.resource.data)
+        && request.resource.data.consents.terms != ''
+        && request.resource.data.consents.privacy != ''
+        && request.resource.data.createdAt == request.time;
+      // 수정: 가입 시각·동의 날짜는 바꿀 수 없습니다.
+      allow update: if isOwner(uid)
+        && validProfile(request.resource.data)
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.consents == resource.data.consents
+        && request.resource.data.joined == resource.data.joined;
+      allow delete: if false;
+
+      // 게임 진행 저장: 게임별 1문서
+      match /saves/{gameId} {
+        allow read: if isOwner(uid);
+        allow create, update: if isOwner(uid)
+          && request.resource.data.keys().hasOnly(['label', 'percent', 'test', 'updatedAt'])
+          && request.resource.data.label is string && request.resource.data.label.size() <= 40
+          && request.resource.data.percent is number && request.resource.data.percent >= 0 && request.resource.data.percent <= 100
+          && request.resource.data.test is bool
+          && request.resource.data.updatedAt == request.time;
+        allow delete: if false;
+      }
+
+      // 동의 기록: 추가만 가능(수정·삭제 불가)
+      match /consentLog/{logId} {
+        allow read: if isOwner(uid);
+        allow create: if isOwner(uid)
+          && request.resource.data.keys().hasOnly(['item', 'granted', 'version', 'at'])
+          && request.resource.data.item in ['terms', 'privacy', 'research']
+          && request.resource.data.granted is bool
+          && request.resource.data.version is string && request.resource.data.version.size() <= 40
+          && request.resource.data.at == request.time;
+        allow update, delete: if false;
+      }
+    }
+
+    // 그 밖의 모든 경로는 막습니다.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

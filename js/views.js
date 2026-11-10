@@ -4,6 +4,7 @@ OnOff.Views = (function () {
   const { esc, field, checks, V, setError, toast, val, vals, icons } = OnOff.UI;
   const S = OnOff.State;
   const GAMES = OnOff.GAMES;
+  const CLOUD = () => !!(OnOff.Cloud && OnOff.Cloud.enabled);
   const first = () => GAMES.find((g) => g.status !== "soon" && OnOff.Device.canPlay(g)) || GAMES.find((g) => g.status !== "soon");
   const go = (to) => { location.hash = to; };
 
@@ -198,21 +199,29 @@ OnOff.Views = (function () {
           <button class="btn block" type="submit">로그인</button>
           <div class="link-row"><button type="button" data-action="go" data-to="reset">비밀번호를 잊으셨나요?</button><button type="button" data-action="go" data-to="signup">회원가입</button></div>
           <hr style="border:0;border-top:1px solid var(--line);width:100%">
-          <div class="note"><strong>시제품 안내</strong> 실제 인증은 아직 없습니다. 이 화면에서 가입한 계정으로만 로그인되며, 새로고침하면 사라집니다. 화면 구성을 보려면 체험 계정을 쓰세요.</div>
+          ${CLOUD() ? `<div class="note"><strong>시험 운영 안내</strong> 가입한 계정으로 로그인합니다. 정식 공개 전이므로 실제 개인정보 대신 가상의 정보를 사용해 주세요. 화면 구성만 보려면 체험 계정을 쓰세요.</div>` : `<div class="note"><strong>시제품 안내</strong> 실제 인증은 아직 없습니다. 이 화면에서 가입한 계정으로만 로그인되며, 새로고침하면 사라집니다. 화면 구성을 보려면 체험 계정을 쓰세요.</div>`}
           <button class="btn ghost block" type="button" data-action="demo">체험 계정으로 둘러보기</button>
         </form></div></div>`;
     },
     mount(root) {
       const form = root.querySelector("#login-form"), sum = root.querySelector("#login-summary");
-      form.addEventListener("submit", (e) => {
+      let busy = false;
+      form.addEventListener("submit", async (e) => {
         e.preventDefault();
+        if (busy) return;
         const email = val(form, "email").trim(), pw = val(form, "password");
         const e1 = V.email(email), e2 = pw ? "" : "비밀번호를 입력해 주세요.";
         setError(form, "li-email", e1); setError(form, "li-pw", e2);
         sum.classList.remove("show");
         if (e1 || e2) { form.querySelector(e1 ? "#li-email" : "#li-pw").focus(); return; }
-        const r = S.login(email, pw);
-        if (!r.ok) { sum.textContent = "이메일 또는 비밀번호가 맞지 않습니다. 시제품에서는 이 화면에서 가입한 계정만 쓸 수 있습니다."; sum.classList.add("show"); sum.focus(); return; }
+        busy = true; const sb = form.querySelector('[type="submit"]'); if (sb) sb.disabled = true;
+        const r = await S.login(email, pw);
+        busy = false; if (sb) sb.disabled = false;
+        if (!r.ok) {
+          const m = { "too-many": "로그인 시도가 너무 많습니다. 잠시 뒤에 다시 시도해 주세요.", network: "서버에 연결하지 못했습니다. 인터넷 연결을 확인해 주세요.", server: "로그인 중 문제가 생겼습니다. 잠시 뒤에 다시 시도해 주세요." }[r.error];
+          sum.textContent = m || (CLOUD() ? "이메일 또는 비밀번호가 맞지 않습니다." : "이메일 또는 비밀번호가 맞지 않습니다. 시제품에서는 이 화면에서 가입한 계정만 쓸 수 있습니다.");
+          sum.classList.add("show"); sum.focus(); return;
+        }
         toast("로그인했습니다.");
         const p = S.pending; S.pending = null; go(p || "games");
       });
@@ -234,11 +243,18 @@ OnOff.Views = (function () {
     },
     mount(root) {
       const form = root.querySelector("#reset-form"), out = root.querySelector("#reset-result");
-      form.addEventListener("submit", (e) => {
+      form.addEventListener("submit", async (e) => {
         e.preventDefault();
         const em = val(form, "email").trim(), err = V.email(em);
         setError(form, "rs-email", err);
         if (err) { out.innerHTML = ""; form.querySelector("#rs-email").focus(); return; }
+        if (CLOUD()) {
+          const r = await S.sendReset(em);
+          out.innerHTML = r.ok || r.error === "mismatch"
+            ? `<div class="note"><strong>안내</strong> 가입된 이메일이라면 비밀번호 재설정 메일이 발송됩니다. 몇 분 안에 오지 않으면 스팸함을 확인해 주세요.</div>`
+            : `<div class="note err">${r.error === "network" ? "서버에 연결하지 못했습니다. 인터넷 연결을 확인해 주세요." : r.error === "too-many" ? "요청이 너무 많습니다. 잠시 뒤에 다시 시도해 주세요." : "요청을 처리하지 못했습니다. 잠시 뒤에 다시 시도해 주세요."}</div>`;
+          return;
+        }
         out.innerHTML = `<div class="note"><strong>시제품 안내</strong> 입력한 형식은 올바릅니다. 시제품에는 메일 서버가 없어 실제로 메일을 보내지 않았습니다. 서비스 출시 때 이 자리에서 재설정 안내를 보냅니다.</div>`;
       });
     }
@@ -275,7 +291,7 @@ OnOff.Views = (function () {
             <div class="field" data-field="su-terms"><label class="choice"><input type="checkbox" id="su-terms" name="terms"><span><b>[필수]</b> 서비스 이용약관에 동의합니다. <a href="#terms" target="_blank" rel="noopener">내용 보기</a></span></label><div class="err-msg" id="su-terms-err" role="alert"></div></div>
             <div class="field" data-field="su-privacy"><label class="choice"><input type="checkbox" id="su-privacy" name="privacy"><span><b>[필수]</b> 개인정보 수집·이용에 동의합니다. <a href="#privacy" target="_blank" rel="noopener">처리방침 보기</a></span></label>${privacyDetail()}<div class="err-msg" id="su-privacy-err" role="alert"></div></div>
             <div class="field" data-field="su-research"><label class="choice"><input type="checkbox" id="su-research" name="research"><span><b>${TAG}</b> 수집되는 모든 정보를 <b>심리학 연구 자료로 활용</b>하는 것에 동의합니다. 연구 범위는 아직 정해지지 않았으며, 정해지면 안내받고 언제든 철회할 수 있습니다.</span></label>${researchDetail()}<div class="err-msg" id="su-research-err" role="alert"></div></div>
-            <div class="note"><strong>시제품 안내</strong> 입력한 정보는 서버로 전송되지 않고, 이 탭을 새로고침하면 사라집니다. 실제 개인정보는 입력하지 않아도 됩니다.</div>
+            ${CLOUD() ? `<div class="note"><strong>시험 운영 안내</strong> 가입 정보는 서버(서울)에 저장됩니다. 연구 동의와 개인정보 처리방침이 확정되기 전이므로, <b>실제 개인정보 대신 가상의 이름·이메일 등을 입력해 주세요.</b></div>` : `<div class="note"><strong>시제품 안내</strong> 입력한 정보는 서버로 전송되지 않고, 이 탭을 새로고침하면 사라집니다. 실제 개인정보는 입력하지 않아도 됩니다.</div>`}
           </fieldset>
 
           <div class="form-actions">
@@ -324,16 +340,24 @@ OnOff.Views = (function () {
       };
       next.addEventListener("click", () => { if (validate(step)) show(step + 1); });
       prev.addEventListener("click", () => show(step - 1));
-      form.addEventListener("submit", (e) => {
+      let busy = false;
+      form.addEventListener("submit", async (e) => {
         e.preventDefault();
-        if (!validate(3)) return;
-        const r = S.register({
+        if (busy || !validate(3)) return;
+        busy = true; const dbtn = form.querySelector('[data-su="done"]'); if (dbtn) dbtn.disabled = true;
+        const r = await S.register({
           email: val(form, "email").trim(), name: val(form, "name").trim(), gender: vals(form, "gender")[0] || "", adult: true,
           goals: vals(form, "goals"), goalsFree: val(form, "goalsFree").trim(),
           consents: (() => { const d = new Date().toLocaleDateString("ko-KR"); return { terms: d, privacy: d, research: form.querySelector("#su-research").checked ? d : "" }; })()
         }, val(form, "password"));
-        if (!r.ok) { show(0); setError(form, "su-email", "이미 이 화면에서 가입한 이메일입니다."); return; }
-        toast("가입했습니다. (시제품: 실제 계정은 만들어지지 않았습니다)");
+        busy = false; if (dbtn) dbtn.disabled = false;
+        if (!r.ok) {
+          if (r.error === "email-taken") { show(0); setError(form, "su-email", CLOUD() ? "이미 가입된 이메일입니다. 로그인해 주세요." : "이미 이 화면에서 가입한 이메일입니다."); return; }
+          const sm = form.querySelector("#su-summary");
+          if (sm) { sm.textContent = r.error === "network" ? "서버에 연결하지 못했습니다. 인터넷 연결을 확인한 뒤 다시 시도해 주세요." : r.error === "weak" ? "비밀번호가 너무 단순합니다. 다른 비밀번호를 입력해 주세요." : "가입 중 문제가 생겨 가입이 완료되지 않았습니다. 잠시 뒤에 다시 시도해 주세요."; sm.classList.add("show"); sm.focus(); }
+          return;
+        }
+        toast(CLOUD() ? "가입했습니다." : "가입했습니다. (시제품: 실제 계정은 만들어지지 않았습니다)");
         const p = S.pending; S.pending = null; go(p || "games");
       });
       show(0);
@@ -385,12 +409,12 @@ OnOff.Views = (function () {
 
           <section class="panel" id="sec-consent" aria-labelledby="h-consent"><h2 id="h-consent">개인정보 및 이용 동의</h2>
             <dl class="kv"><dt>이용약관</dt><dd>동의함 (${esc((u.consents || {}).terms || "-")})</dd><dt>개인정보 수집·이용</dt><dd>동의함 (${esc((u.consents || {}).privacy || "-")})</dd><dt>연구 목적 활용</dt><dd>${(u.consents || {}).research ? `동의함 (${esc(u.consents.research)}). 연구 범위가 정해지면 안내합니다.` : "동의하지 않음"}</dd></dl>
-            <div><button class="btn ghost sm" type="button" disabled aria-disabled="true">동의 철회 (서버 연동 후 제공)</button></div>
+            <div><button class="btn ghost sm" type="button" disabled aria-disabled="true">동의 철회 (추후 제공)</button></div>
           </section>
 
           <section class="panel" id="sec-leave" aria-labelledby="h-leave"><h2 id="h-leave">로그아웃 · 계정 탈퇴</h2>
             <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn ghost" type="button" data-action="logout">로그아웃</button><button class="btn danger" type="button" id="leave-btn" aria-expanded="false" aria-controls="leave-info">계정 탈퇴 안내</button></div>
-            <div id="leave-info" hidden class="note"><strong>시제품에서는 탈퇴와 삭제가 되지 않습니다.</strong> 계정 삭제와 개인정보 삭제는 서버가 있어야 처리할 수 있어 아직 구현되지 않았습니다. 이 화면의 데이터는 새로고침하면 사라지는 임시 데이터입니다. 서비스 출시 때 이 자리에서 탈퇴를 요청하게 됩니다.</div>
+            <div id="leave-info" hidden class="note">${CLOUD() ? "<strong>탈퇴와 삭제는 아직 화면에서 처리되지 않습니다.</strong> 시험 운영 중 계정·데이터 삭제를 원하시면 담당자에게 요청해 주세요. 정식 공개 때 이 자리에서 탈퇴를 요청하게 됩니다." : "<strong>시제품에서는 탈퇴와 삭제가 되지 않습니다.</strong> 계정 삭제와 개인정보 삭제는 서버가 있어야 처리할 수 있어 아직 구현되지 않았습니다. 이 화면의 데이터는 새로고침하면 사라지는 임시 데이터입니다. 서비스 출시 때 이 자리에서 탈퇴를 요청하게 됩니다."}</div>
           </section>
         </div></div></div>`;
     },
@@ -401,7 +425,7 @@ OnOff.Views = (function () {
         const err = V.required(val(pf, "name"), "이름을 입력해 주세요."); setError(pf, "mp-name", err);
         if (err) { pf.querySelector("#mp-name").focus(); return; }
         S.updateUser({ name: val(pf, "name").trim(), gender: vals(pf, "gender")[0] || u.gender || "" });
-        toast("저장했습니다. (시제품: 이 탭에서만 유지됩니다)"); OnOff.App.render();
+        toast(CLOUD() && !u.demo ? "저장했습니다." : "저장했습니다. (시제품: 이 탭에서만 유지됩니다)"); OnOff.App.render();
       });
       gf.addEventListener("submit", (e) => {
         e.preventDefault();
@@ -481,14 +505,14 @@ OnOff.Views = (function () {
   });
   const terms = doc("이용약관", "이 문서는 시연을 위한 안내문이며, 법적 효력이 있는 정식 약관이 아닙니다. 정식 약관은 서비스 공개 전에 따로 마련됩니다.", [
     ["1. 서비스의 성격", ["온앤오프는 심리학 전공자들이 만든 성장형 게임 플랫폼의 시제품입니다. 치료를 기반으로 한 서비스가 아니며, 의료·상담이나 전문가의 판단을 대신하지 않습니다."]],
-    ["2. 시연 중 이용", ["현재 화면은 기능을 보여 드리기 위한 시제품입니다. 가입과 로그인은 실제 계정을 만들지 않으며, 입력한 내용은 새로고침하면 사라집니다.", "게임 본편은 개발 중이어서 일부 기능은 연결 시험 화면으로 대체되어 있습니다."]],
+    ["2. 시연 중 이용", [CLOUD() ? "현재는 정식 공개 전 시험 운영 단계입니다. 가입하면 계정이 만들어지고 입력한 정보가 서버에 저장됩니다. 정식 약관과 처리방침이 확정되기 전이므로 가상의 정보로 이용해 주세요." : "현재 화면은 기능을 보여 드리기 위한 시제품입니다. 가입과 로그인은 실제 계정을 만들지 않으며, 입력한 내용은 새로고침하면 사라집니다.", "게임 본편은 개발 중이어서 일부 기능은 연결 시험 화면으로 대체되어 있습니다."]],
     ["3. 이용자 안내", ["시연 중에는 실제 이름이나 이메일 대신 가상의 값을 입력하셔도 됩니다.", "마음이 많이 힘들거나 위기 상황이라면 이 서비스에 의존하지 마시고 가까운 전문 기관이나 상담 창구에 연락해 주세요."]],
     ["4. 연구 활용", ["온앤오프에서 수집되는 정보는 " + (RESEARCH_REQUIRED ? "" : "이용자가 동의한 경우에 한해 ") + "심리학 연구 자료로 활용됩니다. 가입할 때 이에 대한 동의를 " + (RESEARCH_REQUIRED ? "필수로" : "선택으로") + " 따로 받으며, 연구 범위는 정해지는 대로 안내합니다. 자세한 내용은 개인정보처리방침을 확인해 주세요."]],
     ["5. 변경", ["정식 공개 전에 약관의 내용이 바뀔 수 있으며, 바뀌면 이 화면에 안내합니다."]]
   ]);
   const privacy = doc("개인정보처리방침", "이 문서는 시연을 위한 안내문이며, 법적 효력이 있는 정식 처리방침이 아닙니다. 연구 활용 동의의 구체적 범위와 절차는 정식 공개 전 법률·연구윤리 검토를 거쳐 확정합니다.", [
     ["1. 현재 시연에서 다루는 정보", ["가입 화면에서는 이메일, 이름, 성별, 이용 목표 등을 입력할 수 있습니다. 시연 중에는 어떤 정보도 가상의 값으로 입력하셔도 됩니다."]],
-    ["2. 저장과 전송", ["입력한 정보는 이 브라우저 화면 안에서만 임시로 쓰이며 서버로 전송되거나 저장되지 않습니다. 새로고침하거나 창을 닫으면 사라집니다.", "게임 연결 화면으로 전달되는 정보에도 이름·이메일 같은 개인정보는 포함되지 않습니다."]],
+    ["2. 저장과 전송", [...(CLOUD() ? ["시험 운영 중 가입하면 이메일과 비밀번호는 로그인 서비스(Google Firebase Authentication)가 관리하고, 이름·성별·이용 목표·동의 기록·게임 진행 정보는 데이터베이스(Google Cloud Firestore, 서울 리전)에 저장됩니다. 이메일은 데이터베이스 문서에 따로 복사하지 않습니다.", "로그인 상태는 이 브라우저에 유지될 수 있으며, 로그아웃하면 해제됩니다. 인증 정보가 보관되는 위치, 위탁·국외 이전 해당 여부 등은 [확정 필요] 항목으로 정식 공개 전에 확인해 안내합니다.", "시험 운영 중 저장된 정보는 시험이 끝나면 삭제될 수 있습니다."] : ["입력한 정보는 이 브라우저 화면 안에서만 임시로 쓰이며 서버로 전송되거나 저장되지 않습니다. 새로고침하거나 창을 닫으면 사라집니다."]), "게임 연결 화면으로 전달되는 정보에도 이름·이메일 같은 개인정보는 포함되지 않습니다."]],
     ["3. 개인정보 수집·이용 (정식 서비스 기준 안)", [CONSENT.privacy.join(": "), CONSENT.purpose.join(": "), CONSENT.keep.join(": "), CONSENT.refuse.join(": ")]],
     ["4. 연구 목적 활용 (정식 서비스 기준 안)", ["온앤오프에서 수집되는 모든 정보는 " + (RESEARCH_REQUIRED ? "" : "이용자가 동의한 경우에 한해 ") + "심리학 연구 자료로 활용됩니다. 가입할 때 이 항목에 대한 동의를 " + (RESEARCH_REQUIRED ? "필수로" : "선택으로") + " 따로 받습니다." + (RESEARCH_REQUIRED ? "" : " 동의하지 않아도 가입과 서비스 이용에 제한이 없습니다."), "연구 범위(주제·방법·기간)는 아직 정해지지 않았습니다. 정해지면 이 화면과 서비스로 안내하며, 연구마다 연구기관의 윤리 심의(IRB) 절차를 거칩니다.", "연구 결과는 개인을 알아볼 수 없는 형태로 분석·발표하는 것을 원칙으로 합니다. 동의는 언제든 철회할 수 있고, 철회 후 수집분은 연구에 쓰지 않습니다. 이미 분석·발표된 결과에서는 제외하기 어려울 수 있습니다.", "[확정 필요] 보관 기간, 비식별 처리 방법, 정보를 볼 수 있는 사람의 범위, 외부 제공 여부, 철회 방법과 문의 창구는 정식 공개 전에 구체적으로 안내합니다."]],
     ["5. 정식 공개 시", ["정식 공개 때에는 위 [확정 필요] 항목과 삭제 요청 방법 등을 이 화면에 구체적으로 안내합니다."]]
