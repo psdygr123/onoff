@@ -16,7 +16,7 @@ OnOff.Views = (function () {
     if (soon) cta = `<button class="btn ghost sm" type="button" disabled aria-disabled="true">준비 중</button>`;
     else cta = `<button class="btn sm" type="button" data-action="open-game" data-id="${g.id}">${save ? "이어하기" : "게임 시작"}</button>`;
     const art = soon
-      ? `<div class="card-art soon">${icons.soon}<span class="badge soon">${esc(g.statusLabel)}</span></div>`
+      ? (g.cover ? `<div class="card-art"><img src="${g.cover}" alt="${esc(g.coverAlt || "")}" loading="lazy" width="1000" height="720"><span class="badge soon">${esc(g.statusLabel)}</span></div>` : `<div class="card-art soon">${icons.soon}<span class="badge soon">${esc(g.statusLabel)}</span></div>`)
       : `<div class="card-art"><img src="${g.cover}" alt="${esc(g.coverAlt || (g.title + " 대표 이미지: 노을 진 항구에 정박한 범선"))}" loading="lazy" width="1000" height="720"><span class="badge">${esc(g.statusLabel)}</span></div>`;
     return `<article class="card">${art}<div class="card-body">
       <h3>${esc(g.title)}</h3>
