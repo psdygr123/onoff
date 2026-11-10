@@ -223,7 +223,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   note('12', '현실 미션 없이 메인 RPG 계속 진행', nm0.job === 'warrior' && nm1.lv === 11 && nm1.fp === 3 + 3 && msUntouched && killed && nm2.exp > nm1.exp, `전직 직후 직업=${nm0.job}, 미션 전부 미해금 상태(건드리지 않음)=${msUntouched}, 그 상태로 11레벨 도달=${nm1.lv}(자유 포인트 ${nm1.fp}), 전투 경험치 ${nm1.exp}→${nm2.exp}`);
 
   const errs1 = errs.slice();
-  fs.writeFileSync('/tmp/claude-0/results_part1.json', JSON.stringify({ R, errs: errs1 }, null, 1));
+  fs.writeFileSync((process.env.SHOTS || '/tmp') + '/results_part1.json', JSON.stringify({ R, errs: errs1 }, null, 1));
   console.log('ERRORS (part1):', JSON.stringify(errs1));
   await b.close();
 })().catch((e) => { console.error('HARNESS ERROR', e); process.exit(1); });
