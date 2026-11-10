@@ -4,7 +4,7 @@ OnOff.Views = (function () {
   const { esc, field, checks, V, setError, toast, val, vals, icons } = OnOff.UI;
   const S = OnOff.State;
   const GAMES = OnOff.GAMES;
-  const first = () => GAMES.find((g) => g.status !== "soon");
+  const first = () => GAMES.find((g) => g.status !== "soon" && OnOff.Device.canPlay(g)) || GAMES.find((g) => g.status !== "soon");
   const go = (to) => { location.hash = to; };
 
   /* ---------- 공통 조각 ---------- */
@@ -14,31 +14,52 @@ OnOff.Views = (function () {
     const save = user ? S.getSave(g.id) : null;
     let cta;
     if (soon) cta = `<button class="btn ghost sm" type="button" disabled aria-disabled="true">준비 중</button>`;
+    else if (!OnOff.Device.canPlay(g)) cta = `<button class="btn ghost sm" type="button" disabled aria-disabled="true">PC에서 이용</button>`;
     else cta = `<button class="btn sm" type="button" data-action="open-game" data-id="${g.id}">${save ? "이어하기" : "게임 시작"}</button>`;
     const art = soon
-      ? `<div class="card-art soon">${icons.soon}<span class="badge soon">${esc(g.statusLabel)}</span></div>`
+      ? (g.cover ? `<div class="card-art"><img src="${g.cover}" alt="${esc(g.coverAlt || "")}" loading="lazy" width="1000" height="720"><span class="badge soon">${esc(g.statusLabel)}</span></div>` : `<div class="card-art soon">${icons.soon}<span class="badge soon">${esc(g.statusLabel)}</span></div>`)
       : `<div class="card-art"><img src="${g.cover}" alt="${esc(g.coverAlt || (g.title + " 대표 이미지: 노을 진 항구에 정박한 범선"))}" loading="lazy" width="1000" height="720"><span class="badge">${esc(g.statusLabel)}</span></div>`;
     return `<article class="card">${art}<div class="card-body">
       <h3>${esc(g.title)}</h3>
       <div class="card-meta">${esc(g.genre)}${soon ? "" : " · " + (g.metaNote || "플레이 연결 전 (시제품)")}</div>
-      <div><p>${esc(g.summary)}</p>${g.audienceNote ? `<p class="card-aud">${esc(g.audienceNote)}</p>` : ""}</div>
+      <div><p>${esc(g.summary)}</p>${g.audienceNote ? `<p class="card-aud">${esc(g.audienceNote)}</p>` : ""}${!soon && !OnOff.Device.canPlay(g) ? `<p class="card-aud pc-note">${esc(OnOff.PC_ONLY_NOTE)}</p>` : ""}</div>
       <div class="card-foot">${cta}${!soon ? `<button class="btn ghost sm" type="button" data-action="go" data-to="intro-${g.id}">시작 전 안내</button>` : ""}</div>
     </div></article>`;
   }
+
+  /* ---------- 동의 문구 (한곳에서 관리) ----------
+     온앤오프에서 수집되는 모든 정보는 심리학 연구 자료로 활용됩니다. 연구 범위는 아직 정해지지 않았으므로 '범위 미정 포괄 동의 + 확정 시 고지·철회' 구조입니다.
+     RESEARCH_REQUIRED=false 로 바꾸면 연구 활용 동의가 [선택]이 되고, 문구가 함께 바뀝니다. 아래 [확정 필요] 항목은 정식 공개 전 법률·연구윤리(IRB) 검토로 정합니다. */
+  const RESEARCH_REQUIRED = false;
+  const TAG = RESEARCH_REQUIRED ? "[필수]" : "[선택]";
+  const CONSENT = {
+    privacy: ["수집 항목", "이메일, 이름, 성별, 이용 목표, 게임 이용 기록(진행 상황·선택·이용 시간), 게임 중 입력하거나 응답한 내용"],
+    purpose: ["이용 목적", RESEARCH_REQUIRED ? "계정 관리와 서비스 제공, 서비스 개선, 아래 '연구 목적 활용'" : "계정 관리와 서비스 제공, 서비스 개선 (연구 활용은 아래 선택 동의에서 따로 받습니다)"],
+    keep: ["보관 기간", "[확정 필요] 정식 공개 전에 구체적으로 안내합니다."],
+    refuse: ["거부할 권리", "동의를 거부할 수 있습니다. 다만 위 정보 없이는 가입과 서비스 이용이 어렵습니다."]
+  };
+  const researchDetail = () => `<details class="consent-more"><summary>연구 목적 활용 내용 보기</summary><ol>
+      <li><b>활용 대상</b>: ${RESEARCH_REQUIRED ? "" : "동의하시면 "}온앤오프에서 수집되는 모든 정보(위 수집 항목)가 심리학 연구 자료로 활용됩니다. 심리나 정신건강과 관련될 수 있는 응답이 포함되며, 민감할 수 있는 정보이므로 이 항목을 따로 받습니다.</li>
+      <li><b>연구 범위는 아직 정해지지 않았습니다.</b> 이 동의는 앞으로 정해질 심리학 연구에 위 정보를 활용하는 것에 대한 동의입니다. 연구의 주제·방법·기간이 정해지면 이 서비스 화면으로 알리고, 연구마다 연구기관의 윤리 심의(IRB) 절차를 거칩니다.</li>
+      <li><b>사용 방식</b>: 연구 결과는 개인을 알아볼 수 없는 형태로 분석·발표하는 것을 원칙으로 합니다. [확정 필요] 비식별 처리 방법, 정보를 볼 수 있는 사람의 범위, 외부 제공 여부는 정식 공개 전에 안내합니다.</li>
+      <li><b>철회</b>: 언제든 동의를 철회할 수 있으며, 철회한 뒤 수집되는 정보는 연구에 쓰지 않습니다. 이미 분석되었거나 발표된 결과에서는 제외하기 어려울 수 있습니다.</li>
+      <li><b>${RESEARCH_REQUIRED ? "동의하지 않을 경우" : "동의하지 않아도"}</b>: ${RESEARCH_REQUIRED ? "이 서비스는 연구 자료 활용을 전제로 운영되므로, 동의하지 않으시면 가입하실 수 없습니다. 연구 활용을 원하지 않으시면 가입하지 않으셔도 됩니다." : "가입과 서비스 이용에 제한이 없습니다."}</li>
+    </ol></details>`;
+  const privacyDetail = () => `<details class="consent-more"><summary>수집·이용 내용 보기</summary><dl class="kv">${["privacy", "purpose", "keep", "refuse"].map((k) => `<dt>${CONSENT[k][0]}</dt><dd>${CONSENT[k][1]}</dd>`).join("")}</dl></details>`;
 
   /* ---------- 홈 ---------- */
   let io = null;
   // 홈 배너: 게임이 아니라 서비스·이용 방식을 소개합니다. 문구는 기존 홈·서비스 소개 화면의 내용을 그대로 씁니다.
   const BANNERS = [
     { label: "일상 밖의 모험", sub: "온앤오프 소개", kicker: "심리학 전공자들이 만든 성장형 게임", title: "<span>일상 밖의 모험,</span><span><em>일상 속</em>의 성장</span>",
-      text: "이야기 속 작은 선택과 경험이 쌓여, 일상의 변화로 이어지는 여정을 함께합니다.", img: "img/hero.webp", pos: "50% 30%",
-      alt: "노을빛 바다와 언덕 위 마을이 내려다보이는 판타지 풍경", cta: '<button class="btn" type="button" data-action="scroll" data-target="lib">게임 둘러보기</button>' },
+      text: "이야기 속 작은 선택과 경험이 쌓여, 일상의 변화로 이어지는 여정을 함께합니다.", img: "img/banner-1.webp", pos: "72% 50%",
+      alt: "비가 갠 창가에 켜진 램프와 찻잔, 화분이 놓인 아늑한 풍경", cta: '<button class="btn" type="button" data-action="scroll" data-target="lib">게임 둘러보기</button>' },
     { label: "직접 만듭니다", sub: "심리학 전공자들", kicker: "온앤오프의 약속", title: "<span>심리학 전공자들이</span><span>직접 만듭니다</span>",
-      text: "심리학 이론을 바탕으로 기획하고, 효과가 입증되었다고 말하지 않으며 할 수 있는 만큼만 약속합니다.", img: "img/about-forest.webp", pos: "50% 60%",
-      alt: "햇살이 비치는 숲길", cta: '<button class="btn" type="button" data-action="go" data-to="about">서비스 소개 보기</button>' },
+      text: "심리학 이론을 바탕으로 기획하고, 효과가 입증되었다고 말하지 않으며 할 수 있는 만큼만 약속합니다.", img: "img/banner-2.webp", pos: "72% 55%",
+      alt: "창가 책상 위에 켜진 스탠드, 펼친 노트와 연필, 찻잔, 화분, 실타래", cta: '<button class="btn" type="button" data-action="go" data-to="about">서비스 소개 보기</button>' },
     { label: "하루 몇 분이어도", sub: "쉬어 가도 괜찮은 여정", kicker: "내 속도로", title: "<span>하루 몇 분이어도</span><span>괜찮아요</span>",
-      text: "게임마다 진행 기록이 따로 저장되어, 언제든 이어서 할 수 있습니다.", img: "img/game-maeum.webp", pos: "30% 60%",
-      alt: "노을 진 항구에 정박한 범선", cta: '<button class="btn" type="button" data-action="start">모험 시작하기</button>' }
+      text: "게임마다 진행 기록이 따로 저장되어, 언제든 이어서 할 수 있습니다.", img: "img/banner-3.webp", pos: "78% 55%",
+      alt: "햇살 드는 나무 아래 벤치와 김 나는 찻잔, 담요, 잔잔한 호수", cta: '<button class="btn" type="button" data-action="start">모험 시작하기</button>' }
   ];
 
   const home = {
@@ -98,7 +119,7 @@ OnOff.Views = (function () {
           <ul class="checklist">
             <li>심리학 이론을 바탕으로, 심리학을 전공한 사람들이 직접 만듭니다.</li>
             <li>효과가 입증되었다고 말하지 않고, 할 수 있는 만큼만 약속합니다.</li>
-            <li>가입과 게임 이용은 연구 참여와 별개입니다.</li>
+            <li>수집되는 정보의 심리학 연구 활용은 가입할 때 선택 동의로 받으며, 동의하지 않아도 이용에 제한이 없습니다.</li>
           </ul>
           <div><button class="btn ghost" type="button" data-action="go" data-to="about">자세히 보기</button></div>
         </div>
@@ -157,7 +178,7 @@ OnOff.Views = (function () {
       return `<div class="wrap page"><div class="page-narrow" style="max-width:720px;display:grid;gap:28px">
         <div class="section-head" style="margin:0"><p class="eyebrow">서비스 소개</p><h1 style="font-family:var(--font-display);font-size:var(--fs-2xl)">일상 밖의 모험, 일상 속의 성장</h1></div>
         <p class="lead" style="max-width:none">온앤오프는 심리학 전공자들이 만든 성장형 게임 플랫폼입니다. 정신건강에 관심을 가진 성인이 하나의 계정으로 여러 게임을 즐기며, 행복과 성장에 한 걸음 가까워지기를 바랍니다.</p>
-        <div class="panel"><h2>미리 알려 드립니다</h2><ul class="checklist"><li>치료를 기반으로 한 서비스는 아니며, 의료·상담을 대신하지 않습니다.</li><li>효과가 입증되었다고 말하지 않습니다.</li><li>연구 참여를 가입의 조건으로 요구하지 않습니다.</li></ul></div>
+        <div class="panel"><h2>미리 알려 드립니다</h2><ul class="checklist"><li>치료를 기반으로 한 서비스는 아니며, 의료·상담을 대신하지 않습니다.</li><li>효과가 입증되었다고 말하지 않습니다.</li><li>${RESEARCH_REQUIRED ? "이용 중 수집되는 정보는 심리학 연구 자료로 활용되며, 가입할 때 이에 대한 동의를 받습니다. 연구 범위는 아직 정해지지 않았고, 정해지면 안내합니다." : "수집되는 정보의 심리학 연구 활용은 가입할 때 선택 동의로 받으며, 동의하지 않아도 이용에 제한이 없습니다. 연구 범위는 아직 정해지지 않았고, 정해지면 안내합니다."}</li></ul></div>
         <div class="panel"><h2>계정과 저장 데이터</h2><p>하나의 계정으로 여러 게임을 이용합니다. 게임별 캐릭터와 진행 기록은 서로 독립적으로 저장되도록 설계했습니다.</p></div>
         <div><button class="btn" type="button" data-action="go" data-to="games">게임 둘러보기</button></div>
       </div></div>`;
@@ -252,8 +273,8 @@ OnOff.Views = (function () {
 
           <fieldset data-pane="3" hidden style="border:0;padding:0;margin:0;display:grid;gap:16px;min-width:0"><legend class="sr-only">약관 동의</legend>
             <div class="field" data-field="su-terms"><label class="choice"><input type="checkbox" id="su-terms" name="terms"><span><b>[필수]</b> 서비스 이용약관에 동의합니다. <a href="#terms" target="_blank" rel="noopener">내용 보기</a></span></label><div class="err-msg" id="su-terms-err" role="alert"></div></div>
-            <div class="field" data-field="su-privacy"><label class="choice"><input type="checkbox" id="su-privacy" name="privacy"><span><b>[필수]</b> 개인정보 처리 안내를 확인했습니다. <a href="#privacy" target="_blank" rel="noopener">내용 보기</a></span></label><div class="err-msg" id="su-privacy-err" role="alert"></div></div>
-            <div class="note"><strong>연구 참여는 가입과 별개입니다.</strong> 연구 참여 안내와 동의는 절차가 정해진 뒤 별도로 제공되며, 이 가입 과정에 포함되지 않습니다.</div>
+            <div class="field" data-field="su-privacy"><label class="choice"><input type="checkbox" id="su-privacy" name="privacy"><span><b>[필수]</b> 개인정보 수집·이용에 동의합니다. <a href="#privacy" target="_blank" rel="noopener">처리방침 보기</a></span></label>${privacyDetail()}<div class="err-msg" id="su-privacy-err" role="alert"></div></div>
+            <div class="field" data-field="su-research"><label class="choice"><input type="checkbox" id="su-research" name="research"><span><b>${TAG}</b> 수집되는 모든 정보를 <b>심리학 연구 자료로 활용</b>하는 것에 동의합니다. 연구 범위는 아직 정해지지 않았으며, 정해지면 안내받고 언제든 철회할 수 있습니다.</span></label>${researchDetail()}<div class="err-msg" id="su-research-err" role="alert"></div></div>
             <div class="note"><strong>시제품 안내</strong> 입력한 정보는 서버로 전송되지 않고, 이 탭을 새로고침하면 사라집니다. 실제 개인정보는 입력하지 않아도 됩니다.</div>
           </fieldset>
 
@@ -287,7 +308,8 @@ OnOff.Views = (function () {
         }
         if (n === 3) {
           set("su-terms", form.querySelector("#su-terms").checked ? "" : "이용약관 동의가 필요합니다.");
-          set("su-privacy", form.querySelector("#su-privacy").checked ? "" : "개인정보 처리 안내 확인이 필요합니다.");
+          set("su-privacy", form.querySelector("#su-privacy").checked ? "" : "개인정보 수집·이용 동의가 필요합니다.");
+          if (RESEARCH_REQUIRED) set("su-research", form.querySelector("#su-research").checked ? "" : "연구 목적 활용 동의가 필요합니다.");
         }
         sum.classList.remove("show");
         if (first) { sum.textContent = "입력을 확인해 주세요. 표시된 항목을 고치면 다음으로 넘어갈 수 있습니다."; sum.classList.add("show"); first.focus(); return false; }
@@ -308,7 +330,7 @@ OnOff.Views = (function () {
         const r = S.register({
           email: val(form, "email").trim(), name: val(form, "name").trim(), gender: vals(form, "gender")[0] || "", adult: true,
           goals: vals(form, "goals"), goalsFree: val(form, "goalsFree").trim(),
-          consents: { terms: new Date().toLocaleDateString("ko-KR"), privacy: new Date().toLocaleDateString("ko-KR") }
+          consents: (() => { const d = new Date().toLocaleDateString("ko-KR"); return { terms: d, privacy: d, research: form.querySelector("#su-research").checked ? d : "" }; })()
         }, val(form, "password"));
         if (!r.ok) { show(0); setError(form, "su-email", "이미 이 화면에서 가입한 이메일입니다."); return; }
         toast("가입했습니다. (시제품: 실제 계정은 만들어지지 않았습니다)");
@@ -329,7 +351,7 @@ OnOff.Views = (function () {
         return `<div class="game-row"><img src="${g.cover}" alt="" width="96" height="64"><div><h3>${esc(g.title)}</h3>
           <p>${sv ? `${esc(sv.label)}${sv.percent != null ? " · " + sv.percent + "%" : ""} · 마지막 기록 ${esc(sv.updatedAt)}` : "아직 시작하지 않았습니다."}</p>
           ${sv && sv.example ? '<span class="tag example">예시 데이터</span>' : ""}${sv && sv.test ? '<span class="tag example">연결 시험 기록</span>' : ""}</div>
-          <button class="btn sm ${sv ? "" : "ghost"}" type="button" data-action="open-game" data-id="${g.id}">${sv ? "이어하기" : "게임 시작"}</button></div>`;
+          ${OnOff.Device.canPlay(g) ? `<button class="btn sm ${sv ? "" : "ghost"}" type="button" data-action="open-game" data-id="${g.id}">${sv ? "이어하기" : "게임 시작"}</button>` : `<button class="btn ghost sm" type="button" disabled aria-disabled="true">PC에서 이용</button>`}</div>`;
       }).join("");
       return `<div class="wrap page"><div class="account-grid">
         <nav class="side" aria-label="마이페이지 메뉴">
@@ -362,7 +384,7 @@ OnOff.Views = (function () {
             <p style="color:var(--ink-2);font-size:var(--fs-xs)">게임별 진행 기록은 서로 독립적으로 저장됩니다.</p></section>
 
           <section class="panel" id="sec-consent" aria-labelledby="h-consent"><h2 id="h-consent">개인정보 및 이용 동의</h2>
-            <dl class="kv"><dt>이용약관</dt><dd>동의함 (${esc((u.consents || {}).terms || "-")})</dd><dt>개인정보 처리 안내</dt><dd>확인함 (${esc((u.consents || {}).privacy || "-")})</dd><dt>연구 참여</dt><dd>해당 없음. 절차가 정해지면 별도로 안내합니다.</dd></dl>
+            <dl class="kv"><dt>이용약관</dt><dd>동의함 (${esc((u.consents || {}).terms || "-")})</dd><dt>개인정보 수집·이용</dt><dd>동의함 (${esc((u.consents || {}).privacy || "-")})</dd><dt>연구 목적 활용</dt><dd>${(u.consents || {}).research ? `동의함 (${esc(u.consents.research)}). 연구 범위가 정해지면 안내합니다.` : "동의하지 않음"}</dd></dl>
             <div><button class="btn ghost sm" type="button" disabled aria-disabled="true">동의 철회 (서버 연동 후 제공)</button></div>
           </section>
 
@@ -403,16 +425,18 @@ OnOff.Views = (function () {
           <div><h3>이런 분을 위해 만들었습니다</h3><p style="color:var(--ink-2);font-size:var(--fs-sm)">${esc(g.intro.who)}</p></div>
           <div><h3>만든 목적</h3><p style="color:var(--ink-2);font-size:var(--fs-sm)">${esc(g.intro.purpose)}</p></div>
           <div><h3>게임 구성</h3><ul class="checklist">${g.intro.parts.map((p) => `<li>${esc(p)}</li>`).join("")}</ul><p style="color:var(--ink-2);font-size:var(--fs-xs);margin-top:8px">${esc(g.intro.partsNote)}</p></div>
-          <div class="note"><strong>알아 두세요.</strong> 이 게임은 의료·상담을 대신하지 않습니다. 하다가 마음이 불편해지면 언제든 멈추셔도 됩니다. 마음이 많이 힘들 때는 가까운 전문 상담기관이나 의료기관의 도움을 받아 보세요. 가입과 게임 이용은 연구 참여와 별개입니다.</div>
+          <div class="note"><strong>알아 두세요.</strong> 이 게임은 의료·상담을 대신하지 않습니다. 하다가 마음이 불편해지면 언제든 멈추셔도 됩니다. 마음이 많이 힘들 때는 가까운 전문 상담기관이나 의료기관의 도움을 받아 보세요. 이 게임에서 입력하거나 응답한 내용은 가입 때 연구 활용에 동의하신 경우에 한해 심리학 연구 자료로 활용될 수 있습니다.</div>
+          ${OnOff.Device.canPlay(g) ? "" : `<div class="note"><strong>PC 전용 게임입니다.</strong> ${esc(OnOff.PC_ONLY_NOTE)}</div>`}
           <label class="choice"><input type="checkbox" id="intro-ok"><span>안내를 읽었습니다.</span></label>
-          <div class="form-actions"><button class="btn ghost" type="button" data-action="go" data-to="games">뒤로</button><button class="btn" type="button" id="intro-go" disabled aria-disabled="true">${esc(g.startLabel || "모험 시작")}</button></div>
+          <div class="form-actions"><button class="btn ghost" type="button" data-action="go" data-to="games">뒤로</button><button class="btn" type="button" id="intro-go" disabled aria-disabled="true" ${OnOff.Device.canPlay(g) ? "" : 'data-blocked="1"'}>${esc(g.startLabel || "모험 시작")}</button></div>
         </div></div></div>`;
     },
     mount(root, ctx) {
       const ok = root.querySelector("#intro-ok"), btn = root.querySelector("#intro-go");
       if (!ok) return;
-      ok.addEventListener("change", () => { btn.disabled = !ok.checked; btn.setAttribute("aria-disabled", String(!ok.checked)); });
-      btn.addEventListener("click", () => { if (ok.checked) go("play-" + ctx.param); });
+      const blocked = !!btn.dataset.blocked;
+      ok.addEventListener("change", () => { const off = !ok.checked || blocked; btn.disabled = off; btn.setAttribute("aria-disabled", String(off)); });
+      btn.addEventListener("click", () => { if (ok.checked && !blocked) go("play-" + ctx.param); });
     }
   };
 
@@ -422,6 +446,7 @@ OnOff.Views = (function () {
     render(ctx) {
       const g = GAMES.find((x) => x.id === ctx.param);
       if (!g || g.status === "soon") return notfound.render();
+      if (!OnOff.Device.canPlay(g)) return `<div class="wrap page"><div class="page-narrow"><div class="panel"><h1>${esc(g.title)}</h1><p>${esc(OnOff.PC_ONLY_NOTE)}</p><div><button class="btn" type="button" data-action="go" data-to="games">게임 둘러보기</button></div></div></div></div>`;
       return `<div class="wrap page">
         <div class="play-bar"><h1>${esc(g.title)}</h1><button class="btn ghost sm" type="button" data-action="go" data-to="games">플랫폼으로 돌아가기</button></div>
         <div class="stage" id="stage" aria-live="polite"></div>
@@ -433,7 +458,7 @@ OnOff.Views = (function () {
     },
     mount(root, ctx) {
       const g = GAMES.find((x) => x.id === ctx.param);
-      if (!g) return;
+      if (!g || !OnOff.Device.canPlay(g)) return;
       const stage = root.querySelector("#stage"), log = root.querySelector("#bridge-log");
       const open = (override) => {
         if (disposeBridge) { disposeBridge(); disposeBridge = null; }
@@ -458,12 +483,15 @@ OnOff.Views = (function () {
     ["1. 서비스의 성격", ["온앤오프는 심리학 전공자들이 만든 성장형 게임 플랫폼의 시제품입니다. 치료를 기반으로 한 서비스가 아니며, 의료·상담이나 전문가의 판단을 대신하지 않습니다."]],
     ["2. 시연 중 이용", ["현재 화면은 기능을 보여 드리기 위한 시제품입니다. 가입과 로그인은 실제 계정을 만들지 않으며, 입력한 내용은 새로고침하면 사라집니다.", "게임 본편은 개발 중이어서 일부 기능은 연결 시험 화면으로 대체되어 있습니다."]],
     ["3. 이용자 안내", ["시연 중에는 실제 이름이나 이메일 대신 가상의 값을 입력하셔도 됩니다.", "마음이 많이 힘들거나 위기 상황이라면 이 서비스에 의존하지 마시고 가까운 전문 기관이나 상담 창구에 연락해 주세요."]],
-    ["4. 변경", ["정식 공개 전에 약관의 내용이 바뀔 수 있으며, 바뀌면 이 화면에 안내합니다."]]
+    ["4. 연구 활용", ["온앤오프에서 수집되는 정보는 " + (RESEARCH_REQUIRED ? "" : "이용자가 동의한 경우에 한해 ") + "심리학 연구 자료로 활용됩니다. 가입할 때 이에 대한 동의를 " + (RESEARCH_REQUIRED ? "필수로" : "선택으로") + " 따로 받으며, 연구 범위는 정해지는 대로 안내합니다. 자세한 내용은 개인정보처리방침을 확인해 주세요."]],
+    ["5. 변경", ["정식 공개 전에 약관의 내용이 바뀔 수 있으며, 바뀌면 이 화면에 안내합니다."]]
   ]);
-  const privacy = doc("개인정보처리방침", "이 문서는 시연을 위한 안내문이며, 법적 효력이 있는 정식 처리방침이 아닙니다. 연구 참여와 관련한 동의는 이 화면과 별도로, 연구 절차가 정해진 뒤에 따로 받습니다.", [
+  const privacy = doc("개인정보처리방침", "이 문서는 시연을 위한 안내문이며, 법적 효력이 있는 정식 처리방침이 아닙니다. 연구 활용 동의의 구체적 범위와 절차는 정식 공개 전 법률·연구윤리 검토를 거쳐 확정합니다.", [
     ["1. 현재 시연에서 다루는 정보", ["가입 화면에서는 이메일, 이름, 성별, 이용 목표 등을 입력할 수 있습니다. 시연 중에는 어떤 정보도 가상의 값으로 입력하셔도 됩니다."]],
     ["2. 저장과 전송", ["입력한 정보는 이 브라우저 화면 안에서만 임시로 쓰이며 서버로 전송되거나 저장되지 않습니다. 새로고침하거나 창을 닫으면 사라집니다.", "게임 연결 화면으로 전달되는 정보에도 이름·이메일 같은 개인정보는 포함되지 않습니다."]],
-    ["3. 정식 공개 시", ["정식 공개 때에는 수집 항목, 이용 목적, 보관 기간, 제3자 제공 여부, 삭제 요청 방법 등을 이 화면에 구체적으로 안내합니다.", "연구 참여 자료로 쓰이는 정보가 있다면 연구 기관의 윤리 심의 절차에 따라 별도의 동의를 받은 뒤에만 수집합니다."]]
+    ["3. 개인정보 수집·이용 (정식 서비스 기준 안)", [CONSENT.privacy.join(": "), CONSENT.purpose.join(": "), CONSENT.keep.join(": "), CONSENT.refuse.join(": ")]],
+    ["4. 연구 목적 활용 (정식 서비스 기준 안)", ["온앤오프에서 수집되는 모든 정보는 " + (RESEARCH_REQUIRED ? "" : "이용자가 동의한 경우에 한해 ") + "심리학 연구 자료로 활용됩니다. 가입할 때 이 항목에 대한 동의를 " + (RESEARCH_REQUIRED ? "필수로" : "선택으로") + " 따로 받습니다." + (RESEARCH_REQUIRED ? "" : " 동의하지 않아도 가입과 서비스 이용에 제한이 없습니다."), "연구 범위(주제·방법·기간)는 아직 정해지지 않았습니다. 정해지면 이 화면과 서비스로 안내하며, 연구마다 연구기관의 윤리 심의(IRB) 절차를 거칩니다.", "연구 결과는 개인을 알아볼 수 없는 형태로 분석·발표하는 것을 원칙으로 합니다. 동의는 언제든 철회할 수 있고, 철회 후 수집분은 연구에 쓰지 않습니다. 이미 분석·발표된 결과에서는 제외하기 어려울 수 있습니다.", "[확정 필요] 보관 기간, 비식별 처리 방법, 정보를 볼 수 있는 사람의 범위, 외부 제공 여부, 철회 방법과 문의 창구는 정식 공개 전에 구체적으로 안내합니다."]],
+    ["5. 정식 공개 시", ["정식 공개 때에는 위 [확정 필요] 항목과 삭제 요청 방법 등을 이 화면에 구체적으로 안내합니다."]]
   ]);
   const contact = doc("문의", "정식 문의 창구는 아직 마련되지 않았습니다.", [
     ["시연 중 문의", ["시연 중 궁금한 점이나 불편한 점은 시연을 안내해 드린 담당자에게 직접 말씀해 주세요."]],

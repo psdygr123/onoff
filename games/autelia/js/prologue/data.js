@@ -24,7 +24,7 @@ window.AU = window.AU || {};
   }
   // 추가 그림(2차 패키지, tools/build_prologue_art2.py): 장애물·이음 골조·초상화
   for (const f of ["obst_rock", "obst_log", "obst_burnt_beams", "joint_frame"]) AU.ASSETS["po_" + f] = { path: "assets/prologue/ob/" + f + ".webp", optional: true };
-  for (const f of ["pt_pro_hero_m", "pt_pro_hero_f", "pt_pro_father", "pt_pro_elder", "pt_pro_baker", "pt_pro_child", "pt_pro_hero_m_surprised", "pt_pro_father_smile"]) AU.ASSETS[f] = { path: "assets/prologue/pt/" + f + ".webp", optional: true };
+  for (const f of ["pt_pro_hero_m", "pt_pro_hero_f", "pt_pro_father", "pt_pro_elder", "pt_pro_baker", "pt_pro_child", "pt_pro_hero_m_surprised", "pt_pro_father_smile", "pt_pro_farmer", "pt_pro_priest", "pt_pro_musician", "pt_pro_scribe"]) AU.ASSETS[f] = { path: "assets/prologue/pt/" + f + ".webp", optional: true };
   AU.ASSETS.fx_fire = { path: "assets/prologue/fx/fire.webp", optional: true }; AU.ASSETS.fx_smoke = { path: "assets/prologue/fx/smoke.webp", optional: true };   // 불꽃 6프레임·연기 4프레임 스트립
   AU.PRO_GENDER = "m"; // 남(m)/여(f) 주인공 시트 선택(성별 선택 기능이 생기면 이 값만 바꿉니다)
   // 장면별 배치 좌표(그림이 바뀌면 여기만 고칩니다)
@@ -57,7 +57,7 @@ window.AU = window.AU || {};
     child:  { name: "축제 어린이", portrait: "pt_pro_child", alt: "pt_villager_b" },
     elder:  { name: "나이 든 주민", portrait: "pt_pro_elder", alt: "pt_villager_a" },
     stele:  { name: "기념비", portrait: "" },
-    farmer: { name: "젊은 농부", portrait: "" }, priest: { name: "신관", portrait: "" }, musician: { name: "악사", portrait: "" }, scribe: { name: "서기", portrait: "" },   // 초상화는 아직 없음(요청 예정)
+    farmer: { name: "젊은 농부", portrait: "pt_pro_farmer" }, priest: { name: "신관", portrait: "pt_pro_priest" }, musician: { name: "악사", portrait: "pt_pro_musician" }, scribe: { name: "서기", portrait: "pt_pro_scribe" },
     resA:   { name: "주민", portrait: "pt_villager_a" },
     resB:   { name: "주민", portrait: "pt_villager_b" },
     resC:   { name: "주민", portrait: "pt_baker" }
