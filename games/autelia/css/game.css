@@ -166,6 +166,36 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
 .itype.t-story { background: #F6E8C6; color: var(--gold-d); }
 .devrow { display: flex; gap: 4px; flex-wrap: wrap; }
 /* 프롤로그 대화창: 아래쪽에 있으면 인물·연출을 가리므로 화면 위쪽(하늘·천장 영역)에 띄움 */
-#stage.pro .dialog { bottom: auto; top: 150px; place-items: start center; padding-bottom: 0; }
-#stage.pro .dlgbox { width: 860px; min-height: 124px; padding: 14px 22px; gap: 18px; }
-#stage.pro .dlgbox .pt { width: 92px; height: 92px; } #stage.pro .dline { font-size: 19px; line-height: 1.6; min-height: 30px; }
+#stage.pro .dialog { padding-bottom: 12px; } /* 프롤로그도 일반 대화와 같이 화면 아래쪽에 표시(인물 발 높이 590 아래로 내려가도록 낮고 넓게) */
+#stage.pro .dlgbox { width: 900px; min-height: 100px; padding: 10px 20px; gap: 16px; }
+#stage.pro .dlgbox .pt { width: 80px; height: 80px; } #stage.pro .dname { margin-bottom: 4px; } #stage.pro .dline { font-size: 19px; line-height: 1.55; min-height: 30px; } #stage.pro .dnext, #stage.pro .choices { margin-top: 2px; }
+
+/* ----- 캐릭터 설정(닉네임·모습) ----- */
+.setupbox { width: 860px; max-width: 94vw; padding: 30px 38px 26px; text-align: left; pointer-events: auto; }
+.setupbox .stitle { font-size: 28px; font-weight: 700; letter-spacing: .04em; margin: 0 0 4px; } .setupbox .ssub { font-size: 14px; color: var(--ink2); margin: 0 0 18px; line-height: 1.6; }
+.setupbox .sbody { display: flex; gap: 34px; align-items: flex-start; } .setupbox .sright { flex: 1; min-width: 0; }
+.setupbox .slabel { display: block; font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+.scards { display: flex; gap: 14px; }
+.scard { position: relative; width: 176px; height: 290px; border: 2px solid var(--line); border-radius: 12px; background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding: 0 0 10px; cursor: pointer; overflow: hidden; font: inherit; color: var(--ink); }
+.scard:hover { border-color: rgba(110, 88, 58, .5); } .scard:focus-visible { outline: 2px solid var(--sky); outline-offset: 2px; }
+.scard.sel { border-color: var(--sage); box-shadow: 0 0 0 3px var(--sage-l); background: var(--sage-l); }
+.scard b { font-size: 16px; position: relative; margin-top: 2px; } .scard .chk { display: none; position: absolute; right: 8px; top: 8px; width: 24px; height: 24px; border-radius: 50%; background: var(--sage); color: #fff; font-style: normal; font-size: 14px; line-height: 24px; text-align: center; } .scard.sel .chk { display: block; }
+.scard .sp { background-repeat: no-repeat; background-position: 0 0; background-size: auto 100%; transform: scale(.78); transform-origin: bottom center; margin-bottom: -6px; flex: none; }
+.scard .sp.fb { width: 150px; height: 175px; background-size: contain; background-position: center; transform: none; margin-bottom: 4px; }
+.setupbox input { font: inherit; font-size: 20px; padding: 10px 14px; width: 100%; border: 1px solid var(--line); border-radius: 9px; background: #fff; color: var(--ink); user-select: text; -webkit-user-select: text; }
+.setupbox input:focus { outline: 2px solid var(--sage); border-color: var(--sage); }
+.setupbox .shint { font-size: 13px; color: var(--ink2); margin: 6px 2px 0; line-height: 1.5; min-height: 20px; } .setupbox .shint.err { color: #B24A52; }
+.setupbox .sprev { margin-top: 18px; padding: 12px 14px; background: var(--paper2); border-radius: 10px; font-size: 15px; line-height: 1.6; } .setupbox .sprevl { font-size: 12px; color: var(--ink2); margin-bottom: 2px; letter-spacing: .04em; }
+.setupbox .sfoot { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+
+/* 프롤로그 시작 글 카드(검은 화면 위 글, Space·Enter·클릭으로 넘김) */
+.procards { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; flex-direction: column; color: #f4ead6; text-align: center; cursor: pointer; z-index: 5; }
+.procards.on { display: flex; }
+.procards .cd { opacity: 0; transform: translateY(8px); transition: opacity 1s ease, transform 1s ease; }
+.procards.show .cd { opacity: 1; transform: none; }
+.procards .cd p { margin: 0 0 18px; font-size: 34px; font-weight: 300; line-height: 1.5; letter-spacing: .08em; text-shadow: 0 2px 18px rgba(0, 0, 0, .8); }
+.procards .cd p.l0 { color: #fff7e4; }
+.procards .cn { position: absolute; bottom: 7%; font-size: 15px; letter-spacing: .1em; color: rgba(244, 234, 214, .55); opacity: 0; transition: opacity .8s ease 1.4s; }
+.procards.show .cn { opacity: 1; animation: cardblink 2.4s ease-in-out 2.6s infinite; }
+@keyframes cardblink { 50% { opacity: .35; } }

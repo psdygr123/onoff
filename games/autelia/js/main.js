@@ -35,7 +35,7 @@ window.AU = window.AU || {};
   }
   main.reportProgress = function () {
     if (!embedded || !AU.G.S) return;
-    const S = AU.G.S; if (AU.Prologue && AU.Prologue.on) { main.post("progress", { label: "프롤로그 · 장면 " + Math.max(1, AU.Prologue.sceneIdx + 1) + "/6", percent: 0 }); return; }
+    const S = AU.G.S; if (AU.Prologue && AU.Prologue.on) { main.post("progress", { label: "프롤로그 · 장면 " + Math.max(1, AU.Prologue.sceneIdx + 1) + "/" + AU.Prologue.ORDER.length, percent: 0 }); return; }
     main.post("progress", { label: AU.jobName(S) + " Lv." + S.level, percent: Math.min(100, Math.round(S.level / 10 * 100)) });
   };
 
@@ -63,6 +63,7 @@ window.AU = window.AU || {};
       return false;
     });
 
+    AU.Profile.apply();
     buildTitle(!!saved);
     main.saveTimer = setInterval(() => { if (main.running) AU.G.save("autosave"); }, C.save.autosaveSec * 1000);
     const flush = () => { if (main.running && !main.resetting) AU.G.save("autosave"); };
@@ -85,12 +86,16 @@ window.AU = window.AU || {};
     const start = () => { t.classList.add("hidden"); main.running = true; window.focus(); if (P.onGameStart()) { main.reportProgress(); return; } AU.UI.mapBanner(AU.MAPS[AU.World.mapId].name); AU.G.save("start"); main.reportProgress(); };
     const b1 = document.createElement("button"); b1.type = "button"; b1.className = "btn primary big"; b1.id = "btn-start";
     b1.textContent = inPro ? P.titleLabel() : "이어하기 (" + AU.jobName(S) + " Lv." + S.level + " · " + AU.MAPS[S.map].name.replace(" (임시 명칭)", "") + ")";
-    b1.onclick = start;
+    // 신규 시작(프롤로그 전, 캐릭터 설정이 없음)이면 먼저 캐릭터 설정 화면을 거침
+    const needSetup = !AU.Profile.isSet() && S.prologue.state === "NOT_STARTED";
+    const openSetup = (mode, onDone) => AU.Profile.openSetup(t, { mode, initial: AU.Profile.get(), onBack: () => buildTitle(hasSave), onDone });
+    b1.onclick = needSetup ? () => openSetup("new", (name, gender) => { AU.Profile.set(name, gender); AU.G.save("profile"); start(); }) : start;
     const box = document.createElement("div"); box.className = "panel titlebox";
     box.innerHTML = '<div class="tlogo">아우텔리아</div><div class="tsub">시제품 · 프롤로그 + 1~10레벨 · 임시 콘텐츠 포함 (v' + AU.VERSION + ')</div>';
     box.append(b1);
     if (hasSave && !inPro) { const bp = document.createElement("button"); bp.type = "button"; bp.className = "btn"; bp.id = "btn-replay"; bp.textContent = "프롤로그 다시 보기"; bp.onclick = () => { t.classList.add("hidden"); main.running = true; window.focus(); P.startReplay(); }; box.append(bp); }
     if (hasSave) { const b2 = document.createElement("button"); b2.type = "button"; b2.className = "btn"; b2.id = "btn-new"; b2.textContent = "처음부터 시작"; b2.onclick = () => AU.UI.confirm("저장된 기록을 지우고 처음부터 시작할까요?", "지우고 시작", main.resetAll); box.append(b2); }
+    if (hasSave) { const bc = document.createElement("button"); bc.type = "button"; bc.className = "btn"; bc.id = "btn-profile"; bc.textContent = "캐릭터 설정 (" + AU.Profile.name() + ")"; bc.onclick = () => openSetup("edit", (name, gender) => { AU.Profile.set(name, gender); AU.G.save("profile"); buildTitle(hasSave); }); box.append(bc); }
     const tip = document.createElement("p"); tip.className = "note"; tip.textContent = "방향키 이동 · Alt 점프 · Ctrl 공격 · Space 대화 · Esc 메뉴 (키보드 설정에서 변경 가능)";
     box.append(tip); t.append(box); t.classList.remove("hidden");
     b1.focus();

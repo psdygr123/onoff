@@ -17,10 +17,10 @@ OnOff.Views = (function () {
     else cta = `<button class="btn sm" type="button" data-action="open-game" data-id="${g.id}">${save ? "이어하기" : "게임 시작"}</button>`;
     const art = soon
       ? `<div class="card-art soon">${icons.soon}<span class="badge soon">${esc(g.statusLabel)}</span></div>`
-      : `<div class="card-art"><img src="${g.cover}" alt="${esc(g.title)} 대표 이미지: 노을 진 항구에 정박한 범선" loading="lazy" width="1000" height="720"><span class="badge">${esc(g.statusLabel)}</span></div>`;
+      : `<div class="card-art"><img src="${g.cover}" alt="${esc(g.coverAlt || (g.title + " 대표 이미지: 노을 진 항구에 정박한 범선"))}" loading="lazy" width="1000" height="720"><span class="badge">${esc(g.statusLabel)}</span></div>`;
     return `<article class="card">${art}<div class="card-body">
       <h3>${esc(g.title)}</h3>
-      <div class="card-meta">${esc(g.genre)}${soon ? "" : " · 플레이 연결 전 (시제품)"}</div>
+      <div class="card-meta">${esc(g.genre)}${soon ? "" : " · " + (g.metaNote || "플레이 연결 전 (시제품)")}</div>
       <div><p>${esc(g.summary)}</p>${g.audienceNote ? `<p class="card-aud">${esc(g.audienceNote)}</p>` : ""}</div>
       <div class="card-foot">${cta}${!soon ? `<button class="btn ghost sm" type="button" data-action="go" data-to="intro-${g.id}">시작 전 안내</button>` : ""}</div>
     </div></article>`;
@@ -397,7 +397,7 @@ OnOff.Views = (function () {
       const g = GAMES.find((x) => x.id === ctx.param);
       if (!g || g.status === "soon") return notfound.render();
       return `<div class="wrap page"><div class="intro">
-        <div class="art"><img src="${g.cover}" alt="${esc(g.title)} 대표 이미지" width="1000" height="720"></div>
+        <div class="art"><img src="${g.cover}" alt="${esc(g.coverAlt || (g.title + " 대표 이미지"))}" width="1000" height="720"></div>
         <div class="panel">
           <p class="eyebrow">시작 전 안내</p><h1>${esc(g.title)}</h1>
           <div><h3>이런 분을 위해 만들었습니다</h3><p style="color:var(--ink-2);font-size:var(--fs-sm)">${esc(g.intro.who)}</p></div>
@@ -405,7 +405,7 @@ OnOff.Views = (function () {
           <div><h3>게임 구성</h3><ul class="checklist">${g.intro.parts.map((p) => `<li>${esc(p)}</li>`).join("")}</ul><p style="color:var(--ink-2);font-size:var(--fs-xs);margin-top:8px">${esc(g.intro.partsNote)}</p></div>
           <div class="note"><strong>알아 두세요.</strong> 이 게임은 의료·상담을 대신하지 않습니다. 하다가 마음이 불편해지면 언제든 멈추셔도 됩니다. 마음이 많이 힘들 때는 가까운 전문 상담기관이나 의료기관의 도움을 받아 보세요. 가입과 게임 이용은 연구 참여와 별개입니다.</div>
           <label class="choice"><input type="checkbox" id="intro-ok"><span>안내를 읽었습니다.</span></label>
-          <div class="form-actions"><button class="btn ghost" type="button" data-action="go" data-to="games">뒤로</button><button class="btn" type="button" id="intro-go" disabled aria-disabled="true">모험 시작</button></div>
+          <div class="form-actions"><button class="btn ghost" type="button" data-action="go" data-to="games">뒤로</button><button class="btn" type="button" id="intro-go" disabled aria-disabled="true">${esc(g.startLabel || "모험 시작")}</button></div>
         </div></div></div>`;
     },
     mount(root, ctx) {

@@ -53,6 +53,7 @@ window.AU = window.AU || {};
       hp: 1, resource: C.resource.max, resourceMax: C.resource.max, resourceWeek: AU.weekId(),
       silver: 0, inv: {}, equip: { weapon: null, armor: null, accessory: null },
       map: "pro_temple", x: AU.MAPS.pro_temple.start, visited: { pro_temple: true },
+      profile: { name: "", gender: "" }, // 캐릭터 설정(닉네임·모습). 신규 시작 때 정함. 비어 있으면 기본값(주인공·남성형)
       prologue: { state: "NOT_STARTED", flags: {}, seen: {} }, // 신규 시작은 프롤로그부터. 기본 소지품(회복약)은 프롤로그 완료 시 지급
       quests: {}, skills: { unlocked: [], slots: [null, null, null] },
       flags: { missionsUnlocked: false, guideMet: false },

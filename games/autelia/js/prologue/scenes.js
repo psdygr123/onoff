@@ -5,7 +5,7 @@ window.AU = window.AU || {};
   const W = 1280, H = 720, G = 590, LAY = AU.PRO_LAY, A = AU.PArt, T = AU.PRO_TEXT, OBJ = AU.PRO_OBJ, SP = AU.PRO_SPEAKERS;
   const rnd = (a, b) => a + Math.random() * (b - a);
   const D = AU.PRO_DRAW = {};
-  const SC = AU.PRO_SCENES = [];
+  const SC = AU.PRO_SCENES = {};
 
   /* ---------- 공통 도우미 ---------- */
   function npc(P, id, speaker, sprite, x, h, extra) { return P.addEnt(Object.assign({ id, x, sprite, h, name: SP[speaker].name, faceP: true }, extra || {})); }
@@ -14,9 +14,11 @@ window.AU = window.AU || {};
       update(e, dt) { if (e.min == null) return; e.x += e.face * 26 * dt; if (e.x > e.max) e.face = -1; if (e.x < e.min) e.face = 1; },
       draw(ctx, e, P) { ctx.save(); ctx.globalAlpha = e.alpha == null ? (A.has("pc_raider_actions") ? 1 : 0.78) : e.alpha; A.raider(ctx, e.x, e.y, e.s, P.time, e.face); ctx.restore(); } });
   }
+  const SHEETS = "abcdefghijklm".split("").filter(() => true); // 주민 동작 시트(a~c 1차, d~m NPC 다양화). 없는 시트는 runner/crowd 에서 건너뜀
+  const pickSheet = () => { const ok = SHEETS.filter((c) => A.has("pc_villager_" + c + "_actions")); return ok.length ? ok[(Math.random() * ok.length) | 0] : "a"; };
   // 도망치는 주민 실루엣(배경 연출용, 충돌 없음)
   function runner(P, x, dir, speed) {
-    const C = ["#8C6A52", "#6E7F8C", "#A5775A", "#7C8A66", "#9A6F7A", "#C0A06C"], col = C[(Math.random() * C.length) | 0], s = rnd(0.8, 1.05), sheet = "pc_villager_" + "abc"[(Math.random() * 3) | 0] + "_actions";
+    const C = ["#8C6A52", "#6E7F8C", "#A5775A", "#7C8A66", "#9A6F7A", "#C0A06C"], col = C[(Math.random() * C.length) | 0], s = rnd(0.8, 1.05), sheet = "pc_villager_" + pickSheet() + "_actions";
     return P.addEnt({ id: "run" + Math.random(), x, dir, speed, s, col, sheet, ph: Math.random() * 6, range: 0, layer: "mid", runner: true,
       update(e, dt, P) { e.x += e.dir * e.speed * dt; if (e.x < -200 || e.x > AU.World.map.width + 200) P.ents = P.ents.filter((q) => q !== e); },
       draw(ctx, e, P) { const t = P.time * 11 + e.ph;
@@ -44,14 +46,14 @@ window.AU = window.AU || {};
      ============================================================ */
   const artSpr = (art, fb) => (A.has(art) ? art : fb);  // 정식 그림이 있으면 그것, 없으면 이전 시제품 그림
   function drawCrowd(ctx, P) { // 축제 군중(정식 주민 시트): 가까운 곳에 NPC가 있어 피해서 배치, 깊이감을 위해 살짝 작고 위에 선다
-    const L = LAY.plaza, c = P.v.cheer == null ? 0.12 : P.v.cheer, xs = [115, 330, 545, 650, 905, 1010, 1100, 1200], sh = ["a", "b", "c"];
-    xs.forEach((x, i) => { const bob = Math.abs(Math.sin(P.time * (3 + c * 5) + i * 1.7)) * (2 + c * 9); A.spr(ctx, "pc_villager_" + sh[i % 3] + "_actions", c > 0.45 ? "cheer1" : "cheer2", x + (i % 2 ? 6 : -6), 566 - bob, i % 3 === 0 ? -1 : 1, 0.86); });
+    const L = LAY.plaza, c = P.v.cheer == null ? 0.12 : P.v.cheer, xs = [60, 130, 330, 470, 545, 650, 905, 1010, 1100, 1200], sh = ["f", "d", "g", "a", "j", "l", "b", "i", "e", "m"].map((k, i) => (A.has("pc_villager_" + k + "_actions") ? k : "abc"[i % 3]));
+    xs.forEach((x, i) => { const bob = Math.abs(Math.sin(P.time * (3 + c * 5) + i * 1.7)) * (2 + c * 9); A.spr(ctx, "pc_villager_" + sh[i] + "_actions", c > 0.45 ? "cheer1" : "cheer2", x + (i % 2 ? 6 : -6), 566 - bob, i % 3 === 0 ? -1 : 1, 0.86); });
   }
   D.pro_temple = { // BG-01 신전 건축 현장 / 완공 상태
     back(ctx, P) { const v = P.v, L = LAY.temple, fa = v.scaff == null ? 1 : v.scaff;
       if (A.has("po_temple_frame")) { if (v.done) A.temple(ctx, L.tx, L.tBase, L.tW, 0, { state: "done", glow: v.glow || 0 }); A.temple(ctx, L.tx, L.tBase, L.tW, 0, { state: "frame", alpha: v.done ? fa : 1 }); }
       else { A.temple(ctx, 1560, 556, 640, 400, { state: v.done ? "done" : "frame", t: P.time, glow: v.glow || 0, joint: v.jointIn ? 1 : 0, gapX: 1560 + 640 * 0.12 }); A.scaffold(ctx, 1240, 556, 640, 330, fa); } },
-    mid(ctx, P) { if (P.v.fly && P.v.fly.t < 1) { const f = P.v.fly, J = LAY.temple.joint, x = f.x0 + (J - f.x0) * f.t, y = f.y0 + (478 - f.y0) * f.t - Math.sin(f.t * Math.PI) * 90; A.plank(ctx, x, y, 90, -0.3 + f.t * 0.3); } },
+    mid(ctx, P) { if (P.v.fly && P.v.fly.t < 1) { const f = P.v.fly, J = LAY.temple.joint, x = f.x0 + (J - f.x0) * f.t, y = f.y0 + ((A.has("po_joint_frame") ? 514 : 478) - f.y0) * f.t - Math.sin(f.t * Math.PI) * 90; A.plank(ctx, x, y, 90, -0.3 + f.t * 0.3); } },
     front(ctx, P) { /* 입자는 엔진이 그림 */ }
   };
   D.pro_road = {
@@ -69,9 +71,25 @@ window.AU = window.AU || {};
     },
     mid(ctx, P) { if (P.variant === "attack") { A.stall(ctx, LAY.plaza.obst[0].x + 50, G, 100, P.time); drawFlames(ctx, P); } }
   };
+  // 집 안(습격 상태): 배경 그림은 아늑한 실내라서, 불꽃·연기·그을린 잔해·열기를 코드로 겹쳐 '불타는 집'으로 보이게 함(2차 효과 그림)
+  const HOUSE_FIRE = [[150, 238, 120, 0], [196, 222, 86, 8], [352, 270, 70, 1], [520, 168, 62, 9], [760, 156, 64, 10], [968, 246, 110, 2], [1030, 226, 78, 11], [1148, 300, 150, 3], [1010, 396, 80, 4], [1200, 400, 90, 12]];   // 서까래·창가·기둥 위쪽
+  const HOUSE_FLOOR = [[62, 590, 170, 5], [128, 590, 96, 13], [1136, 590, 185, 6], [1214, 590, 130, 14], [1010, 590, 92, 7]];                                       // 바닥 가장자리(아버지 위치 860 근처는 비움)
   D.pro_house = {
-    back(ctx, P) { /* 정식 배경(습격 상태)에 불길이 그려져 있음 */ },
-    mid(ctx, P) { drawFlames(ctx, P); }
+    back(ctx, P) {
+      if (!A.has("fx_fire")) return;
+      const g = ctx.createLinearGradient(0, 0, 0, 330); g.addColorStop(0, "rgba(18,10,8,.78)"); g.addColorStop(0.6, "rgba(18,10,8,.38)"); g.addColorStop(1, "rgba(18,10,8,0)"); ctx.fillStyle = g; ctx.fillRect(0, 0, W, 360);   // 천장 쪽 검은 연기
+      for (const [x, y, h, s] of HOUSE_FIRE) A.fire(ctx, x, y, h, P.time, s);
+    },
+    mid(ctx, P) {
+      if (!A.has("fx_fire")) { drawFlames(ctx, P); return; }
+      if (A.has("po_obst_burnt_beams")) { A.obstacle(ctx, { x: 520, y: 561, w: 108, h: 29 }, "beam", P.time); A.obstacle(ctx, { x: 1060, y: 563, w: 96, h: 27 }, "beam", P.time); }   // 떨어진 그을린 들보
+      for (const [x, y, h, s] of HOUSE_FLOOR) A.fire(ctx, x, y, h, P.time, s);
+    },
+    front(ctx, P) {
+      if (!A.has("fx_fire")) return;
+      for (let i = 0; i < 9; i++) { const age = ((P.time * 0.1 + i / 9) % 1); A.smoke(ctx, 90 + i * 135 + Math.sin(i * 2.3) * 40, 400 + (i % 2) * 50, 230, age, 0.85, i); }   // 천장 아래로 퍼지는 연기
+      const k = 0.5 + 0.5 * Math.sin(P.time * 7.3) * Math.sin(P.time * 3.1 + 1); ctx.save(); ctx.globalCompositeOperation = "lighter"; ctx.globalAlpha = 0.05 + 0.05 * k; ctx.fillStyle = "#ff6a2a"; ctx.fillRect(0, 0, W, H); ctx.restore();   // 열기로 일렁이는 붉은 빛
+    }
   };
   D.pro_escape = {
     mid(ctx, P) { const m = AU.World.map, kinds = [null, "rock", "log", "log", "rock"]; m.platforms.forEach((pl, i) => { if (i > 0 && pl.h) A.obstacle(ctx, pl, kinds[i] || "rock", P.time); }); }
@@ -82,6 +100,81 @@ window.AU = window.AU || {};
       for (let i = 0; i < 4; i++) A.gull(ctx, 500 + ((P.time * 40 + i * 330) % 1100), 120 + i * 38 + Math.sin(P.time + i) * 12, 1 - i * 0.12, P.time + i);
     }
   };
+
+  /* ============================================================
+     SCENE 00 — 아침의 아르케아 (시작 글 카드 → 마을길 → 기념비)  /  SCENE 01B — 해 질 녘의 마을길(축제 깃발)
+     그림: 배경은 기존 마을길(평화), 주민은 기존 주민 시트. 기념비·깃대는 코드 도형(정식 그림이 오면 교체)
+     ============================================================ */
+  function arrowMark(ctx, P, x, by) { if (P.locked()) return; const y = by + Math.sin(P.time * 4) * 4; ctx.fillStyle = "#E8B94E"; ctx.strokeStyle = "#fff"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(x - 11, y - 12); ctx.lineTo(x + 11, y - 12); ctx.lineTo(x, y + 4); ctx.closePath(); ctx.fill(); ctx.stroke(); }
+  function drawStele(ctx, x, y) { // 빛의 승리 기념비: 돌비석 + 태양 문양 + 새긴 글줄
+    ctx.save(); ctx.translate(x, y); ctx.lineJoin = "round"; ctx.strokeStyle = "#5b4126"; ctx.lineWidth = 3;
+    ctx.fillStyle = "rgba(60,40,20,.26)"; ctx.beginPath(); ctx.ellipse(0, 3, 70, 9, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = "#b4a68e"; A.rrect(ctx, -58, -28, 116, 28, 6); ctx.fill(); ctx.stroke();
+    const g = ctx.createLinearGradient(-44, -196, 44, -28); g.addColorStop(0, "#e6dcc6"); g.addColorStop(1, "#b0a189");
+    ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(-44, -28); ctx.lineTo(-44, -150); ctx.quadraticCurveTo(-44, -196, 0, -198); ctx.quadraticCurveTo(44, -196, 44, -150); ctx.lineTo(44, -28); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.strokeStyle = "rgba(91,65,38,.28)"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-30, -58); ctx.lineTo(-26, -120); ctx.moveTo(24, -70); ctx.lineTo(30, -40); ctx.stroke();   // 돌결
+    ctx.fillStyle = "#E3B24A"; ctx.strokeStyle = "#8a5f1f"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(0, -150, 14, 0, 7); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); for (let i = 0; i < 12; i++) { const a = i * Math.PI / 6; ctx.moveTo(Math.cos(a) * 19, -150 + Math.sin(a) * 19); ctx.lineTo(Math.cos(a) * 27, -150 + Math.sin(a) * 27); } ctx.stroke();
+    ctx.strokeStyle = "rgba(91,65,38,.5)"; ctx.lineWidth = 3; ctx.lineCap = "round"; for (const [yy, w] of [[-112, 54], [-96, 62], [-80, 48], [-64, 58]]) { ctx.beginPath(); ctx.moveTo(-w / 2, yy); ctx.lineTo(w / 2, yy); ctx.stroke(); }
+    ctx.restore();
+  }
+  function setupMorning(P) {
+    const R = LAY.road, M = R.m; P.variant = "peace"; P.tint = { color: "#EAF1FF", a: 0.07 }; P.vig = 0.15;
+    P.limits = { max: M.limit, msg: "길 끝의 기념비를 먼저 읽어 보세요." };
+    const chat = (id, spk, sprite, x, h, label, key, extra) => npc(P, id, spk, sprite, x, h, Object.assign({ range: 100, interact: { label, fn: () => P.cutscene(() => P.say(T[key])) } }, extra || {}));
+    chat("child", "child", artSpr("pc_festival_child", "villager_b"), M.child, 118, "대화: 축제 어린이", "s0_child");
+    chat("baker", "vendor", artSpr("pc_villager_b_actions", "baker"), M.baker, 150, "대화: 빵을 나누는 주민", "s0_baker", { frame: A.sprFrame("pc_villager_b_actions", "cheer2") });
+    chat("elder", "elder", artSpr("pc_villager_c_actions", "villager_a"), M.elder, 150, "대화: 나이 든 주민", "s0_elder", { frame: A.sprFrame("pc_villager_c_actions", "cheer2") });
+    chat("farmer", "farmer", artSpr("pc_villager_d_actions", "villager_a"), M.farmer, 150, "대화: 젊은 농부", "s0_farmer", { frame: A.sprFrame("pc_villager_d_actions", "cheer2") });
+    chat("priest", "priest", artSpr("pc_villager_j_actions", "villager_a"), M.priest, 150, "대화: 신관", "s0_priest", { frame: A.sprFrame("pc_villager_j_actions", "cheer2") });
+    const stele = P.addEnt({ id: "stele", x: M.stele, range: 110, layer: "mid", mark: true, interact: { label: "기념비 읽기", fn: async () => {
+      await P.cutscene(async () => { await P.say(T.s0_stele); }); if (P.flag("stele_read")) return;
+      P.setFlag("stele_read"); stele.mark = false; P.limits = null; P.obj(OBJ.s0_exit);
+      P.trigger({ id: "s0end", test: (p) => p.x >= R.end, fn: () => { P.frozen = true; P.advance(); } }); } },
+      draw(ctx, e, P) { drawStele(ctx, e.x, G); if (e.mark) arrowMark(ctx, P, e.x, G - 232); } });
+  }
+  SC.SCENE_00_MORNING = { name: "아침의 아르케아", async enter(P) {
+    const g = P.gen; P.room("pro_road", LAY.road.m.start, (P) => setupMorning(P));
+    await P.cutscene(async () => { await P.wait(0.9); await P.cards(T.cards); await P.fade(0, 1.8); await P.caption(T.cap1, 3.4); }, { id: "cs00a", skip: true });
+    if (!live(P, g)) return; P.obj(OBJ.s0_walk); const k = P.keys(); P.hint("이동 " + k.move + " · 점프 " + k.jump + " · 상호작용 " + k.act, 9);
+  } };
+
+  function drawPole(ctx, e, P) { // 깃대와 축제 깃발(e.f: 0 말려 있음 → 1 꼭대기까지 올라감)
+    const x = e.x, top = G - 250, fy = G - 78 - e.f * 150, wv = Math.sin(P.time * 3 + x) * 5 * e.f;
+    ctx.save(); ctx.strokeStyle = "#5b4126"; ctx.lineWidth = 3; ctx.lineCap = "round"; ctx.fillStyle = "#9a6b3a";
+    ctx.fillRect(x - 4, top, 8, G - top); ctx.strokeRect(x - 4, top, 8, G - top); ctx.fillStyle = "#E3B24A"; ctx.beginPath(); ctx.arc(x, top - 4, 7, 0, 7); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = e.col; ctx.beginPath();
+    if (e.f < 0.05) { ctx.rect(x + 4, fy, 22, 12); } else { ctx.moveTo(x + 4, fy); ctx.quadraticCurveTo(x + 36, fy - 6 + wv, x + 72 + wv, fy + 20); ctx.quadraticCurveTo(x + 36, fy + 34 + wv * 0.5, x + 4, fy + 40); ctx.closePath(); }
+    ctx.fill(); ctx.stroke(); if (e.f >= 0.05) { ctx.fillStyle = "rgba(255,255,255,.55)"; ctx.beginPath(); ctx.arc(x + 26, fy + 20, 7, 0, 7); ctx.fill(); }
+    ctx.restore(); if (e.mark) arrowMark(ctx, P, x, top - 40);
+  }
+  function setupBanners(P) {
+    const R = LAY.road, B = R.b; P.variant = "peace"; P.tint = { color: "#FFC98A", a: 0.2 }; P.vig = 0.24;
+    const st = { talk: false, done: 0 }; P.limits = { max: B.elder + 150, msg: "먼저 마을 사람에게 말을 걸어 보세요." };
+    const elder = npc(P, "elder", "elder", artSpr("pc_villager_c_actions", "villager_a"), B.elder, 150, { frame: A.sprFrame("pc_villager_c_actions", "cheer2"), range: 110, mark: true });
+    npc(P, "baker", "vendor", artSpr("pc_villager_b_actions", "baker"), B.baker, 150, { frame: A.sprFrame("pc_villager_b_actions", "cheer2"), range: 110, interact: { label: "대화: 빵을 나누는 주민", fn: () => P.cutscene(() => P.say(T.s1b_baker)) } });
+    npc(P, "musician", "musician", artSpr("pc_villager_f_actions", "villager_a"), B.musician, 150, { frame: A.sprFrame("pc_villager_f_actions", "cheer2"), range: 100, interact: { label: "대화: 악사", fn: () => P.cutscene(() => P.say(T.s1b_musician)) } });
+    npc(P, "scribe", "scribe", artSpr("pc_villager_k_actions", "villager_a"), B.scribe, 150, { frame: A.sprFrame("pc_villager_k_actions", "cheer2"), range: 100, interact: { label: "대화: 서기", fn: () => P.cutscene(() => P.say(T.s1b_scribe)) } });
+    const cols = ["#C0573E", "#E3B24A", "#4F8A6B"];
+    const poles = B.poles.map((x, i) => P.addEnt({ id: "pole" + i, x, f: 0, col: cols[i % 3], range: 90, layer: "mid", draw: drawPole, interact: { label: "깃발 달기", off: true, fn: () => hang(poles[i]) } }));
+    elder.interact = { label: "대화: 나이 든 주민", fn: async () => {
+      if (!st.talk) { st.talk = true; await P.cutscene(async () => { await P.say(T.s1b_elder); }); elder.mark = false; P.limits = { max: B.poles[2] + 130, msg: "먼저 깃발을 달아 주세요." };
+        poles.forEach((q) => { q.interact.off = false; q.mark = true; }); P.obj(OBJ.s1b_flags.replace("{n}", 0)); return; }
+      await P.cutscene(async () => { await P.say(T.s1b_elder2); }); } };
+    async function hang(q) {
+      if (q.hung) return; q.hung = true; q.mark = false; q.interact.off = true;
+      await P.cutscene(async () => { await P.walkTo(q.x - 48, 1); P.face(1); await P.wait(0.2); P.sfx("pick"); await P.tween(q, { f: 1 }, 1.0, (k) => k); P.sfx("item"); await P.wait(0.25); });
+      st.done++; P.obj(OBJ.s1b_flags.replace("{n}", st.done));
+      if (st.done < 3) return;
+      await P.cutscene(async () => { await P.say(T.s1b_done); }); P.setFlag("banners_done"); P.limits = null; P.obj(OBJ.s1b_exit);
+      P.trigger({ id: "s1bend", test: (p) => p.x >= B.limit, fn: () => { P.frozen = true; P.advance(); } });
+    }
+  }
+  SC.SCENE_01B_BANNERS = { name: "해 질 녘의 마을길", async enter(P) {
+    const g = P.gen; P.room("pro_road", LAY.road.start, (P) => setupBanners(P));
+    await P.cutscene(async () => { await P.fade(0, 1.4); await P.caption(T.cap1c, 2.8); }, { id: "cs01c", skip: true });
+    if (!live(P, g)) return; P.obj(OBJ.s1b_talk);
+  } };
 
   /* ============================================================
      SCENE 01 — 마지막 망치질 (신전 건축 현장 → 마을길)
@@ -101,13 +194,15 @@ window.AU = window.AU || {};
         if (e.mark && !P.locked()) { const by = G - 130 + Math.sin(P.time * 4) * 4; ctx.fillStyle = "#E8B94E"; ctx.strokeStyle = "#fff"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(e.x - 11, by - 12); ctx.lineTo(e.x + 11, by - 12); ctx.lineTo(e.x, by + 4); ctx.closePath(); ctx.fill(); ctx.stroke(); } } });
     const frame = P.addEnt({ id: "frame", x: L.joint, range: 100, layer: "mid", interact: { label: "이음새 망치질", off: true, fn: () => hammerJoint() },
       draw(ctx, e, P) { const x = e.x; ctx.save();
-        if (A.has("po_plank_a")) { // 정식 널빤지 그림으로 짠 작은 이음 골조(기둥 2 + 가로대 2)
+        const jf = A.has("po_joint_frame"), jy = jf ? 514 : 478; // 정식 이음 골조 그림이 있으면 그것을 쓰고, 널빤지·못 높이를 빈 가운데 칸에 맞춤
+        if (jf) A.pic(ctx, "po_joint_frame", x, G, 118, 1);
+        else if (A.has("po_plank_a")) { // (임시) 정식 널빤지 그림으로 짠 작은 이음 골조(기둥 2 + 가로대 2)
           const post = (px) => { ctx.save(); ctx.translate(px, 530); ctx.rotate(Math.PI / 2); ctx.drawImage(AU.Img.get("po_plank_b"), -60, -9, 120, 18); ctx.restore(); }; post(x - 69); post(x + 69);
           ctx.drawImage(AU.Img.get("po_plank_a"), x - 80, 466, 54, 14); ctx.drawImage(AU.Img.get("po_plank_a"), x + 26, 466, 54, 14);
         } else { ctx.fillStyle = "#B98B4E"; ctx.strokeStyle = "#5b4126"; ctx.lineWidth = 3; ctx.fillRect(x - 76, 470, 14, G - 470); ctx.strokeRect(x - 76, 470, 14, G - 470); ctx.fillRect(x + 62, 470, 14, G - 470); ctx.strokeRect(x + 62, 470, 14, G - 470);
           ctx.fillRect(x - 76, 470, 46, 16); ctx.strokeRect(x - 76, 470, 46, 16); ctx.fillRect(x + 30, 470, 46, 16); ctx.strokeRect(x + 30, 470, 46, 16); }
-        if (v.fly && v.fly.t >= 1) A.plank(ctx, x, 478, 66, 0); else if (v.planked) A.plank(ctx, x, 478, 66, 0);
-        for (let i = 0; i < 3; i++) { const sunk = v.nails > i; ctx.fillStyle = sunk ? "#555a62" : "#9aa0a8"; ctx.fillRect(x - 18 + i * 18, sunk ? 475 : 466, 6, sunk ? 3 : 12); }
+        if (v.fly && v.fly.t >= 1) A.plank(ctx, x, jy, 66, 0); else if (v.planked) A.plank(ctx, x, jy, 66, 0);
+        for (let i = 0; i < 3; i++) { const sunk = v.nails > i; ctx.fillStyle = sunk ? "#555a62" : "#9aa0a8"; ctx.fillRect(x - 18 + i * 18, jy + (sunk ? -3 : -12), 6, sunk ? 3 : 12); }
         if (e.mark && !P.locked()) { const by = 440 + Math.sin(P.time * 4) * 4; ctx.fillStyle = "#E8B94E"; ctx.strokeStyle = "#fff"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(x - 11, by - 12); ctx.lineTo(x + 11, by - 12); ctx.lineTo(x, by + 4); ctx.closePath(); ctx.fill(); ctx.stroke(); } ctx.restore(); } });
 
     father.interact = { label: "대화: 아버지", fn: async () => {
@@ -140,15 +235,13 @@ window.AU = window.AU || {};
         P.setFlag("father_final_conversation_complete");
       }, { id: "cs01b", skip: true, bars: true });
       father.mark = false; P.limits = null; P.obj(OBJ.s1_exit); father.working = false;
-      P.trigger({ id: "s1exit", test: (p) => p.x >= L.exit, fn: () => toRoad() });
+      P.trigger({ id: "s1exit", test: (p) => p.x >= L.exit, fn: () => { P.frozen = true; P.advance(); } });
     }
-    async function toRoad() { await go(P, "pro_road", LAY.road.start, (P) => setupRoad(P, "peace", 1)); }
   }
   function setupRoad(P, variant, scene) {
     P.variant = variant;
-    if (variant === "peace") { P.tint = { color: "#FFF1DA", a: 0.1 }; P.vig = 0.15;
-      P.trigger({ id: "s1end", test: (p) => p.x >= LAY.road.end, fn: () => { P.frozen = true; P.advance(); } }); }
-    else { // BG-V01 마을길 습격 상태
+    if (variant === "peace") return;
+    { // BG-V01 마을길 습격 상태
       P.tint = { color: "#c9a79f", a: 0.5 }; P.vig = 0.4; P.setPlatforms(LAY.road.obst);
       flames(P, [{ x: 560, y: G, s: 1.1 }, { x: 760, y: G, s: 0.8 }, { x: 1240, y: G, s: 1.2 }, { x: 1900, y: G, s: 1.0 }, { x: 2130, y: G, s: 0.9 }, { x: 180, y: 300, s: 1.5 }, { x: 300, y: 285, s: 1.8 }, { x: 400, y: 310, s: 1.3 }]);
       fireEmitters(P, LAY.road.w, 150, 560, 1); for (const [i, r] of LAY.road.raiders.entries()) raider(P, "r" + (i + 1), r[0], r[1], 0.5 - i * 0.05, -1, r[2], r[3]); runnerSpawner(P, 2.2);
@@ -158,11 +251,11 @@ window.AU = window.AU || {};
   }
   async function houseDoor() { const P = AU.Prologue, g = P.gen; await P.cutscene(async () => { await P.walkTo(LAY.road.doorX, 1); P.sfx("thud"); await P.wait(0.5); }); if (live(P, g)) { P.frozen = true; P.advance(); } }
 
-  SC[0] = { name: "마지막 망치질", async enter(P) {
+  SC.SCENE_01_TEMPLE = { name: "마지막 망치질", async enter(P) {
     const g = P.gen; P.room("pro_temple", LAY.temple.start, (P) => setupTemple(P));
     await P.cutscene(async () => { // 검은 화면에서 망치 소리 → 서서히 밝아짐 → 자막
       P.sfx("hammer"); await P.wait(0.9); P.sfx("hammer"); await P.wait(0.8); P.sfx("hammer"); await P.wait(0.7); P.sfx("hammer"); await P.wait(0.6);
-      P.fade(0, 2.4); await P.wait(1.4); await P.caption(T.cap1, 3.6);
+      P.fade(0, 2.4); await P.wait(1.4); await P.caption(T.cap1b, 3.2);
     }, { id: "cs00", skip: true });
     if (!live(P, g)) return; P.obj(OBJ.s1_talk); const k = P.keys(); P.hint("이동 " + k.move + " · 점프 " + k.jump + " · 상호작용 " + k.act, 9);
   } };
@@ -200,7 +293,7 @@ window.AU = window.AU || {};
     }, { id: "cs02a", skip: true, bars: true });
     if (live(P, g)) { P.frozen = true; P.advance("#fff"); }
   }
-  SC[1] = { name: "빛의 승리 100주년", async enter(P) {
+  SC.SCENE_02_FESTIVAL = { name: "빛의 승리 100주년", async enter(P) {
     const g = P.gen; P.room("pro_plaza", LAY.plaza.start, (P) => setupPlaza(P, "peace"));
     await P.cutscene(async () => { await P.fade(0, 1.4); });
     if (!live(P, g)) return; P.obj(OBJ.s2_talk);
@@ -209,7 +302,7 @@ window.AU = window.AU || {};
   /* ============================================================
      SCENE 03 — 검은 화염 (광장 → 마을길 → 집 앞)
      ============================================================ */
-  SC[2] = { name: "검은 화염", async enter(P) {
+  SC.SCENE_03_ATTACK = { name: "검은 화염", async enter(P) {
     const g = P.gen; P.room("pro_plaza", LAY.plaza.w - 180, (P) => setupPlaza(P, "attack")); P.fadeS.color = "#fff"; P.fadeS.a = 1; P.setFlag("attack_triggered"); P.face(1);
     await P.cutscene(async () => { // CS-02 축제 습격
       await P.wait(0.5); P.amb("fire", true); P.sfx("boom"); P.shake(12, 1.4); P.fade(0, 1.6);
@@ -224,28 +317,42 @@ window.AU = window.AU || {};
      SCENE 04 — 아버지의 마지막 유언 (집 안)
      ============================================================ */
   function setupHouse(P) {
-    const v = P.v; P.variant = "attack"; P.tint = { color: "#ffd9b8", a: 0.18 }; P.vig = 0.45; v.bag = false;
+    const v = P.v; P.variant = "attack"; P.tint = { color: A.has("fx_fire") ? "#a8603c" : "#ffd9b8", a: A.has("fx_fire") ? 0.44 : 0.18 }; P.vig = A.has("fx_fire") ? 0.68 : 0.45; v.bag = false;
     P.limits = { min: 120, max: null, msg: "아버지를 먼저 찾아야 합니다." };
     flames(P, [{ x: 260, y: 330, s: 1.1 }, { x: 620, y: 300, s: 1.4 }, { x: 980, y: 335, s: 1.2 }, { x: 1150, y: 590, s: 1.0 }, { x: 90, y: 590, s: 0.7 }, { x: 430, y: 560, s: 0.5 }]);
     fireEmitters(P, 1280, 180, 520, 1.1);
     const father = P.addEnt({ id: "father", x: LAY.house.father, range: 0, hand: 0, drop: 0, frag: false, layer: "mid",
       draw(ctx, e, P) { const w = AU.World;
-        if (A.has("pc_father_down")) { // 쓰러진 아버지(머리가 왼쪽): 손이 앞(왼쪽)으로 뻗다가 힘없이 떨어짐
+        if (A.has("pc_father_down")) { // 쓰러진 아버지(머리가 왼쪽): 팔이 뻗은 한 장 그림만 사용(팔 조각을 따로 겹치면 손만 잘려 보여서 제거). 손이 앞으로 내민 쪽에 조각을 쥔 표시만 겹침
           A.pic(ctx, "pc_father_down", e.x, G + 4, 42, -1);
           const tipX = e.x - 96, tipY = G - 6;
-          if (e.hand > 0.02 && e.drop < 0.5) { ctx.save(); ctx.globalAlpha = Math.min(1, e.hand * 1.4) * (1 - e.drop * 1.6); A.pic(ctx, "pc_father_arm_reach", tipX - 26 * e.hand + 38, tipY + 2 - 6 * e.hand, 33, -1); ctx.restore(); }
-          if (e.drop > 0.02) { ctx.save(); ctx.globalAlpha = Math.min(1, e.drop * 1.6); A.pic(ctx, "pc_father_arm_drop", tipX + 18 - 8 * e.drop, tipY + 14, 56, -1); ctx.restore(); }
           if (e.frag) A.fragment(ctx, tipX - 22 * e.hand, tipY - 14 - 8 * e.hand, 0.34, -0.5, P.time);
           return; }
         ctx.save(); ctx.translate(e.x, G - 6); ctx.rotate(-Math.PI / 2); ctx.scale(-1, 1); w.sprite(ctx, "smith", 0, 0, 150, 1, 0); ctx.restore();
         const sx = e.x - 112, sy = G - 40, hx = sx - 70 * e.hand, hy = sy - 34 * e.hand + 52 * e.drop;
         if (e.hand > 0.02 || e.drop > 0) { ctx.strokeStyle = "#D9B08C"; ctx.lineWidth = 15; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(hx, hy); ctx.stroke(); ctx.fillStyle = "#E8C4A0"; ctx.beginPath(); ctx.arc(hx - 4, hy, 11, 0, 7); ctx.fill(); if (e.frag) A.fragment(ctx, hx - 6, hy - 12, 0.34, -0.5, P.time); } } });
     const bag = P.addEnt({ id: "bag", x: 420, range: 90, hidden: true, layer: "mid", mark: true, interact: { label: "도구 가방 챙기기", fn: () => takeBag() },
-      draw(ctx, e, P) { A.bag(ctx, e.x, G - 4, 1.05, 0); const k = 0.5 + 0.5 * Math.sin(P.time * 4); ctx.strokeStyle = "rgba(255,230,150," + (0.35 + 0.4 * k) + ")"; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(e.x, G - 4, 46, 9, 0, 0, 7); ctx.stroke();
+      lift: 0,
+      draw(ctx, e, P) { if (e.lift > 0) { liftBag(ctx, e, P); return; } A.bag(ctx, e.x, G - 4, 1.05, 0); const k = 0.5 + 0.5 * Math.sin(P.time * 4); ctx.strokeStyle = "rgba(255,230,150," + (0.35 + 0.4 * k) + ")"; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(e.x, G - 4, 46, 9, 0, 0, 7); ctx.stroke();
         if (e.mark && !P.locked()) { const by = G - 90 + Math.sin(P.time * 4) * 4; ctx.fillStyle = "#E8B94E"; ctx.strokeStyle = "#fff"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(e.x - 11, by - 12); ctx.lineTo(e.x + 11, by - 12); ctx.lineTo(e.x, by + 4); ctx.closePath(); ctx.fill(); ctx.stroke(); } } });
     P.trigger({ id: "find", test: (p) => p.x >= LAY.house.find, fn: () => willScene(father, bag) });
-    function takeBag() {
-      if (P.flag("carpenter_bag_acquired")) return; P.setFlag("carpenter_bag_acquired"); P.give("carpenter_bag"); bag.hidden = true; P.sfx("item"); P.hint("목수 도구 가방을 챙겼습니다.", 2.8);
+    /* 바닥의 가방이 포물선을 그리며 등으로 올라가는 모습(바닥 그림 → 등에 멘 그림으로 서서히 바뀜) */
+    function liftBag(ctx, e, P) {
+      const p = AU.World.player, d = p.dir, k = e.lift, ease = k * k * (3 - 2 * k), b = P.bagDyn(p), fx = e.x, fy = G - 4 - 39, tx = p.x - d * 20, ty = p.y - 74 + 29 + b.y;
+      const x = fx + (tx - fx) * ease, y = fy + (ty - fy) * ease - Math.sin(k * Math.PI) * 46, h = 78 + (58 - 78) * ease, mix = Math.min(1, Math.max(0, (k - 0.55) / 0.4)), rot = d * 0.35 * Math.sin(k * Math.PI);
+      ctx.save(); ctx.globalAlpha = 1 - mix; A.picC(ctx, "po_bag_floor", x, y, h * 1.12, rot, false); ctx.globalAlpha = mix; A.bagBack(ctx, x, y - h / 2, h, d, rot); ctx.restore();
+    }
+    async function takeBag() {
+      if (P.flag("carpenter_bag_acquired") || bag.taking) return; bag.taking = true; bag.mark = false;
+      await P.cutscene(async () => {
+        const p = AU.World.player, side = p.x < bag.x ? -1 : 1;
+        await P.walkTo(bag.x + side * 52, 1.2); P.face(-side); await P.wait(0.15);
+        P.pose("kneel"); await P.wait(0.45); P.sfx("pick");
+        await P.tween(bag, { lift: 0.42 }, 0.5); P.pose(null);                       // 무릎을 꿇은 채 집어 들고 일어서면서
+        await P.tween(bag, { lift: 1 }, 0.55);                                      // 어깨 위로 올려 등에 멤
+        P.setFlag("carpenter_bag_acquired"); P.give("carpenter_bag"); bag.hidden = true; bag.lift = 0; P.bagKick(120); P.sfx("item"); P.hint("목수 도구 가방을 챙겼습니다.", 2.8);
+        await P.wait(0.5);
+      }, { bars: false });
       P.limits = null; P.obj(OBJ.s4_exit); P.trigger({ id: "s4exit", test: (p) => p.x <= 100, fn: () => { P.frozen = true; P.advance(); } });
     }
   }
@@ -262,7 +369,7 @@ window.AU = window.AU || {};
     }, { id: "cs03", skip: true, bars: true });
     if (!live(P, g)) return; bag.hidden = false; P.obj(OBJ.s4_bag); P.limits = { min: 120, max: null, msg: "도구 가방을 챙겨야 합니다." };
   }
-  SC[3] = { name: "아버지의 마지막 유언", async enter(P) {
+  SC.SCENE_04_FATHER = { name: "아버지의 마지막 유언", async enter(P) {
     const g = P.gen; P.room("pro_house", LAY.house.start, (P) => setupHouse(P)); P.amb("fire", true);
     await P.cutscene(async () => { await P.fade(0, 1.6); }); if (!live(P, g)) return; P.obj(OBJ.s3_dad);
   } };
@@ -282,7 +389,7 @@ window.AU = window.AU || {};
       else { const g = ctx.createRadialGradient(W * 0.5, 330, 10, W * 0.5, 330, 520); g.addColorStop(0, "rgba(255,230,160,.6)"); g.addColorStop(1, "rgba(255,200,120,0)"); ctx.globalCompositeOperation = "lighter"; ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); ctx.globalCompositeOperation = "source-over"; }
       const px = 260 + local * 120, bob = Math.abs(Math.sin(local * 7)) * 3; if (!A.spr(ctx, "pc_player_" + (AU.PRO_GENDER || "m") + "_locomotion", "walk" + (1 + Math.floor(local * 8) % 4), px, G + 6 - bob, 1)) AU.World.sprite(ctx, "player_male", px, G + 6 - bob, 150, 1, Math.floor(local * 8) % 4); ctx.restore(); }
   }
-  SC[4] = { name: "잿더미를 뒤로하고", async enter(P) {
+  SC.SCENE_05_ESCAPE = { name: "잿더미를 뒤로하고", async enter(P) {
     const g = P.gen, k = P.keys();
     P.room("pro_escape", LAY.escape.start, (P) => {
       P.variant = "night"; P.tint = { color: "#8c9cc8", a: 0.22 }; P.vig = 0.38;
@@ -317,7 +424,7 @@ window.AU = window.AU || {};
   /* ============================================================
      SCENE 06 — 중립도시 포르투 노바 (외곽 언덕 → 종료 화면)
      ============================================================ */
-  SC[5] = { name: "중립도시 포르투 노바", async enter(P) {
+  SC.SCENE_06_PORT_VIEW = { name: "중립도시 포르투 노바", async enter(P) {
     const g = P.gen;
     P.room("pro_hill", LAY.hill.start, (P) => { P.variant = "dawn"; P.v.reveal = 0; P.tint = { color: "#FFE6C8", a: 0.12 }; P.vig = 0.2; P.emitter({ kind: "glow", x0: 300, x1: 1300, y0: 300, y1: 500, rate: 3 }); });
     P.amb("waves", true); P.face(1);
