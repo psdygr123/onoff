@@ -233,3 +233,79 @@ main { display: block; outline: none; }
 
 /* 시작 전 안내 등 패널 안의 제목-본문 간격 */
 .panel > div > h3 + p, .panel > div > h3 + ul { margin-top: 6px; }
+
+/* ---------- 홈 배너(피처 배너 + 목록) ---------- */
+.banner { --dur: 6s; display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 16px; padding-top: clamp(20px, 3vw, 32px); }
+.banner-main { position: relative; border-radius: var(--r-lg); overflow: hidden; background: var(--bg-2); box-shadow: var(--shadow); aspect-ratio: 16 / 8.6; min-height: 340px; }
+.slide { position: absolute; inset: 0; opacity: 0; visibility: hidden; transition: opacity .7s ease, visibility .7s; }
+.slide.on { opacity: 1; visibility: visible; }
+.slide img { width: 100%; height: 100%; object-fit: cover; transform: scale(1.06); transition: transform 7s ease-out; }
+.slide.on img { transform: scale(1); }
+.slide-shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(20, 30, 25, .8), rgba(20, 30, 25, .35) 55%, rgba(20, 30, 25, .05)); }
+.slide-copy { position: absolute; left: clamp(22px, 4vw, 48px); bottom: clamp(26px, 4vw, 46px); right: 24px; max-width: 520px; color: #fff; display: grid; gap: 12px; transform: translateY(14px); opacity: 0; transition: transform .7s ease .15s, opacity .7s ease .15s; }
+.slide.on .slide-copy { transform: none; opacity: 1; }
+.slide-copy .eyebrow { color: rgba(255, 255, 255, .85); }
+.slide-title { font-family: var(--font-display); font-size: clamp(1.9rem, 3.6vw + .4rem, 3.1rem); line-height: 1.2; letter-spacing: -.01em; }
+.slide-title span { display: block; }
+.slide-title em { font-style: normal; color: #F3D9A8; }
+.slide-copy p:not(.eyebrow) { font-size: var(--fs-md); line-height: 1.65; opacity: .95; }
+.slide-copy .hero-actions { margin-top: 6px; }
+.slide-copy .btn { background: #fff; color: #2b3a30; border-color: #fff; }
+.slide-copy .btn:hover { background: #F3EFE4; }
+.banner-ctrl { position: absolute; right: 14px; top: 14px; z-index: 3; min-width: 40px; height: 40px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, .6); background: rgba(20, 30, 25, .5); color: #fff; cursor: pointer; font-size: 13px; }
+.banner-ctrl:hover { background: rgba(20, 30, 25, .75); }
+.banner-dots { position: absolute; right: 18px; bottom: 16px; display: none; gap: 6px; z-index: 3; }
+.banner-dots i { width: 10px; height: 6px; border-radius: 9px; background: rgba(255, 255, 255, .5); transition: width .3s; }
+.banner-dots i.on { width: 26px; background: #fff; }
+.banner-list { display: grid; grid-template-rows: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.banner-item { position: relative; display: flex; gap: 12px; align-items: center; text-align: left; padding: 12px; border-radius: var(--r-md); background: var(--surface); border: 1px solid var(--line); color: var(--ink); cursor: pointer; font: inherit; overflow: hidden; transition: transform .2s, border-color .2s, box-shadow .2s; }
+.banner-item:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+.banner-item.on { border-color: var(--btn); box-shadow: 0 0 0 1px var(--btn) inset; }
+.banner-item img { width: 72px; height: 72px; border-radius: 10px; object-fit: cover; flex: none; }
+.banner-item span { display: grid; gap: 3px; min-width: 0; }
+.banner-item b { font-size: var(--fs-sm); }
+.banner-item small { font-size: var(--fs-xs); color: var(--ink-2); }
+.banner-item .bar { position: absolute; left: 0; bottom: 0; height: 3px; width: 100%; background: var(--btn); transform: scaleX(0); transform-origin: left; }
+.banner-item.on .bar { animation: bannerbar var(--dur) linear forwards; }
+.banner.paused .banner-item.on .bar { animation: none; transform: scaleX(1); opacity: .35; }
+.banner.hold .banner-item.on .bar { animation-play-state: paused; }
+@keyframes bannerbar { to { transform: scaleX(1); } }
+.banner-foot { margin: 14px 0 0; text-align: center; color: var(--ink-2); font-size: var(--fs-sm); }
+
+/* 게임 카드: 올리면 떠오름 */
+.card { transition: transform .25s ease, box-shadow .25s ease; }
+.card:hover { transform: translateY(-6px); box-shadow: var(--shadow); }
+
+/* 게임 소개 탭 */
+.tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.tab { font: inherit; font-weight: 700; font-size: var(--fs-sm); padding: 9px 18px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; min-height: 40px; transition: background .2s, color .2s; }
+.tab:hover { background: var(--bg-2); }
+.tab.on { background: var(--btn); border-color: var(--btn); color: var(--on-btn); }
+.tabpanels { display: grid; gap: 12px; min-height: 150px; align-content: start; }
+.tabpanel { animation: tabin .35s ease; }
+.tabpanel[hidden] { display: none; }
+@keyframes tabin { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.tabpanel .lead + .lead { margin-top: 10px; }
+
+/* 스크롤 등장 */
+.reveal { transition: opacity .7s ease, transform .7s ease; }
+.reveal.pre { opacity: 0; transform: translateY(24px); }
+
+@media (max-width: 960px) {
+  .banner { grid-template-columns: minmax(0, 1fr); }
+  .banner-list { grid-template-rows: none; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .banner-item img { width: 52px; height: 52px; }
+  .banner-main { aspect-ratio: auto; min-height: 400px; }
+  .banner-dots { display: flex; }
+}
+@media (max-width: 620px) {
+  .banner-list { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; }
+  .banner-item { padding: 8px 12px; }
+  .banner-item img { width: 44px; height: 44px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .slide img, .slide-copy { transform: none !important; }
+  .banner-item.on .bar { animation: none; transform: scaleX(1); opacity: .35; }
+  .card:hover { transform: none; }
+  .tabpanel { animation: none; }
+}

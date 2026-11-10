@@ -27,33 +27,61 @@ OnOff.Views = (function () {
   }
 
   /* ---------- 홈 ---------- */
+  let io = null;
+  // 홈 배너: 게임이 아니라 서비스·이용 방식을 소개합니다. 문구는 기존 홈·서비스 소개 화면의 내용을 그대로 씁니다.
+  const BANNERS = [
+    { label: "일상 밖의 모험", sub: "온앤오프 소개", kicker: "심리학 전공자들이 만든 성장형 게임", title: "<span>일상 밖의 모험,</span><span><em>일상 속</em>의 성장</span>",
+      text: "이야기 속 작은 선택과 경험이 쌓여, 일상의 변화로 이어지는 여정을 함께합니다.", img: "img/hero.webp", pos: "50% 30%",
+      alt: "노을빛 바다와 언덕 위 마을이 내려다보이는 판타지 풍경", cta: '<button class="btn" type="button" data-action="scroll" data-target="lib">게임 둘러보기</button>' },
+    { label: "직접 만듭니다", sub: "심리학 전공자들", kicker: "온앤오프의 약속", title: "<span>심리학 전공자들이</span><span>직접 만듭니다</span>",
+      text: "심리학 이론을 바탕으로 기획하고, 효과가 입증되었다고 말하지 않으며 할 수 있는 만큼만 약속합니다.", img: "img/about-forest.webp", pos: "50% 60%",
+      alt: "햇살이 비치는 숲길", cta: '<button class="btn" type="button" data-action="go" data-to="about">서비스 소개 보기</button>' },
+    { label: "하루 몇 분이어도", sub: "쉬어 가도 괜찮은 여정", kicker: "내 속도로", title: "<span>하루 몇 분이어도</span><span>괜찮아요</span>",
+      text: "게임마다 진행 기록이 따로 저장되어, 언제든 이어서 할 수 있습니다.", img: "img/game-maeum.webp", pos: "30% 60%",
+      alt: "노을 진 항구에 정박한 범선", cta: '<button class="btn" type="button" data-action="start">모험 시작하기</button>' }
+  ];
+
   const home = {
     render() {
       const user = S.user, g = first(), save = user ? S.getSave(g.id) : null;
+      const g0 = GAMES[0], it = g0.intro || { who: "", purpose: "", parts: [], partsNote: "" };
+      const slides = BANNERS.map((b, i) => `<div class="slide${i === 0 ? " on" : ""}" id="slide-${i}" role="group" aria-roledescription="슬라이드" aria-label="${i + 1} / ${BANNERS.length}" ${i === 0 ? "" : 'aria-hidden="true"'}>
+          <img src="${b.img}" alt="${esc(b.alt)}" ${i === 0 ? 'fetchpriority="high"' : 'loading="lazy"'} width="1280" height="720" style="object-position:${b.pos}">
+          <div class="slide-shade"></div>
+          <div class="slide-copy"><p class="eyebrow">${esc(b.kicker)}</p><h2 class="slide-title">${b.title}</h2><p>${esc(b.text)}</p>
+            <div class="hero-actions">${b.cta}</div></div></div>`).join("");
+      const list = BANNERS.map((b, i) => `<button class="banner-item${i === 0 ? " on" : ""}" type="button" data-idx="${i}" aria-controls="slide-${i}" aria-current="${i === 0 ? "true" : "false"}">
+          <img src="${b.img}" alt="" width="160" height="160" loading="lazy" style="object-position:${b.pos}"><span><b>${esc(b.label)}</b><small>${esc(b.sub)}</small></span><i class="bar" aria-hidden="true"></i></button>`).join("");
       return `
       <div class="wrap">
-        <section class="hero" aria-labelledby="hero-title">
-          <div>
-            <p class="eyebrow">심리학 전공자들이 만든 성장형 게임</p>
-            <h1 id="hero-title" style="margin-top:12px"><span>일상 밖의 모험,</span><span><em>일상 속</em>의 성장</span></h1>
-            <p class="lead">온앤오프는 게임을 통해 당신의 행복과 정신건강이 한 걸음 더 나아가기를 바라는 마음으로 만들었습니다. 이야기 속 작은 선택과 경험이 쌓여, 일상의 변화로 이어지는 여정을 함께합니다.</p>
-            <div class="hero-actions">
-              <button class="btn" type="button" data-action="start">${save ? "이어서 모험하기" : "모험 시작하기"}</button>
-              <button class="btn ghost" type="button" data-action="go" data-to="games">게임 둘러보기</button>
-            </div>
-            <p class="hero-foot">치료를 기반으로 한 서비스는 아니지만, 성장과 행복 그리고 정신건강에 도움이 되고자 정성껏 만들었습니다.</p>
+        <h1 class="sr-only">온앤오프 — 심리학 전공자들이 만든 성장형 게임 플랫폼</h1>
+        <section class="banner" aria-roledescription="캐러셀" aria-label="온앤오프 소개 배너">
+          <div class="banner-main">${slides}
+            <button class="banner-ctrl" type="button" data-banner="toggle" aria-label="자동 넘김 멈춤">❚❚</button>
+            <div class="banner-dots" aria-hidden="true">${BANNERS.map((_, i) => `<i${i === 0 ? ' class="on"' : ""}></i>`).join("")}</div>
           </div>
-          <div class="hero-art">
-            <img src="img/hero.webp" alt="노을빛 바다와 언덕 위 마을이 내려다보이는 판타지 풍경" width="1280" height="720" fetchpriority="high">
-            <span class="hero-chip"><i></i>첫 번째 게임 · 아우텔리아</span>
-          </div>
+          <div class="banner-list" role="group" aria-label="배너 목록">${list}</div>
         </section>
+        <p class="banner-foot">당신의 성장과 행복 그리고 정신건강에 도움을 제공하는 심리서비스</p>
       </div>
-      <section class="section tint" aria-labelledby="lib-title"><div class="wrap">
-        <div class="section-head"><p class="eyebrow">게임 라이브러리</p><h2 id="lib-title">지금 만날 수 있는 게임</h2><p>하나의 계정으로 게임을 고르고, 게임마다 따로 저장됩니다.</p></div>
+      <section class="section tint reveal" id="lib" aria-labelledby="lib-title"><div class="wrap">
+        <div class="section-head"><p class="eyebrow">추천 게임</p><h2 id="lib-title">지금 만날 수 있는 게임</h2><p>하나의 계정으로 게임을 고르고, 게임마다 따로 저장됩니다.</p></div>
         <div class="cards">${GAMES.map(gameCard).join("")}</div>
       </div></section>
-      <section class="section" aria-labelledby="feat-title"><div class="wrap">
+      <section class="section reveal" aria-labelledby="gi-title"><div class="wrap">
+        <div class="section-head"><p class="eyebrow">게임 소개</p><h2 id="gi-title">${esc(g0.title)}는 이런 게임입니다</h2></div>
+        <div class="tabs" role="tablist" aria-label="게임 소개 항목">
+          <button class="tab on" type="button" role="tab" id="tab-0" aria-selected="true" aria-controls="tp-0" data-tab="0">이런 게임이에요</button>
+          <button class="tab" type="button" role="tab" id="tab-1" aria-selected="false" aria-controls="tp-1" data-tab="1" tabindex="-1">이렇게 즐겨요</button>
+          <button class="tab" type="button" role="tab" id="tab-2" aria-selected="false" aria-controls="tp-2" data-tab="2" tabindex="-1">이런 분께</button>
+        </div>
+        <div class="panel tabpanels">
+          <div class="tabpanel on" role="tabpanel" id="tp-0" aria-labelledby="tab-0"><p class="lead">${esc(g0.summary)}</p><p class="lead">${esc(it.purpose ? "이 게임이 바라는 것: " + it.purpose + "." : "")}</p></div>
+          <div class="tabpanel" role="tabpanel" id="tp-1" aria-labelledby="tab-1" hidden><ul class="checklist">${it.parts.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>${it.partsNote ? `<p class="hero-foot">${esc(it.partsNote)}</p>` : ""}</div>
+          <div class="tabpanel" role="tabpanel" id="tp-2" aria-labelledby="tab-2" hidden><p class="lead">${esc(it.who)}</p><p class="lead">${esc(g0.audienceNote)}</p></div>
+        </div>
+      </div></section>
+      <section class="section reveal" aria-labelledby="feat-title"><div class="wrap">
         <div class="section-head"><p class="eyebrow">온앤오프의 방식</p><h2 id="feat-title">천천히, 내 속도로 즐기는 모험</h2></div>
         <div class="features">
           <div class="feature"><div class="ico">${icons.compass}</div><h3>이야기 속에서 즐기는 모험</h3><p>낯선 지도를 걷고, 단서를 모으고, 캐릭터를 키웁니다. 재미있는 모험이 먼저입니다.</p></div>
@@ -61,7 +89,7 @@ OnOff.Views = (function () {
           <div class="feature"><div class="ico">${icons.link}</div><h3>쉬어 가도 괜찮은 여정</h3><p>하루에 몇 분이어도 좋습니다. 게임마다 진행 기록이 따로 저장되어, 언제든 이어서 할 수 있습니다.</p></div>
         </div>
       </div></section>
-      <section class="section tint" aria-labelledby="about-title"><div class="wrap split">
+      <section class="section tint reveal" aria-labelledby="about-title"><div class="wrap split">
         <div class="art"><img src="img/about-forest.webp" alt="햇살이 비치는 숲길" loading="lazy" width="1100" height="720"></div>
         <div class="copy">
           <p class="eyebrow">서비스 소개</p>
@@ -75,7 +103,40 @@ OnOff.Views = (function () {
           <div><button class="btn ghost" type="button" data-action="go" data-to="about">자세히 보기</button></div>
         </div>
       </div></section>`;
-    }
+    },
+    mount(root) {
+      const banner = root.querySelector(".banner"); if (!banner) return;
+      const slides = Array.from(banner.querySelectorAll(".slide")), items = Array.from(banner.querySelectorAll(".banner-item")), dots = Array.from(banner.querySelectorAll(".banner-dots i"));
+      const ctrl = banner.querySelector(".banner-ctrl"), reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+      let idx = 0, paused = reduce;
+      const apply = () => { banner.classList.toggle("paused", paused); ctrl.textContent = paused ? "▶" : "❚❚"; ctrl.setAttribute("aria-label", paused ? "자동 넘김 시작" : "자동 넘김 멈춤"); banner.querySelector(".banner-main").setAttribute("aria-live", paused ? "polite" : "off"); };
+      const show = (i) => {
+        idx = (i + slides.length) % slides.length;
+        slides.forEach((el, k) => { el.classList.toggle("on", k === idx); el.setAttribute("aria-hidden", k === idx ? "false" : "true"); });
+        items.forEach((el, k) => { el.classList.toggle("on", k === idx); el.setAttribute("aria-current", k === idx ? "true" : "false"); const bar = el.querySelector(".bar"); bar.style.animation = "none"; void bar.offsetWidth; bar.style.animation = ""; });
+        dots.forEach((el, k) => el.classList.toggle("on", k === idx));
+      };
+      banner.addEventListener("click", (e) => {
+        const it = e.target.closest(".banner-item"); if (it) { show(+it.dataset.idx); return; }
+        if (e.target.closest("[data-banner='toggle']")) { paused = !paused; apply(); }
+      });
+      banner.addEventListener("animationend", (e) => { if (e.target.classList.contains("bar") && !paused) show(idx + 1); });
+      let hold = false; const hoverOn = () => { hold = true; banner.classList.add("hold"); }, hoverOff = () => { hold = false; banner.classList.remove("hold"); };
+      banner.addEventListener("mouseenter", hoverOn); banner.addEventListener("mouseleave", hoverOff); banner.addEventListener("focusin", hoverOn); banner.addEventListener("focusout", hoverOff);
+      apply(); show(0);
+      // 게임 소개 탭
+      const tabs = Array.from(root.querySelectorAll(".tab")), panels = Array.from(root.querySelectorAll(".tabpanel"));
+      const pick = (i, focus) => { tabs.forEach((t, k) => { t.classList.toggle("on", k === i); t.setAttribute("aria-selected", String(k === i)); t.tabIndex = k === i ? 0 : -1; }); panels.forEach((p, k) => { p.classList.toggle("on", k === i); p.hidden = k !== i; }); if (focus) tabs[i].focus(); };
+      tabs.forEach((t, k) => { t.addEventListener("click", () => pick(k)); t.addEventListener("keydown", (e) => { if (e.key === "ArrowRight") { e.preventDefault(); pick((k + 1) % tabs.length, true); } else if (e.key === "ArrowLeft") { e.preventDefault(); pick((k + tabs.length - 1) % tabs.length, true); } }); });
+      // 스크롤하면 부드럽게 나타남(움직임 줄이기 설정이면 생략)
+      const els = Array.from(root.querySelectorAll(".reveal"));
+      if ("IntersectionObserver" in window && !reduce) {
+        els.forEach((el) => el.classList.add("pre"));
+        io = new IntersectionObserver((ents) => ents.forEach((en) => { if (en.isIntersecting) { en.target.classList.remove("pre"); io.unobserve(en.target); } }), { threshold: 0.12 });
+        els.forEach((el) => io.observe(el));
+      }
+    },
+    unmount() { if (io) { io.disconnect(); io = null; } }
   };
 
   /* ---------- 게임 둘러보기 ---------- */
