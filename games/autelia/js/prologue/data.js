@@ -13,13 +13,32 @@ window.AU = window.AU || {};
   /* ---------- 맵 (프롤로그 전용: 월드맵에는 표시하지 않음) ---------- */
   const base = { prologue: true, safe: true, ropes: [], portals: [], npcs: [], spawns: [] };
   const ground = (w) => [{ x: 0, y: G, w }];
-  AU.MAPS.pro_temple = Object.assign({}, base, { name: "아르케아 기념 신전 건축 현장", bg: "forest_road", width: 2000, platforms: ground(2000), start: 360 });          // BG-01 (임시: 숲길 그림 + 코드로 그린 건축 골조)
-  AU.MAPS.pro_road   = Object.assign({}, base, { name: "아르케아 마을길", bg: "harbor_road", bgFlip: true, width: 2450, platforms: ground(2450), start: 90 });             // BG-02 (임시: 항구 길 그림 좌우 반전, 끝의 집이 주인공의 집)
-  AU.MAPS.pro_plaza  = Object.assign({}, base, { name: "아르케아 축제 광장", bg: "plaza", width: 2484, platforms: ground(2484), start: 90 });                                // BG-03
-  AU.MAPS.pro_house  = Object.assign({}, base, { name: "주인공의 집", bg: "storage", width: 1280, platforms: ground(1280), start: 170 });                                    // BG-04 (임시: 창고 그림)
-  AU.MAPS.pro_escape = Object.assign({}, base, { name: "아르케아 외곽 탈출로", bg: "forest_road", width: 3000, start: 90,                                                      // BG-05
-    platforms: [{ x: 0, y: G, w: 3000 }, { x: 630, y: 542, w: 100, h: 48 }, { x: 900, y: 520, w: 110, h: 70 }, { x: 1700, y: 530, w: 120, h: 60 }, { x: 2300, y: 520, w: 130, h: 70 }] });
-  AU.MAPS.pro_hill   = Object.assign({}, base, { name: "포르투 노바 외곽 언덕", bg: "harbor", width: 1600, platforms: ground(1600), start: 420 });                              // BG-06 (임시: 항구 그림)
+  // 정식 그림(프롤로그 아트팩 변환본, tools/build_prologue_art.py). 폭은 이어붙인 결과 폭이며 artmeta.js에 기록됩니다.
+  const AR = AU.PRO_ART || { bg: {}, ob: {}, ch: {} }, BW = (k, d) => AR.bg[k] || d;
+  const bgKeys = { temple: "pb_temple", road: "pb_road", road_atk: "pb_road_atk", plaza: "pb_plaza", plaza_atk: "pb_plaza_atk", house: "pb_house", house_atk: "pb_house_atk", escape: "pb_escape", port: "pb_port", temple_fire: "pb_fire" };
+  for (const [f, k] of Object.entries(bgKeys)) AU.ASSETS[k] = { path: "assets/prologue/bg/" + f + ".webp", optional: true };
+  for (const f of Object.keys(AR.ob || {})) AU.ASSETS["po_" + f] = { path: "assets/prologue/ob/" + f + ".webp", optional: true };
+  for (const [f, m] of Object.entries(AR.ch || {})) {
+    AU.ASSETS["pc_" + f] = { path: "assets/prologue/ch/" + f + ".webp", frames: m.frames, optional: true };
+    for (const n of Object.keys(m.separate || {})) AU.ASSETS["pc_" + f.split("_")[0] + "_" + n] = { path: "assets/prologue/ch/" + f.split("_")[0] + "_" + n + ".webp", optional: true };
+  }
+  AU.PRO_GENDER = "m"; // 남(m)/여(f) 주인공 시트 선택(성별 선택 기능이 생기면 이 값만 바꿉니다)
+  // 장면별 배치 좌표(그림이 바뀌면 여기만 고칩니다)
+  const L = AU.PRO_LAY = {
+    temple: { w: BW("temple", 1839), start: 250, pile: 470, father: 700, joint: 905, tx: 1215, tBase: 548, tW: 720, limit: 1720, exit: 1790, hammerAt: 1010 },
+    road:   { w: BW("road", 2149), start: 90, doorX: 268, end: 2050, obst: [{ x: 820, y: 548, w: 80, h: 42 }, { x: 1330, y: 520, w: 110, h: 70 }], raiders: [[1150, 505, 1000, 1350], [1500, 500, 1350, 1750]] },
+    plaza:  { w: BW("plaza", 1279), start: 90, elder: 240, child: 430, vendor: 790, limit: 950, center: 1030, exit: 70, tx: 640, tBase: 520, tW: 520, obst: [{ x: 700, y: 548, w: 90, h: 42 }] },
+    house:  { w: BW("house", 1279), start: 170, father: 860, bag: 420, find: 470, exit: 100 },
+    escape: { w: BW("escape", 3083), start: 90, recall: 1500, look: 2780, end: 3020 },
+    hill:   { w: BW("port", 1849), start: 300 }
+  };
+  AU.MAPS.pro_temple = Object.assign({}, base, { name: "아르케아 기념 신전 건축 현장", bg: "pb_temple", width: L.temple.w, platforms: ground(L.temple.w), start: L.temple.start });          // BG-01
+  AU.MAPS.pro_road   = Object.assign({}, base, { name: "아르케아 마을길", bg: "pb_road", bgAtk: "pb_road_atk", width: L.road.w, platforms: ground(L.road.w), start: L.road.start });   // BG-02 / BG-V01
+  AU.MAPS.pro_plaza  = Object.assign({}, base, { name: "아르케아 축제 광장", bg: "pb_plaza", bgAtk: "pb_plaza_atk", width: L.plaza.w, platforms: ground(L.plaza.w), start: L.plaza.start });  // BG-03 / BG-V02
+  AU.MAPS.pro_house  = Object.assign({}, base, { name: "주인공의 집", bg: "pb_house_atk", width: L.house.w, platforms: ground(L.house.w), start: L.house.start });                // BG-04(습격 상태)
+  AU.MAPS.pro_escape = Object.assign({}, base, { name: "아르케아 외곽 탈출로", bg: "pb_escape", width: L.escape.w, start: L.escape.start,                                          // BG-05
+    platforms: [{ x: 0, y: G, w: L.escape.w }, { x: 630, y: 542, w: 100, h: 48 }, { x: 960, y: 520, w: 110, h: 70 }, { x: 1700, y: 530, w: 120, h: 60 }, { x: 2300, y: 520, w: 130, h: 70 }] });   // 장애물(코드로 그린 쓰러진 나무·바위)은 흙길 위에 놓음
+  AU.MAPS.pro_hill   = Object.assign({}, base, { name: "포르투 노바 외곽 언덕", bg: "pb_port", width: L.hill.w, platforms: ground(L.hill.w), start: L.hill.start });                    // BG-06
   // 맵 변형(BG-V01~V03)은 같은 배경·같은 지형 위에 코드로 연기·불길·잔해를 얹어 표현합니다.
   for (const id of Object.keys(AU.MAPS)) if (AU.MAPS[id].prologue) AU.MAPS[id].basePlatforms = AU.MAPS[id].platforms.slice();
 
