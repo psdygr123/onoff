@@ -17,9 +17,9 @@
     /* 저장값 정리: 이름은 규칙에 맞을 때만, 모습은 m/f 만 인정 */
     clean(p) {
       const o = p && typeof p === "object" ? p : {};
-      return { name: typeof o.name === "string" && NAME_RE.test(o.name) ? o.name : "", gender: o.gender === "m" || o.gender === "f" ? o.gender : "" };
+      return { name: typeof o.name === "string" && NAME_RE.test(o.name) ? o.name : "", gender: o.gender === "m" || o.gender === "f" ? o.gender : "", look: AU.Tint ? AU.Tint.clean(o.look) : { hair: 0, vest: 0, pants: 0 } };
     },
-    get() { return (AU.G && AU.G.S && AU.G.S.profile) || { name: "", gender: "" }; },
+    get() { return (AU.G && AU.G.S && AU.G.S.profile) || { name: "", gender: "", look: { hair: 0, vest: 0, pants: 0 } }; },
     isSet() { const p = this.get(); return !!p.name && !!p.gender; },
     name() { return this.get().name || DEFAULT_NAME; },
     gender() { return this.get().gender === "f" ? "f" : "m"; },
@@ -36,12 +36,13 @@
     /* 현재 설정을 화면·대사에 반영(프롤로그 주인공 그림과 대화창 화자) */
     apply() {
       AU.PRO_GENDER = this.gender();
+      if (AU.Tint) AU.Tint.setLook(this.get().look); // 머리·조끼·바지 색(그림이 아직 읽히는 중이면 읽히는 대로 적용)
       const SP = AU.PRO_SPEAKERS, g = this.gender();
       if (SP && SP.hero) { Object.assign(SP.hero, { name: this.name(), portrait: g === "f" ? "pt_pro_hero_f" : "pt_pro_hero_m", alt: this.portraitKey() }); }
       if (SP && SP.heroS) { Object.assign(SP.heroS, { name: this.name(), portrait: g === "f" ? "pt_pro_hero_f" : "pt_pro_hero_m_surprised", alt: this.portraitKey() }); }
     },
-    set(name, gender) {
-      const S = AU.G.S; S.profile = this.clean({ name: String(name).trim(), gender }); this.apply(); return S.profile;
+    set(name, gender, look) {
+      const S = AU.G.S; S.profile = this.clean({ name: String(name).trim(), gender, look }); this.apply(); return S.profile;
     },
     /* 대사 속 호칭: {이름} {이름이} {이름은} {이름을} {이름아} {이름과} → 닉네임(+조사) */
     fmt(text) {
@@ -60,17 +61,17 @@
     /* root: 화면을 그릴 요소(#title), opts: { mode:"new"|"edit", initial:{name,gender}, onDone(name,gender), onBack() } */
     openSetup(root, opts) {
       const h = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
-      const init = this.clean(opts.initial), st = { name: init.name, gender: init.gender || "m" }, edit = opts.mode === "edit";
+      const init = this.clean(opts.initial), st = { name: init.name, gender: init.gender || "m", look: Object.assign({}, init.look) }, edit = opts.mode === "edit";
       root.innerHTML = "";
       const box = h("div", "panel setupbox"); box.id = "charsetup"; box.setAttribute("role", "dialog"); box.setAttribute("aria-label", "캐릭터 설정");
       box.append(h("p", "stitle", edit ? "캐릭터 설정" : "캐릭터 만들기"), h("p", "ssub", edit ? "닉네임과 모습을 바꿀 수 있습니다. 진행 기록은 그대로 유지됩니다." : "모험을 시작하기 전에 이름과 모습을 정해 주세요. 시작 전에는 언제든 돌아와 바꿀 수 있습니다."));
       const body = h("div", "sbody"), left = h("div"), right = h("div", "sright");
       left.append(h("div", "slabel", "모습"));
       const cards = h("div", "scards"); cards.setAttribute("role", "radiogroup"); cards.setAttribute("aria-label", "모습");
-      const cardEls = {};
+      const cardEls = {}, spEls = {};
       for (const [g, label] of [["m", "남성형"], ["f", "여성형"]]) {
         const c = h("button", "scard"); c.type = "button"; c.setAttribute("role", "radio"); c.dataset.gender = g; c.id = "sg-" + g;
-        const sp = this.sheetStyle(g), s = h("div", sp.cls); s.style.cssText = sp.css; c.append(h("i", "chk", "✓"), s, h("b", null, label));
+        const sp = this.sheetStyle(g), s = h("div", sp.cls); s.style.cssText = sp.css; spEls[g] = s; c.append(h("i", "chk", "✓"), s, h("b", null, label));
         c.onclick = () => select(g); c.onkeydown = (e) => { if (e.key === "ArrowRight" || e.key === "ArrowLeft") { e.preventDefault(); select(g === "m" ? "f" : "m", true); } };
         cards.append(c); cardEls[g] = c;
       }
@@ -83,6 +84,26 @@
       prev.append(pl, h("div", null, ""));
       prev.lastChild.append(pn, document.createTextNode(" "), pt);
       right.append(inp, hint, prev);
+      /* 머리·조끼·바지 색: 누르면 두 모습 미리보기에 바로 반영 */
+      const colors = h("div", "scolors"), NAMES = { hair: "머리색", vest: "조끼색", pants: "바지색" }, swEls = {};
+      const PREV_KEYS = ["pc_player_m_actions", "pc_player_f_actions", "pt_player_male", "pt_player_female"];
+      const refreshCards = () => { for (const g of ["m", "f"]) { const sp = this.sheetStyle(g); spEls[g].className = sp.cls; spEls[g].style.cssText = sp.css; } };
+      const markSw = () => { for (const p of AU.Tint.PARTS) swEls[p].forEach((b, i) => { b.classList.toggle("on", st.look[p] === i); b.setAttribute("aria-checked", st.look[p] === i ? "true" : "false"); }); };
+      if (AU.Tint) {
+        colors.append(h("div", "slabel", "색 바꾸기"));
+        for (const p of AU.Tint.PARTS) {
+          const row = h("div", "scrow"); row.setAttribute("role", "radiogroup"); row.setAttribute("aria-label", NAMES[p]); row.append(h("span", "scname", NAMES[p])); swEls[p] = [];
+          AU.Tint.PALETTE[p].forEach((pal, i) => {
+            const b = h("button", "swatch" + (pal ? "" : " orig")); b.type = "button"; b.dataset.part = p; b.dataset.idx = String(i); b.setAttribute("role", "radio"); b.title = pal ? pal.n : "기본색"; b.setAttribute("aria-label", NAMES[p] + " " + (pal ? pal.n : "기본색"));
+            if (pal) b.style.background = pal.sw; else b.textContent = "기본";
+            b.onclick = () => { st.look[p] = i; markSw(); AU.Tint.setLook(st.look, PREV_KEYS).then(refreshCards); };
+            swEls[p].push(b); row.append(b);
+          });
+          colors.append(row);
+        }
+        right.append(colors); markSw();
+        AU.Tint.setLook(st.look, PREV_KEYS).then(refreshCards);
+      }
       body.append(left, right);
       const foot = h("div", "sfoot"), back = h("button", "btn", edit ? "취소" : "뒤로"); back.type = "button"; back.id = "setup-back";
       const ok = h("button", "btn primary big", edit ? "저장" : "이 모습으로 시작"); ok.type = "button"; ok.id = "setup-ok";
@@ -96,11 +117,12 @@
         hint.textContent = err && (showErr || inp.value.length > 0) ? err : "2~8자 · 한글, 영문, 숫자 · 대화에서 \"주인공\" 대신 이 이름으로 표시됩니다";
         return !err;
       };
-      const done = () => { if (!refresh(true)) { inp.focus(); return; } opts.onDone(inp.value.trim(), st.gender); };
+      const done = () => { if (!refresh(true)) { inp.focus(); return; } opts.onDone(inp.value.trim(), st.gender, AU.Tint ? AU.Tint.clean(st.look) : undefined); };
       inp.addEventListener("input", () => refresh(false));
       inp.addEventListener("keydown", (e) => { if (e.isComposing) return; if (e.key === "Enter") { e.preventDefault(); done(); } });
-      box.addEventListener("keydown", (e) => { if (e.key === "Escape" && !e.isComposing) { e.preventDefault(); opts.onBack(); } });
-      ok.onclick = done; back.onclick = () => opts.onBack();
+      box.addEventListener("keydown", (e) => { if (e.key === "Escape" && !e.isComposing) { e.preventDefault(); goBack(); } });
+      const goBack = () => { if (AU.Tint) AU.Tint.setLook(init.look); opts.onBack(); }; // 취소하면 원래 색으로 되돌림
+      ok.onclick = done; back.onclick = goBack;
       select(st.gender); refresh(false); inp.focus(); inp.select();
     }
   };

@@ -213,3 +213,10 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
 .volrow { display: grid; grid-template-columns: 120px 1fr 48px; align-items: center; gap: 10px; font-size: 14px; pointer-events: auto; }
 .volrow input[type=range] { width: 100%; accent-color: var(--sage, #8fb39a); cursor: pointer; }
 .volnum { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* 캐릭터 설정: 머리·조끼·바지 색 고르기 */
+.scolors { margin-top: 14px; } .scolors .slabel { margin-bottom: 6px; }
+.scrow { display: flex; align-items: center; gap: 7px; margin: 5px 0; flex-wrap: wrap; } .scname { width: 56px; font-size: 13px; color: var(--ink2, #6b5b47); }
+.swatch { width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--line); padding: 0; cursor: pointer; font: inherit; font-size: 11px; line-height: 1; color: var(--ink); background: #fff; }
+.swatch.orig { width: 38px; border-radius: 15px; } .swatch:hover { border-color: rgba(110, 88, 58, .6); } .swatch:focus-visible { outline: 2px solid var(--sky); outline-offset: 2px; }
+.swatch.on { border-color: var(--sage); box-shadow: 0 0 0 3px var(--sage-l); }

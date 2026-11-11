@@ -10,7 +10,7 @@ window.AU = window.AU || {};
     load() {
       for (const [key, spec] of Object.entries(AU.ASSETS)) {
         const im = new Image(); const rec = { image: im, ok: false, frames: spec.frames || 1 };
-        im.onload = () => { rec.ok = true; };
+        im.onload = () => { rec.ok = true; if (!rec.orig) rec.orig = im; if (AU.Tint) AU.Tint.onLoaded(key); };
         im.onerror = () => { if (spec.optional) { console.info("[아우텔리아] 선택 그림 없음(임시 도형으로 표시):", spec.path); return; } this.missing.add(key); console.warn("[아우텔리아] 이미지 누락, 대체 그래픽으로 표시:", spec.path); };
         im.src = spec.path; this.map[key] = rec;
       }
