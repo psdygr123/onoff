@@ -39,6 +39,7 @@ window.AU = window.AU || {};
     tone(f, dur, type, vol, to) { const c = this.ensure(); if (!c) return; const o = c.createOscillator(), g = c.createGain(), t = c.currentTime; o.type = type || "sine"; o.frequency.setValueAtTime(f, t); if (to) o.frequency.exponentialRampToValueAtTime(to, t + dur); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); o.connect(g); g.connect(this.master); o.start(t); o.stop(t + dur + 0.05); },
     noise(dur, vol, lp, hp) { const c = this.ensure(); if (!c) return; const s = c.createBufferSource(), g = c.createGain(), f = c.createBiquadFilter(), t = c.currentTime; s.buffer = this.nb; f.type = hp ? "highpass" : "lowpass"; f.frequency.value = hp || lp || 1000; g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); s.connect(f); f.connect(g); g.connect(this.master); s.start(t, Math.random()); s.stop(t + dur + 0.05); },
     play(n) {
+      if (AU.Sfx && AU.Sfx.play(n)) return; // 새 합성기(sfx.js)가 있으면 그쪽 소리를 씀. 없을 때만 아래 옛 소리
       try {
         if (n === "hammer") { this.tone(190, 0.09, "square", 0.22, 90); this.noise(0.07, 0.35, 3000); }
         else if (n === "thud") { this.tone(95, 0.3, "sine", 0.5, 38); this.noise(0.2, 0.25, 500); }
@@ -51,6 +52,7 @@ window.AU = window.AU || {};
       } catch (e) { /* 소리 실패는 무시 */ }
     },
     loop(n, on) {
+      if (AU.Sfx && AU.Sfx.loop(n, on)) return;
       try {
         const old = this.loops[n]; if (old) { old.g.gain.cancelScheduledValues(this.ctx.currentTime); old.g.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.6); setTimeout(() => { try { old.s.stop(); } catch (e) { /* 무시 */ } }, 700); delete this.loops[n]; }
         if (!on) return; const c = this.ensure(); if (!c) return;
@@ -61,7 +63,7 @@ window.AU = window.AU || {};
         s.connect(f); f.connect(g); g.connect(this.master); s.start(); this.loops[n] = { s, g };
       } catch (e) { /* 무시 */ }
     },
-    stopAll() { for (const k of Object.keys(this.loops)) this.loop(k, false); }
+    stopAll() { for (const k of Object.keys(this.loops)) this.loop(k, false); if (AU.Sfx) AU.Sfx.stopAll(); }
   };
 
   const P = AU.Prologue = {
