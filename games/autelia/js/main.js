@@ -6,13 +6,15 @@ window.AU = window.AU || {};
   const main = AU.main = { embedded, resetting: false, running: false, platform: null, post(type, payload) { if (embedded) { try { parent.postMessage({ source: "onoff-game", type, payload }, "*"); } catch (e) { /* 무시 */ } } } };
 
   /* ---------- 설정(키 배치 등): 게임 저장과 분리 ---------- */
-  main.saveSettings = function () { AU.Store.set(C.save.settingsKey, { v: 1, bindings: AU.Input.bindings, confirmUnload: AU.UI.settings.confirmUnload, reduceFx: !!AU.UI.settings.reduceFx, mute: !!AU.UI.settings.mute }); };
+  main.saveSettings = function () { AU.Store.set(C.save.settingsKey, { v: 1, bindings: AU.Input.bindings, confirmUnload: AU.UI.settings.confirmUnload, reduceFx: !!AU.UI.settings.reduceFx, mute: !!AU.UI.settings.mute, volBgm: AU.UI.settings.volBgm, volSfx: AU.UI.settings.volSfx }); };
   main.loadSettings = function () {
     const s = AU.Store.get(C.save.settingsKey);
     AU.Input.load(s && s.bindings);
     if (s && typeof s.confirmUnload === "boolean") AU.UI.settings.confirmUnload = s.confirmUnload;
     if (s && typeof s.reduceFx === "boolean") AU.UI.settings.reduceFx = s.reduceFx;
     if (s && typeof s.mute === "boolean") AU.UI.settings.mute = s.mute;
+    const vol = (x) => (typeof x === "number" && isFinite(x)) ? Math.max(0, Math.min(1, x)) : 1;
+    if (s) { AU.UI.settings.volBgm = vol(s.volBgm); AU.UI.settings.volSfx = vol(s.volSfx); }
   };
 
   /* ---------- 화면 크기 맞추기: 1280×720 고정 무대를 창 크기에 맞춰 확대·축소 ---------- */
@@ -89,13 +91,13 @@ window.AU = window.AU || {};
     // 신규 시작(프롤로그 전, 캐릭터 설정이 없음)이면 먼저 캐릭터 설정 화면을 거침
     const needSetup = !AU.Profile.isSet() && S.prologue.state === "NOT_STARTED";
     const openSetup = (mode, onDone) => AU.Profile.openSetup(t, { mode, initial: AU.Profile.get(), onBack: () => buildTitle(hasSave), onDone });
-    b1.onclick = needSetup ? () => openSetup("new", (name, gender) => { AU.Profile.set(name, gender); AU.G.save("profile"); start(); }) : start;
+    b1.onclick = needSetup ? () => openSetup("new", (name, gender, look) => { AU.Profile.set(name, gender, look); AU.G.save("profile"); start(); }) : start;
     const box = document.createElement("div"); box.className = "panel titlebox";
     box.innerHTML = '<div class="tlogo">아우텔리아</div><div class="tsub">프롤로그 체험 · 시제품 v' + AU.VERSION + '</div>';
     box.append(b1);
     if (hasSave && !inPro) { const bp = document.createElement("button"); bp.type = "button"; bp.className = "btn"; bp.id = "btn-replay"; bp.textContent = "프롤로그 다시 보기"; bp.onclick = () => { t.classList.add("hidden"); main.running = true; window.focus(); P.startReplay(); }; box.append(bp); }
     if (hasSave) { const b2 = document.createElement("button"); b2.type = "button"; b2.className = "btn"; b2.id = "btn-new"; b2.textContent = "처음부터 시작"; b2.onclick = () => AU.UI.confirm("저장된 기록을 지우고 처음부터 시작할까요?", "지우고 시작", main.resetAll); box.append(b2); }
-    if (hasSave) { const bc = document.createElement("button"); bc.type = "button"; bc.className = "btn"; bc.id = "btn-profile"; bc.textContent = "캐릭터 설정 (" + AU.Profile.name() + ")"; bc.onclick = () => openSetup("edit", (name, gender) => { AU.Profile.set(name, gender); AU.G.save("profile"); buildTitle(hasSave); }); box.append(bc); }
+    if (hasSave) { const bc = document.createElement("button"); bc.type = "button"; bc.className = "btn"; bc.id = "btn-profile"; bc.textContent = "캐릭터 설정 (" + AU.Profile.name() + ")"; bc.onclick = () => openSetup("edit", (name, gender, look) => { AU.Profile.set(name, gender, look); AU.G.save("profile"); buildTitle(hasSave); }); box.append(bc); }
     const tip = document.createElement("p"); tip.className = "note"; tip.textContent = "방향키 이동 · Alt 점프 · Ctrl 공격 · Space 대화 · Esc 메뉴 (키보드 설정에서 변경 가능)";
     box.append(tip); t.append(box); t.classList.remove("hidden");
     b1.focus();

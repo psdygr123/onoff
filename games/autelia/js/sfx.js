@@ -9,6 +9,12 @@ window.AU = window.AU || {};
   const S = AU.Sfx = { ctx: null, files: {}, loops: {}, last: {}, cache: {}, master: null, reverb: null, bus: null };
 
   /* ---------- 기반: 소리 그래프 만들기 ---------- */
+  /* 마스터 음량 = 기본 0.7 × 설정의 효과음 음량. "소리 끄기"면 0 */
+  S.applyVolume = function () {
+    if (!S.master) return;
+    const st = AU.UI && AU.UI.settings; const v = st && typeof st.volSfx === "number" && isFinite(st.volSfx) ? Math.max(0, Math.min(1, st.volSfx)) : 1;
+    S.master.gain.value = (st && st.mute) ? 0 : 0.7 * v;
+  };
   S.ensure = function () {
     if (AU.UI && AU.UI.settings && AU.UI.settings.mute) return null;
     try {
