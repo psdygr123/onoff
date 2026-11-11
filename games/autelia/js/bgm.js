@@ -29,13 +29,16 @@ window.AU = window.AU || {};
     return st in SCENE_MULT ? SCENE_MULT[st] : 1;
   };
 
+  /* 설정의 배경음 음량(0~1). 설정이 없으면 100% */
+  B.userVol = function () { const S = AU.UI && AU.UI.settings; const v = S && S.volBgm; return (typeof v === "number" && isFinite(v)) ? Math.max(0, Math.min(1, v)) : 1; };
+
   /* 매 프레임 호출(main.js 반복 처리) */
   B.tick = function (dt) {
     const main = AU.main, S = AU.UI && AU.UI.settings;
     const want = !!(main && main.running && S && !S.mute && !document.hidden);
     let target = 0;
-    if (want) target = ((AU.Prologue && AU.Prologue.on) ? CFG.duckVol : CFG.vol) * B.sceneMult();
-    if (AU.Sfx && AU.Sfx.master) AU.Sfx.master.gain.value = (S && S.mute) ? 0 : 0.7; // 소리 끄기: 효과음·환경음도 함께
+    if (want) target = ((AU.Prologue && AU.Prologue.on) ? CFG.duckVol : CFG.vol) * B.sceneMult() * B.userVol();
+    if (AU.Sfx && AU.Sfx.applyVolume) AU.Sfx.applyVolume(); // 소리 끄기·효과음 음량: 효과음·환경음에 반영
     if (target === 0 && B.vol === 0 && !B.el) return;
     const a = ensure(); if (!a || B.failed) return;
     const step = (B.vol < target ? CFG.fadeInPerSec : CFG.fadeOutPerSec) * dt * CFG.vol;

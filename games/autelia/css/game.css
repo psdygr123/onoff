@@ -206,3 +206,10 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
 .procards .cn { position: absolute; bottom: 7%; font-size: 15px; letter-spacing: .1em; color: rgba(244, 234, 214, .55); opacity: 0; transition: opacity .8s ease 1.4s; }
 .procards.show .cn { opacity: 1; animation: cardblink 2.4s ease-in-out 2.6s infinite; }
 @keyframes cardblink { 50% { opacity: .35; } }
+
+/* 설정 창: 소리 크기 막대 */
+.volbox { margin-top: 10px; padding: 10px 12px; border: 1px solid var(--line, #d8cfbf); border-radius: 8px; display: grid; gap: 8px; }
+.volbox > b { font-size: 14px; }
+.volrow { display: grid; grid-template-columns: 120px 1fr 48px; align-items: center; gap: 10px; font-size: 14px; pointer-events: auto; }
+.volrow input[type=range] { width: 100%; accent-color: var(--sage, #8fb39a); cursor: pointer; }
+.volnum { text-align: right; font-variant-numeric: tabular-nums; }

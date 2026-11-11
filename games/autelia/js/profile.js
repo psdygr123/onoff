@@ -33,7 +33,7 @@
       if (!NAME_RE.test(s)) return "한글, 영문, 숫자만 쓸 수 있습니다(띄어쓰기·특수문자 불가).";
       return null;
     },
-    /* 현재 설정을 화면·대사에 반영(프롤로그 주인공 그림과 대사창 화자) */
+    /* 현재 설정을 화면·대사에 반영(프롤로그 주인공 그림과 대화창 화자) */
     apply() {
       AU.PRO_GENDER = this.gender();
       const SP = AU.PRO_SPEAKERS, g = this.gender();
@@ -78,8 +78,8 @@
       right.append(h("label", "slabel", "닉네임"));
       right.lastChild.htmlFor = "sname";
       const inp = h("input"); inp.id = "sname"; inp.type = "text"; inp.maxLength = 12; inp.autocomplete = "off"; inp.spellcheck = false; inp.placeholder = "2~8자"; inp.value = st.name; inp.setAttribute("aria-describedby", "shint");
-      const hint = h("p", "shint", "2~8자 · 한글, 영문, 숫자 · 대사창에서 \"주인공\" 대신 이 이름으로 표시됩니다"); hint.id = "shint";
-      const prev = h("div", "sprev"), pl = h("div", "sprevl", "대사창 미리보기"), pn = h("b"), pt = h("span", null, "“...여기서부터 시작이야.”");
+      const hint = h("p", "shint", "2~8자 · 한글, 영문, 숫자 · 대화에서 \"주인공\" 대신 이 이름으로 표시됩니다"); hint.id = "shint";
+      const prev = h("div", "sprev"), pl = h("div", "sprevl", "대화 미리보기"), pn = h("b"), pt = h("span", null, "“...여기서부터 시작이야.”");
       prev.append(pl, h("div", null, ""));
       prev.lastChild.append(pn, document.createTextNode(" "), pt);
       right.append(inp, hint, prev);
@@ -93,7 +93,7 @@
         const err = this.check(inp.value);
         pn.textContent = (inp.value.trim() || DEFAULT_NAME); ok.disabled = !!err;
         hint.classList.toggle("err", !!err && (showErr || inp.value.length > 0));
-        hint.textContent = err && (showErr || inp.value.length > 0) ? err : "2~8자 · 한글, 영문, 숫자 · 대사창에서 \"주인공\" 대신 이 이름으로 표시됩니다";
+        hint.textContent = err && (showErr || inp.value.length > 0) ? err : "2~8자 · 한글, 영문, 숫자 · 대화에서 \"주인공\" 대신 이 이름으로 표시됩니다";
         return !err;
       };
       const done = () => { if (!refresh(true)) { inp.focus(); return; } opts.onDone(inp.value.trim(), st.gender); };

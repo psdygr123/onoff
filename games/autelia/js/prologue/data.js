@@ -46,7 +46,7 @@ window.AU = window.AU || {};
   // 맵 변형(BG-V01~V03)은 같은 배경·같은 지형 위에 코드로 연기·불길·잔해를 얹어 표현합니다.
   for (const id of Object.keys(AU.MAPS)) if (AU.MAPS[id].prologue) AU.MAPS[id].basePlatforms = AU.MAPS[id].platforms.slice();
 
-  /* ---------- 화자(대사창 이름·초상화). 아버지·주민 초상화는 임시로 기존 그림 사용 ---------- */
+  /* ---------- 화자(대화창 이름·초상화). 아버지·주민 초상화는 임시로 기존 그림 사용 ---------- */
   AU.PRO_SPEAKERS = {
     // portrait: 정식 초상화(2차 그림), alt: 정식 그림을 불러오지 못했을 때 쓰는 옛 초상화
     hero:   { name: "주인공", portrait: "pt_pro_hero_m", alt: "pt_player_male" },

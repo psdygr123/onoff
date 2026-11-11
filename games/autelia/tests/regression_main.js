@@ -77,7 +77,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const swordCount = await ev(() => AU.G.count('sword_a')), qdone = await ev(() => AU.G.S.quests.q_first.state);
 
   // ===== 7. 창 열기 =====
-  const map = [['i', '인벤토리'], ['e', '장비'], ['s', '스탯'], ['q', '퀘스트'], ['k', '스킬'], ['j', '모험일지'], ['w', '월드맵'], ['\\', '키보드 설정']];
+  const map = [['i', '인벤토리'], ['e', '장비'], ['s', '스탯'], ['q', '퀘스트'], ['k', '스킬'], ['j', '모험일지'], ['w', '월드맵'], ['\\', '설정 (소리·키보드)']];
   const got = [];
   for (const [k, t] of map) { await p.keyboard.press(k); await sleep(120); const w = await win(); got.push(w === t); if (k === 's' || k === 'i' || k === 'w') await p.screenshot({ path: SH + 'win_' + t + '.png' }); await p.keyboard.press('Escape'); await sleep(80); }
   note('7', 'I·E·S 및 Q·K·J·W·\\ 창 열림', got.every(Boolean), map.map(([k, t], i) => `${k}→${t}:${got[i] ? 'O' : 'X'}`).join(' ') + ` / 퀘스트 반납=${qdone}, 검 획득=${swordCount}`);
