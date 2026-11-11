@@ -140,7 +140,7 @@ window.AU = window.AU || {};
       draw(ctx, e, P) { drawStele(ctx, e.x, G); if (e.mark) arrowMark(ctx, P, e.x, G - 232); } });
   }
   SC.SCENE_00_MORNING = { name: "아침의 아르케아", async enter(P) {
-    const g = P.gen; P.room("pro_road", LAY.road.m.start, (P) => setupMorning(P));
+    const g = P.gen; P.room("pro_road", LAY.road.m.start, (P) => setupMorning(P)); P.amb("birds", true);
     await P.cutscene(async () => { await P.wait(0.9); await P.cards(T.cards); await P.fade(0, 1.8); await P.caption(T.cap1, 3.4); }, { id: "cs00a", skip: true });
     if (!live(P, g)) return; P.obj(OBJ.s0_walk); const k = P.keys(); P.hint("이동 " + k.move + " · 점프 " + k.jump + " · 상호작용 " + k.act, 9);
   } };
@@ -215,7 +215,7 @@ window.AU = window.AU || {};
     father.interact = { label: "대화: 아버지", fn: async () => {
       if (!st.talk) { st.talk = true; await P.cutscene(async () => { await P.say(T.father1); }); pile.interact.off = false; pile.mark = true; father.mark = false; P.obj(OBJ.s1_lumber); return; }
       if (st.carry && !st.installed) { st.installed = true; await P.cutscene(async () => {
-        v.carry = false; P.sfx("pick"); v.fly = { t: 0, x0: AU.World.player.x + 10, y0: G - 126 }; await P.tween(v.fly, { t: 1 }, 0.9, (k) => k); v.planked = true; P.sfx("thud"); P.burst("dust", L.joint, 478, 6); P.shake(4, 0.2);
+        v.carry = false; P.sfx("pick"); v.fly = { t: 0, x0: AU.World.player.x + 10, y0: G - 126 }; await P.tween(v.fly, { t: 1 }, 0.9, (k) => k); v.planked = true; P.sfx("plank"); P.burst("dust", L.joint, 478, 6); P.shake(4, 0.2);
         await P.say(T.father2); });
         frame.interact.off = false; frame.mark = true; father.mark = false; P.obj(OBJ.s1_joint); return; }
       if (st.finished) { if (!P.flag("father_final_conversation_complete")) await finalTalk(); return; }
@@ -230,7 +230,7 @@ window.AU = window.AU || {};
         P.pose(null); P.setFlag("temple_work_complete"); await P.wait(0.5);
       });
       await P.cutscene(async () => { // CS-01 신전 완공
-        await P.camPan(L.tx - 20, 1.8); await P.wait(0.4); P.sfx("thud"); v.jointIn = true; P.shake(5, 0.4); P.burst("dust", L.tx + 40, 330, 10);
+        await P.camPan(L.tx - 20, 1.8); await P.wait(0.4); P.sfx("stone"); v.jointIn = true; P.shake(5, 0.4); P.burst("dust", L.tx + 40, 330, 10);
         await P.wait(0.6); P.tween(v, { scaff: 0 }, 2.6); P.sfx("chime"); P.tween(v, { glow: 1 }, 2.2); P.emitter({ kind: "glow", x0: L.tx - 300, x1: L.tx + 300, y0: 330, y1: 540, rate: 12 }); v.done = true; frame.hidden = true;
         await P.wait(3.2); P.camFollow(); await P.wait(0.8);
       }, { id: "cs01a", skip: true, bars: true });
@@ -256,7 +256,7 @@ window.AU = window.AU || {};
       P.trigger({ id: "s3end", test: (p) => p.x <= LAY.road.doorX + 60, fn: () => houseDoor() });
     }
   }
-  async function houseDoor() { const P = AU.Prologue, g = P.gen; await P.cutscene(async () => { await P.walkTo(LAY.road.doorX, 1); P.sfx("thud"); await P.wait(0.5); }); if (live(P, g)) { P.frozen = true; P.advance(); } }
+  async function houseDoor() { const P = AU.Prologue, g = P.gen; await P.cutscene(async () => { await P.walkTo(LAY.road.doorX, 1); P.sfx("door"); await P.wait(0.5); }); if (live(P, g)) { P.frozen = true; P.advance(); } }
 
   SC.SCENE_01_TEMPLE = { name: "마지막 망치질", async enter(P) {
     const g = P.gen; P.room("pro_temple", LAY.temple.start, (P) => setupTemple(P));
@@ -301,7 +301,7 @@ window.AU = window.AU || {};
     if (live(P, g)) { P.frozen = true; P.advance("#fff"); }
   }
   SC.SCENE_02_FESTIVAL = { name: "빛의 승리 100주년", async enter(P) {
-    const g = P.gen; P.room("pro_plaza", LAY.plaza.start, (P) => setupPlaza(P, "peace"));
+    const g = P.gen; P.room("pro_plaza", LAY.plaza.start, (P) => setupPlaza(P, "peace")); P.amb("crowd", true);
     await P.cutscene(async () => { await P.fade(0, 1.4); });
     if (!live(P, g)) return; P.obj(OBJ.s2_talk);
   } };
@@ -314,7 +314,7 @@ window.AU = window.AU || {};
     await P.cutscene(async () => { // CS-02 축제 습격
       await P.wait(0.5); P.amb("fire", true); P.sfx("boom"); P.shake(12, 1.4); P.fade(0, 1.6);
       await P.zoomTo(1.22, 2.0, 640, 300); runner(P, 1100, -1, 230); runner(P, 1240, -1, 200); runner(P, 980, 1, 210);
-      await P.wait(1.0); P.sfx("thud"); P.shake(8, 0.8); P.burst("dust", 1050, 300, 12); await P.say(T.attack);
+      await P.wait(1.0); P.sfx("collapse"); P.shake(8, 0.8); P.burst("dust", 1050, 300, 12); await P.say(T.attack);
       await P.zoomTo(1, 1.4); P.face(-1); await P.wait(0.6); await P.say(T.hero_dad);
     }, { id: "cs02", skip: true, bars: true });
     if (!live(P, g)) return; P.obj(OBJ.s3_dad);
@@ -354,10 +354,10 @@ window.AU = window.AU || {};
       await P.cutscene(async () => {
         const p = AU.World.player, side = p.x < bag.x ? -1 : 1;
         await P.walkTo(bag.x + side * 52, 1.2); P.face(-side); await P.wait(0.15);
-        P.pose("kneel"); await P.wait(0.45); P.sfx("pick");
+        P.pose("kneel"); await P.wait(0.45); P.sfx("bag");
         await P.tween(bag, { lift: 0.42 }, 0.5); P.pose(null);                       // 무릎을 꿇은 채 집어 들고 일어서면서
         await P.tween(bag, { lift: 1 }, 0.55);                                      // 어깨 위로 올려 등에 멤
-        P.setFlag("carpenter_bag_acquired"); P.give("carpenter_bag"); bag.hidden = true; bag.lift = 0; P.bagKick(120); P.sfx("item"); P.hint("목수 도구 가방을 챙겼습니다.", 2.8);
+        P.setFlag("carpenter_bag_acquired"); P.give("carpenter_bag"); bag.hidden = true; bag.lift = 0; P.bagKick(120); P.sfx("keyitem"); P.hint("목수 도구 가방을 챙겼습니다.", 2.8);
         await P.wait(0.5);
       }, { bars: false });
       P.limits = null; P.obj(OBJ.s4_exit); P.trigger({ id: "s4exit", test: (p) => p.x <= 100, fn: () => { P.frozen = true; P.advance(); } });
@@ -369,9 +369,9 @@ window.AU = window.AU || {};
       P.obj(""); P.amb("fire", true); P.face(1); await P.say([T.will[0]]); await P.walkTo(612, 1.5); await P.say([T.will[1]]); P.pose("kneel"); P.zoomTo(1.25, 1.6, 700, 450); await P.wait(1.0);
       await P.say(T.will.slice(2, 5)); // 아버지 "...왔구나." / 주인공 / 아버지 "아니... 시간이 없다."
       await P.tween(father, { hand: 1 }, 1.3); father.frag = true; await P.wait(0.5);
-      P.closeup = { a: 0 }; P.sfx("pick"); await P.tween(P.closeup, { a: 1 }, 0.9); P.setFlag("metal_fragment_acquired"); P.give("metal_fragment"); father.frag = false; await P.wait(3.0); await P.tween(P.closeup, { a: 0 }, 0.8); P.closeup = null;
+      P.closeup = { a: 0 }; P.sfx("fragment"); await P.tween(P.closeup, { a: 1 }, 0.9); P.setFlag("metal_fragment_acquired"); P.give("metal_fragment"); father.frag = false; await P.wait(3.0); await P.tween(P.closeup, { a: 0 }, 0.8); P.closeup = null;
       await P.tween(father, { hand: 0.5 }, 0.6); await P.say(T.will2);
-      P.sfx("thud"); await P.tween(father, { hand: 0, drop: 1 }, 0.8); P.amb("fire", false); await P.wait(1.8); await P.say(T.will3);
+      P.sfx("slump"); await P.tween(father, { hand: 0, drop: 1 }, 0.8); P.amb("fire", false); await P.wait(1.8); await P.say(T.will3);
       P.setFlag("father_final_words_seen"); P.pose(null); P.zoomTo(1, 1.2); await P.wait(0.9); P.amb("fire", true);
     }, { id: "cs03", skip: true, bars: true });
     if (!live(P, g)) return; bag.hidden = false; P.obj(OBJ.s4_bag); P.limits = { min: 120, max: null, msg: "도구 가방을 챙겨야 합니다." };

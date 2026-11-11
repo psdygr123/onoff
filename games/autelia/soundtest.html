@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>아우텔리아 소리 시험 (임시)</title>
+<style>
+  :root { --bg:#131a16; --card:#1c2620; --line:#2f3d34; --fg:#efe9d6; --dim:#a7b2a5; --acc:#e8c97a; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font-family:"Noto Sans KR",system-ui,sans-serif; line-height:1.5; }
+  main { max-width:860px; margin:0 auto; padding:20px 16px 80px; }
+  h1 { font-size:1.35rem; margin:0 0 6px; } h2 { font-size:1.05rem; margin:26px 0 8px; color:var(--acc); }
+  p.note { color:var(--dim); font-size:.9rem; margin:4px 0 12px; }
+  .row { display:grid; grid-template-columns:auto 1fr auto; gap:10px; align-items:center; background:var(--card); border:1px solid var(--line); border-radius:10px; padding:8px 12px; margin-bottom:6px; }
+  .row b { font-size:.95rem; } .row small { color:var(--dim); display:block; font-size:.82rem; }
+  button { font:inherit; cursor:pointer; border-radius:8px; border:1px solid var(--line); background:#26342b; color:var(--fg); padding:6px 12px; }
+  button.play { background:var(--acc); color:#1a1a12; font-weight:700; min-width:64px; }
+  button.on { outline:2px solid var(--acc); }
+  .rate { display:flex; gap:4px; flex-wrap:wrap; justify-content:flex-end; }
+  .rate button { padding:5px 9px; font-size:.82rem; }
+  .rate button.sel-g { background:#2f6b45; } .rate button.sel-m { background:#6b5f2f; } .rate button.sel-b { background:#7a3a3a; }
+  .bar { position:sticky; top:0; background:rgba(19,26,22,.95); padding:10px 0; z-index:2; display:flex; gap:8px; flex-wrap:wrap; align-items:center; border-bottom:1px solid var(--line); }
+  textarea { width:100%; min-height:110px; background:var(--card); color:var(--fg); border:1px solid var(--line); border-radius:8px; padding:8px; font:inherit; font-size:.85rem; }
+  @media (max-width:560px) { .row { grid-template-columns:auto 1fr; } .rate { grid-column:1 / -1; justify-content:flex-start; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>아우텔리아 소리 시험 (임시 합성음)</h1>
+  <p class="note">▶ 를 눌러 들어 보고 "좋음 / 보통 / 별로"를 눌러 주세요. 처음 한 번 아무 버튼이나 눌러야 소리가 납니다. 이 페이지는 게임과 별개이며 저장된 데이터에 영향을 주지 않습니다. 평가는 이 브라우저에만 저장됩니다.</p>
+  <div class="bar">
+    <span>전체 볼륨</span><input id="vol" type="range" min="0" max="100" value="70">
+    <button id="copy">평가 결과 복사</button><button id="reset">평가 지우기</button><span id="msg" class="note"></span>
+  </div>
+  <h2>환경음 (반복) — 눌러서 켜고 다시 눌러서 끄기</h2><div id="amb"></div>
+  <h2>효과음</h2><div id="sfx"></div>
+  <h2>평가 결과 (복사해서 전달해 주세요)</h2>
+  <textarea id="out" readonly></textarea>
+</main>
+<script>window.AU = window.AU || {}; AU.UI = { settings: { mute: false } };</script>
+<script src="js/sfx.js"></script>
+<script>
+(function () {
+  const S = AU.Sfx, KEY = "autelia-soundtest-v1";
+  let R = {}; try { R = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) {}
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(R)); } catch (e) {} out(); };
+  const NAMES = { g: "좋음", m: "보통", b: "별로" };
+  const $ = (s) => document.querySelector(s);
+  function rate(id) { return (el) => { const wrap = document.createElement("div"); wrap.className = "rate";
+    ["g", "m", "b"].forEach((k) => { const b = document.createElement("button"); b.textContent = NAMES[k]; b.className = R[id] === k ? "sel-" + k : ""; b.onclick = () => { R[id] = R[id] === k ? undefined : k; if (!R[id]) delete R[id]; [...wrap.children].forEach((c, i) => { c.className = R[id] === "gmb"[i] ? "sel-" + "gmb"[i] : ""; }); save(); }; wrap.append(b); }); el.append(wrap); }; }
+  function out() { const lines = Object.keys(R).map((k) => k + ": " + NAMES[R[k]]); $("#out").value = lines.length ? lines.join("\n") : "(아직 평가한 소리가 없습니다)"; }
+  S.CATALOG.forEach((c) => {
+    const row = document.createElement("div"); row.className = "row";
+    const pb = document.createElement("button"); pb.className = "play"; pb.textContent = "▶"; pb.onclick = () => { S.last = {}; S.play(c.id); };
+    const t = document.createElement("div"); t.innerHTML = "<b></b><small></small>"; t.firstChild.textContent = c.id; t.lastChild.textContent = c.desc;
+    row.append(pb, t); rate(c.id)(row); $("#sfx").append(row);
+  });
+  S.AMBIENCE.forEach((n) => {
+    const row = document.createElement("div"); row.className = "row";
+    const pb = document.createElement("button"); pb.className = "play"; pb.textContent = "켜기";
+    pb.onclick = () => { const on = !S.loops[n]; S.loop(n, on); pb.textContent = on ? "끄기" : "켜기"; pb.classList.toggle("on", on); };
+    const t = document.createElement("div"); t.innerHTML = "<b></b><small>반복 재생(켜 둔 채 평가)</small>"; t.firstChild.textContent = "환경음 " + n;
+    row.append(pb, t); rate("amb_" + n)(row); $("#amb").append(row);
+  });
+  $("#vol").oninput = (e) => { const c = S.ensure(); if (c && S.master) S.master.gain.value = e.target.value / 100; };
+  $("#copy").onclick = () => { out(); const ta = $("#out"); ta.select(); try { navigator.clipboard.writeText(ta.value).then(() => { $("#msg").textContent = "복사했습니다"; }, () => { document.execCommand("copy"); $("#msg").textContent = "복사했습니다"; }); } catch (e) { document.execCommand("copy"); $("#msg").textContent = "복사했습니다"; } };
+  $("#reset").onclick = () => { R = {}; save(); location.reload(); };
+  out();
+})();
+</script>
+</body>
+</html>

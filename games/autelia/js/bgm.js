@@ -20,12 +20,22 @@ window.AU = window.AU || {};
 
   document.addEventListener("visibilitychange", () => { if (document.hidden && B.el && !B.el.paused) { B.el.pause(); B.state = "paused"; } });
 
+  /* 장면에 따른 배경음 크기. 습격·탈출 장면은 잔잔한 곡이 어울리지 않아 끄고(효과음·환경음만), 이별 장면은 아주 작게.
+     장면별 전용 곡(BGM-05·06·07 등)이 준비되면 이 표에서 곡을 바꿔 연결합니다. */
+  const SCENE_MULT = { SCENE_03_ATTACK: 0, SCENE_04_FATHER: 0.4, SCENE_05_ESCAPE: 0 };
+  B.sceneMult = function () {
+    const P = AU.Prologue; if (!(P && P.on)) return 1;
+    const st = AU.G && AU.G.S && AU.G.S.prologue && AU.G.S.prologue.state;
+    return st in SCENE_MULT ? SCENE_MULT[st] : 1;
+  };
+
   /* 매 프레임 호출(main.js 반복 처리) */
   B.tick = function (dt) {
     const main = AU.main, S = AU.UI && AU.UI.settings;
     const want = !!(main && main.running && S && !S.mute && !document.hidden);
     let target = 0;
-    if (want) target = (AU.Prologue && AU.Prologue.on) ? CFG.duckVol : CFG.vol;
+    if (want) target = ((AU.Prologue && AU.Prologue.on) ? CFG.duckVol : CFG.vol) * B.sceneMult();
+    if (AU.Sfx && AU.Sfx.master) AU.Sfx.master.gain.value = (S && S.mute) ? 0 : 0.7; // 소리 끄기: 효과음·환경음도 함께
     if (target === 0 && B.vol === 0 && !B.el) return;
     const a = ensure(); if (!a || B.failed) return;
     const step = (B.vol < target ? CFG.fadeInPerSec : CFG.fadeOutPerSec) * dt * CFG.vol;
