@@ -136,7 +136,7 @@ window.AU = window.AU || {};
     const stele = P.addEnt({ id: "stele", x: M.stele, range: 110, layer: "mid", mark: true, interact: { label: "기념비 읽기", fn: async () => {
       await P.cutscene(async () => { await P.say(T.s0_stele); }); if (P.flag("stele_read")) return;
       P.setFlag("stele_read"); stele.mark = false; P.limits = null; P.obj(OBJ.s0_exit);
-      P.trigger({ id: "s0end", test: (p) => p.x >= R.end, fn: () => { P.frozen = true; P.advance(); } }); } },
+      P.trigger({ id: "s0end", goal: R.end, test: (p) => p.x >= R.end, fn: () => { P.frozen = true; P.advance(); } }); } },
       draw(ctx, e, P) { drawStele(ctx, e.x, G); if (e.mark) arrowMark(ctx, P, e.x, G - 232); } });
   }
   SC.SCENE_00_MORNING = { name: "아침의 아르케아", async enter(P) {
@@ -174,7 +174,7 @@ window.AU = window.AU || {};
       st.done++; P.obj(OBJ.s1b_flags.replace("{n}", st.done));
       if (st.done < 3) return;
       await P.cutscene(async () => { await P.say(T.s1b_done); }); P.setFlag("banners_done"); P.limits = null; P.obj(OBJ.s1b_exit);
-      P.trigger({ id: "s1bend", test: (p) => p.x >= B.limit, fn: () => { P.frozen = true; P.advance(); } });
+      P.trigger({ id: "s1bend", goal: B.limit, test: (p) => p.x >= B.limit, fn: () => { P.frozen = true; P.advance(); } });
     }
   }
   SC.SCENE_01B_BANNERS = { name: "해 질 녘의 마을길", async enter(P) {
@@ -242,7 +242,7 @@ window.AU = window.AU || {};
         P.setFlag("father_final_conversation_complete");
       }, { id: "cs01b", skip: true, bars: true });
       father.mark = false; P.limits = null; P.obj(OBJ.s1_exit); father.working = false;
-      P.trigger({ id: "s1exit", test: (p) => p.x >= L.exit, fn: () => { P.frozen = true; P.advance(); } });
+      P.trigger({ id: "s1exit", goal: L.exit, test: (p) => p.x >= L.exit, fn: () => { P.frozen = true; P.advance(); } });
     }
   }
   function setupRoad(P, variant, scene) {
@@ -253,7 +253,7 @@ window.AU = window.AU || {};
       flames(P, [{ x: 560, y: G, s: 1.1 }, { x: 760, y: G, s: 0.8 }, { x: 1240, y: G, s: 1.2 }, { x: 1900, y: G, s: 1.0 }, { x: 2130, y: G, s: 0.9 }, { x: 180, y: 300, s: 1.5 }, { x: 300, y: 285, s: 1.8 }, { x: 400, y: 310, s: 1.3 }]);
       fireEmitters(P, LAY.road.w, 150, 560, 1); for (const [i, r] of LAY.road.raiders.entries()) raider(P, "r" + (i + 1), r[0], r[1], 0.5 - i * 0.05, -1, r[2], r[3]); runnerSpawner(P, 2.2);
       P.trigger({ id: "jumphint", test: (p) => p.x <= 1000, fn: () => P.hint("장애물은 점프(" + P.keys().jump + ")로 넘을 수 있습니다.", 4) });
-      P.trigger({ id: "s3end", test: (p) => p.x <= LAY.road.doorX + 60, fn: () => houseDoor() });
+      P.trigger({ id: "s3end", goal: LAY.road.doorX, test: (p) => p.x <= LAY.road.doorX + 60, fn: () => houseDoor() });
     }
   }
   async function houseDoor() { const P = AU.Prologue, g = P.gen; await P.cutscene(async () => { await P.walkTo(LAY.road.doorX, 1); P.sfx("door"); await P.wait(0.5); }); if (live(P, g)) { P.frozen = true; P.advance(); } }
@@ -280,7 +280,7 @@ window.AU = window.AU || {};
       const vendor = npc(P, "vendor", "vendor", artSpr("pc_villager_b_actions", "baker"), L.vendor, 150, { frame: A.sprFrame("pc_villager_b_actions", "cheer2"), range: 110, mark: true, interact: { label: "대화: 빵을 나누는 주민", fn: async () => {
         await P.cutscene(async () => { await P.say(T.vendor); }); if (P.flag("festival_interaction_complete")) return;
         P.setFlag("festival_interaction_complete"); vendor.mark = false; P.limits = null; P.obj(OBJ.s2_center);
-        P.trigger({ id: "center", test: (p) => p.x >= L.center, fn: () => centerEvent() }); } } });
+        P.trigger({ id: "center", goal: L.center, test: (p) => p.x >= L.center, fn: () => centerEvent() }); } } });
       void elder; void child;
     } else { // BG-V02 광장 습격 상태
       P.tint = { color: "#c9a79f", a: 0.45 }; P.vig = 0.4; P.setPlatforms(L.obst);
@@ -288,7 +288,7 @@ window.AU = window.AU || {};
       fireEmitters(P, L.w, 120, 560, 1.2); raider(P, "r1", 500, 520, 0.55, -1, 380, 640); raider(P, "r2", 800, 524, 0.5, -1, 650, 900); raider(P, "r3", 1030, 520, 0.58, -1, 900, 1180);
       runnerSpawner(P, 1.6);
       P.trigger({ id: "jumphint", test: (p) => p.x <= 980, fn: () => P.hint("장애물은 점프(" + P.keys().jump + ")로 넘을 수 있습니다.", 4) });
-      P.trigger({ id: "toroad", test: (p) => p.x <= 70, fn: () => go(P, "pro_road", LAY.road.w - 100, (P) => setupRoad(P, "attack", 3)) });
+      P.trigger({ id: "toroad", goal: 70, test: (p) => p.x <= 70, fn: () => go(P, "pro_road", LAY.road.w - 100, (P) => setupRoad(P, "attack", 3)) });
     }
   }
   async function centerEvent() {
@@ -342,7 +342,7 @@ window.AU = window.AU || {};
       lift: 0,
       draw(ctx, e, P) { if (e.lift > 0) { liftBag(ctx, e, P); return; } A.bag(ctx, e.x, G - 4, 1.05, 0); const k = 0.5 + 0.5 * Math.sin(P.time * 4); ctx.strokeStyle = "rgba(255,230,150," + (0.35 + 0.4 * k) + ")"; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(e.x, G - 4, 46, 9, 0, 0, 7); ctx.stroke();
         if (e.mark && !P.locked()) { const by = G - 90 + Math.sin(P.time * 4) * 4; ctx.fillStyle = "#E8B94E"; ctx.strokeStyle = "#fff"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(e.x - 11, by - 12); ctx.lineTo(e.x + 11, by - 12); ctx.lineTo(e.x, by + 4); ctx.closePath(); ctx.fill(); ctx.stroke(); } } });
-    P.trigger({ id: "find", test: (p) => p.x >= LAY.house.find, fn: () => willScene(father, bag) });
+    P.trigger({ id: "find", goal: LAY.house.find, test: (p) => p.x >= LAY.house.find, fn: () => willScene(father, bag) });
     /* 바닥의 가방이 포물선을 그리며 등으로 올라가는 모습(바닥 그림 → 등에 멘 그림으로 서서히 바뀜) */
     function liftBag(ctx, e, P) {
       const p = AU.World.player, d = p.dir, k = e.lift, ease = k * k * (3 - 2 * k), b = P.bagDyn(p), fx = e.x, fy = G - 4 - 39, tx = p.x - d * 20, ty = p.y - 74 + 29 + b.y;
@@ -360,7 +360,7 @@ window.AU = window.AU || {};
         P.setFlag("carpenter_bag_acquired"); P.give("carpenter_bag"); bag.hidden = true; bag.lift = 0; P.bagKick(120); P.sfx("keyitem"); P.hint("목수 도구 가방을 챙겼습니다.", 2.8);
         await P.wait(0.5);
       }, { bars: false });
-      P.limits = null; P.obj(OBJ.s4_exit); P.trigger({ id: "s4exit", test: (p) => p.x <= 100, fn: () => { P.frozen = true; P.advance(); } });
+      P.limits = null; P.obj(OBJ.s4_exit); P.trigger({ id: "s4exit", goal: 100, test: (p) => p.x <= 100, fn: () => { P.frozen = true; P.advance(); } });
     }
   }
   async function willScene(father, bag) {
@@ -406,7 +406,7 @@ window.AU = window.AU || {};
       P.v.vista = { a: 0 };
       P.trigger({ id: "recall", test: (p) => p.x >= LAY.escape.recall, fn: () => P.recall(T.recall, 5.5) });
       P.trigger({ id: "look", test: (p) => p.x >= LAY.escape.look, fn: () => lookBack() });
-      P.trigger({ id: "end", test: (p) => p.x >= LAY.escape.end, fn: () => escapeEnd() });
+      P.trigger({ id: "end", goal: LAY.escape.end, test: (p) => p.x >= LAY.escape.end, fn: () => escapeEnd() });
     });
     P.amb("wind", true); P.amb("fire", true);
     await P.cutscene(async () => { await P.fade(0, 1.6); }); if (!live(P, g)) return;
@@ -415,7 +415,7 @@ window.AU = window.AU || {};
   async function lookBack() {
     const P = AU.Prologue, v = P.v;
     await P.cutscene(async () => { // 마지막 조망
-      P.obj(""); await P.walkTo(LAY.escape.look + 40, 0.5); if (P.heroArt()) P.pose("lookback"); else P.face(-1); await P.wait(0.7); await P.tween(v.vista, { a: 1 }, 1.4); await P.wait(4.6); await P.tween(v.vista, { a: 0 }, 1.2); P.pose(null); P.face(1); await P.wait(0.6);
+      P.obj(""); await P.walkTo(LAY.escape.look + 40, 0.5); if (P.heroArt()) P.pose("lookback"); else P.face(-1); await P.wait(0.7); await P.tween(v.vista, { a: 1 }, 1.4); P.recall(T.lookNarr, 4.4); await P.wait(4.6); await P.tween(v.vista, { a: 0 }, 1.2); P.pose(null); P.face(1); await P.wait(0.6);
     }, { id: "cs04a", skip: true, bars: true });
     P.obj(OBJ.s5_escape);
   }

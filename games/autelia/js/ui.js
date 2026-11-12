@@ -28,6 +28,7 @@ window.AU = window.AU || {};
     if (/^Numpad\d$/.test(code)) return "숫자패드 " + code.slice(6);
     return code;
   };
+  const VIGOR_TIP = "활력: 스킬을 쓸 때 줄어드는 힘입니다(다른 게임의 마나와 비슷). 기본 공격은 활력을 쓰지 않습니다. 현재는 매주 월요일에 가득 채워집니다.";
   const keyOf = (actionId) => AU.keyLabel(AU.Input.bindings[actionId]);
 
   const UI = AU.UI = {
@@ -57,11 +58,13 @@ window.AU = window.AU || {};
       this.hud.lv = h("div", { class: "lvbadge" }); this.hud.job = h("div", { class: "jobname" });
       const panel = h("div", { id: "hudpanel", class: "panel hudpanel" }, h("div", { class: "hudmain" }, h("div", { class: "hudhead" }, this.hud.lv, this.hud.job), h("div", { class: "hudbars" }, hp, rs)), ex);
       this.hud.hp = hp; this.hud.rs = rs; this.hud.ex = ex;
+      rs.title = VIGOR_TIP; rs.style.cursor = "help";
       // 좌측 상단: 미니맵 + 현재 퀘스트
       this.hud.mapLabel = h("div", { class: "minilabel" });
       this.hud.mini = h("canvas", { class: "minicv", width: 428, height: 150, title: "클릭하면 월드맵" });
       this.hud.miniBox = h("div", { class: "panel minimap", onclick: () => this.toggleWin("worldmap") }, this.hud.mapLabel, this.hud.mini);
       this.hud.tracker = h("div", { class: "tracker panel" });
+      this.hud.keyhint = h("div", { class: "keyhint" });
       const topleft = h("div", { class: "topleft" }, this.hud.miniBox, this.hud.tracker);
       this.hud.menuBtn = btn("메뉴", "menubtn", () => this.toggleMenu(), { title: "메뉴 (Esc)" });
       this.hud.menuBtn.append(h("span", { class: "dot", id: "menudot" }));
@@ -74,7 +77,7 @@ window.AU = window.AU || {};
       this.hud.banner = h("div", { class: "banner" });
       this.hud.warn = h("div", { class: "storewarn" });
       this.hud.devBtn = btn("개발", "devbtn", () => this.toggleWin("dev"), { title: "개발 테스트 (F2)" });
-      R.append(panel, topleft, this.hud.menuBtn, h("div", { class: "slots" }, this.hud.slots), this.hud.prompt, this.hud.mapName, this.hud.toasts, this.hud.save, this.hud.banner, this.hud.warn, this.hud.devBtn);
+      R.append(this.hud.keyhint, panel, topleft, this.hud.menuBtn, h("div", { class: "slots" }, this.hud.slots), this.hud.prompt, this.hud.mapName, this.hud.toasts, this.hud.save, this.hud.banner, this.hud.warn, this.hud.devBtn);
       this.hud.cache = {};
       this.winEl = h("div", { class: "winwrap hidden" }); this.dlgEl = h("div", { class: "dialog hidden" }); this.modalEl = h("div", { class: "modalwrap hidden" });
       R.append(this.winEl, this.dlgEl, this.modalEl);
@@ -119,28 +122,70 @@ window.AU = window.AU || {};
       // 메뉴 버튼 알림점(분배 가능 포인트)
       const dot = $("#menudot"); if (dot) dot.style.display = AU.G.pool() > 0 ? "block" : "none";
       this.hud.devBtn.style.display = this.devVisible ? "" : "none";
-      this.updateTracker(); this.drawMini(); this.setText(this.hud.mapLabel, "ml", W.map ? W.map.name.replace(" (임시 명칭)", "") : "");
+      this.updateTracker(); this.updateKeyHint(); this.drawMini(); this.setText(this.hud.mapLabel, "ml", W.map ? W.map.name.replace(" (임시 명칭)", "") : "");
       const pr = this.anyOpen() ? "" : W.prompt;
       this.setText(this.hud.prompt, "prompt", pr.replace(/^Space/, keyOf("interact")).replace("↑ 이동", AU.keyLabel(AU.Input.bindings.up) + " 이동")); this.hud.prompt.style.display = pr ? "block" : "none";
       this.hud.warn.style.display = AU.Store.persistent ? "none" : "block";
       if (!AU.Store.persistent) this.hud.warn.textContent = "브라우저 저장이 막혀 있습니다. 이번 접속 동안만 기록이 유지됩니다.";
     },
-    updateTracker() {
-      const S = AU.G.S, t = this.hud.tracker; let shown = false;
-      const order = Object.entries(S.quests).filter(([, r]) => r.state === "active" || r.state === "ready");
-      const pick = order.find(([id]) => AU.QUESTS[id].type === "main") || order[0];
-      if (pick && !this.anyOpen()) {
-        const [id, rec] = pick, q = AU.QUESTS[id];
-        const key = id + rec.state + JSON.stringify(rec.prog) + AU.G.count("fur");
-        if (this.hud.cache.trk !== key) {
-          this.hud.cache.trk = key; t.innerHTML = "";
-          t.append(h("div", { class: "tt" }, q.title.replace(" (임시)", "")));
-          if (rec.state === "ready") t.append(h("div", { class: "to ok" }, "의뢰인에게 돌아가기: " + AU.NPCS[q.giver].name.replace(" (임시)", "")));
-          else q.objectives.forEach((o, i) => t.append(h("div", { class: "to" + (AU.G.objectiveDone(q, rec, i) ? " ok" : "") }, this.objText(o, rec, i))));
-        }
-        shown = true;
+    /* ---- 퀘스트 추적창: 진행 중인 퀘스트 최대 3개 + 각 퀘스트의 이동 안내, 퀘스트가 없을 때는 '다음 목표' ---- */
+    areaName(id) { return AU.MAPS[id] ? AU.MAPS[id].name.replace(" (임시 명칭)", "") : ""; },
+    npcMap(npcId) { return Object.keys(AU.MAPS).find((k) => !AU.MAPS[k].hidden && (AU.MAPS[k].npcs || []).some((n) => n.id === npcId)) || null; },
+    route(from, to) { // 지역 연결(AREA_LINKS)을 따라 가는 다음 지역(없으면 null)
+      if (from === to) return null; const prev = { [from]: null }, qu = [from];
+      while (qu.length) { const c = qu.shift(); for (const [a, b] of AU.AREA_LINKS) { const n = a === c ? b : (b === c ? a : null); if (n && !(n in prev)) { prev[n] = c; qu.push(n); } } }
+      if (!(to in prev)) return null; let n = to; while (prev[n] !== from) n = prev[n]; return n;
+    },
+    // 현재 위치에서 목표 지역·NPC까지의 방향 한 줄. 반환: 문장(없으면 "")
+    dirText(targetMap, npcId) {
+      const W = AU.World, m = W.map, p = W.player; if (!m || !p || !targetMap) return "";
+      if (targetMap === W.mapId) {
+        if (npcId) { const n = (m.npcs || []).find((x) => x.id === npcId); if (n) { const d = n.x - p.x; return Math.abs(d) < 160 ? "바로 근처에 있어요" : (d > 0 ? "▶ 오른쪽으로 가세요" : "◀ 왼쪽으로 가세요"); } }
+        return "이 지역에서 진행하세요";
       }
-      t.style.display = shown ? "block" : "none";
+      const hop = this.route(W.mapId, targetMap); if (!hop) return "";
+      const pt = (m.portals || []).find((x) => x.to === hop); if (!pt) return "";
+      return this.areaName(targetMap) + " 방향: " + (pt.x > p.x ? "▶ 오른쪽" : "◀ 왼쪽") + " 끝의 '" + pt.label + "' 쪽으로";
+    },
+    questGuide(id) {
+      const q = AU.QUESTS[id], rec = AU.G.S.quests[id]; if (!q || !rec) return "";
+      if (rec.state === "ready") { const mp = this.npcMap(q.giver); return mp ? this.dirText(mp, q.giver) : ""; }
+      const o = q.objectives.find((x, i) => !AU.G.objectiveDone(q, rec, i)); if (!o) return "";
+      if (o.kind === "talk") { const mp = this.npcMap(o.target); return this.dirText(mp, o.target); }
+      return q.area ? this.dirText(q.area, null) : "";
+    },
+    nextGoals() { // 진행 중인 퀘스트가 모자랄 때 알려 주는 다음 목표(최대 2줄)
+      const S = AU.G.S, out = [];
+      for (const id of Object.keys(AU.QUESTS)) { if (AU.G.questStatus(id) === "available") { const q = AU.QUESTS[id], mp = this.npcMap(q.giver); out.push("새 의뢰: " + q.title.replace(" (임시)", "") + " — " + AU.NPCS[q.giver].name.replace(" (임시)", "") + (mp ? " (" + this.areaName(mp) + ")" : "")); break; } }
+      if (out.length < 2) { const lockedLv = Object.keys(AU.QUESTS).map((id) => [id, AU.QUESTS[id]]).filter(([id, q]) => !S.quests[id] && q.pre.every((x) => AU.G.questStatus(x) === "done") && S.level < q.minLevel && id !== "q_job").sort((a, b) => a[1].minLevel - b[1].minLevel)[0];
+        if (lockedLv) out.push("Lv." + lockedLv[1].minLevel + "이 되면 새 의뢰: " + lockedLv[1].title.replace(" (임시)", "")); }
+      if (out.length < 2 && !S.jobChanged && S.level < 10) out.push("Lv.10까지 레벨을 올리세요 (지금 Lv." + S.level + ") — 사냥터: 항구 길·선창 외곽");
+      return out.slice(0, 2);
+    },
+    updateTracker() {
+      const S = AU.G.S, t = this.hud.tracker, PR = AU.Prologue;
+      const list = Object.entries(S.quests).filter(([, r]) => r.state === "active" || r.state === "ready").sort((a, b) => (AU.QUESTS[a[0]].type === "main" ? 0 : 1) - (AU.QUESTS[b[0]].type === "main" ? 0 : 1));
+      const picks = this.anyOpen() || (PR && PR.on) ? [] : list.slice(0, 3);
+      const goals = picks.length < 2 && !this.anyOpen() && !(PR && PR.on) ? this.nextGoals() : [];
+      if (!picks.length && !goals.length) { t.style.display = "none"; this.hud.cache.trk = null; this._trkDirs = []; return; }
+      const key = picks.map(([id, r]) => id + r.state + JSON.stringify(r.prog)).join("|") + "|" + AU.G.count("fur") + "|" + goals.join("/");
+      if (this.hud.cache.trk !== key) {
+        this.hud.cache.trk = key; t.innerHTML = ""; this._trkDirs = []; for (const k of Object.keys(this.hud.cache)) if (k.indexOf("trkd") === 0) delete this.hud.cache[k];
+        picks.forEach(([id, rec]) => {
+          const q = AU.QUESTS[id]; const box = h("div", { class: "tq" }); box.append(h("div", { class: "tt" }, q.title.replace(" (임시)", "")));
+          if (rec.state === "ready") box.append(h("div", { class: "to ok" }, "의뢰인에게 돌아가기: " + AU.NPCS[q.giver].name.replace(" (임시)", "")));
+          else q.objectives.forEach((o, i) => box.append(h("div", { class: "to" + (AU.G.objectiveDone(q, rec, i) ? " ok" : "") }, this.objText(o, rec, i))));
+          const dir = h("div", { class: "td" }); box.append(dir); this._trkDirs.push({ el: dir, id }); t.append(box);
+        });
+        if (goals.length) { const box = h("div", { class: "tq tnext" }, h("div", { class: "tt" }, "다음 목표")); goals.forEach((g) => box.append(h("div", { class: "to" }, g))); t.append(box); }
+      }
+      for (const d of this._trkDirs || []) { const txt = this.questGuide(d.id); this.setText(d.el, "trkd" + d.id, txt); d.el.style.display = txt ? "block" : "none"; }
+      t.style.display = "block";
+    },
+    updateKeyHint() { // 초반(Lv.5 미만)에는 기본 조작을 화면 왼쪽 아래에 계속 보여 줌
+      const S = AU.G.S, PR = AU.Prologue, on = !(PR && PR.on) && S.level < 5 && !this.anyOpen(), el = this.hud.keyhint; if (!el) return;
+      const B = AU.Input.bindings, K = AU.keyLabel, txt = "이동 " + K(B.left) + "·" + K(B.right) + "   점프 " + K(B.jump) + "   공격 " + K(B.attack) + "   말 걸기 " + K(B.interact);
+      this.setText(el, "kh", on ? txt : ""); el.style.display = on ? "block" : "none";
     },
     objText(o, rec, i) {
       const prog = rec ? (o.kind === "collect" ? Math.min(AU.G.count(o.item), o.count) : (rec.prog[i] || 0)) : 0;
@@ -205,7 +250,7 @@ window.AU = window.AU || {};
         return this.say(npc, q.offer, { choices: [{ label: "수락", key: "interact", fn: () => AU.G.startQuest(qid) }, { label: "나중에", key: "menu", fn: () => {} }] });
       }
       const act = (npc.quests || []).find((id) => AU.G.questStatus(id) === "active" && AU.QUESTS[id].giver === npcId);
-      if (act) return this.say(npc, ["아직 진행 중이에요. (" + AU.QUESTS[act].title.replace(" (임시)", "") + ")"]);
+      if (act) return this.say(npc, ["아직 진행 중이에요. (" + AU.QUESTS[act].title.replace(" (임시)", "") + ")"].concat(AU.QUESTS[act].reminder || []));
       if (npc.special === "missionGuide") {
         if (S.flags.missionsUnlocked && !S.flags.guideMet) {
           return this.say(npc, ["전사가 되셨군요! 모험을 하다 보면, 일상에서 해 볼 만한 작은 활동들도 만나게 돼요.", "해 볼지 말지는 전적으로 자유예요. 안 해도 모험은 이어갈 수 있어요.", "모험일지(" + keyOf("journal") + ")에서 확인해 보세요."], { end: () => { AU.G.discoverMissions(); } });
@@ -221,12 +266,14 @@ window.AU = window.AU || {};
     },
     renderDialog() {
       const d = this.dialog; if (!d) return;
-      const last = d.i >= d.lines.length - 1, cur = d.lines[d.i], isObj = cur && typeof cur === "object", np = isObj ? cur.npc : d.npc, text = AU.Profile.fmt(isObj ? cur.t : cur);
+      const last = d.i >= d.lines.length - 1, cur = d.lines[d.i], isObj = cur && typeof cur === "object", np = isObj ? cur.npc : d.npc, text = AU.Profile.fmt(isObj ? cur.t : cur).replace(/\{(attack|jump|interact)\}/g, (m, k) => keyOf(k));
       const ppk = AU.Img.has(np.portrait) ? np.portrait : (np.alt && AU.Img.has(np.alt) ? np.alt : np.portrait), pt = AU.Img.has(ppk) ? h("img", { src: AU.ASSETS[ppk].path, alt: "" }) : h("div", { class: "ptfallback", text: np.name.slice(0, 1) });
-      const choices = last && d.opt.choices ? h("div", { class: "choices" }, d.opt.choices.map((c) => btn(c.label + "  (" + keyOf(c.key) + ")", c.key === "interact" ? "primary" : "", () => this.finishDialog(c)))) : null;
+      const back = d.i > 0 ? btn("◀ 이전 (" + AU.keyLabel(AU.Input.bindings.left) + ")", "dback", () => this.backDialog()) : null;
+      const choices = last && d.opt.choices ? h("div", { class: "choices" }, back, d.opt.choices.map((c) => btn(c.label + "  (" + keyOf(c.key) + ")", c.key === "interact" ? "primary" : "", () => this.finishDialog(c)))) : null;
       this.dlgEl.innerHTML = ""; this.dlgEl.append(h("div", { class: "panel dlgbox" }, h("div", { class: "pt" }, pt), h("div", { class: "dtext" }, h("div", { class: "dname", text: AU.Profile.fmt(np.name) }), h("div", { class: "dline", text: text }),
-        choices || h("div", { class: "dnext" }, btn(last ? "닫기 (" + keyOf("interact") + ")" : "다음 ▶ (" + keyOf("interact") + ")", "", () => this.advanceDialog())))));
+        choices || h("div", { class: "dnext" }, back, btn(last ? "닫기 (" + keyOf("interact") + ")" : "다음 ▶ (" + keyOf("interact") + ")", "", () => this.advanceDialog())))));
     },
+    backDialog() { const d = this.dialog; if (!d || d.i <= 0) return; d.i--; this.renderDialog(); },
     advanceDialog() {
       const d = this.dialog; if (!d) return;
       if (d.i < d.lines.length - 1) { d.i++; this.renderDialog(); return; }
@@ -259,7 +306,7 @@ window.AU = window.AU || {};
       if (this.modal) { if (id === "menu") { this.modal = false; this.modalEl.classList.add("hidden"); this.modalEl.innerHTML = ""; } return true; }
       if (this.listening) return true;
       if (this.dialog) {
-        if (id === "interact") this.advanceDialog(); else if (id === "menu") this.cancelDialog();
+        if (id === "interact") this.advanceDialog(); else if (id === "left") this.backDialog(); else if (id === "menu") this.cancelDialog();
         return true;
       }
       const PR = AU.Prologue;
@@ -413,6 +460,7 @@ window.AU = window.AU || {};
   R.skills = function (b) {
     const S = AU.G.S;
     if (!S.jobChanged) { b.append(h("div", { class: "lockbox" }, h("h3", { text: "아직 배운 스킬이 없습니다" }), h("p", { text: "10레벨 전직 후 직업 스킬이 열립니다. (현재 " + AU.jobName(S) + " · Lv." + S.level + ")" }), h("p", { class: "note", text: "기본 공격(" + keyOf("attack") + ")은 " + C.resource.name + "을 쓰지 않습니다." }))); return; }
+    b.append(h("p", { class: "note vigor", text: "활력이란? " + VIGOR_TIP }));
     const slots = h("div", { class: "skslots" }, [0, 1, 2].map((i) => { const id = S.skills.slots[i]; return h("div", { class: "skslot" }, h("div", { class: "skey", text: keyOf("skill" + (i + 1)) }), h("div", { class: "skname", text: id ? AU.SKILLS[id].name.replace(" (임시)", "") : "비어 있음" }), id ? btn("해제", "mini", () => { S.skills.slots[i] = null; AU.G.save("skill"); AU.G.changed(); }) : null); }));
     const list = h("div", { class: "sklist" });
     for (const id of S.skills.unlocked) {
@@ -457,7 +505,7 @@ window.AU = window.AU || {};
   R.jobcard = function (b) {
     const S = AU.G.S;
     b.append(h("div", { class: "jobcard" }, h("h2", { text: "전사로 전직했습니다!" }), h("p", { text: "견습 모험가에서 전사가 되었습니다. 다음 기능이 열렸어요." }),
-      h("ul", null, h("li", { text: "스탯 분배: 포인트 " + S.freePoints + "점이 지급되었습니다. 스탯창(" + keyOf("stats") + ")에서 직접 나눠 보세요." }), h("li", { text: "전사 스킬: 1·2·3 슬롯에 배치되어 있습니다. 스킬창(" + keyOf("skills") + ")에서 바꿀 수 있습니다." }),
+      h("ul", null, h("li", { text: "스탯 분배: 포인트 " + S.freePoints + "점이 지급되었습니다. 스탯창(" + keyOf("stats") + ")에서 직접 나눠 보세요." }), h("li", { text: "전사 스킬: 1·2·3 슬롯에 배치되어 있습니다. 스킬창(" + keyOf("skills") + ")에서 바꿀 수 있습니다." }), h("li", { text: "활력: 스킬을 쓸 때 줄어드는 힘입니다. 기본 공격은 쓰지 않으며, 매주 월요일에 가득 채워집니다." }),
         h("li", { text: "모험일지(" + keyOf("journal") + "): 현실 활동 미션이 열렸습니다. 선택 사항이며, 포르투 노바의 모험 안내인이 소개해 줍니다." }),
         h("li", { text: "다음 목표: " + AU.JOB_TIERS.slice(1).map((t) => "Lv." + t.level + " " + t.name).join(" / ") })),
       h("div", { class: "choices" }, btn("스탯 분배하러 가기", "primary", () => UI.open("stats")), btn("계속 모험하기", "", () => UI.close()))));

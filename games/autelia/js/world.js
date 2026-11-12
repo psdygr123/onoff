@@ -221,7 +221,7 @@ window.AU = window.AU || {};
       const sk = AU.SKILLS[id];
       if ((p.cd[id] || 0) > 0 || p.gcd > 0) return;
       if (!AU.G.canSpend(id)) { AU.G.toast("활력이 부족합니다. (필요 " + AU.G.skillCost(id) + ")", "warn"); this.floater(p.x, p.y - 140, "활력 부족", "#FF9AA2"); return; }
-      AU.G.spend(id); p.cd[id] = sk.cd; p.gcd = C.combat.skillGlobalCooldown; p.atkT = 0.3;
+      AU.G.spend(id); if (!S.flags.vigorTip) { S.flags.vigorTip = true; AU.G.toast("활력이 줄었습니다. 활력은 스킬을 쓸 때 줄어드는 힘이며, 기본 공격은 쓰지 않습니다. 매주 월요일에 가득 채워집니다.", "info"); } p.cd[id] = sk.cd; p.gcd = C.combat.skillGlobalCooldown; p.atkT = 0.3;
       if (id === "strike") {
         const x0 = p.dir > 0 ? p.x : p.x - sk.range, x1 = x0 + sk.range;
         this.fx.push({ kind: "slash", x: p.x + p.dir * 70, y: p.y - 64, dir: p.dir, t: 0, dur: 0.3, r: 90, color: "#FFD36B" });

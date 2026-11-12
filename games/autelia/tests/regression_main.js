@@ -45,7 +45,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await p.keyboard.down('Alt'); await sleep(120); const ydlg = (await S()).y; await p.keyboard.up('Alt');
   await p.keyboard.down('Control'); await sleep(150); const atkDlg = await ev(() => AU.World.player.atkCD); await p.keyboard.up('Control');
   await p.keyboard.press('i'); const winDlg = await win();
-  await p.keyboard.press('Space'); await sleep(100); await p.keyboard.press('Space'); await sleep(150); // 두 번째 줄 → 수락
+  for (let i = 0; i < 6 && await ev(() => !!AU.UI.dialog); i++) { await p.keyboard.press('Space'); await sleep(110); } // 마지막 줄에서 수락(대사 줄 수가 바뀌어도 동작)
   const q1 = await ev(() => AU.G.S.quests.q_first && AU.G.S.quests.q_first.state);
   note('6', 'Space로 NPC 대화·퀘스트 수락', /대화/.test(near) && d1.dlg && !!line1 && q1 === 'active', `안내문="${near}", 대화 열림=${d1.dlg}, 첫 줄="${line1}", 수락 후 q_first=${q1}`);
   note('16a', '대화 중 점프·공격·메뉴키 차단', ydlg === 590 && atkDlg === 0 && winDlg === null, `대화 중 Alt 후 y=${ydlg}(590=점프 안 함), Ctrl 후 공격쿨=${atkDlg}, I키 창=${winDlg}`);

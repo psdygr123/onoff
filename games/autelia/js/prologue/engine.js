@@ -311,6 +311,22 @@ window.AU = window.AU || {};
       for (const e of this.ents) { if (e.hidden || !e.interact || e.interact.off) continue; const d = Math.abs(p.x - e.x); if (d < (e.range || 100) && d < best) { best = d; this.nearEnt = e; } }
       world.prompt = this.nearEnt ? "Space " + this.nearEnt.interact.label : "";
     },
+    /* 목표 방향 안내: 표시(mark)가 켜진 개체 또는 goal(x)이 있는 출구 트리거 중 가장 가까운 곳의 방향을 화면 가장자리 화살표로 알려 줌 */
+    guideTarget() {
+      if (this.locked() || this.dialogOpen) return null; const p = AU.World.player, cx = AU.World.camX; let best = null, bd = 1e9;
+      for (const e of this.ents) { if (e.hidden || !e.mark) continue; const sx = e.x - cx; if (sx > 40 && sx < W - 40) continue; const d = Math.abs(e.x - p.x); if (d < bd) { bd = d; best = e.x; } }
+      for (const t of this.triggers) { if (t.dead || t.goal == null) continue; const d = Math.abs(t.goal - p.x); if (d < 250) continue; if (d < bd) { bd = d; best = t.goal; } }
+      return best == null ? null : { x: best, dir: best > p.x ? 1 : -1 };
+    },
+    drawGuide(ctx) {
+      const g = this.guideTarget(); if (!g) { this._guideA = 0; return; } this._guideA = Math.min(1, (this._guideA || 0) + 0.06); const a = this._guideA; if (a <= 0.01) return;
+      const r = AU.UI.settings.reduceFx ? 0 : Math.sin(this.time * 5) * 7, x = g.dir > 0 ? W - 64 + r : 64 - r, y = 300;
+      ctx.save(); ctx.globalAlpha = 0.92 * a; ctx.translate(x, y); ctx.scale(g.dir, 1);
+      ctx.fillStyle = "rgba(40,28,14,.55)"; ctx.beginPath(); ctx.arc(0, 0, 38, 0, 7); ctx.fill();
+      ctx.fillStyle = "#E8B94E"; ctx.strokeStyle = "#fff"; ctx.lineWidth = 3; ctx.lineJoin = "round"; ctx.beginPath(); ctx.moveTo(-14, -20); ctx.lineTo(10, -20); ctx.lineTo(24, 0); ctx.lineTo(10, 20); ctx.lineTo(-14, 20); ctx.lineTo(0, 0); ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.restore();
+      ctx.save(); ctx.globalAlpha = 0.9 * a; ctx.font = "600 15px 'Noto Sans KR', sans-serif"; ctx.textAlign = "center"; ctx.fillStyle = "#fff"; ctx.shadowColor = "rgba(0,0,0,.8)"; ctx.shadowBlur = 6; ctx.fillText("목표", x, y + 58); ctx.restore();
+    },
     interactNear() { if (this.locked()) return; this.scan(AU.World); const e = this.nearEnt; if (e && e.interact && e.interact.fn) { try { const r = e.interact.fn(e); if (r && r.catch) r.catch((er) => { if (er !== CANCEL) console.error(er); }); } catch (er) { console.error(er); } } },
     clampLimits(p) {
       const L = this.limits; if (!L) return; let hit = false;
@@ -394,6 +410,7 @@ window.AU = window.AU || {};
       if (this.tint && this.tint.a > 0) { ctx.save(); ctx.globalCompositeOperation = "multiply"; ctx.globalAlpha = this.tint.a; ctx.fillStyle = this.tint.color; ctx.fillRect(0, 0, W, H); ctx.restore(); }
       if (this.overlayFn) this.overlayFn(ctx, this);
       if (this.vig > 0) { const g = ctx.createRadialGradient(W / 2, H / 2, H * 0.45, W / 2, H / 2, H * 1.0); g.addColorStop(0, "rgba(0,0,0,0)"); g.addColorStop(1, "rgba(10,5,5," + this.vig + ")"); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); }
+      this.drawGuide(ctx);
       if (this.closeup && this.closeup.a > 0.01) {
         const c = this.closeup; ctx.save(); ctx.globalAlpha = c.a; ctx.fillStyle = "rgba(8,5,6,.82)"; ctx.fillRect(0, 0, W, H);
         const g = ctx.createRadialGradient(W / 2, 320, 20, W / 2, 320, 360); g.addColorStop(0, "rgba(160,50,40,.35)"); g.addColorStop(1, "rgba(160,50,40,0)"); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);

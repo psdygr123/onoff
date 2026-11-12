@@ -135,14 +135,17 @@ AU.QUESTS = {
   q_first: {
     title: "첫 사냥 (임시)", type: "main", giver: "arche_guide", minLevel: 1, pre: [],
     desc: "숲길의 들여우를 3마리 처치합니다.", objectives: [{ kind: "kill", target: "fox", count: 3 }],
-    offer: ["숲길에는 들여우가 많아요. 몸을 풀 겸 세 마리만 잡아 볼래요?", "공격은 Ctrl, 점프는 Alt입니다. 무리하지 마세요."],
+    area: "forest",
+    offer: ["숲길에는 들여우가 많아요. 몸을 풀 겸 세 마리만 잡아 볼래요?", "항구 길을 따라 왼쪽으로 쭉 가면 숲길이 나와요. 가는 길에도 들여우를 만날 수 있어요.", "공격은 {attack}, 점프는 {jump}입니다. 무리하지 마세요."],
+    reminder: ["공격은 {attack}, 점프는 {jump}, 말 걸기·줍기는 {interact}예요.", "들여우에게 가까이 다가가 공격 키를 눌러 보세요. 화면 왼쪽 아래에도 조작 안내를 띄워 둘게요."],
     done: ["잘했어요! 이 검을 받아 두세요."],
     reward: { exp: 80, silver: 30, items: [["sword_a", 1]] }
   },
   q_forest: {
     title: "숲길 정리 (임시)", type: "main", giver: "arche_guide", minLevel: 2, pre: ["q_first"],
     desc: "숲길의 뱀을 5마리 처치합니다.", objectives: [{ kind: "kill", target: "snake", count: 5 }],
-    offer: ["이번에는 숲길 안쪽의 뱀입니다. 조심하세요."],
+    area: "forest",
+    offer: ["이번에는 숲길 안쪽의 뱀입니다.", "포르투 노바에서 항구 길을 따라 왼쪽으로 가면 숲길이 나옵니다. 가는 길에도 뱀이 있으니 조심하세요."],
     done: ["고생했어요. 작업복이 필요할 거예요."],
     reward: { exp: 300, silver: 60, items: [["cloth_a", 1]] }
   },
@@ -155,21 +158,21 @@ AU.QUESTS = {
   },
   q_guild_rats: {
     title: "부두 쥐 소탕 (임시)", type: "sub", giver: "porto_guild", minLevel: 4, pre: ["q_guild_talk"],
-    desc: "항구 길의 부두 쥐를 8마리 처치합니다.", objectives: [{ kind: "kill", target: "rat", count: 8 }],
+    area: "harbor_road", desc: "항구 길의 부두 쥐를 8마리 처치합니다.", objectives: [{ kind: "kill", target: "rat", count: 8 }],
     offer: ["선창 길드의 의뢰입니다. 항구 길의 쥐를 8마리 줄여 주세요."],
     done: ["확인했습니다. 보수와 증표를 드립니다."],
     reward: { exp: 600, silver: 120, items: [["charm_a", 1], ["guild_token", 1]] }
   },
   q_guild_crabs: {
     title: "집게 게 퇴치 (임시)", type: "sub", giver: "porto_guild", minLevel: 7, pre: ["q_guild_rats"],
-    desc: "선창 외곽의 집게 게를 5마리 처치합니다.", objectives: [{ kind: "kill", target: "crab", count: 5 }],
+    area: "docks", desc: "선창 외곽의 집게 게를 5마리 처치합니다.", objectives: [{ kind: "kill", target: "crab", count: 5 }],
     offer: ["선창 외곽의 집게 게가 짐을 상하게 합니다. 5마리를 부탁합니다."],
     done: ["수고하셨습니다. 이번 보수입니다."],
     reward: { exp: 1200, silver: 200, items: [] }
   },
   q_job: {
     title: "전직 시험 (임시)", type: "main", giver: "job_npc", minLevel: 10, pre: [],
-    desc: "선창 외곽에 나타나는 시험 대상을 처치합니다. 정식 전직 이벤트는 스토리 자료가 오면 교체합니다. (TODO)",
+    area: "docks", desc: "선창 외곽에 나타나는 시험 대상을 처치합니다. 정식 전직 이벤트는 스토리 자료가 오면 교체합니다. (TODO)",
     objectives: [{ kind: "kill", target: "trial_boss", count: 1 }],
     offer: ["10레벨이 되었군요. 전직 시험을 치르겠습니까? 선창 외곽에 시험 대상이 나타납니다.", "(임시 이벤트입니다. 정식 전직 이벤트는 스토리 담당자가 정합니다.)"],
     done: ["시험을 통과했습니다. 이제 전사의 길로 들어섭니다."],
