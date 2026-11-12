@@ -52,7 +52,7 @@ window.AU = window.AU || {};
     const act = "pc_villager_" + k + "_actions"; return { sprite: artSpr(act, fb), h: 150, extra: { frame: A.sprFrame(act, "cheer2") } };
   };  // 정식 그림이 있으면 그것, 없으면 이전 시제품 그림
   function drawCrowd(ctx, P) { // 축제 군중(정식 주민 시트): 가까운 곳에 NPC가 있어 피해서 배치, 깊이감을 위해 살짝 작고 위에 선다
-    const L = LAY.plaza, c = P.v.cheer == null ? 0.12 : P.v.cheer, xs = [60, 130, 330, 470, 545, 650, 905, 1010, 1100, 1200], sh = ["f", "d", "g", "a", "j", "l", "b", "i", "e", "m"].map((k, i) => (A.has("pc_villager_" + k + "_actions") ? k : "abc"[i % 3]));
+    const L = LAY.plaza, c = P.v.cheer == null ? 0.12 : P.v.cheer, xs = [60, 130, 330, 470, 545, 650, 905, 1010, 1100, 1200], sh = ["f", "d", "h", "a", "j", "a", "b", "i", "e", "m"].map((k, i) => (A.has("pc_villager_" + k + "_actions") ? k : "abc"[i % 3]));
     xs.forEach((x, i) => { const bob = Math.abs(Math.sin(P.time * (3 + c * 5) + i * 1.7)) * (2 + c * 9); A.spr(ctx, "pc_villager_" + sh[i] + "_actions", c > 0.45 ? "cheer1" : "cheer2", x + (i % 2 ? 6 : -6), 566 - bob, i % 3 === 0 ? -1 : 1, 0.86); });
   }
   D.pro_temple = { // BG-01 신전 건축 현장 / 완공 상태
@@ -274,12 +274,14 @@ window.AU = window.AU || {};
     const v = P.v, L = LAY.plaza; P.variant = variant;
     if (variant === "peace") {
       P.tint = { color: "#FFF1DA", a: 0.08 }; P.vig = 0.12; v.cheer = 0.12;
-      P.limits = { max: L.limit, msg: "먼저 주민과 이야기를 나눠 보세요." };
-      const elder = npc(P, "elder", "elder", artSpr("pc_villager_c_actions", "villager_a"), L.elder, 150, { frame: A.sprFrame("pc_villager_c_actions", "cheer2"), range: 100, interact: { label: "대화: 나이 든 주민", fn: () => P.cutscene(() => P.say(T.elder)) } });
-      const child = npc(P, "child", "child", artSpr("pc_festival_child", "villager_b"), L.child, 118, { range: 90, interact: { label: "대화: 축제 어린이", fn: () => P.cutscene(() => P.say(T.child)) } });
+      P.limits = { min: 40, max: L.limit, msg: "먼저 주민과 이야기를 나눠 보세요. (마을길로는 돌아갈 수 없습니다)" };
+      // 광장 전용 인물: 마을길에서 만난 주민(나이 든 주민·축제 어린이)과 겹치지 않도록 새 인물을 둠(빵을 나누는 주민은 마을길에서 "광장에서 보자"고 한 인물이라 그대로)
+      const sT = standing("g", "villager_a"), sF = standing("l", "villager_b");
+      const elder = npc(P, "traveler", "traveler", sT.sprite, L.elder, sT.h, Object.assign({}, sT.extra, { range: 100, interact: { label: "대화: 먼 마을의 손님", fn: () => P.cutscene(() => P.say(T.plaza_traveler)) } }));
+      const child = npc(P, "florist", "florist", sF.sprite, L.child, sF.h, Object.assign({}, sF.extra, { range: 100, interact: { label: "대화: 꽃 파는 주민", fn: () => P.cutscene(() => P.say(T.plaza_florist)) } }));
       const vendor = npc(P, "vendor", "vendor", artSpr("pc_villager_b_actions", "baker"), L.vendor, 150, { frame: A.sprFrame("pc_villager_b_actions", "cheer2"), range: 110, mark: true, interact: { label: "대화: 빵을 나누는 주민", fn: async () => {
         await P.cutscene(async () => { await P.say(T.vendor); }); if (P.flag("festival_interaction_complete")) return;
-        P.setFlag("festival_interaction_complete"); vendor.mark = false; P.limits = null; P.obj(OBJ.s2_center);
+        P.setFlag("festival_interaction_complete"); vendor.mark = false; P.limits = { min: 40, max: null, msg: "마을길로는 돌아갈 수 없습니다. 광장 중앙으로 가 보세요." }; P.obj(OBJ.s2_center);
         P.trigger({ id: "center", goal: L.center, test: (p) => p.x >= L.center, fn: () => centerEvent() }); } } });
       void elder; void child;
     } else { // BG-V02 광장 습격 상태
@@ -303,7 +305,7 @@ window.AU = window.AU || {};
   SC.SCENE_02_FESTIVAL = { name: "빛의 승리 100주년", async enter(P) {
     const g = P.gen; P.room("pro_plaza", LAY.plaza.start, (P) => setupPlaza(P, "peace")); P.amb("crowd", true);
     await P.cutscene(async () => { await P.fade(0, 1.4); });
-    if (!live(P, g)) return; P.obj(OBJ.s2_talk);
+    if (!live(P, g)) return; P.obj(OBJ.s2_talk); P.hint("축제가 시작되어 마을길로는 돌아갈 수 없습니다. 광장에서 이야기를 나눠 보세요.", 6);
   } };
 
   /* ============================================================
