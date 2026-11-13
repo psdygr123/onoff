@@ -18,6 +18,9 @@ import build_prologue_art as B
 RUN_TO_STAND = 1.04
 PORTRAITS = ["pt_pro_farmer", "pt_pro_priest", "pt_pro_musician", "pt_pro_scribe"]
 IDLES = ["b", "c", "d", "f", "j", "k"]
+# 일부 인물만 새로 변환할 때(예: 광장 신규 NPC): ART4_PORTRAITS="pt_pro_traveler,pt_pro_florist" ART4_IDLES="g,l" python3 tools/build_prologue_art4.py ...
+if os.environ.get("ART4_PORTRAITS") is not None: PORTRAITS = [x for x in os.environ["ART4_PORTRAITS"].split(",") if x]
+if os.environ.get("ART4_IDLES") is not None: IDLES = [x for x in os.environ["ART4_IDLES"].split(",") if x]
 
 def portrait(name, size=512):
     a = B.key_magenta(f"{SRC}/portraits/{name}.png"); x0, y0, x1, y1 = B.bbox(a)

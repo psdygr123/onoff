@@ -220,3 +220,10 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
 .swatch { width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--line); padding: 0; cursor: pointer; font: inherit; font-size: 11px; line-height: 1; color: var(--ink); background: #fff; }
 .swatch.orig { width: 38px; border-radius: 15px; } .swatch:hover { border-color: rgba(110, 88, 58, .6); } .swatch:focus-visible { outline: 2px solid var(--sky); outline-offset: 2px; }
 .swatch.on { border-color: var(--sage); box-shadow: 0 0 0 3px var(--sage-l); }
+
+.dback { margin-right: auto; }
+.tracker .tq + .tq { margin-top: 9px; padding-top: 8px; border-top: 1px solid rgba(120, 90, 50, .22); }
+.tracker .td { font-size: 13px; line-height: 1.45; color: var(--gold-d); margin-top: 3px; font-weight: 600; }
+.tracker .tnext .to { font-size: 13px; color: #5a4a33; }
+.keyhint { position: absolute; left: 20px; bottom: 18px; padding: 7px 14px; border-radius: 8px; background: rgba(30, 24, 18, .72); color: #fff; font-size: 14px; letter-spacing: .02em; display: none; pointer-events: none; }
+#stage.pro .keyhint { display: none !important; }

@@ -24,7 +24,7 @@ window.AU = window.AU || {};
   }
   // 추가 그림(2차 패키지, tools/build_prologue_art2.py): 장애물·이음 골조·초상화
   for (const f of ["obst_rock", "obst_log", "obst_burnt_beams", "joint_frame"]) AU.ASSETS["po_" + f] = { path: "assets/prologue/ob/" + f + ".webp", optional: true };
-  for (const f of ["pt_pro_hero_m", "pt_pro_hero_f", "pt_pro_father", "pt_pro_elder", "pt_pro_baker", "pt_pro_child", "pt_pro_hero_m_surprised", "pt_pro_father_smile", "pt_pro_farmer", "pt_pro_priest", "pt_pro_musician", "pt_pro_scribe"]) AU.ASSETS[f] = { path: "assets/prologue/pt/" + f + ".webp", optional: true };
+  for (const f of ["pt_pro_hero_m", "pt_pro_hero_f", "pt_pro_father", "pt_pro_elder", "pt_pro_baker", "pt_pro_child", "pt_pro_hero_m_surprised", "pt_pro_father_smile", "pt_pro_farmer", "pt_pro_priest", "pt_pro_musician", "pt_pro_scribe", "pt_pro_traveler", "pt_pro_florist"]) AU.ASSETS[f] = { path: "assets/prologue/pt/" + f + ".webp", optional: true };
   AU.ASSETS.fx_fire = { path: "assets/prologue/fx/fire.webp", optional: true }; AU.ASSETS.fx_smoke = { path: "assets/prologue/fx/smoke.webp", optional: true };   // 불꽃 6프레임·연기 4프레임 스트립
   AU.PRO_GENDER = "m"; // 남(m)/여(f) 주인공 시트 선택(성별 선택 기능이 생기면 이 값만 바꿉니다)
   // 장면별 배치 좌표(그림이 바뀌면 여기만 고칩니다)
@@ -56,6 +56,8 @@ window.AU = window.AU || {};
     vendor: { name: "빵을 나누는 주민", portrait: "pt_pro_baker", alt: "pt_baker" },
     child:  { name: "축제 어린이", portrait: "pt_pro_child", alt: "pt_villager_b" },
     elder:  { name: "나이 든 주민", portrait: "pt_pro_elder", alt: "pt_villager_a" },
+    traveler: { name: "먼 마을에서 온 할머니", portrait: "pt_pro_traveler", alt: "pt_villager_a" },   // 광장 전용 인물(그림 도착 전에는 기존 주민 얼굴로 대체)
+    florist:  { name: "꽃 심부름 온 사내아이", portrait: "pt_pro_florist", alt: "pt_villager_b" },
     stele:  { name: "기념비", portrait: "" },
     farmer: { name: "젊은 농부", portrait: "pt_pro_farmer" }, priest: { name: "신관", portrait: "pt_pro_priest" }, musician: { name: "악사", portrait: "pt_pro_musician" }, scribe: { name: "서기", portrait: "pt_pro_scribe" },
     resA:   { name: "주민", portrait: "pt_villager_a" },
@@ -76,6 +78,8 @@ window.AU = window.AU || {};
     vendor: [["vendor", "신전을 완성한 목수 아들이구나!"], ["vendor", "고생 많았어. 오늘만큼은 일 생각 말고 실컷 즐기렴."]],
     child: [["child", "저렇게 큰 신전을 정말 너희가 만든 거야?"], ["child", "나도 크면 저런 걸 만들어보고 싶어!"]],
     elder: [["elder", "전쟁이 끝난 지도 벌써 백 년이라니."], ["elder", "이제 우리 아이들은 전쟁을 모르고 살아가겠지."]],
+    plaza_traveler: [["traveler", "먼 마을에서 구경하러 왔는데, 이 신전이 제일 크다고들 하더구나."], ["traveler", "우리 마을에서도 100주년 신전을 짓고 있지만, 이렇게 아름다운 곳은 처음 보는구나."]],
+    plaza_florist: [["florist", "축제 날에는 신전 앞에 꽃을 놓는 게 이 마을 풍습이래요!"], ["florist", "저도 엄마 심부름으로 꽃을 가져왔어요. 오늘은 정말 신나는 날이에요!"]],
     attack: [["resA", "불이야!"], ["resB", "신전이 불타고 있어!"], ["resC", "도망쳐! 무장한 놈들이 들어왔다!"]],
     hero_dad: [["heroS", "아버지...!"]],
     will: [["hero", "아버지...?"], ["hero", "아버지!"], ["father", "...왔구나."], ["hero", "말하지 마세요. 지금 사람을 불러올게요."], ["father", "아니... 시간이 없다."]],
