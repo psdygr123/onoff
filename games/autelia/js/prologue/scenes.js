@@ -277,8 +277,8 @@ window.AU = window.AU || {};
       P.limits = { min: 40, max: L.limit, msg: "먼저 주민과 이야기를 나눠 보세요. (마을길로는 돌아갈 수 없습니다)" };
       // 광장 전용 인물: 마을길에서 만난 주민(나이 든 주민·축제 어린이)과 겹치지 않도록 새 인물을 둠(빵을 나누는 주민은 마을길에서 "광장에서 보자"고 한 인물이라 그대로)
       const sT = standing("g", "villager_a"), sF = standing("l", "villager_b");
-      const elder = npc(P, "traveler", "traveler", sT.sprite, L.elder, sT.h, Object.assign({}, sT.extra, { range: 100, interact: { label: "대화: 먼 마을의 손님", fn: () => P.cutscene(() => P.say(T.plaza_traveler)) } }));
-      const child = npc(P, "florist", "florist", sF.sprite, L.child, sF.h, Object.assign({}, sF.extra, { range: 100, interact: { label: "대화: 꽃 파는 주민", fn: () => P.cutscene(() => P.say(T.plaza_florist)) } }));
+      const elder = npc(P, "traveler", "traveler", sT.sprite, L.elder, sT.h, Object.assign({}, sT.extra, { range: 100, interact: { label: "대화: 먼 마을에서 온 할머니", fn: () => P.cutscene(() => P.say(T.plaza_traveler)) } }));
+      const child = npc(P, "florist", "florist", sF.sprite, L.child, sF.h, Object.assign({}, sF.extra, { range: 100, interact: { label: "대화: 꽃 심부름 온 사내아이", fn: () => P.cutscene(() => P.say(T.plaza_florist)) } }));
       const vendor = npc(P, "vendor", "vendor", artSpr("pc_villager_b_actions", "baker"), L.vendor, 150, { frame: A.sprFrame("pc_villager_b_actions", "cheer2"), range: 110, mark: true, interact: { label: "대화: 빵을 나누는 주민", fn: async () => {
         await P.cutscene(async () => { await P.say(T.vendor); }); if (P.flag("festival_interaction_complete")) return;
         P.setFlag("festival_interaction_complete"); vendor.mark = false; P.limits = { min: 40, max: null, msg: "마을길로는 돌아갈 수 없습니다. 광장 중앙으로 가 보세요." }; P.obj(OBJ.s2_center);
