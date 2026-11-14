@@ -225,7 +225,7 @@ window.AU = window.AU || {};
         skip: ["available", "accepted", "attempted", "partial"], retry: ["partial", "skipped"]
       };
       if (!ok[next] || !ok[next].includes(r.state)) return false;
-      let points = 0, capped = false;
+      let points = 0, capped = false, gained = 0;
       if (next === "accept") r.state = "accepted";
       else if (next === "attempt") { r.state = "attempted"; r.tries++; }
       else if (next === "partial") { r.state = "partial"; points = C.missions.partialPoints; }
@@ -238,6 +238,7 @@ window.AU = window.AU || {};
           const room = Math.max(0, C.missions.weeklyPointCap - S.missions.weekPoints);
           points = Math.min(m.points, room); capped = points < m.points;
           S.trainingPoints += points; S.missions.weekPoints += points; r.rewarded = true;
+          gained = this.gainMind(m.perma, m.points); // 마음 스탯은 주간 한도와 무관하게 오름(전투 스탯과 별개)
         }
         for (const n of AU.MISSIONS) { const nr = S.missions.states[n.id]; if (n.pre === id && nr.state === "locked" && S.flags.guideMet) nr.state = "available"; }
       }
@@ -245,10 +246,22 @@ window.AU = window.AU || {};
       S.missions.log.push({ t: AU.dateStr(), id, perma: m.perma, state: r.state, points, capped, proof: "self_report" });
       if (next === "done") {
         this.log("현실 미션 완료: " + m.title);
-        this.toast(points ? "현실 미션 완료! 훈련 포인트 +" + points : (r.rewarded && capped ? "이번 주 훈련 포인트 한도에 도달해 포인트는 지급되지 않았습니다" : "현실 미션 완료"), "good");
+        const mindTxt = gained ? " · 마음 [" + AU.PERMA[m.perma] + "] +" + gained : "";
+        this.toast((points ? "현실 미션 완료! 훈련 포인트 +" + points : (r.rewarded && capped ? "이번 주 훈련 포인트 한도에 도달해 포인트는 지급되지 않았습니다" : "현실 미션 완료")) + mindTxt, "good");
       }
       this.save("mission"); this.changed(); return true;
     },
+    /* ---------- 마음 스탯(PERMA 5): 현실 미션을 수행하면 오르는 수치 ----------
+       전투 스탯과 따로 보관하며 전투 능력에는 영향을 주지 않습니다(게임 효과 연결은 [미정]). 같은 미션의 보상은 한 번만. */
+    gainMind(k, n) {
+      const S = this.S; if (!AU.PERMA[k] || !(n > 0)) return 0;
+      S.mindStats[k] = (S.mindStats[k] || 0) + n;
+      S.mind.last = { k, n, t: AU.dateStr() }; // 가장 최근에 오른 영역(스탯 창에 '방금 +N' 표시)
+      this.log("마음 스탯 [" + AU.PERMA[k] + "] +" + n + " (현재 " + S.mindStats[k] + ")");
+      return n;
+    },
+    // 영역별 현재 목록에서 얻을 수 있는 최대치(막대 길이 기준). 미션이 늘면 자동으로 늘어남
+    mindMax(k) { return AU.MISSIONS.filter((m) => m.perma === k).reduce((a, m) => a + m.points, 0); },
     // 영역별(PERMA) 주간 완료 횟수: 마음 기록 화면용
     permaCounts() {
       const out = {}; for (const k of Object.keys(AU.PERMA)) out[k] = 0;
@@ -283,6 +296,10 @@ window.AU = window.AU || {};
       // 버전이 달라도 새 항목은 기본값으로 채움(구조 변경 대응)
       const merged = Object.assign(base, raw);
       for (const k of ["stats", "alloc", "equip", "flags", "skills", "missions", "mind"]) merged[k] = Object.assign(base[k], raw[k] || {});
+      if (!raw.mindStats) { // 마음 스탯 도입 전 저장: 이미 보상받은 미션 점수로 계산해 채움
+        merged.mindStats = { P: 0, E: 0, R: 0, M: 0, A: 0 };
+        for (const m of AU.MISSIONS) { const r = merged.missions.states[m.id]; if (r && r.rewarded && merged.mindStats[m.perma] != null) merged.mindStats[m.perma] += m.points; }
+      } else merged.mindStats = Object.assign(base.mindStats, raw.mindStats);
       merged.profile = AU.Profile ? AU.Profile.clean(raw.profile) : { name: "", gender: "" };
       merged.v = C.save.version; merged.inv = raw.inv || {}; merged.quests = raw.quests || {}; merged.visited = raw.visited || { arche: true };
       // 프롤로그 추가 전(v1) 저장: 이미 시작한 본편 진행을 그대로 유지하고 프롤로그는 '완료'로 간주(필요하면 제목 화면에서 다시 볼 수 있음)

@@ -378,6 +378,20 @@ window.AU = window.AU || {};
     b.append(slots, h("div", { class: "split" }, list, pv));
   };
 
+  /* 마음 능력치(PERMA 5) 표시: 수치·막대·방금 오른 양. 스탯 창과 수행 기록 탭에서 같이 씀 */
+  UI.mindBlock = function () {
+    const S = AU.G.S, ms = S.mindStats || {}, last = S.mind && S.mind.last;
+    const box = h("div", { class: "mindbox" }, h("h3", { text: "마음 능력치" }));
+    for (const [k, n] of Object.entries(AU.PERMA)) {
+      const v = ms[k] || 0, mx = Math.max(AU.G.mindMax(k), v, 1);
+      box.append(h("div", { class: "mrow" + (last && last.k === k ? " fresh" : ""), "data-perma": k },
+        h("b", { text: k }), h("span", { class: "mn", text: n }), h("div", { class: "mbar" }, h("i", { style: "width:" + Math.round(v / mx * 100) + "%" })),
+        h("em", { class: "mv", text: v + " / " + mx }), h("span", { class: "mup", text: last && last.k === k ? "방금 +" + last.n : "" })));
+    }
+    box.append(h("p", { class: "note", text: "현실 미션을 완료하면 해당 영역 수치가 오릅니다. 전투 능력치와는 별개이며, 지금은 수치만 쌓입니다." }));
+    return box;
+  };
+
   R.stats = function (b) {
     const S = AU.G.S, P = UI.pending, pend = Object.values(P).reduce((a, c) => a + c, 0), pool = AU.G.pool(), left = pool - pend;
     const tot = {}; for (const k of Object.keys(S.stats)) tot[k] = AU.statTotal(S, k) + P[k];
@@ -396,6 +410,7 @@ window.AU = window.AU || {};
     const eq = AU.equipBonus(S);
     const cmp = (label, k, u, bonus) => h("div", { class: "cmp" }, h("span", { text: label }), h("b", { text: d0[k] + u }), d1[k] !== d0[k] ? h("span", { text: "→ " }) : null, d1[k] !== d0[k] ? h("b", { class: "up", text: d1[k] + u }) : null, bonus ? h("em", { text: "장비 +" + bonus + u }) : null);
     const derived = h("div", { class: "derived" }, h("h3", { text: "전투 능력치" }), cmp("공격력", "atk", "", eq.atk), cmp("최대 HP", "maxHp", "", eq.hp), cmp("회피율", "dodge", "%", eq.dodge), cmp("치명타율", "crit", "%", eq.crit), cmp(C.resource.name + " 효율", "eff", "%", 0));
+    derived.append(UI.mindBlock());
     const actions = h("div", { class: "statactions" }, btn("초기화", "", () => { UI.resetPending(); UI.renderWin(); }, { disabled: pend ? null : "" }), btn("적용 (" + pend + "점)", "primary", () => { const a = {}; for (const k of Object.keys(P)) if (P[k]) a[k] = P[k]; if (AU.G.applyAllocation(a)) UI.resetPending(); UI.renderWin(); }, { disabled: pend ? null : "" }));
     const hint = pool > 0 ? "＋ 버튼으로 미리 배분한 뒤 [적용]을 눌러야 확정·저장됩니다. 창을 닫으면 미적용분은 취소됩니다." : (S.jobChanged ? "남은 포인트가 없습니다. 레벨업(11레벨부터)이나 현실 미션으로 포인트를 얻을 수 있습니다." : "1~9레벨은 능력치가 자동으로 성장합니다. 10레벨 전직 후부터 직접 분배합니다.");
     b.append(h("div", { class: "statlayout" }, left1, h("div", { class: "statmid" }, rows, h("p", { class: "note", text: hint }), actions), derived));
@@ -494,6 +509,7 @@ window.AU = window.AU || {};
       b.append(grid);
     } else if (tab === "record") {
       const cnt = AU.G.permaCounts();
+      b.append(UI.mindBlock());
       b.append(h("div", { class: "permabar" }, Object.entries(AU.PERMA).map(([k, n]) => h("div", { class: "pc" }, h("b", { text: k }), h("span", { text: n }), h("em", { text: cnt[k] + "회" })))));
       const rows = S.missions.log.slice().reverse();
       b.append(h("p", { class: "note", text: "인증 방식은 아직 정해지지 않아 모두 ‘직접 기록’입니다." }));
