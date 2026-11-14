@@ -384,6 +384,10 @@ window.AU = window.AU || {};
     drawHero(ctx, p, pose, moving) {
       if (!this.heroArt()) return false;
       const A = AU.PArt, nm = p.pose && p.pose.name; let sheet = "actions", fr = "idle";
+      const wk = this.heroKey("work"), W = AU.Img.has(wk);   // 목공 동작 시트(있을 때만): 목재 안아 들기·건네기·망치
+      if (W && this.v.give) return A.spr(ctx, wk, "give", p.x, p.y, p.dir);
+      if (W && nm === "hammer") return A.spr(ctx, wk, (this.v.swing || 0) > 0.5 ? "swing_dn" : "swing_up", p.x, p.y, p.dir);
+      if (W && this.v.carry && p.onGround) return A.spr(ctx, wk, "carry", p.x, p.y - (moving ? Math.abs(Math.sin(AU.World.time * 9)) * 2 : 0), p.dir);
       if (nm === "hammer") fr = (this.v.swing || 0) > 0.5 ? "hammer2" : "hammer1";
       else if (nm === "kneel") fr = "kneel"; else if (nm === "shrug") fr = "shrug"; else if (nm === "lookback") fr = "lookback";
       else if (!p.onGround) { sheet = "locomotion"; fr = p.vy < 0 ? "jump_up" : "jump_down"; }
@@ -445,7 +449,7 @@ window.AU = window.AU || {};
     drawPlayerExtras(ctx, p, pose) {
       const A = AU.PArt, d = p.dir, art = this.heroArt();
       if (this.v.bag || this.flag("carpenter_bag_acquired")) { const b = this.bagDyn(p); if (!A.bagBack(ctx, p.x - d * 20, p.y - 74 + b.y, 58, d, b.r)) A.bag(ctx, p.x - d * 22, p.y - 70 + b.y, 0.62, d * 0.1 + b.r); }
-      if (this.v.carry) A.plank(ctx, p.x + d * 4, p.y - (art ? 96 : 126), 120, -0.06 * d);
+      if (this.v.carry && !(art && AU.Img.has(this.heroKey("work")))) A.plank(ctx, p.x + d * 4, p.y - (art ? 96 : 126), 120, -0.06 * d);
       if (art) return; // 정식 그림은 망치를 손에 든 모습으로 그려져 있음
       if (pose && pose.hammer) { const sw = this.v.swing || 0; A.hammer(ctx, p.x + d * 30, p.y - 82, d * (0.6 + sw * 1.5), 1); }
       else if (this.v.tool) A.hammer(ctx, p.x + d * 26, p.y - 62, d * 0.3, 0.8);
