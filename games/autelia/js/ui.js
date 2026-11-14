@@ -28,7 +28,7 @@ window.AU = window.AU || {};
     if (/^Numpad\d$/.test(code)) return "숫자패드 " + code.slice(6);
     return code;
   };
-  const VIGOR_TIP = "활력: 스킬을 쓸 때 줄어드는 힘입니다(다른 게임의 마나와 비슷). 기본 공격은 활력을 쓰지 않습니다. 현재는 매주 월요일에 가득 채워집니다.";
+  const FATIGUE_TIP = "피로도: 스킬을 쓸 때마다 쌓이는 수치입니다(마나와 반대로 0에서 시작해 늘어납니다). 가득 차면 스킬을 쓸 수 없지만 기본 공격은 언제나 쓸 수 있습니다. 쉼 현실 미션이나 은화로 휴식하면 줄어들고, 매주 월요일에 풀립니다.";
   const keyOf = (actionId) => AU.keyLabel(AU.Input.bindings[actionId]);
 
   const UI = AU.UI = {
@@ -40,6 +40,7 @@ window.AU = window.AU || {};
       this.root = $("#ui"); this.hud = {};
       this.buildHud();
       AU.Ev.on("toast", (t) => this.toast(t.text, t.kind));
+      AU.Ev.on("fatigue", (e) => this.fatigueDelta(e)); // 피로도가 바뀔 때 막대 옆에 +N / −N 표시
       AU.Ev.on("changed", () => { this.updateHud(true); if (this.cur && this.curName !== "keysettings" && this.curName !== "dev") this.renderWin(); });
       AU.Ev.on("levelup", (d) => this.levelBanner(d.level));
       AU.Ev.on("jobchange", () => { this.afterDialog.push("jobcard"); if (!this.dialog) this.flushAfter(); });
@@ -53,12 +54,12 @@ window.AU = window.AU || {};
     buildHud() {
       const R = this.root;
       R.innerHTML = "";
-      // 하단 중앙: 캐릭터 상태(레벨·직업·HP·활력·경험치)
+      // 하단 중앙: 캐릭터 상태(레벨·직업·HP·피로도·경험치)
       const hp = h("div", { class: "bar hp" }, h("i"), h("b")), rs = h("div", { class: "bar rs" }, h("i"), h("b")), ex = h("div", { class: "bar ex" }, h("i"), h("b"));
       this.hud.lv = h("div", { class: "lvbadge" }); this.hud.job = h("div", { class: "jobname" });
       const panel = h("div", { id: "hudpanel", class: "panel hudpanel" }, h("div", { class: "hudmain" }, h("div", { class: "hudhead" }, this.hud.lv, this.hud.job), h("div", { class: "hudbars" }, hp, rs)), ex);
       this.hud.hp = hp; this.hud.rs = rs; this.hud.ex = ex;
-      rs.title = VIGOR_TIP; rs.style.cursor = "help";
+      rs.title = FATIGUE_TIP; rs.style.cursor = "help"; this.hud.rsDelta = h("span", { class: "fdelta" }); rs.append(this.hud.rsDelta);
       // 좌측 상단: 미니맵 + 현재 퀘스트
       this.hud.mapLabel = h("div", { class: "minilabel" });
       this.hud.mini = h("canvas", { class: "minicv", width: 428, height: 150, title: "클릭하면 월드맵" });
@@ -101,12 +102,18 @@ window.AU = window.AU || {};
     },
     setText(el, key, v) { if (this.hud.cache[key] !== v) { this.hud.cache[key] = v; el.textContent = v; } },
     setStyle(el, key, prop, v) { const k = key + prop; if (this.hud.cache[k] !== v) { this.hud.cache[k] = v; el.style[prop] = v; } },
+    fatigueDelta(e) {
+      const el = this.hud && this.hud.rsDelta; if (!el || !e || !e.delta) return;
+      el.textContent = (e.delta > 0 ? "+" : "−") + Math.abs(e.delta); el.className = "fdelta show " + (e.delta > 0 ? "up" : "down");
+      clearTimeout(this._fdT); this._fdT = setTimeout(() => { el.className = "fdelta"; }, 1800);
+    },
     updateHud() {
       const S = AU.G.S, d = AU.G.d(), W = AU.World, p = W.player;
       this.setText(this.hud.lv, "lv", "Lv." + S.level); this.setText(this.hud.job, "job", AU.jobName(S));
       const hpv = Math.max(0, Math.ceil(S.hp));
       this.setStyle(this.hud.hp.firstChild, "hp", "width", Math.max(0, Math.min(100, S.hp / d.maxHp * 100)).toFixed(1) + "%"); this.setText(this.hud.hp.lastChild, "hpt", "HP " + hpv + " / " + d.maxHp);
-      this.setStyle(this.hud.rs.firstChild, "rs", "width", (S.resource / S.resourceMax * 100).toFixed(1) + "%"); this.setText(this.hud.rs.lastChild, "rst", C.resource.name + " " + (+S.resource.toFixed(1)) + " / " + S.resourceMax);
+      this.setStyle(this.hud.rs.firstChild, "rs", "width", (S.fatigue / S.fatigueMax * 100).toFixed(1) + "%"); this.setText(this.hud.rs.children[1], "rst", C.fatigue.name + " " + (+S.fatigue.toFixed(1)) + " / " + S.fatigueMax);
+      this.hud.rs.classList.toggle("full", S.fatigue >= S.fatigueMax - 1e-6);
       const need = AU.expToNext(S.level), atCap = S.level >= AU.levelCap(S);
       this.setStyle(this.hud.ex.firstChild, "ex", "width", (atCap && !S.jobChanged ? 100 : Math.min(100, S.exp / need * 100)).toFixed(1) + "%");
       this.setText(this.hud.ex.lastChild, "ext", atCap && !S.jobChanged ? "EXP 전직 필요" : "EXP " + S.exp + " / " + need + " (" + (S.exp / need * 100).toFixed(1) + "%)");
@@ -396,7 +403,7 @@ window.AU = window.AU || {};
     const S = AU.G.S, P = UI.pending, pend = Object.values(P).reduce((a, c) => a + c, 0), pool = AU.G.pool(), left = pool - pend;
     const tot = {}; for (const k of Object.keys(S.stats)) tot[k] = AU.statTotal(S, k) + P[k];
     const d0 = AU.G.d(), d1 = AU.derive(S, { stats: tot });
-    const NAMES = { STR: ["근력", "공격력"], VIT: ["체력", "최대 HP"], AGI: ["민첩", "회피"], DEX: ["기교", "치명타"], WIL: ["의지", C.resource.name + " 효율"] };
+    const NAMES = { STR: ["근력", "공격력"], VIT: ["체력", "최대 HP"], AGI: ["민첩", "회피"], DEX: ["기교", "치명타"], WIL: ["의지", "스킬 피로 효율"] };
     const pk = AU.Profile.portraitKey(), pt = AU.Img.has(pk) ? h("img", { src: AU.ASSETS[pk].path, alt: "" }) : h("div", { class: "ptfallback", text: "나" });
     const left1 = h("div", { class: "statchar" }, h("div", { class: "pt" }, pt), h("div", { class: "cname", text: "모험가" }), h("div", { class: "clv", text: "Lv." + S.level + " · " + AU.jobName(S) }),
       h("div", { class: "ptbox" }, h("div", { class: "ptrow" }, h("span", { text: "레벨 포인트" }), h("b", { text: S.freePoints })), h("div", { class: "ptrow" }, h("span", { text: "훈련 포인트" }), h("b", { text: S.trainingPoints })), h("div", { class: "ptrow big" }, h("span", { text: "분배 가능" }), h("b", { text: left }))),
@@ -409,7 +416,7 @@ window.AU = window.AU || {};
     }
     const eq = AU.equipBonus(S);
     const cmp = (label, k, u, bonus) => h("div", { class: "cmp" }, h("span", { text: label }), h("b", { text: d0[k] + u }), d1[k] !== d0[k] ? h("span", { text: "→ " }) : null, d1[k] !== d0[k] ? h("b", { class: "up", text: d1[k] + u }) : null, bonus ? h("em", { text: "장비 +" + bonus + u }) : null);
-    const derived = h("div", { class: "derived" }, h("h3", { text: "전투 능력치" }), cmp("공격력", "atk", "", eq.atk), cmp("최대 HP", "maxHp", "", eq.hp), cmp("회피율", "dodge", "%", eq.dodge), cmp("치명타율", "crit", "%", eq.crit), cmp(C.resource.name + " 효율", "eff", "%", 0));
+    const derived = h("div", { class: "derived" }, h("h3", { text: "전투 능력치" }), cmp("공격력", "atk", "", eq.atk), cmp("최대 HP", "maxHp", "", eq.hp), cmp("회피율", "dodge", "%", eq.dodge), cmp("치명타율", "crit", "%", eq.crit), cmp("스킬 피로 감소", "eff", "%", 0));
     derived.append(UI.mindBlock());
     const actions = h("div", { class: "statactions" }, btn("초기화", "", () => { UI.resetPending(); UI.renderWin(); }, { disabled: pend ? null : "" }), btn("적용 (" + pend + "점)", "primary", () => { const a = {}; for (const k of Object.keys(P)) if (P[k]) a[k] = P[k]; if (AU.G.applyAllocation(a)) UI.resetPending(); UI.renderWin(); }, { disabled: pend ? null : "" }));
     const hint = pool > 0 ? "＋ 버튼으로 미리 배분한 뒤 [적용]을 눌러야 확정·저장됩니다. 창을 닫으면 미적용분은 취소됩니다." : (S.jobChanged ? "남은 포인트가 없습니다. 레벨업(11레벨부터)이나 현실 미션으로 포인트를 얻을 수 있습니다." : "1~9레벨은 능력치가 자동으로 성장합니다. 10레벨 전직 후부터 직접 분배합니다.");
@@ -474,14 +481,18 @@ window.AU = window.AU || {};
 
   R.skills = function (b) {
     const S = AU.G.S;
-    if (!S.jobChanged) { b.append(h("div", { class: "lockbox" }, h("h3", { text: "아직 배운 스킬이 없습니다" }), h("p", { text: "10레벨 전직 후 직업 스킬이 열립니다. (현재 " + AU.jobName(S) + " · Lv." + S.level + ")" }), h("p", { class: "note", text: "기본 공격(" + keyOf("attack") + ")은 " + C.resource.name + "을 쓰지 않습니다." }))); return; }
-    b.append(h("p", { class: "note vigor", text: "활력이란? " + VIGOR_TIP }));
+    if (!S.jobChanged) { b.append(h("div", { class: "lockbox" }, h("h3", { text: "아직 배운 스킬이 없습니다" }), h("p", { text: "10레벨 전직 후 직업 스킬이 열립니다. (현재 " + AU.jobName(S) + " · Lv." + S.level + ")" }), h("p", { class: "note", text: "기본 공격(" + keyOf("attack") + ")은 " + C.fatigue.name + "가 쌓이지 않습니다." }))); return; }
+    b.append(h("p", { class: "note vigor", text: FATIGUE_TIP.replace(/^피로도: /, "피로도란? ") }));
+    const full = S.fatigue >= S.fatigueMax - 1e-6;
+    b.append(h("div", { class: "restbox" + (full ? " full" : "") }, h("b", { text: "피로도 " + S.fatigue + " / " + S.fatigueMax }), h("span", { text: full ? "가득 찼습니다. 스킬을 쓰려면 먼저 줄여 주세요." : "스킬을 쓸수록 쌓입니다." }),
+      btn("휴식하기 (은화 " + AU.G.restPrice() + " · 피로도 −" + C.fatigue.restSilverRecover + ")", "mini", () => AU.G.restWithSilver(), { title: "오늘 남은 횟수 " + AU.G.restSilverLeft() + "회" }),
+      S.flags.missionsUnlocked ? btn("쉼 현실 미션 보기", "mini", () => { UI.tab.j = "rest"; UI.open("journal"); }) : null));
     const slots = h("div", { class: "skslots" }, [0, 1, 2].map((i) => { const id = S.skills.slots[i]; return h("div", { class: "skslot" }, h("div", { class: "skey", text: keyOf("skill" + (i + 1)) }), h("div", { class: "skname", text: id ? AU.SKILLS[id].name.replace(" (임시)", "") : "비어 있음" }), id ? btn("해제", "mini", () => { S.skills.slots[i] = null; AU.G.save("skill"); AU.G.changed(); }) : null); }));
     const list = h("div", { class: "sklist" });
     for (const id of S.skills.unlocked) {
       const sk = AU.SKILLS[id], inSlot = S.skills.slots.indexOf(id);
       list.append(h("div", { class: "skitem" }, h("div", { class: "skhead" }, h("b", { text: sk.name }), inSlot >= 0 ? h("span", { class: "tag", text: "슬롯 " + (inSlot + 1) }) : null), h("p", { text: sk.desc }),
-        h("div", { class: "stat", text: C.resource.name + " 소모 " + AU.G.skillCost(id) + (AU.G.skillCost(id) !== sk.cost ? " (기본 " + sk.cost + ", 의지 효율 적용)" : "") + " · 재사용 대기 " + sk.cd + "초" }),
+        h("div", { class: "stat", text: "피로도 +" + AU.G.skillCost(id) + (AU.G.skillCost(id) !== sk.cost ? " (기본 " + sk.cost + ", 의지 효율 적용)" : "") + " · 재사용 대기 " + sk.cd + "초" }),
         h("div", { class: "assign" }, [0, 1, 2].map((i) => btn("슬롯 " + (i + 1) + " (" + keyOf("skill" + (i + 1)) + ")", S.skills.slots[i] === id ? "on" : "mini", () => { const prev = S.skills.slots.indexOf(id); if (prev >= 0) S.skills.slots[prev] = S.skills.slots[i]; S.skills.slots[i] = id; AU.G.save("skill"); AU.G.changed(); })))));
     }
     b.append(h("h4", { text: "단축 슬롯" }), slots, h("h4", { text: "배운 스킬" }), list, h("p", { class: "note", text: "단축키 자체는 키보드 설정(" + keyOf("keysettings") + ")에서 바꿀 수 있습니다. 새로운 직업 스킬은 이 목록에 추가되는 구조입니다." }));
@@ -490,7 +501,7 @@ window.AU = window.AU || {};
   R.journal = function (b) {
     const S = AU.G.S, un = S.flags.missionsUnlocked;
     const tab = !un ? "log" : (UI.tab.j || "missions");
-    if (un) b.append(h("div", { class: "tabs" }, [["missions", "현실 미션"], ["record", "수행 기록"], ["log", "모험 기록"]].map(([k, l]) => btn(l, tab === k ? "on" : "", () => { UI.tab.j = k; UI.renderWin(); }))));
+    if (un) b.append(h("div", { class: "tabs" }, [["missions", "현실 미션"], ["rest", "쉼"], ["record", "수행 기록"], ["log", "모험 기록"]].map(([k, l]) => btn(l, tab === k ? "on" : "", () => { UI.tab.j = k; UI.renderWin(); }))));
     if (tab === "log") {
       const rows = S.journal.slice().reverse(); b.append(h("div", { class: "logs" }, rows.map((e) => h("div", { class: "logrow" }, h("span", { text: e.t }), h("b", { text: e.text })))));
     } else if (tab === "missions") {
@@ -507,6 +518,13 @@ window.AU = window.AU || {};
           h("b", { text: m.title }), h("p", { text: m.desc }), acts.length ? h("div", { class: "macts" }, acts.map(([l, c, a]) => btn(l, c, () => AU.G.setMissionState(m.id, a)))) : null));
       }
       b.append(grid);
+    } else if (tab === "rest") {
+      b.append(h("p", { class: "note", text: "쉼 미션은 선택입니다. 하지 않아도 모험은 계속할 수 있고, 하면 피로도가 줄어듭니다. 같은 미션은 하루에 한 번입니다. 직접 해 보고 ‘해 봤어요’를 눌러 주세요." }), h("div", { class: "restbox" }, h("b", { text: "피로도 " + S.fatigue + " / " + S.fatigueMax })));
+      const grid = h("div", { class: "missions" });
+      for (const m of AU.REST_MISSIONS) { const ok = AU.G.restMissionAvailable(m.id);
+        grid.append(h("div", { class: "mission st-" + (ok ? "available" : "done") }, h("div", { class: "mh" }, h("span", { class: "tag", text: "쉼 · 피로도 −" + m.recover }), h("span", { class: "tag", text: ok ? "오늘 가능" : "오늘 완료" })), h("b", { text: m.title }), h("p", { text: m.desc }),
+          ok ? h("div", { class: "macts" }, btn("해 봤어요", "primary", () => AU.G.doRestMission(m.id))) : null)); }
+      b.append(grid);
     } else if (tab === "record") {
       const cnt = AU.G.permaCounts();
       b.append(UI.mindBlock());
@@ -521,7 +539,7 @@ window.AU = window.AU || {};
   R.jobcard = function (b) {
     const S = AU.G.S;
     b.append(h("div", { class: "jobcard" }, h("h2", { text: "전사로 전직했습니다!" }), h("p", { text: "견습 모험가에서 전사가 되었습니다. 다음 기능이 열렸어요." }),
-      h("ul", null, h("li", { text: "스탯 분배: 포인트 " + S.freePoints + "점이 지급되었습니다. 스탯창(" + keyOf("stats") + ")에서 직접 나눠 보세요." }), h("li", { text: "전사 스킬: 1·2·3 슬롯에 배치되어 있습니다. 스킬창(" + keyOf("skills") + ")에서 바꿀 수 있습니다." }), h("li", { text: "활력: 스킬을 쓸 때 줄어드는 힘입니다. 기본 공격은 쓰지 않으며, 매주 월요일에 가득 채워집니다." }),
+      h("ul", null, h("li", { text: "스탯 분배: 포인트 " + S.freePoints + "점이 지급되었습니다. 스탯창(" + keyOf("stats") + ")에서 직접 나눠 보세요." }), h("li", { text: "전사 스킬: 1·2·3 슬롯에 배치되어 있습니다. 스킬창(" + keyOf("skills") + ")에서 바꿀 수 있습니다." }), h("li", { text: "피로도: 스킬을 쓸 때마다 쌓이며, 가득 차면 스킬을 쓸 수 없습니다(기본 공격은 가능). 휴식이나 쉼 미션으로 줄일 수 있고, 매주 월요일에 풀립니다." }),
         h("li", { text: "모험일지(" + keyOf("journal") + "): 현실 활동 미션이 열렸습니다. 선택 사항이며, 포르투 노바의 모험 안내인이 소개해 줍니다." }),
         h("li", { text: "다음 목표: " + AU.JOB_TIERS.slice(1).map((t) => "Lv." + t.level + " " + t.name).join(" / ") })),
       h("div", { class: "choices" }, btn("스탯 분배하러 가기", "primary", () => UI.open("stats")), btn("계속 모험하기", "", () => UI.close()))));
@@ -582,8 +600,8 @@ window.AU = window.AU || {};
       h("div", { class: "devgrid" },
         h("div", null, h("h4", { text: "레벨·경험치" }), num("dv-lv", S.level), btn("이 레벨까지 올리기", "mini", () => { const t = +$("#dv-lv", UI.winEl).value; let g = 0; while (AU.G.S.level < Math.min(t, AU.levelCap(AU.G.S)) && g++ < 100) AU.G.gainExp(AU.expToNext(AU.G.S.level) - AU.G.S.exp, "dev"); }),
           num("dv-exp", 100), btn("경험치 지급", "mini", () => AU.G.gainExp(+$("#dv-exp", UI.winEl).value, "dev"))),
-        h("div", null, h("h4", { text: C.resource.name + " (자원)" }), num("dv-rs", S.resource), btn("현재값 설정", "mini", () => AU.G.setResource(+$("#dv-rs", UI.winEl).value)),
-          num("dv-rsmax", S.resourceMax), btn("최대값 설정", "mini", () => AU.G.setResourceMax(+$("#dv-rsmax", UI.winEl).value)), btn("주간 갱신 실행", "mini", () => AU.G.refreshWeekly(true))),
+        h("div", null, h("h4", { text: C.fatigue.name }), num("dv-rs", S.fatigue), btn("현재값 설정", "mini", () => AU.G.setFatigue(+$("#dv-rs", UI.winEl).value, "dev")),
+          num("dv-rsmax", S.fatigueMax), btn("최대값 설정", "mini", () => AU.G.setFatigueMax(+$("#dv-rsmax", UI.winEl).value)), btn("주간 갱신 실행", "mini", () => AU.G.refreshWeekly(true))),
         h("div", null, h("h4", { text: "기타" }), btn("HP 전부 회복", "mini", () => { S.hp = AU.G.d().maxHp; AU.G.changed(); }), btn("은화 +100", "mini", () => { AU.G.gainSilver(100); AU.G.changed(); }), btn("훈련 포인트 +3 (지급 경로 우회)", "mini", () => { S.trainingPoints += 3; AU.G.changed(); }),
           btn("전직 시험 퀘스트 바로 완료 준비", "mini", () => { if (!S.jobChanged && S.level >= 10) { S.quests.q_job = { state: "ready", prog: [1] }; AU.G.changed(); AU.G.toast("전직 담당에게 가면 전직합니다.", "info"); } else AU.G.toast("10레벨 이상 · 미전직 상태에서만 가능합니다.", "warn"); })),
         h("div", null, h("h4", { text: "마음 기록 인터페이스 시험" }), btn("PSS 샘플 기록 추가", "mini", () => AU.G.addCheckin({ scale: "PSS", score: 12, items: null, source: "dev-sample" })), h("p", { class: "note", text: "기록 " + S.mind.checkins.length + "건. 게임 자원과 별도 저장되며, 점수→" + C.resource.name + " 환산은 하지 않습니다." }))));

@@ -11,7 +11,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   p.on('pageerror', (e) => errs.push('PAGEERR ' + e.message)); p.on('console', (m) => { if (m.type() === 'error' && !/ERR_TUNNEL|Failed to load resource/.test(m.text())) errs.push('CONSOLE ' + m.text()); });
   p.on('dialog', (d) => d.accept());
   const ev = (fn, arg) => p.evaluate(fn, arg);
-  const S = () => ev(() => { const g = AU.G.S, w = AU.World, d = AU.G.d(); return { lv: g.level, exp: g.exp, hp: Math.round(g.hp * 10) / 10, maxHp: d.maxHp, atk: d.atk, res: g.resource, x: Math.round(w.player.x), y: Math.round(w.player.y), map: w.mapId, stats: JSON.stringify(g.stats), silver: g.silver, tp: g.trainingPoints, fp: g.freePoints, job: g.job, ui: AU.UI.curName, dlg: !!AU.UI.dialog }; });
+  const S = () => ev(() => { const g = AU.G.S, w = AU.World, d = AU.G.d(); return { lv: g.level, exp: g.exp, hp: Math.round(g.hp * 10) / 10, maxHp: d.maxHp, atk: d.atk, res: g.fatigue, x: Math.round(w.player.x), y: Math.round(w.player.y), map: w.mapId, stats: JSON.stringify(g.stats), silver: g.silver, tp: g.trainingPoints, fp: g.freePoints, job: g.job, ui: AU.UI.curName, dlg: !!AU.UI.dialog }; });
   const win = () => ev(() => { const t = document.querySelector('.window .wtitle span'); return t ? t.textContent : null; });
   const fresh = async () => { await p.goto(URL); await ev(() => localStorage.clear()); await p.goto(URL); await p.waitForSelector('#btn-start'); await p.click('#btn-start'); await sleep(300); if (await p.$('#charsetup')) { await p.fill('#sname', '시험용'); await p.click('#setup-ok'); await sleep(300); } await ev(() => AU.Prologue.debugComplete('arche')); await sleep(200); };
   const holdUntil = async (key, cond, max = 6000, step = 80) => { await p.keyboard.down(key); const t0 = Date.now(); let ok = false; while (Date.now() - t0 < max) { if (await ev(cond)) { ok = true; break; } await sleep(step); } await p.keyboard.up(key); return ok; };
@@ -162,19 +162,19 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const st1 = await S();
   note('8b', '스탯 분배: 미리보기·미적용 취소·적용·전투 반영', /→/.test(prevTxt) && stCancel.stats === st0.stats && stCancel.fp === st0.fp && st1.atk === st0.atk + 2 && st1.fp + st1.tp === st0.fp + st0.tp - 3, `미리보기 문구="${prevTxt.replace(/\s+/g, ' ').slice(0, 60)}", 미적용 닫기 후 포인트 ${stCancel.fp}+${stCancel.tp}(변화 없음), 적용 후 공격력 ${st0.atk}→${st1.atk}, 포인트 ${st0.fp + st0.tp}→${st1.fp + st1.tp}`);
 
-  // ===== 14. 스킬 자원 =====
+  // ===== 14. 피로도(스킬로 쌓임) =====
   await goto('porto', 300); await sleep(100);
-  await ev(() => { AU.G.setResource(100); AU.G.S.hp = 10; AU.G.changed(); });
+  await ev(() => { AU.G.setFatigue(0); AU.G.S.hp = 10; AU.G.changed(); });
   const c1 = await ev(() => [AU.G.skillCost('strike'), AU.G.skillCost('spin'), AU.G.skillCost('focus')]);
   const rA = (await S()).res; await p.keyboard.press('Control'); await sleep(150); const rBasic = (await S()).res; // 기본 공격은 소모 없음
   await p.keyboard.press('1'); await sleep(150); const rB = (await S()).res;
   await p.keyboard.press('1'); await sleep(100); const rC = (await S()).res; // 쿨다운 중
   await sleep(500); await p.keyboard.press('2'); await sleep(150); const rD = (await S()).res;
   await sleep(500); await p.keyboard.press('3'); await sleep(150); const sE = await S();
-  await ev(() => AU.G.setResource(5)); await sleep(3200); await p.keyboard.press('1'); await sleep(150); const rF = (await S()).res;
+  await ev(() => AU.G.setFatigue(100)); await sleep(3200); await p.keyboard.press('1'); await sleep(150); const rF = (await S()).res;
   const round1 = (n) => Math.round(n * 10) / 10;
-  note('14', '스킬 사용 시 자원 비용·부족 제한', rBasic === rA && round1(rA - rB) === c1[0] && rC === rB && round1(rB - rD) === c1[1] && round1(100 - c1[0] - c1[1] - sE.res) === c1[2] - 0 + 0 && sE.hp > 10 && rF === 5,
-    `실제 비용(의지 효율 적용) 강타=${c1[0]}, 회전 베기=${c1[1]}, 숨 고르기=${c1[2]} / 기본공격 후 ${rA}→${rBasic}(소모 없음), 강타 ${rA}→${rB}, 쿨다운 중 재입력 ${rB}→${rC}, 회전 베기 →${rD}, 숨 고르기 후 자원 ${sE.res}·HP 10→${sE.hp}, 자원 5일 때 강타 입력 후 ${rF}(차감 없음)`);
+  note('14', '스킬 사용 시 피로도 증가·가득 차면 제한', rBasic === rA && round1(rB - rA) === c1[0] && rC === rB && round1(rD - rB) === c1[1] && round1(c1[0] + c1[1] + c1[2] - sE.res) === 0 && sE.hp > 10 && rF === 100,
+    `실제 증가량(의지 효율 적용) 강타=${c1[0]}, 회전 베기=${c1[1]}, 숨 고르기=${c1[2]} / 기본공격 후 ${rA}→${rBasic}(변화 없음), 강타 ${rA}→${rB}, 쿨다운 중 재입력 ${rB}→${rC}, 회전 베기 →${rD}, 숨 고르기 후 피로도 ${sE.res}·HP 10→${sE.hp}, 피로도 100일 때 강타 입력 후 ${rF}(증가 없음)`);
 
   // ===== 9. 키보드 설정 =====
   await p.keyboard.press('\\'); await sleep(120);
@@ -199,9 +199,9 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
   // ===== 15. 저장/복원 =====
   await goto('porto', 900); await ev(() => { AU.G.save('test'); });
-  const before = await ev(() => { const g = AU.G.S; return JSON.stringify({ lv: g.level, exp: g.exp, job: g.job, equip: g.equip, quests: Object.fromEntries(Object.entries(g.quests).map(([k, v]) => [k, v.state])), map: g.map, res: g.resource, alloc: g.alloc, inv: g.inv, ms: g.flags.missionsUnlocked, mst: g.missions.states.m_p1, tp: g.trainingPoints }); });
+  const before = await ev(() => { const g = AU.G.S; return JSON.stringify({ lv: g.level, exp: g.exp, job: g.job, equip: g.equip, quests: Object.fromEntries(Object.entries(g.quests).map(([k, v]) => [k, v.state])), map: g.map, res: g.fatigue, alloc: g.alloc, inv: g.inv, ms: g.flags.missionsUnlocked, mst: g.missions.states.m_p1, tp: g.trainingPoints }); });
   await p.reload(); await p.waitForSelector('#btn-start'); const btnTxt = await p.textContent('#btn-start'); await p.click('#btn-start'); await sleep(300);
-  const after = await ev(() => { const g = AU.G.S; return JSON.stringify({ lv: g.level, exp: g.exp, job: g.job, equip: g.equip, quests: Object.fromEntries(Object.entries(g.quests).map(([k, v]) => [k, v.state])), map: g.map, res: g.resource, alloc: g.alloc, inv: g.inv, ms: g.flags.missionsUnlocked, mst: g.missions.states.m_p1, tp: g.trainingPoints }); });
+  const after = await ev(() => { const g = AU.G.S; return JSON.stringify({ lv: g.level, exp: g.exp, job: g.job, equip: g.equip, quests: Object.fromEntries(Object.entries(g.quests).map(([k, v]) => [k, v.state])), map: g.map, res: g.fatigue, alloc: g.alloc, inv: g.inv, ms: g.flags.missionsUnlocked, mst: g.missions.states.m_p1, tp: g.trainingPoints }); });
   const posAfter = await S();
   note('15', '저장 후 재실행 시 복원(레벨·장비·퀘스트·전직·미션·자원)', before === after && posAfter.map === 'porto' && Math.abs(posAfter.x - 900) < 40, `이어하기 버튼="${btnTxt}", 저장값=복원값 일치=${before === after}, 복원 위치=${posAfter.map}/${posAfter.x}`);
 

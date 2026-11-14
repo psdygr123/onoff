@@ -50,7 +50,7 @@ window.AU = window.AU || {};
       v: C.save.version, level: 1, exp: 0, job: "apprentice", jobChanged: false,
       stats: Object.assign({}, C.stats.base), alloc: { STR: 0, VIT: 0, AGI: 0, DEX: 0, WIL: 0 },
       freePoints: 0, trainingPoints: 0,
-      hp: 1, resource: C.resource.max, resourceMax: C.resource.max, resourceWeek: AU.weekId(),
+      hp: 1, fatigue: 0, fatigueMax: C.fatigue.max, fatigueWeek: AU.weekId(), rest: { done: {}, log: [], silverToday: { d: "", n: 0 } },
       silver: 0, inv: {}, equip: { weapon: null, armor: null, accessory: null },
       map: "pro_temple", x: AU.MAPS.pro_temple.start, visited: { pro_temple: true },
       profile: { name: "", gender: "" }, // 캐릭터 설정(닉네임·모습). 신규 시작 때 정함. 비어 있으면 기본값(주인공·남성형)

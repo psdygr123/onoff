@@ -39,8 +39,9 @@ AU.CONFIG = {
     maxEfficiency: 50
   },
 
-  // [미정] 회복 방법·회복량·PSS 환산은 정하지 않음. 모든 캐릭터에 같은 기본 자원을 줌
-  resource: { name: "활력", max: 100, weeklyRefresh: true, weekStartsOn: 1 },
+  // 피로도: 스킬을 쓸수록 쌓이고(0에서 시작), 가득 차면 스킬을 쓸 수 없음. 기본 공격은 쌓이지 않음.
+  // 줄이는 방법: 선택형 '쉼' 현실 미션(AU.REST_MISSIONS) 또는 은화(휴식). 주간 초기화는 막다른 길을 막는 안전장치(끄려면 false). 수치는 모두 임시.
+  fatigue: { name: "피로도", max: 100, weeklyReset: true, weekStartsOn: 1, restSilverBase: 20, restSilverPerLevel: 4, restSilverRecover: 40, restDailyLimit: 3 },
 
   // [미정] 지급 기준·주간 한도는 설정으로만 관리. 값은 임시
   missions: { weeklyPointCap: 6, partialPoints: 0 },

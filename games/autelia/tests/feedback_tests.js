@@ -1,4 +1,4 @@
-/* 2026-11-12 시험 피드백 반영 확인: 도입 글·이전 버튼·방향 화살표·퀘스트 추적창·조작 안내·활력 설명 */
+/* 2026-11-12 시험 피드백 반영 확인: 도입 글·이전 버튼·방향 화살표·퀘스트 추적창·조작 안내·피로도 설명 */
 const { chromium } = require('playwright');
 const URL = (process.env.GAME_URL || 'http://localhost:8801') + '/index.html?dev=1', SH = (process.env.SHOTS || '/tmp/claude-0/shots') + '/';
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms)); let pass = 0, fail = 0;
@@ -62,12 +62,12 @@ const note = (id, name, ok, ev) => { ok ? pass++ : fail++; console.log((ok ? 'PA
   await sleep(300); await p.keyboard.press('Space'); await sleep(200);
   const lines = []; for (let i = 0; i < 4; i++) { const l = await ev(() => document.querySelector('.dline') && document.querySelector('.dline').textContent); if (!l) break; lines.push(l); await p.keyboard.press('Space'); await sleep(150); }
   note('E1', '진행 중 재방문: 공격·점프 키 안내가 다시 나옴(키 이름 치환)', lines.some((l) => /공격은 .*Control.*|공격은 Ctrl|공격은 /.test(l) && !/\{attack\}/.test(l)) && !lines.some((l) => /\{/.test(l)), JSON.stringify(lines));
-  // ===== F. 활력 설명 =====
+  // ===== F. 피로도 설명 =====
   const tip = await ev(() => document.querySelector('.hudbars').children[1].title);
-  note('F1', 'HUD 활력 막대에 설명(마우스를 올리면)', /스킬을 쓸 때 줄어드는 힘/.test(tip), tip);
+  note('F1', 'HUD 피로도 막대에 설명(마우스를 올리면)', /스킬을 쓸 때마다 쌓이는 수치/.test(tip), tip);
   await ev(() => { AU.G.S.jobChanged = true; AU.G.S.skills.unlocked = ['strike', 'spin', 'focus']; AU.UI.open('skills'); }); await sleep(200);
   const sk = await ev(() => document.querySelector('.note.vigor') && document.querySelector('.note.vigor').textContent);
-  note('F2', '스킬 창 상단에 활력 설명', !!sk && /활력이란/.test(sk), sk);
+  note('F2', '스킬 창 상단에 피로도 설명', !!sk && /피로도란/.test(sk), sk);
   await p.screenshot({ path: SH + 'fb_skill.png' });
   note('Z', '오류 없음', errs.length === 0, errs.join(' | '));
   console.log('합계 ' + pass + '/' + (pass + fail) + ' 통과'); await b.close(); process.exit(fail ? 1 : 0);

@@ -1,4 +1,4 @@
-/* 게임 규칙(화면과 무관): 경험치·레벨업, 인벤토리·장비, 스탯 분배, 퀘스트, 전직, 활력(스킬 자원), 현실 미션, 마음 기록, 저장.
+/* 게임 규칙(화면과 무관): 경험치·레벨업, 인벤토리·장비, 스탯 분배, 퀘스트, 전직, 피로도(스킬로 쌓이는 수치), 현실 미션, 마음 기록, 저장.
    화면 쪽은 AU.Ev 이벤트를 받아 갱신합니다. */
 window.AU = window.AU || {};
 (function () {
@@ -181,23 +181,49 @@ window.AU = window.AU || {};
     },
     syncUnlockedState() { if (this.S.flags.missionsUnlocked) this.initMissions(); },
 
-    /* ---------- 활력(스킬 자원). 회복 방법과 환산은 [미정]이라 기능만 열어 둠 ---------- */
-    skillCost(id) { return Math.max(0, Math.round(AU.SKILLS[id].cost * this.d().costMult * 10) / 10); }, // 소수 첫째 자리까지: 의지 효율(0.2%/점)이 눈에 보이도록
-    canSpend(id) { return this.S.resource >= this.skillCost(id); },
-    spend(id) {
-      const c = this.skillCost(id); if (this.S.resource < c) return false;
-      this.S.resource = Math.round((this.S.resource - c) * 10) / 10; this.changed(); return true;
+    /* ---------- 피로도: 스킬을 쓸수록 쌓이는 수치. 가득 차면 스킬 잠김(기본 공격은 항상 가능) ---------- */
+    skillCost(id) { return Math.max(0, Math.round(AU.SKILLS[id].cost * this.d().costMult * 10) / 10); }, // 스킬 1회로 쌓이는 피로도. 의지 효율(0.2%/점)이 소수 첫째 자리까지 보이도록
+    canSpend(id) { return this.S.fatigue < this.S.fatigueMax - 1e-6; }, // 가득 차기 전까지 사용 가능. 마지막 한 번은 남은 만큼만 쌓여 가득 참(id는 나중에 스킬별 제한을 둘 때를 위해 받음)
+    spend(id) { // 스킬 사용: 피로도가 쌓임(+)
+      const c = this.skillCost(id); if (!this.canSpend(id)) return false;
+      this.setFatigue(this.S.fatigue + c, "skill"); return true;
     },
-    setResource(n) { this.S.resource = Math.max(0, Math.min(this.S.resourceMax, Math.round(n * 10) / 10)); this.changed(); },
-    setResourceMax(n) { this.S.resourceMax = Math.max(1, Math.round(n)); this.S.resource = Math.min(this.S.resource, this.S.resourceMax); this.changed(); },
-    // 나중에 회복 규칙이 정해지면 이 한 곳으로 연결: source = 'currency' | 'mission' | 'weekly' | 'dev'
-    recover(source, amount, reason) { this.setResource(this.S.resource + amount); AU.Ev.emit("recover", { source, amount, reason }); },
+    setFatigue(n, source) {
+      const S = this.S, old = S.fatigue; S.fatigue = Math.max(0, Math.min(S.fatigueMax, Math.round(n * 10) / 10));
+      if (S.fatigue !== old) AU.Ev.emit("fatigue", { delta: Math.round((S.fatigue - old) * 10) / 10, from: old, to: S.fatigue, source: source || "dev" });
+      this.changed();
+    },
+    setFatigueMax(n) { this.S.fatigueMax = Math.max(1, Math.round(n)); this.S.fatigue = Math.min(this.S.fatigue, this.S.fatigueMax); this.changed(); },
+    // 피로도 줄이기. source = 'mission' | 'currency' | 'weekly' | 'dev'
+    relieve(source, amount, reason) { this.setFatigue(this.S.fatigue - amount, source); AU.Ev.emit("recover", { source, amount, reason }); },
+    restMission(id) { return AU.REST_MISSIONS.find((m) => m.id === id); },
+    // 선택형 '쉼' 현실 미션: 하루에 같은 미션은 한 번. 자기보고이며 마음 스탯·훈련 포인트와는 무관
+    restMissionAvailable(id) { return this.S.flags.missionsUnlocked && this.S.rest.done[id] !== AU.dateStr(); },
+    doRestMission(id) {
+      const S = this.S, m = this.restMission(id); if (!m || !this.restMissionAvailable(id)) return false;
+      S.rest.done[id] = AU.dateStr(); S.rest.log.push({ t: AU.dateStr(), id, recover: m.recover }); if (S.rest.log.length > 200) S.rest.log.shift();
+      const before = S.fatigue; this.relieve("mission", m.recover, m.title);
+      this.log("쉼 미션 완료: " + m.title); this.toast("쉼 미션 완료! 피로도 −" + Math.round((before - S.fatigue) * 10) / 10 + " (현재 " + S.fatigue + " / " + S.fatigueMax + ")", "good");
+      this.save("rest"); return true;
+    },
+    // 은화로 쉬기: 막다른 길이 없도록 현실 미션 없이도 가능. 하루 횟수 제한(임시)
+    restPrice() { return C.fatigue.restSilverBase + this.S.level * C.fatigue.restSilverPerLevel; },
+    restSilverLeft() { const t = this.S.rest.silverToday; return t.d === AU.dateStr() ? Math.max(0, C.fatigue.restDailyLimit - t.n) : C.fatigue.restDailyLimit; },
+    restWithSilver() {
+      const S = this.S, price = this.restPrice();
+      if (S.fatigue <= 0) { this.toast("지금은 피로도가 쌓이지 않았습니다.", "info"); return false; }
+      if (this.restSilverLeft() <= 0) { this.toast("오늘은 더 쉴 수 없습니다. (하루 " + C.fatigue.restDailyLimit + "회)", "warn"); return false; }
+      if (S.silver < price) { this.toast("은화가 부족합니다. (필요 " + price + ")", "warn"); return false; }
+      S.silver -= price; const t = S.rest.silverToday; if (t.d !== AU.dateStr()) { t.d = AU.dateStr(); t.n = 0; } t.n++;
+      const before = S.fatigue; this.relieve("currency", C.fatigue.restSilverRecover, "휴식");
+      this.toast("휴식했습니다. 피로도 −" + Math.round((before - S.fatigue) * 10) / 10 + " (은화 −" + price + ")", "good"); this.save("rest"); return true;
+    },
     refreshWeekly(force) {
       const S = this.S, wk = AU.weekId();
-      if (force || (C.resource.weeklyRefresh && S.resourceWeek !== wk)) {
-        S.resourceWeek = wk; S.resource = S.resourceMax;
+      if (force || (C.fatigue.weeklyReset && S.fatigueWeek !== wk)) {
+        S.fatigueWeek = wk; const old = S.fatigue; S.fatigue = 0;
         if (S.missions.weekId !== wk) { S.missions.weekId = wk; S.missions.weekPoints = 0; }
-        if (force || S.playSec > 1) this.toast("주간 활력이 갱신되었습니다.", "info");
+        if (old > 0 && (force || S.playSec > 1)) this.toast("새 주가 시작되어 피로도가 풀렸습니다.", "info");
         this.changed(); return true;
       }
       return false;
@@ -270,7 +296,7 @@ window.AU = window.AU || {};
     },
 
     /* ---------- 마음 기록: PSS·PERMA 측정과 변화 추이를 붙이는 자리 ----------
-       게임 자원(활력)과 별도로 저장합니다. PSS 점수를 활력으로 바꾸는 공식은 만들지 않았습니다([미정]).
+       게임 수치(피로도)와 별도로 저장합니다. PSS 점수를 피로도로 바꾸는 공식은 만들지 않았습니다([미정]).
        문항 전문은 사용 허가 확인 전이라 넣지 않았고, 아래 함수로 결과만 받습니다. */
     addCheckin({ scale, score, items, source }) {
       if (!["PSS", "PERMA"].includes(scale) || !Number.isFinite(score)) return false;
@@ -296,6 +322,11 @@ window.AU = window.AU || {};
       // 버전이 달라도 새 항목은 기본값으로 채움(구조 변경 대응)
       const merged = Object.assign(base, raw);
       for (const k of ["stats", "alloc", "equip", "flags", "skills", "missions", "mind"]) merged[k] = Object.assign(base[k], raw[k] || {});
+      if (typeof raw.fatigue !== "number") { // 활력(남은 양) 저장 → 피로도(쌓인 양)로 변환
+        const mx = Number.isFinite(raw.resourceMax) ? raw.resourceMax : C.fatigue.max, cur = Number.isFinite(raw.resource) ? raw.resource : mx;
+        merged.fatigueMax = mx; merged.fatigue = Math.max(0, Math.min(mx, Math.round((mx - cur) * 10) / 10)); merged.fatigueWeek = raw.resourceWeek || AU.weekId();
+      }
+      merged.rest = Object.assign(base.rest, raw.rest || {}); delete merged.resource; delete merged.resourceMax; delete merged.resourceWeek;
       if (!raw.mindStats) { // 마음 스탯 도입 전 저장: 이미 보상받은 미션 점수로 계산해 채움
         merged.mindStats = { P: 0, E: 0, R: 0, M: 0, A: 0 };
         for (const m of AU.MISSIONS) { const r = merged.missions.states[m.id]; if (r && r.rewarded && merged.mindStats[m.perma] != null) merged.mindStats[m.perma] += m.points; }

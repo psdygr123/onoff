@@ -220,8 +220,8 @@ window.AU = window.AU || {};
       if (!id) { AU.G.toast(S.jobChanged ? "빈 슬롯입니다. K 키에서 스킬을 배치하세요." : "아직 배운 스킬이 없습니다. 전직 후 사용할 수 있습니다.", "warn"); return; }
       const sk = AU.SKILLS[id];
       if ((p.cd[id] || 0) > 0 || p.gcd > 0) return;
-      if (!AU.G.canSpend(id)) { AU.G.toast("활력이 부족합니다. (필요 " + AU.G.skillCost(id) + ")", "warn"); this.floater(p.x, p.y - 140, "활력 부족", "#FF9AA2"); return; }
-      AU.G.spend(id); if (!S.flags.vigorTip) { S.flags.vigorTip = true; AU.G.toast("활력이 줄었습니다. 활력은 스킬을 쓸 때 줄어드는 힘이며, 기본 공격은 쓰지 않습니다. 매주 월요일에 가득 채워집니다.", "info"); } p.cd[id] = sk.cd; p.gcd = C.combat.skillGlobalCooldown; p.atkT = 0.3;
+      if (!AU.G.canSpend(id)) { AU.G.toast("피로도가 가득 차 스킬을 쓸 수 없습니다. 기본 공격은 가능하며, 휴식(스킬 창)이나 쉼 미션으로 줄일 수 있습니다.", "warn"); this.floater(p.x, p.y - 140, "피로도 가득", "#FF9AA2"); return; }
+      AU.G.spend(id); if (!S.flags.fatigueTip) { S.flags.fatigueTip = true; AU.G.toast("피로도가 쌓였습니다. 스킬을 쓸 때마다 쌓이며, 가득 차면 스킬을 쓸 수 없습니다(기본 공격은 가능). 휴식이나 쉼 미션으로 줄일 수 있습니다.", "info"); } p.cd[id] = sk.cd; p.gcd = C.combat.skillGlobalCooldown; p.atkT = 0.3;
       if (id === "strike") {
         const x0 = p.dir > 0 ? p.x : p.x - sk.range, x1 = x0 + sk.range;
         this.fx.push({ kind: "slash", x: p.x + p.dir * 70, y: p.y - 64, dir: p.dir, t: 0, dur: 0.3, r: 90, color: "#FFD36B" });

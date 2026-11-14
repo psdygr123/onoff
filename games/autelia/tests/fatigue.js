@@ -1,0 +1,51 @@
+/* 피로도 시험: 쌓임·가득 참 제한·변동 표시·쉼 미션·은화 휴식·주간 초기화·구 저장(활력) 변환 */
+const { chromium } = require('playwright');
+const URL = (process.env.GAME_URL || 'http://localhost:8801') + '/index.html?dev=1', SH = (process.env.SHOTS || '/tmp/claude-0/shots') + '/';
+const R = []; const note = (id, name, ok, ev) => { R.push({ id, ok }); console.log((ok ? 'PASS ' : 'FAIL ') + id + ' ' + name + ' :: ' + ev); };
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+(async () => {
+  const b = await chromium.launch(); const ctx = await b.newContext({ viewport: { width: 1280, height: 720 } }); const p = await ctx.newPage(); const errs = [];
+  p.on('pageerror', (e) => errs.push('PAGEERR ' + e.message)); p.on('console', (m) => { if (m.type() === 'error' && !/ERR_TUNNEL|Failed to load resource/.test(m.text())) errs.push('CONSOLE ' + m.text()); });
+  const ev = (fn, a) => p.evaluate(fn, a);
+  await p.goto(URL); await ev(() => localStorage.clear()); await p.goto(URL); await p.waitForSelector('#btn-start'); await p.click('#btn-start'); await sleep(300);
+  if (await p.$('#charsetup')) { await p.fill('#sname', '시험용'); await p.click('#setup-ok'); await sleep(300); }
+  await ev(() => AU.Prologue.debugComplete('arche')); await sleep(200);
+  await ev(() => { const S = AU.G.S; S.jobChanged = true; S.job = 'warrior'; S.skills.unlocked = ['strike', 'spin', 'focus']; S.skills.slots = ['strike', 'spin', 'focus']; S.silver = 0; AU.G.changed(); });
+  const hud = () => ev(() => document.querySelector('.bar.rs b') ? document.querySelector('.bar.rs b').textContent : null);
+  note('A1', '시작은 피로도 0 / 100', (await ev(() => AU.G.S.fatigue)) === 0 && /피로도 0 \/ 100/.test(await hud()), await hud());
+  const c = await ev(() => AU.G.skillCost('strike'));
+  await ev(() => AU.G.spend('strike')); await sleep(150);
+  const f1 = await ev(() => AU.G.S.fatigue); const d1 = await ev(() => { const e = document.querySelector('.fdelta'); return e ? e.textContent + '|' + e.className : null; });
+  note('A2', '스킬 사용 시 피로도가 쌓임(+)과 막대 옆 변동 표시', f1 === c && new RegExp('^\\+' + c + '\\|').test(d1) && /show up/.test(d1), 'fatigue=' + f1 + ' delta=' + d1);
+  let n = 1; while (await ev(() => AU.G.canSpend('strike'))) { await ev(() => AU.G.spend('strike')); n++; }
+  const full = await ev(() => [AU.G.S.fatigue, AU.G.canSpend('strike'), AU.G.canSpend('focus'), AU.G.spend('strike')]);
+  note('A3', '가득 차면 스킬 사용 불가(더 오르지 않음)', full[1] === false && full[3] === false && full[0] === 100, JSON.stringify(full) + ' 사용횟수=' + n);
+  await ev(() => AU.UI.open('skills')); await sleep(300);
+  const fullTxt = await ev(() => { const e = document.querySelector('.restbox'); return e ? e.textContent : null; });
+  await p.screenshot({ path: SH + 'fatigue_skills.png' });
+  note('A4', '스킬 창에 피로도·휴식 버튼과 가득 참 안내', /가득 찼습니다/.test(fullTxt || '') && /휴식하기/.test(fullTxt || ''), fullTxt);
+  const r0 = await ev(() => AU.G.restWithSilver());
+  note('A5', '은화가 없으면 휴식 불가', r0 === false, 'silver=0');
+  const pr = await ev(() => { AU.G.S.silver = 500; const price = AU.G.restPrice(), before = AU.G.S.fatigue, ok = AU.G.restWithSilver(); return [price, before, AU.G.S.fatigue, AU.G.S.silver, ok]; });
+  note('A6', '은화 휴식: 피로도 −40, 은화 차감', pr[4] && Math.round((pr[1] - pr[2]) * 10) / 10 === 40 && pr[3] === 500 - pr[0], JSON.stringify(pr));
+  const lim = await ev(() => { const r = []; for (let i = 0; i < 4; i++) { AU.G.setFatigue(90); r.push(AU.G.restWithSilver()); } return r; });
+  note('A7', '은화 휴식은 하루 3회까지(이미 1회 사용 → 2회 더)', JSON.stringify(lim) === '[true,true,false,false]', JSON.stringify(lim));
+  await ev(() => { AU.G.setFatigue(80); AU.G.S.flags.missionsUnlocked = true; AU.G.S.flags.guideMet = true; AU.G.changed(); });
+  const m1 = await ev(() => [AU.G.doRestMission('r_breath'), AU.G.S.fatigue, AU.G.doRestMission('r_breath'), AU.G.S.fatigue, AU.G.restMissionAvailable('r_walk')]);
+  note('A8', '쉼 미션: 피로도 −25, 같은 미션은 하루 한 번, 다른 미션은 가능', m1[0] === true && m1[1] === 55 && m1[2] === false && m1[3] === 55 && m1[4] === true, JSON.stringify(m1));
+  const stat = await ev(() => JSON.stringify([AU.G.S.trainingPoints, AU.G.S.mindStats]));
+  note('A9', '쉼 미션은 훈련 포인트·마음 스탯에 영향 없음', stat === JSON.stringify([0, { P: 0, E: 0, R: 0, M: 0, A: 0 }]), stat);
+  await ev(() => { AU.UI.tab.j = 'rest'; AU.UI.open('journal'); }); await sleep(300);
+  const restCards = await ev(() => Array.from(document.querySelectorAll('.window .mission')).map((e) => e.querySelector('b').textContent + ':' + (e.querySelector('button') ? '가능' : '완료')));
+  await p.screenshot({ path: SH + 'fatigue_rest.png' });
+  note('A10', '모험일지 쉼 탭에 4개 미션(완료한 것은 표시)', restCards.length === 4 && restCards[0].endsWith('완료') && restCards[3].endsWith('가능'), restCards.join(' / '));
+  await ev(() => AU.UI.close());
+  const wk = await ev(() => { AU.G.setFatigue(70); AU.G.S.fatigueWeek = '2000-01-03'; const r = AU.G.refreshWeekly(false); return [r, AU.G.S.fatigue]; });
+  note('A11', '새 주가 되면 피로도 초기화(막다른 길 방지)', wk[0] === true && wk[1] === 0, JSON.stringify(wk));
+  await ev(() => { AU.G.setFatigue(35); AU.G.save('test'); });
+  const leg = await ev(() => { const raw = AU.Store.get('autelia.save'); delete raw.fatigue; delete raw.fatigueMax; delete raw.fatigueWeek; delete raw.rest; raw.resource = 30; raw.resourceMax = 100; raw.resourceWeek = AU.weekId(); AU.Store.set('autelia.save', raw); const s = AU.G.load(); return [s.fatigue, s.fatigueMax, 'resource' in s, !!s.rest && typeof s.rest.done === 'object']; });
+  note('A12', '구 저장(활력 30/100)은 피로도 70으로 변환', leg[0] === 70 && leg[1] === 100 && leg[2] === false && leg[3] === true, JSON.stringify(leg));
+  const tip = await ev(() => AU.G.S.flags.fatigueTip);
+  note('Z', '오류 없음', errs.length === 0, JSON.stringify(errs));
+  console.log('합계 ' + R.filter((r) => r.ok).length + '/' + R.length + ' 통과'); await b.close(); process.exit(R.every((r) => r.ok) ? 0 : 1);
+})();

@@ -216,6 +216,13 @@ AU.MISSIONS = [
   { id: "m_a1", perma: "A", d: 1, points: 1, title: "미뤄 둔 작은 일 하나 끝내기", desc: "5분 안에 끝낼 수 있는 미뤄 둔 일을 하나 처리합니다." },
   { id: "m_a2", perma: "A", d: 2, points: 2, title: "목표 하나 정하고 시작해 보기", desc: "이번 주에 해 볼 작은 목표를 하나 정하고 첫 걸음을 뗍니다.", pre: "m_a1" }
 ];
+/* 선택형 '쉼' 현실 미션: 피로도를 줄이는 짧은 휴식 활동(PERMA 마음 스탯과는 별개). 수치·목록은 임시, 하루에 같은 미션은 한 번 */
+AU.REST_MISSIONS = [
+  { id: "r_breath", title: "3분 호흡 가다듬기", desc: "편한 자세로 앉아 숨을 천천히 들이쉬고 내쉬며 3분을 보냅니다.", recover: 25 },
+  { id: "r_stretch", title: "몸 풀기 스트레칭", desc: "자리에서 일어나 어깨와 목, 허리를 천천히 풀어 줍니다.", recover: 20 },
+  { id: "r_water", title: "물 한 잔 마시며 쉬기", desc: "물이나 따뜻한 차를 한 잔 마시며 화면에서 눈을 뗍니다.", recover: 15 },
+  { id: "r_walk", title: "10분 걷기", desc: "가까운 곳을 10분 정도 천천히 걸어 봅니다.", recover: 35 }
+];
 AU.MISSION_STATES = {
   locked: "미해금", available: "수행 가능", accepted: "수락", attempted: "시도", partial: "일부 수행", done: "완료", skipped: "건너뛰기"
 };
