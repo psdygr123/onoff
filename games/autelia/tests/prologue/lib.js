@@ -1,6 +1,6 @@
 const { chromium } = require('playwright');
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const URL = (process.env.GAME_URL || 'http://localhost:8801') + '/index.html?dev=1', SH = (process.env.SHOTS || '/tmp/claude-0/shots') + '/';
+const URL = (process.env.GAME_URL || 'http://localhost:8801') + '/index.html?dev=1&intro=cards', SH = (process.env.SHOTS || '/tmp/claude-0/shots') + '/';
 async function open(opts = {}) {
   const b = await chromium.launch(); const ctx = await b.newContext({ viewport: opts.viewport || { width: 1280, height: 720 } }); const p = await ctx.newPage(); const errs = [];
   p.on('pageerror', (e) => errs.push('PAGEERR ' + e.message)); p.on('console', (m) => { if (m.type() === 'error' && !/ERR_TUNNEL|Failed to load resource/.test(m.text())) errs.push('CONSOLE ' + m.text()); });

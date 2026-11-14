@@ -1,6 +1,6 @@
 const { chromium } = require('playwright');
 const fs = require('fs');
-const URL = (process.env.GAME_URL || 'http://localhost:8801') + '/index.html?dev=1', SH = (process.env.SHOTS || '/tmp/claude-0/shots') + '/';
+const URL = (process.env.GAME_URL || 'http://localhost:8801') + '/index.html?dev=1&intro=cards', SH = (process.env.SHOTS || '/tmp/claude-0/shots') + '/';
 const R = []; const note = (id, name, ok, ev) => { R.push({ id, name, ok, ev }); console.log((ok ? 'PASS ' : 'FAIL ') + id + ' ' + name + ' :: ' + ev); };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 

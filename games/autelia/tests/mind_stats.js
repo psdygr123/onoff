@@ -1,6 +1,6 @@
 /* 마음 스탯(PERMA 5) 시험: 미션 완료 → 수치 증가·표시·저장·구 저장 보정 */
 const { chromium } = require('playwright');
-const URL = (process.env.GAME_URL || 'http://localhost:8801') + '/index.html?dev=1', SH = (process.env.SHOTS || '/tmp/claude-0/shots') + '/';
+const URL = (process.env.GAME_URL || 'http://localhost:8801') + '/index.html?dev=1&intro=cards', SH = (process.env.SHOTS || '/tmp/claude-0/shots') + '/';
 const R = []; const note = (id, name, ok, ev) => { R.push({ id, ok }); console.log((ok ? 'PASS ' : 'FAIL ') + id + ' ' + name + ' :: ' + ev); };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 (async () => {

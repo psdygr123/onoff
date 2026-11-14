@@ -290,3 +290,13 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
 .jcard.lock { background: #f1ede4; border-style: dashed; color: #8f8674; cursor: not-allowed; } .jcard.lock .jart svg { color: #c4bcab; } .jcard.lock p { color: #9a917f; }
 .jnote { min-height: 20px; font-size: 13px; color: var(--ink2); margin: 10px 2px 0; }
 @media (max-width: 760px) { .jcards { flex-wrap: wrap; } .jcard { flex: 1 1 30%; height: 230px; } .jcard .jart svg { width: 56px; height: 56px; margin: 6px 0 8px; } }
+
+/* 도입 영상(프롤로그 시작): 검은 배경 위에 무음 영상과 자막 */
+.introv { position: absolute; inset: 0; background: #000; z-index: 8; opacity: 0; transition: opacity .45s ease; pointer-events: auto; }
+.introv.on { opacity: 1; }
+.introv video { width: 100%; height: 100%; object-fit: contain; display: block; background: #000; }
+.introsub { position: absolute; left: 0; right: 0; bottom: 7%; text-align: center; color: #fff6e1; opacity: 0; transition: opacity .6s ease; text-shadow: 0 2px 10px rgba(0, 0, 0, .9), 0 0 3px rgba(0, 0, 0, .9); pointer-events: none; }
+.introsub.show { opacity: 1; }
+.introsub p { margin: 0 0 8px; font-size: 32px; font-weight: 500; letter-spacing: .04em; line-height: 1.45; }
+.introskip { position: absolute; top: 18px; right: 24px; font-size: 13px; padding: 7px 14px; background: rgba(251, 247, 238, .9); z-index: 2; }
+.introskip em { font-style: normal; font-size: 11px; color: var(--ink2); margin-left: 6px; }

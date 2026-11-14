@@ -14,7 +14,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     await ev(() => { AU.G.S.flags.missionsUnlocked = true; AU.G.discoverMissions(); AU.G.S.flags.guideMet = true; });
   }
   const openRecord = async () => { await ev(() => { AU.UI.close(); AU.UI.tab.j = 'record'; AU.UI.open('journal'); }); await sleep(300); };
-  await p.goto(BASE + '/index.html?dev=1'); await ev(() => localStorage.clear());
+  await p.goto(BASE + '/index.html?dev=1&intro=cards'); await ev(() => localStorage.clear());
   // S1 기본 꺼짐
   await boot('?dev=1'); await openRecord();
   note('S1', '기본은 꺼짐: 마음 기록 탭에 설문 영역 없음', (await p.$('.svbox')) === null && (await ev(() => AU.Survey.enabled())) === false, 'svbox=' + !!(await p.$('.svbox')));

@@ -1,6 +1,6 @@
 /* 퀘스트 종류 확장 시험: 수리(시간 걸림·취소)·조사·전달·선택 + 십장 NPC 흐름 */
 const { chromium } = require('playwright');
-const URL = (process.env.GAME_URL || 'http://localhost:8801') + '/index.html?dev=1';
+const URL = (process.env.GAME_URL || 'http://localhost:8801') + '/index.html?dev=1&intro=cards';
 const R = []; const note = (id, name, ok, ev) => { R.push({ id, ok }); console.log((ok ? 'PASS ' : 'FAIL ') + id + ' ' + name + ' :: ' + ev); };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 (async () => {

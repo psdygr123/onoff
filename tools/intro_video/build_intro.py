@@ -11,16 +11,17 @@ from PIL import Image, ImageDraw, ImageFont
 IMG = os.environ.get("INTRO_IMG", "/tmp/claude-0/intro_img")
 W, H, FPS, OV = 1280, 720, 30, 0.9
 TEMPO = float(os.environ.get("INTRO_TEMPO", "1.35"))   # 컷 길이 배율(1.0=v1). v1이 조금 빠르다는 의견으로 기본 1.15
+NOSUB = bool(os.environ.get("INTRO_NOSUB"))                # 1이면 자막을 영상에 입히지 않음(게임이 자막을 따로 띄울 때)
 DRIFT = 0.28                                            # 구름 흐름 속도(v1은 0.35)
 FONT = "/usr/share/fonts/opentype/noto/NotoSansCJK-Medium.ttc"
 SCENES = [
  dict(img="N1_god_light", D=6.5, z=(1.0, 1.09), c=((.5, .5), (.5, .5)), drift=dict(kind="ring", amp=5), glow=[("ring", .5, .5, .168)], motes=70,
       sub=["처음에는 이름도 모양도 없는", "하나의 신만 있었다고 한다."]),
- dict(img="N2_split_light_dark", D=7.0, z=(1.0, 1.08), c=((.5, .5), (.5, .52)), drift=dict(kind="sky", frac=.8, amp=5), glow=[("ring", .5, .5, .16), ("thread", .5, .70, .86)], motes=60,
+ dict(img="G_pair", D=7.0, z=(1.0, 1.06), c=((.5, .5), (.5, .5)), drift=dict(kind="sky", frac=.8, amp=4), glow=[("sun", .24, .30, .2)], motes=50,
       sub=["신은 자신의 힘을 둘로 갈라,", "하나는 빛으로, 하나는 어둠으로 빚었다."]),
  dict(img="01_creation_tapestry", D=6.0, z=(1.0, 1.07), c=((.5, .5), (.47, .52)), drift=dict(kind="sky", frac=.66, amp=5), glow=[("thread", .497, 0, .72)], motes=70,
       sub=["신은 둘 사이에 땅을 펼치고,", "‘서로의 것에 손대지 말라’는 약속만 남긴 채 잠들었다."]),
- dict(img="N3_desire", D=7.0, z=(1.0, 1.08), c=((.5, .5), (.5, .5)), drift=dict(kind="sky", frac=.66, amp=7), glow=[("thread", .497, 0, .72, "flicker")], motes=45,
+ dict(img="G_pair", D=7.0, z=(1.22, 1.22), c=((.34, .42), (.66, .42)), drift=dict(kind="sky", frac=.8, amp=4), glow=[("sun", .24, .30, .2)], motes=45,
       sub=["신이 잠들자 빛의 신과 어둠의 신이 눈을 떴고,", "서로의 것을 탐내며 천 년을 다투었다."]),
  dict(img="N4_great_war", D=6.5, z=(1.0, 1.10), c=((.5, .5), (.5, .46)), drift=dict(kind="sky", frac=.7, amp=9), glow=[("thread", .5, 0, .72)], motes=90, flash=True,
       sub=["어느 겨울밤, 어둠이 먼저 경계를 넘어", "대전쟁이 시작되었다."]),
@@ -108,7 +109,7 @@ def base_frame(i, t):
         cv2.circle(layer, (int(x), int(y)), max(1, int(r + 1.5)), (al * .35, al * .28, al * .16), -1, cv2.LINE_AA); cv2.circle(layer, (int(x), int(y)), max(1, int(r * .7)), (al, .88 * al, .55 * al), -1, cv2.LINE_AA)
     out = np.clip(out + cv2.GaussianBlur(layer, (0, 0), 1.1) * .9, 0, 1)
     sa = np.clip((t - .7) / .5, 0, 1) * np.clip((D - .9 - t) / .4, 0, 1) if not s.get("last") else np.clip((t - .7) / .5, 0, 1)
-    if sa > 0: y0 = H - 170; al = c["sub"][..., 3:4] * sa; out[y0:H] = out[y0:H] * (1 - al) + c["sub"][..., :3] * al
+    if sa > 0 and not NOSUB: y0 = H - 170; al = c["sub"][..., 3:4] * sa; out[y0:H] = out[y0:H] * (1 - al) + c["sub"][..., :3] * al
     return out
 
 def frame(i, t):
@@ -143,4 +144,8 @@ if __name__ == "__main__":
         for grp in (todo[0::2], todo[1::2]): ps.append(subprocess.Popen(["python3", me, "scenes", work] + [str(x) for x in grp])) if grp else None
         for p in ps: p.wait()
         lst = f"{work}/list.txt"; open(lst, "w").write("".join(f"file 's{i:02d}.mp4'\n" for i in range(len(SCENES))))
+        import json; t0 = 0.0; tl = []
+        for i, sc in enumerate(SCENES):
+            a = t0 + (0.7 if i else 1.3); b = t0 + sc["D"] - (0.9 if i < len(SCENES) - 1 else 0) - 0.3; tl.append(dict(start=round(a, 2), end=round(b if i < len(SCENES) - 1 else t0 + sc["D"] + 0.2, 2), lines=sc["sub"])); t0 += length(i)
+        json.dump(dict(total=round(t0, 2), cuts=tl), open(outp + ".timeline.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
         subprocess.check_call(["ffmpeg", "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", lst, "-c", "copy", "-movflags", "+faststart", outp]); print("ok", outp)
