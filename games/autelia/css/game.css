@@ -51,7 +51,7 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
 .tracker .tt { font-size: 14px; font-weight: 700; color: var(--gold-d); margin-bottom: 4px; letter-spacing: .02em; } .tracker .to { font-size: 14px; line-height: 1.5; } .tracker .ok { color: var(--sage); }
 .slots { position: absolute; right: 20px; bottom: 18px; display: flex; gap: 8px; }
 .slot { position: relative; width: 84px; height: 66px; background: rgba(251, 247, 238, .92); border: 1px solid var(--line); border-radius: 11px; box-shadow: var(--shadow); display: grid; place-items: center; text-align: center; pointer-events: auto; cursor: pointer; overflow: hidden; }
-.slot .sk { font-size: 14px; line-height: 1.15; padding: 0 4px; margin-top: 8px; font-weight: 500; }
+.slot .sk { font-size: 12.5px; line-height: 1.15; padding: 0 2px; margin-top: 8px; font-weight: 500; white-space: nowrap; letter-spacing: -0.03em; }
 .slot .skey { position: absolute; left: 6px; top: 5px; font-size: 11px; background: var(--ink); color: #fff; border-radius: 4px; padding: 0 6px; line-height: 16px; }
 .slot .scost { position: absolute; right: 7px; bottom: 3px; font-size: 12px; color: var(--rs); }
 .slot .sc { position: absolute; inset: 0; place-items: center; font-size: 22px; font-weight: 500; color: #fff; background: rgba(30, 22, 15, .6); display: none; }
