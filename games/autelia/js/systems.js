@@ -140,12 +140,14 @@ window.AU = window.AU || {};
     objectiveDone(q, rec, i) {
       const o = q.objectives[i];
       if (o.kind === "collect") return this.count(o.item) >= o.count;
+      if (o.targets) return o.targets.every((t) => rec.spots && rec.spots[t]);   // 조사·수리: 지점을 모두 마쳐야 함
       return (rec.prog[i] || 0) >= (o.count || 1);
     },
     startQuest(id) {
       if (this.questStatus(id) !== "available") return false;
       const q = AU.QUESTS[id];
-      this.S.quests[id] = { state: "active", prog: q.objectives.map(() => 0) };
+      this.S.quests[id] = { state: "active", prog: q.objectives.map(() => 0), spots: {} };
+      for (const [it, n] of q.startItems || []) this.giveItem(it, n);   // 전달 퀘스트: 수락할 때 맡는 물건
       this.log("퀘스트 수락: " + q.title); this.toast("퀘스트 수락: " + q.title, "quest");
       this.refreshQuest(id); this.save("quest"); this.changed(); return true;
     },
@@ -174,6 +176,57 @@ window.AU = window.AU || {};
         this.refreshQuest(id);
       }
       this.changed();
+    },
+    /* ---------- 퀘스트 종류 확장: 조사·수리 지점 / 전달 / 선택 ---------- */
+    // 지점(spot)에 진행 중인 목표가 있으면 그 목표 정보를 돌려줌(없으면 null). 지점 표시·상호작용 가능 여부 판단에 씀
+    spotObjective(spotId) {
+      for (const [id, rec] of Object.entries(this.S.quests)) {
+        if (rec.state !== "active") continue;
+        const q = AU.QUESTS[id];
+        for (let i = 0; i < q.objectives.length; i++) { const o = q.objectives[i]; if (o.targets && o.targets.includes(spotId) && !(rec.spots && rec.spots[spotId])) return { qid: id, i, o }; }
+      }
+      return null;
+    },
+    spotDone(spotId) { return Object.values(this.S.quests).some((r) => r.spots && r.spots[spotId]); },
+    // 지점 완료 처리: 반환값 true = 진행됨
+    completeSpot(spotId) {
+      const f = this.spotObjective(spotId); if (!f) return false;
+      const rec = this.S.quests[f.qid]; rec.spots[spotId] = true;
+      rec.prog[f.i] = f.o.targets.filter((t) => rec.spots[t]).length;
+      this.refreshQuest(f.qid); this.save("quest"); this.changed(); return true;
+    },
+    // 전달: 이 NPC에게 전할 물건이 있으면 물건을 내고 목표를 완료. 대사를 돌려줌
+    tryDeliver(npcId) {
+      for (const [id, rec] of Object.entries(this.S.quests)) {
+        if (rec.state !== "active") continue;
+        const q = AU.QUESTS[id];
+        for (let i = 0; i < q.objectives.length; i++) {
+          const o = q.objectives[i];
+          if (o.kind === "deliver" && o.target === npcId && !this.objectiveDone(q, rec, i) && this.count(o.item) >= (o.count || 1)) {
+            this.takeItem(o.item, o.count || 1); rec.prog[i] = 1; this.refreshQuest(id);
+            this.log("전달 완료: " + AU.ITEMS[o.item].name); this.save("quest"); this.changed();
+            return (q.deliver && q.deliver[npcId]) || ["전해 주셔서 고맙습니다."];
+          }
+        }
+      }
+      return null;
+    },
+    // 선택: 다른 목표를 모두 마친 뒤 이 NPC에게 말을 걸면 갈림길이 나옴
+    pendingChoice(npcId) {
+      for (const [id, rec] of Object.entries(this.S.quests)) {
+        if (rec.state !== "active") continue;
+        const q = AU.QUESTS[id];
+        for (let i = 0; i < q.objectives.length; i++) {
+          const o = q.objectives[i];
+          if (o.kind === "choice" && o.target === npcId && !this.objectiveDone(q, rec, i) && q.objectives.every((x, j) => j === i || this.objectiveDone(q, rec, j))) return { qid: id, i, o, q };
+        }
+      }
+      return null;
+    },
+    applyChoice(qid, i, opt) {
+      const rec = this.qs(qid), q = AU.QUESTS[qid], o = q.objectives[i]; if (!rec || rec.state !== "active") return false;
+      this.S.flags["choice_" + o.id] = opt.flag; rec.prog[i] = 1; this.refreshQuest(qid);
+      this.log("선택 [" + q.title + "]: " + opt.label); this.save("quest"); this.changed(); return true;
     },
     turnIn(id) {
       const rec = this.qs(id), q = AU.QUESTS[id];
@@ -303,8 +356,21 @@ window.AU = window.AU || {};
     },
     /* ---------- 마음 스탯(PERMA 5): 현실 미션을 수행하면 오르는 수치 ----------
        전투 스탯과 따로 보관하며 전투 능력에는 영향을 주지 않습니다(게임 효과 연결은 [미정]). 같은 미션의 보상은 한 번만. */
+    /* 마음 스탯 변화 추이: '이전' = 이번 주가 시작될 때의 기록(주가 바뀌면 그 시점의 수치로 새로 찍음). 현재−이전 = 이번 주에 오른 만큼.
+       게임 속 활동 점수의 변화이며 PSS·PERMA 같은 검사 점수와는 별개입니다. 저장된 값이 바뀌었으면 true */
+    rollMindWeek() {
+      const S = this.S, wk = AU.weekId(), m = S.mind; if (!m) return false;
+      if (m.snap && m.snap.week === wk) return false;
+      m.snap = { week: wk, base: Object.assign({ P: 0, E: 0, R: 0, M: 0, A: 0 }, S.mindStats) }; return true;
+    },
+    mindTrend() {
+      this.rollMindWeek(); const S = this.S, out = {};
+      for (const k of Object.keys(AU.PERMA)) { const cur = S.mindStats[k] || 0, prev = S.mind.snap.base[k] || 0, mx = Math.max(this.mindMax(k), cur, prev, 1); out[k] = { cur, prev, mx, curPct: Math.round(cur / mx * 100), prevPct: Math.round(prev / mx * 100), diff: cur - prev }; }
+      return out;
+    },
     gainMind(k, n) {
       const S = this.S; if (!AU.PERMA[k] || !(n > 0)) return 0;
+      this.rollMindWeek();   // 주가 바뀐 뒤 첫 증가라면 증가 전 수치를 '이전'으로 먼저 기록
       S.mindStats[k] = (S.mindStats[k] || 0) + n;
       S.mind.last = { k, n, t: AU.dateStr() }; // 가장 최근에 오른 영역(스탯 창에 '방금 +N' 표시)
       this.log("마음 스탯 [" + AU.PERMA[k] + "] +" + n + " (현재 " + S.mindStats[k] + ")");

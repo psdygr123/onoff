@@ -159,7 +159,7 @@ window.AU = window.AU || {};
       const q = AU.QUESTS[id], rec = AU.G.S.quests[id]; if (!q || !rec) return "";
       if (rec.state === "ready") { const mp = this.npcMap(q.giver); return mp ? this.dirText(mp, q.giver) : ""; }
       const o = q.objectives.find((x, i) => !AU.G.objectiveDone(q, rec, i)); if (!o) return "";
-      if (o.kind === "talk") { const mp = this.npcMap(o.target); return this.dirText(mp, o.target); }
+      if (o.kind === "talk" || o.kind === "deliver" || o.kind === "choice") { const mp = this.npcMap(o.target); return this.dirText(mp, o.target); }
       return q.area ? this.dirText(q.area, null) : "";
     },
     nextGoals() { // 진행 중인 퀘스트가 모자랄 때 알려 주는 다음 목표(최대 2줄)
@@ -199,6 +199,9 @@ window.AU = window.AU || {};
       const prog = rec ? (o.kind === "collect" ? Math.min(AU.G.count(o.item), o.count) : (rec.prog[i] || 0)) : 0;
       if (o.kind === "kill") return AU.MONSTERS[o.target].name.replace(" (임시)", "") + " 처치 (" + prog + "/" + o.count + ")";
       if (o.kind === "collect") return AU.ITEMS[o.item].name + " 수집 (" + prog + "/" + o.count + ")";
+      if (o.kind === "repair" || o.kind === "investigate") { const n = rec && rec.spots ? o.targets.filter((t) => rec.spots[t]).length : 0; return (o.kind === "repair" ? "방책 수리 " : "흔적 조사 ") + "(" + n + "/" + o.targets.length + ")"; }
+      if (o.kind === "deliver") return AU.ITEMS[o.item].name.replace(" (임시)", "") + "을(를) " + AU.NPCS[o.target].name.replace(" (임시)", "") + "에게 전하기 (" + (rec ? (rec.prog[i] || 0) : 0) + "/1)";
+      if (o.kind === "choice") return AU.NPCS[o.target].name.replace(" (임시)", "") + "에게 결과를 알리기 (" + (rec ? (rec.prog[i] || 0) : 0) + "/1)";
       return AU.NPCS[o.target].name.replace(" (임시)", "") + "에게 말 걸기 (" + prog + "/1)";
     },
     toast(text, kind) {
@@ -247,6 +250,9 @@ window.AU = window.AU || {};
     /* ============ 대화 ============ */
     talkNpc(npcId) {
       const npc = AU.NPCS[npcId], S = AU.G.S; AU.G.onTalk(npcId);
+      const dl = AU.G.tryDeliver(npcId); if (dl) return this.say(npc, dl);                       // 전달 퀘스트: 물건을 내미는 대화
+      const pc = AU.G.pendingChoice(npcId);                                                        // 선택 퀘스트: 정답 없는 갈림길
+      if (pc) return this.say(npc, pc.o.prompt || pc.q.choice.prompt, { choices: pc.q.choice.options.map((op) => ({ label: op.label, key: null, fn: () => { AU.G.applyChoice(pc.qid, pc.i, op); this.say(npc, op.reply, { end: () => { if (AU.QUESTS[pc.qid].giver === npcId && AU.G.questStatus(pc.qid) === "ready") this.say(npc, AU.QUESTS[pc.qid].done, { end: () => AU.G.turnIn(pc.qid) }); } }); } })), noCancel: true });
       let qid = (npc.quests || []).find((id) => AU.G.questStatus(id) === "ready" && AU.QUESTS[id].giver === npcId);
       if (qid) {
         const q = AU.QUESTS[qid];
@@ -427,15 +433,33 @@ window.AU = window.AU || {};
 
   /* 마음 능력치(PERMA 5) 표시: 수치·막대·방금 오른 양. 스탯 창과 수행 기록 탭에서 같이 씀 */
   UI.mindBlock = function () {
-    const S = AU.G.S, ms = S.mindStats || {}, last = S.mind && S.mind.last;
+    const S = AU.G.S, last = S.mind && S.mind.last, tr = AU.G.mindTrend(), keys = Object.keys(AU.PERMA);
     const box = h("div", { class: "mindbox" }, h("h3", { text: "마음 능력치" }));
-    for (const [k, n] of Object.entries(AU.PERMA)) {
-      const v = ms[k] || 0, mx = Math.max(AU.G.mindMax(k), v, 1);
-      box.append(h("div", { class: "mrow" + (last && last.k === k ? " fresh" : ""), "data-perma": k },
-        h("b", { text: k }), h("span", { class: "mn", text: n }), h("div", { class: "mbar" }, h("i", { style: "width:" + Math.round(v / mx * 100) + "%" })),
-        h("em", { class: "mv", text: v + " / " + mx }), h("span", { class: "mup", text: last && last.k === k ? "방금 +" + last.n : "" })));
+    // 오각형 레이더: 바깥쪽이 영역별 만점(해당 영역 미션 점수 합). 현재(초록 면) vs 이전(회색 점선)
+    const CX = 130, CY = 124, R0 = 92, pt = (i, f) => { const a = -Math.PI / 2 + i * 2 * Math.PI / keys.length; return [CX + Math.cos(a) * R0 * f, CY + Math.sin(a) * R0 * f]; };
+    const poly = (f) => keys.map((k, i) => pt(i, f(k)).map((n) => n.toFixed(1)).join(",")).join(" ");
+    let svg = '<svg viewBox="0 0 260 250" role="img" aria-label="마음 능력치 레이더: 현재와 이전 비교">';
+    for (const r of [0.25, 0.5, 0.75, 1]) svg += '<polygon points="' + poly(() => r) + '" fill="none" stroke="#d9e0d8" stroke-width="' + (r === 1 ? 1.6 : 1) + '"/>';
+    keys.forEach((k, i) => { const [x, y] = pt(i, 1), [lx, ly] = pt(i, 1.2); svg += '<line x1="' + CX + '" y1="' + CY + '" x2="' + x.toFixed(1) + '" y2="' + y.toFixed(1) + '" stroke="#d9e0d8"/><text x="' + lx.toFixed(1) + '" y="' + (ly + 5).toFixed(1) + '" text-anchor="middle" class="rl">' + k + '</text>'; });
+    svg += '<polygon points="' + poly((k) => tr[k].prevPct / 100) + '" fill="rgba(140,148,156,.10)" stroke="#8c949c" stroke-width="2" stroke-dasharray="5 4" stroke-linejoin="round"/>';
+    svg += '<polygon class="rcur" points="' + poly((k) => tr[k].curPct / 100) + '" fill="rgba(79,125,110,.38)" stroke="#4F7D6E" stroke-width="2.5" stroke-linejoin="round"/>';
+    keys.forEach((k, i) => { const [x, y] = pt(i, tr[k].curPct / 100); svg += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="3.6" fill="#4F7D6E" stroke="#fff" stroke-width="1.5"/>'; });
+    svg += "</svg>";
+    const chart = h("div", { class: "mrad" }), holder = h("div", { class: "mradsvg", "data-radar": "1" }); holder.innerHTML = svg;
+    chart.append(holder, h("div", { class: "mleg" }, h("span", { class: "lg cur", text: "현재" }), h("span", { class: "lg prev", text: "이전" })));
+    const rows = h("div", { class: "mrows" });
+    for (const k of keys) {
+      const t = tr[k], fresh = last && last.k === k;
+      rows.append(h("div", { class: "mrow" + (fresh ? " fresh" : ""), "data-perma": k },
+        h("b", { text: k }), h("span", { class: "mn", text: AU.PERMA[k] }),
+        h("div", { class: "mbar" }, h("i", { style: "width:" + t.curPct + "%" }), h("s", { class: "mprev", style: "left:" + t.prevPct + "%", title: "이전 " + t.prev })),
+        h("em", { class: "mv", text: t.cur + " / " + t.mx }), h("span", { class: "mcmp", text: "이전 " + t.prev + (t.diff ? " · " + (t.diff > 0 ? "+" : "") + t.diff : "") }),
+        h("span", { class: "mup", text: fresh ? "방금 +" + last.n : "" })));
     }
-    box.append(h("p", { class: "note", text: "현실 미션을 완료하면 해당 영역 수치가 오르고 이곳에 기록됩니다. 전투에는 영향을 주지 않는, 나의 마음 기록입니다." }));
+    box.append(h("div", { class: "mtrend" }, chart, rows));
+    box.append(h("p", { class: "note", text: "현실 미션을 완료하면 해당 영역 수치가 오르고 이곳에 기록됩니다. 점선·세로선의 '이전'은 이번 주가 시작될 때의 기록입니다." }));
+    box.append(h("p", { class: "note", text: "이것은 게임 속 활동 점수이며 행복이나 건강 상태를 재는 검사 점수가 아닙니다. 전투에는 영향을 주지 않습니다." }));
+    if (AU.G.rollMindWeek()) AU.G.save("mind");
     return box;
   };
 
@@ -471,7 +495,8 @@ window.AU = window.AU || {};
       if (rec.state === "ready") { dest.add(mapOfNpc(q.giver)); continue; }
       q.objectives.forEach((o, i) => { if (AU.G.objectiveDone(q, rec, i)) return;
         if (o.kind === "kill") for (const m of Object.keys(AU.MAPS)) { const mp = AU.MAPS[m]; if ((mp.spawns || []).some((s) => s.type === o.target) || (mp.boss && mp.boss.type === o.target)) dest.add(m); }
-        if (o.kind === "talk") dest.add(mapOfNpc(o.target)); });
+        if (o.kind === "talk" || o.kind === "deliver" || o.kind === "choice") dest.add(mapOfNpc(o.target));
+        if (o.targets) for (const m of Object.keys(AU.MAPS)) if ((AU.MAPS[m].spots || []).some((s2) => o.targets.includes(s2.id))) dest.add(m); });
     }
     const map = h("div", { class: "mapbox" });
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg"); svg.setAttribute("viewBox", "0 0 100 100"); svg.setAttribute("preserveAspectRatio", "none"); svg.setAttribute("class", "maplines");

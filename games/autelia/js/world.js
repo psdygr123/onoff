@@ -8,7 +8,7 @@ window.AU = window.AU || {};
 
   const World = AU.World = {
     mapId: null, map: null, player: null, monsters: [], fx: [], floaters: [], drops: [], nearDrop: null, camX: 0, time: 0,
-    trans: null, deadT: 0, prompt: "", nearNpc: null, nearPortal: null, bossCheckT: 0, blockedFn: () => false,
+    trans: null, deadT: 0, prompt: "", nearNpc: null, nearPortal: null, nearSpot: null, work: null, bossCheckT: 0, blockedFn: () => false,
 
     init() {
       const S = AU.G.S;
@@ -24,7 +24,7 @@ window.AU = window.AU || {};
       S.map = id; S.x = x; S.visited[id] = true; // 이동 직후 저장해도 새 위치가 기록되도록
       const p = this.player; p.x = x; p.y = GROUND; p.vx = 0; p.vy = 0; p.rope = null; p.onGround = true;
       this.camX = Math.max(0, Math.min(m.width - W, x - W / 2));
-      this.monsters = []; this.fx = []; this.floaters = []; this.drops = []; this.nearDrop = null;
+      this.monsters = []; this.fx = []; this.floaters = []; this.drops = []; this.nearDrop = null; this.work = null; this.nearSpot = null;
       (m.spawns || []).forEach((sp, i) => this.spawn(sp.type, sp.x, sp.y, sp.min, sp.max, "s" + i));
       this.bossCheckT = 0; this.syncBoss();
       if (!silent) { AU.G.save("map"); AU.Ev.emit("mapchange", { id }); }
@@ -100,7 +100,7 @@ window.AU = window.AU || {};
       const virt = this.virt; // 컷신이 주인공을 걷게 할 때(프롤로그)는 키 입력 대신 가상 입력을 씀
       const left = virt ? virt.dir < 0 : !blocked && I.isHeld("left"), right = virt ? virt.dir > 0 : !blocked && I.isHeld("right"), up = !blocked && I.isHeld("up"), down = !blocked && I.isHeld("down");
       const mv = (right ? 1 : 0) - (left ? 1 : 0);
-      this.nearNpc = null; this.nearPortal = null;
+      this.nearNpc = null; this.nearPortal = null; if (this.work) this.updateWork(dt, blocked);
 
       if (p.rope) {
         const r = p.rope; p.x = r.x; p.vx = 0; p.vy = 0;
@@ -155,11 +155,12 @@ window.AU = window.AU || {};
 
     // 근처 NPC·포털 찾기(매 프레임 + 입력 순간에도 다시 계산)
     scan() {
-      const p = this.player, map = this.map; this.nearNpc = null; this.nearPortal = null; this.nearDrop = null;
+      const p = this.player, map = this.map; this.nearNpc = null; this.nearPortal = null; this.nearDrop = null; this.nearSpot = null;
       for (const d of this.drops) if (Math.abs(p.x - d.x) < 64 && Math.abs(p.y - d.y) < 110 && d.vy > -50) { if (!this.nearDrop || Math.abs(p.x - d.x) < Math.abs(p.x - this.nearDrop.x)) this.nearDrop = d; }
       for (const n of map.npcs || []) if (Math.abs(p.x - n.x) < 90) { if (!this.nearNpc || Math.abs(p.x - n.x) < Math.abs(p.x - this.nearNpc.x)) this.nearNpc = n; }
       for (const pt of map.portals || []) if (Math.abs(p.x - pt.x) < 70 && p.onGround) this.nearPortal = pt;
-      this.prompt = this.nearDrop ? "Space 줍기: " + AU.ITEMS[this.nearDrop.id].name.replace(" (임시)", "") + (this.nearDrop.n > 1 ? " ×" + this.nearDrop.n : "") : this.nearNpc ? "Space 대화: " + AU.NPCS[this.nearNpc.id].name : this.nearPortal ? "↑ 이동: " + this.nearPortal.label : "";
+      for (const sp of map.spots || []) if (Math.abs(p.x - sp.x) < 70 && p.onGround && AU.G.spotObjective(sp.id)) this.nearSpot = sp;   // 진행 중인 조사·수리 목표가 있는 지점만
+      this.prompt = this.work ? "수리 중… (움직이면 멈춥니다)" : this.nearDrop ? "Space 줍기: " + AU.ITEMS[this.nearDrop.id].name.replace(" (임시)", "") + (this.nearDrop.n > 1 ? " ×" + this.nearDrop.n : "") : this.nearSpot ? "Space " + (this.nearSpot.kind === "repair" ? "수리" : "조사") + ": " + this.nearSpot.label : this.nearNpc ? "Space 대화: " + AU.NPCS[this.nearNpc.id].name : this.nearPortal ? "↑ 이동: " + this.nearPortal.label : "";
       if (AU.Prologue && AU.Prologue.on) AU.Prologue.scan(this);
     },
 
@@ -178,10 +179,26 @@ window.AU = window.AU || {};
       } else if (id === "attack") { p.atkBuf = 0.15;
       } else if (id === "interact") {
         if (this.nearDrop) { this.pickupNear(); return; }
+        if (this.nearSpot) { this.useSpot(this.nearSpot); return; }
         if (this.nearNpc) { AU.UI.talkNpc(this.nearNpc.id); }
       } else if (id === "up") {
         if (this.nearPortal && !p.rope) { const pt = this.nearPortal; this.travel(pt.to, pt.toX); }
       } else if (id.startsWith("skill")) this.useSkillSlot(+id.slice(5) - 1);
+    },
+
+    /* ---------- 조사·수리 지점 ---------- */
+    useSpot(sp) {
+      if (this.work) return;
+      if (sp.kind === "investigate") { AU.UI.say({ name: sp.label, portrait: "" }, sp.lines || ["살펴보았습니다."], { end: () => AU.G.completeSpot(sp.id) }); return; }
+      this.work = { sp, t: 0, dur: sp.dur || 1.5, x0: this.player.x };   // 목공 수리: 제자리에서 잠깐 작업. 움직이거나 맞으면 멈춤
+      if (AU.Sfx && AU.Sfx.play) { try { AU.Sfx.play("hit"); } catch (e) { /* 소리 없음 */ } }
+    },
+    updateWork(dt, blocked) {
+      const w = this.work, p = this.player; if (!w) return;
+      if (blocked || p.dead || !p.onGround || Math.abs(p.x - w.x0) > 24 || AU.UI.anyOpen()) { this.work = null; return; }
+      const prev = w.t; w.t += dt;
+      if (Math.floor(prev / 0.5) !== Math.floor(w.t / 0.5) && AU.Sfx && AU.Sfx.play) { try { AU.Sfx.play("hit"); } catch (e) { /* 소리 없음 */ } }   // 탕, 탕
+      if (w.t >= w.dur) { const sp = w.sp; this.work = null; if (AU.G.completeSpot(sp.id)) { AU.G.toast(sp.done || "수리했습니다.", "good"); this.floaters.push({ x: sp.x, y: GROUND - 120, t: 0, text: "수리 완료", color: "#9BE0B4" }); } }
     },
 
     /* ---------- 전투 ---------- */
@@ -268,6 +285,7 @@ window.AU = window.AU || {};
     },
     hurtPlayer(m) {
       const p = this.player, S = AU.G.S; if (p.invuln > 0 || p.dead) return;
+      this.work = null;
       const d = AU.G.d();
       p.invuln = C.combat.invuln;
       if (Math.random() * 100 < d.dodge) { this.floater(p.x, p.y - 130, "MISS", "#9FD6F5"); return; }
@@ -320,6 +338,7 @@ window.AU = window.AU || {};
       if (pro) PR.drawLayer(ctx, "back");
       this.drawStructures(ctx);
       for (const n of map.npcs || []) this.drawNpc(ctx, n);
+      this.drawSpots(ctx);
       for (const m of this.monsters) if (m.alive) this.drawMonster(ctx, m);
       this.drawDrops(ctx);
       if (pro) PR.drawLayer(ctx, "mid");
@@ -379,6 +398,31 @@ window.AU = window.AU || {};
       ctx.font = "500 14px 'Noto Sans KR', sans-serif"; ctx.textAlign = "center";
       const w = ctx.measureText(text).width + 16; ctx.fillStyle = color || "rgba(30,24,18,.68)"; this.rr(ctx, x - w / 2, y - 16, w, 23, 6); ctx.fill();
       ctx.fillStyle = "#FFFFFF"; ctx.fillText(text, x, y);
+    },
+    // 조사·수리 지점: 목표가 진행 중이면 눈에 띄게, 수리를 마친 곳은 고쳐진 모습으로 남김(그림이 오기 전 임시 도형)
+    drawSpots(ctx) {
+      const y = GROUND;
+      for (const sp of this.map.spots || []) {
+        const act = AU.G.spotObjective(sp.id), done = !act && AU.G.spotDone(sp.id);
+        if (!act && !(done && sp.kind === "repair")) continue;
+        const x = sp.x;
+        if (sp.kind === "repair") {
+          ctx.save(); ctx.lineCap = "round";
+          if (done) { ctx.strokeStyle = "#8A6B46"; ctx.lineWidth = 9; ctx.beginPath(); ctx.moveTo(x - 44, y); ctx.lineTo(x - 44, y - 70); ctx.moveTo(x + 44, y); ctx.lineTo(x + 44, y - 70); ctx.stroke(); ctx.lineWidth = 7; ctx.strokeStyle = "#A88358"; ctx.beginPath(); ctx.moveTo(x - 50, y - 56); ctx.lineTo(x + 50, y - 56); ctx.moveTo(x - 50, y - 30); ctx.lineTo(x + 50, y - 30); ctx.stroke(); }
+          else { ctx.strokeStyle = "#6E563A"; ctx.lineWidth = 9; ctx.beginPath(); ctx.moveTo(x - 44, y); ctx.lineTo(x - 50, y - 62); ctx.moveTo(x + 44, y); ctx.lineTo(x + 58, y - 24); ctx.stroke(); ctx.lineWidth = 7; ctx.strokeStyle = "#8C714D"; ctx.beginPath(); ctx.moveTo(x - 48, y - 52); ctx.lineTo(x + 6, y - 28); ctx.stroke(); }
+          ctx.restore();
+        } else { ctx.save(); ctx.fillStyle = "rgba(40,30,34,.5)"; ctx.beginPath(); ctx.ellipse(x, y - 8, 34, 11, 0, 0, 7); ctx.fill(); ctx.restore(); }
+        if (act) {
+          const by = y - 120 + Math.sin(this.time * 4) * 3;
+          ctx.beginPath(); ctx.arc(x, by, 14, 0, 7); ctx.fillStyle = sp.kind === "repair" ? "#4F7D6E" : "#B98B45"; ctx.fill(); ctx.lineWidth = 2.5; ctx.strokeStyle = "#FFFFFF"; ctx.stroke();
+          ctx.font = "700 18px 'Noto Sans KR', sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillStyle = "#FFFFFF"; ctx.fillText(sp.kind === "repair" ? "⚒" : "?", x, by + 1); ctx.textBaseline = "alphabetic";
+          this.nameTag(ctx, sp.label, x, y - 92);
+        }
+      }
+      const w = this.work; if (w) { // 작업 진행 막대
+        const p = this.player, bw = 90, k = Math.min(1, w.t / w.dur);
+        ctx.fillStyle = "rgba(30,22,15,.7)"; this.rr(ctx, p.x - bw / 2 - 3, p.y - 176, bw + 6, 16, 8); ctx.fill(); ctx.fillStyle = "#9BE0B4"; this.rr(ctx, p.x - bw / 2, p.y - 173, Math.max(6, bw * k), 10, 5); ctx.fill();
+      }
     },
     drawNpc(ctx, n) {
       const d = AU.NPCS[n.id], y = GROUND, face = this.player.x < n.x ? -1 : 1;

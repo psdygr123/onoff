@@ -73,7 +73,7 @@ AU.MAPS = {
     name: "포르투 노바", bg: "harbor", width: 1600, safe: true,
     platforms: [{ x: 0, y: 590, w: 1600 }], ropes: [],
     portals: [{ x: 40, to: "harbor_road", toX: 2330, label: "항구 길" }, { x: 1560, to: "docks", toX: 90, label: "선창 외곽" }],
-    npcs: [{ id: "arche_guide", x: 330 }, { id: "porto_guild", x: 520 }, { id: "porto_general", x: 700 }, { id: "job_npc", x: 900 }, { id: "porto_smith", x: 1060 }, { id: "guide_npc", x: 1220 }],
+    npcs: [{ id: "arche_guide", x: 330 }, { id: "porto_guild", x: 520 }, { id: "porto_general", x: 700 }, { id: "job_npc", x: 900 }, { id: "porto_smith", x: 1060 }, { id: "guide_npc", x: 1220 }, { id: "porto_foreman", x: 1390 }],
     spawns: [], start: 160,
     area: { x: 78, y: 40, desc: "중립 항구도시입니다. 선창 길드가 의뢰를 받습니다. (요청서 기준)" }
   },
@@ -84,6 +84,14 @@ AU.MAPS = {
     ropes: [{ x: 285, top: 465, bottom: 590 }],
     portals: [{ x: 40, to: "porto", toX: 1480, label: "포르투 노바" }],
     npcs: [],
+    // 조사·수리 지점: 해당 목표가 진행 중일 때만 표시됩니다(kind: repair=목공 수리 / investigate=조사)
+    spots: [
+      { id: "fence_a", x: 200, kind: "repair", label: "무너진 방책", done: "방책 기둥을 새로 세워 박았습니다." },
+      { id: "fence_b", x: 650, kind: "repair", label: "쪼개진 방책", done: "쪼개진 판자를 갈아 끼웠습니다." },
+      { id: "fence_c", x: 1000, kind: "repair", label: "기울어진 방책", done: "기울어진 기둥을 바로 세웠습니다." },
+      { id: "trace_stain", x: 440, kind: "investigate", label: "바위틈의 검은 얼룩", lines: ["바위틈에 말라붙은 검은 얼룩이 있습니다. 바닷물에도 씻기지 않은 듯 끈적하게 굳어 있습니다.", "짐승이 지나간 자리마다 이 얼룩이 남아 있습니다. 어둠의 기운이 짐승의 몸을 거쳐 흘러나온 흔적처럼 보입니다."] },
+      { id: "trace_crate", x: 1130, kind: "investigate", label: "부서진 짐 상자", lines: ["부서진 짐 상자의 옆면에 불도장이 찍혀 있습니다. 파도 같은 물결무늬입니다.", "어디선가 본 듯한 모양입니다. 상자 안은 비어 있지만 바닥에 검은 가루가 남아 있습니다."] }
+    ],
     spawns: [{ type: "crab", x: 360 }, { type: "crab", x: 600 }, { type: "rat", x: 820 }, { type: "crab", x: 1060 }],
     boss: { type: "trial_boss", x: 980 },     // 전직 시험 중에만 등장
     area: { x: 90, y: 64, desc: "항구 바깥 선창 지대입니다. 길드 의뢰의 사냥터입니다. (임시 설명)" }
@@ -119,7 +127,8 @@ AU.ITEMS = {
   fox_scarf: { name: "여우 털 목도리 (임시)", type: "equip", slot: "accessory", rarity: "rare", sell: 0, stats: { crit: 2, dodge: 1 }, desc: "여우 털로 짠 포근한 목도리입니다." },
   snake_ring: { name: "뱀 비늘 반지 (임시)", type: "equip", slot: "accessory", rarity: "rare", sell: 0, stats: { dodge: 3 }, desc: "비늘 무늬가 새겨진 반지입니다." },
   crab_vest: { name: "게딱지 조끼 (임시)", type: "equip", slot: "armor", rarity: "rare", sell: 0, stats: { hp: 40 }, desc: "단단한 게딱지를 이어 붙인 조끼입니다." },
-  guild_token: { name: "선창 길드 증표 (임시)", type: "quest", desc: "선창 길드의 의뢰를 받았다는 표시입니다." }
+  guild_token: { name: "선창 길드 증표 (임시)", type: "quest", desc: "선창 길드의 의뢰를 받았다는 표시입니다." },
+  guild_parcel: { name: "길드 짐 꾸러미 (임시)", type: "quest", desc: "선창 길드가 전해 달라고 맡긴 작은 꾸러미입니다." }
 };
 // 상점: 잡화상인은 재료를 사고 소비 아이템을 팔며, 무기상인은 장비를 만들어 줌
 AU.SHOP = { general: { buy: ["potion"] } };
@@ -153,7 +162,8 @@ AU.SKILLS = {
 AU.WARRIOR_SKILLS = ["strike", "spin", "focus"];
 
 /* ---------- 퀘스트 (전부 임시 테스트 콘텐츠) ---------- */
-// kind: kill(처치) / collect(아이템 수집) / talk(대화)
+// kind: kill(처치) / collect(아이템 수집) / talk(대화) / deliver(물건 전달: item→target NPC) / investigate(조사 지점 targets) / repair(목공 수리 지점 targets) / choice(선택: 정답 없는 갈림길, target NPC에게 말 걸기)
+// 선택지에는 정답·오답이 없고 보상 차이도 없습니다. 고른 값은 flags["choice_<id>"]에 기록해 이후 이야기에서 쓸 수 있습니다.
 AU.QUESTS = {
   q_first: {
     title: "첫 사냥 (임시)", type: "main", giver: "arche_guide", minLevel: 1, pre: [],
@@ -193,6 +203,41 @@ AU.QUESTS = {
     done: ["수고하셨습니다. 이번 보수입니다."],
     reward: { exp: 1200, silver: 200, items: [] }
   },
+  q_a1_fence: {
+    title: "방책 수리 (임시)", type: "main", giver: "porto_foreman", minLevel: 4, pre: ["q_guild_talk"],
+    area: "docks", desc: "선창 외곽의 무너진 방책 세 곳을 고치고, 기어드는 게를 4마리 쫓아냅니다.",
+    objectives: [{ kind: "repair", targets: ["fence_a", "fence_b", "fence_c"] }, { kind: "kill", target: "crab", count: 4 }],
+    offer: ["...나무 결을 볼 줄 아는 눈이군. 연장을 다루는 손이 제대로 배운 손이야.", "선창 외곽의 방책이 여기저기 부서졌네. 고치면서 기어드는 게도 쫓아내 주게. 보수는 세 배로 쳐주지.", "(임시 대사입니다. 연장은 모험가 가방에 있다고 가정합니다.)"],
+    reminder: ["방책에 다가가 {interact}를 누르고 있으면 수리합니다. 게는 방책을 갉아먹으니 보이는 대로 쫓아내게."],
+    done: ["방책이 말끔하군. 못 박는 소리가 일정한 게 마음에 들어.", "약속한 보수일세. 받아 가게."],
+    reward: { exp: 900, silver: 180, items: [] }
+  },
+  q_a1_parcel: {
+    title: "길드 짐 전하기 (임시)", type: "sub", giver: "porto_foreman", minLevel: 5, pre: ["q_a1_fence"],
+    desc: "길드 짐 꾸러미를 포르투 노바의 잡화상인에게 전합니다.", startItems: [["guild_parcel", 1]],
+    objectives: [{ kind: "deliver", item: "guild_parcel", target: "porto_general" }],
+    offer: ["심부름을 하나 부탁하겠네. 이 꾸러미를 잡화상인에게 전해 주게.", "마을 안이니 멀지 않을 걸세."],
+    reminder: ["꾸러미는 잡화상인에게 전하면 되네."],
+    deliver: { porto_general: ["선창 길드에서 온 꾸러미군요. 기다리고 있었어요. 고맙습니다.", "(꾸러미를 건넸습니다.)"] },
+    done: ["전했나? 수고했네. 수고비일세."],
+    reward: { exp: 250, silver: 50, items: [["potion", 2]] }
+  },
+  q_a1_traces: {
+    title: "방파제의 흔적 (임시)", type: "main", giver: "porto_foreman", minLevel: 6, pre: ["q_a1_parcel"],
+    area: "docks", desc: "선창 외곽에서 짐승이 남긴 이상한 흔적 두 곳을 조사하고, 십장에게 알립니다.",
+    objectives: [{ kind: "investigate", targets: ["trace_stain", "trace_crate"] }, { kind: "choice", id: "traces", target: "porto_foreman" }],
+    offer: ["요즘 방파제에 이상한 흔적이 남는다는 말이 돌아. 짐승이 지나간 자리라는데, 직접 보고 와 주겠나?", "바위틈과 부서진 짐 상자 쪽일세."],
+    reminder: ["선창 외곽의 바위틈과 부서진 상자를 살펴보고 오게."],
+    choice: {
+      prompt: ["다녀왔나? 뭘 보았는지 말해 보게.", "...듣고 보니 심상치 않군. 이 일을 어떻게 하면 좋겠나?"],
+      options: [
+        { label: "길드에 알린다", flag: "report", reply: ["그래, 길드가 알고 있어야 대비를 하지. 내가 장부에 올려 두겠네."] },
+        { label: "일단 혼자 알아본다", flag: "alone", reply: ["혼자서 말인가. 위험한 일일세. 그래도 먼저 확인해 보겠다면 말리진 않겠네.", "다만 무슨 일이든 알게 되면 귀띔은 해 주게."] }
+      ]
+    },
+    done: ["수고했네. 자네 덕에 방파제 일이 한결 분명해졌어."],
+    reward: { exp: 800, silver: 100, items: [] }
+  },
   q_job: {
     title: "전직 시험 (임시)", type: "main", giver: "job_npc", minLevel: 10, pre: [],
     area: "docks", desc: "선창 외곽에 나타나는 시험 대상을 처치합니다. 정식 전직 이벤트는 스토리 자료가 오면 교체합니다. (TODO)",
@@ -208,6 +253,8 @@ AU.QUESTS = {
 AU.NPCS = {
   arche_guide: { name: "마을 사람 (임시)", sprite: "villager_a", portrait: "pt_villager_a", quests: ["q_first", "q_forest", "q_guild_talk"],
     idle: ["오늘도 평화로운 마을이에요.", "다친 곳은 없나요? 쉬어 가면서 하세요."] },
+  porto_foreman: { name: "선창 십장 (임시)", sprite: "smith", portrait: "pt_smith", quests: ["q_a1_fence", "q_a1_parcel", "q_a1_traces"],
+    idle: ["방파제는 자네 덕에 한시름 놨네.", "바닷바람이 거세니 몸조심하게."] },
   porto_guild: { name: "선창 길드 접수 (임시)", sprite: "villager_b", portrait: "pt_villager_b", quests: ["q_guild_rats", "q_guild_crabs"],
     idle: ["선창 길드입니다. 의뢰가 필요하면 말씀하세요.", "오늘은 부두가 조용하군요."] },
   job_npc: { name: "전직 담당 (임시)", sprite: "smith", portrait: "pt_smith", quests: ["q_job"],

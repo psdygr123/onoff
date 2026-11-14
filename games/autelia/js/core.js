@@ -59,7 +59,7 @@ window.AU = window.AU || {};
       flags: { missionsUnlocked: false, guideMet: false },
       missions: { states: {}, weekId: AU.weekId(), weekPoints: 0, log: [] },
       journal: [{ t: AU.dateStr(), text: "모험을 시작했습니다." }],
-      mind: { checkins: [], last: null }, mindStats: { P: 0, E: 0, R: 0, M: 0, A: 0 }, playSec: 0, savedAt: null
+      mind: { checkins: [], last: null, snap: null }, mindStats: { P: 0, E: 0, R: 0, M: 0, A: 0 }, playSec: 0, savedAt: null
     };
     st.hp = AU.derive(st).maxHp;
     return st;
