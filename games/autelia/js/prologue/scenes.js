@@ -208,6 +208,7 @@ window.AU = window.AU || {};
       draw(ctx, e, P) { const w = AU.World, art = A.has("pc_father_actions"); w.nameTag(ctx, e.name, e.x, G - (art && e.working ? 172 : 160));
         if (art) A.spr(ctx, "pc_father_actions", e.working ? (Math.sin(P.time * 5) > 0.15 ? "hammer2" : "hammer1") : "stand", e.x, G, e.face);
         else { w.sprite(ctx, "smith", e.x, G, 150, e.face, 0); if (e.working) { const sw = Math.max(0, Math.sin(P.time * 5)); A.hammer(ctx, e.x + e.face * 30, G - 76, e.face * (-0.5 + sw * 1.9), 0.9); } }
+        if (v.hand && v.hand.t < 1) { const h = v.hand, hx = e.x + e.face * 14, hy = G - 88; A.plank(ctx, h.x0 + (hx - h.x0) * h.t, h.y0 + (hy - h.y0) * h.t - Math.sin(h.t * Math.PI) * 8, 120, -0.05); }   // 주인공 손에서 아버지 손으로 천천히 건넴
         if (v.fhold) A.plank(ctx, e.x + e.face * 14, G - 88 + Math.sin(P.time * 6) * (v.fwalk ? 1.5 : 0), 120, -0.03 * e.face);   // 건네받은 목재를 두 손으로 듦
         if (e.mark && !P.locked()) { const by = G - 204 + Math.sin(P.time * 4) * 4; ctx.fillStyle = "#E8B94E"; ctx.strokeStyle = "#fff"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(e.x - 11, by - 12); ctx.lineTo(e.x + 11, by - 12); ctx.lineTo(e.x, by + 4); ctx.closePath(); ctx.fill(); ctx.stroke(); } } });
     const pile = P.addEnt({ id: "pile", x: L.pile, range: 90, layer: "mid", interact: { label: "목재 들기", off: true, fn: () => { if (st.carry) return; st.carry = true; v.carry = true; P.sfx("pick"); pile.mark = false; father.mark = true; father.interact.label = "목재 건네기"; P.hint("목재를 들었습니다. 아버지에게 가져가세요.", 3.5); } },
@@ -229,7 +230,7 @@ window.AU = window.AU || {};
     father.interact = { label: "대화: 아버지", fn: async () => {
       if (!st.talk) { st.talk = true; await P.cutscene(async () => { await P.say(T.father1); }); pile.interact.off = false; pile.mark = true; father.mark = false; P.obj(OBJ.s1_lumber); return; }
       if (st.carry && !st.installed) { st.installed = true; await P.cutscene(async () => {
-        v.carry = false; P.sfx("pick"); father.working = false; father.faceP = false; father.face = AU.World.player.x < father.x ? -1 : 1; v.fhold = true; await P.wait(0.45);   // 주인공이 목재를 건네면 아버지가 망치를 멈추고 받음
+        father.working = false; father.faceP = false; father.face = AU.World.player.x < father.x ? -1 : 1; await P.wait(0.3); v.hand = { t: 0, x0: AU.World.player.x + 4, y0: G - 96 }; v.carry = false; P.sfx("pick"); await P.tween(v.hand, { t: 1 }, 0.55, (k) => k * (2 - k)); v.fhold = true; await P.wait(0.25);   // 주인공이 목재를 건네면 아버지가 망치를 멈추고 받음
         const home = father.x, tx = L.joint - 96; father.face = tx >= father.x ? 1 : -1; v.fwalk = true; await P.tween(father, { x: tx }, Math.max(0.6, Math.abs(tx - father.x) / 110), (k) => k); v.fwalk = false; father.face = 1; await P.wait(0.25);   // 틀 앞까지 들고 걸어감
         v.fhold = false; v.planked = true; v.drop = 0; P.sfx("plank"); await P.tween(v, { drop: 1 }, 0.55, (k) => k * k); P.burst("dust", L.joint, 478, 4); P.shake(2, 0.12); await P.wait(0.3);   // 가만히 내려놓음
         v.fwalk = true; father.face = -1; await P.tween(father, { x: home }, Math.max(0.5, Math.abs(tx - home) / 110), (k) => k); v.fwalk = false; father.face = 1; father.working = true; await P.wait(0.2);
