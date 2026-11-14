@@ -22,6 +22,7 @@ body::before {
 }
 img { max-width: 100%; display: block; }
 [hidden] { display: none !important; }
+html { word-break: keep-all; overflow-wrap: break-word; }   /* 한국어는 낱말(어절) 단위로만 줄을 바꿈. 긴 영문·주소는 넘칠 때만 끊음 */
 h1, h2, h3, h4 { margin: 0; line-height: 1.3; text-wrap: balance; }
 p { margin: 0; }
 a { color: var(--accent-ink); }
@@ -71,6 +72,7 @@ main { display: block; outline: none; }
 .section-head h2 { font-family: var(--font-display); font-size: var(--fs-2xl); }
 .section-head p { color: var(--ink-2); }
 .lead { color: var(--ink-2); font-size: var(--fs-md); max-width: 52ch; }
+
 .note { background: var(--note-bg); border-radius: var(--r-md); padding: 14px 18px; font-size: var(--fs-sm); color: var(--ink); }
 .note.ok { background: var(--ok-bg); }
 .note.err { background: var(--danger-bg); color: var(--ink); }
@@ -286,6 +288,7 @@ main { display: block; outline: none; }
 .tabpanel { animation: tabin .35s ease; }
 .tabpanel[hidden] { display: none; }
 @keyframes tabin { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.tabpanel .lead { max-width: none; font-size: 1.125rem; text-wrap: pretty; }   /* 소개 카드 안에서는 폭을 끝까지 쓰고(문장 중간 끊김 방지) 글씨도 카드 크기에 맞게 키움 */
 .tabpanel .lead + .lead { margin-top: 10px; }
 
 /* 스크롤 등장 */
