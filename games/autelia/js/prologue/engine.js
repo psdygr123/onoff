@@ -143,7 +143,9 @@ window.AU = window.AU || {};
       st.state = ORDER[i]; this.obj("");
       if (!this.replay) AU.G.save("checkpoint");
       AU.G.changed(); AU.World.player.invuln = 0;
-      Promise.resolve().then(() => sc.enter(this)).catch((e) => { if (e !== CANCEL) { console.error("[프롤로그] 장면 시작 오류:", e); this.recover(); } });
+      // 프롤로그 그림이 다 불러와진 뒤에 장면을 시작(최대 12초). 느린 접속에서 옛 주민 그림(성별이 다른 대체 그림)으로 만들어지는 것을 막음
+      const g0 = this.gen;
+      Promise.resolve().then(() => AU.Img.whenSettled((k) => /^(pc_|pt_pro|pb_|po_|fx_)/.test(k), 12000)).then(() => { if (g0 !== this.gen) throw CANCEL; return sc.enter(this); }).catch((e) => { if (e !== CANCEL) { console.error("[프롤로그] 장면 시작 오류:", e); this.recover(); } });
     },
     // 장면 안에서 맵을 바꿀 때(또는 장면의 첫 맵): 맵별 임시 상태를 비우고 맵에 들어감
     room(mapId, x, setup) {

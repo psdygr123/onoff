@@ -130,8 +130,8 @@ window.AU = window.AU || {};
     const chat = (id, spk, sprite, x, h, label, key, extra) => npc(P, id, spk, sprite, x, h, Object.assign({ range: 100, interact: { label, fn: () => P.cutscene(async () => { await P.say(T[key]); if (key === "s0_baker") P.setFlag("met_baker_morning"); }) } }, extra || {}));
     chat("child", "child", artSpr("pc_festival_child", "villager_b"), M.child, 118, "대화: 축제 어린이", "s0_child");
     { const s = standing("b", "baker"); chat("baker", "vendor", s.sprite, M.baker, s.h, "대화: 빵을 나누는 주민", "s0_baker", s.extra); }
-    { const s = standing("c", "villager_a"); chat("elder", "elder", s.sprite, M.elder, s.h, "대화: 나이 든 주민", "s0_elder", s.extra); }
-    { const s = standing("d", "villager_a"); chat("farmer", "farmer", s.sprite, M.farmer, s.h, "대화: 젊은 농부", "s0_farmer", s.extra); }
+    { const s = standing("c", "smith"); chat("elder", "elder", s.sprite, M.elder, s.h, "대화: 나이 든 주민", "s0_elder", s.extra); }
+    { const s = standing("d", "smith"); chat("farmer", "farmer", s.sprite, M.farmer, s.h, "대화: 젊은 농부", "s0_farmer", s.extra); }
     { const s = standing("j", "villager_a"); chat("priest", "priest", s.sprite, M.priest, s.h, "대화: 신관", "s0_priest", s.extra); }
     const stele = P.addEnt({ id: "stele", x: M.stele, range: 110, layer: "mid", mark: true, interact: { label: "기념비 읽기", fn: async () => {
       await P.cutscene(async () => { await P.say(T.s0_stele); }); if (P.flag("stele_read")) return;
@@ -157,7 +157,7 @@ window.AU = window.AU || {};
   function setupBanners(P) {
     const R = LAY.road, B = R.b; P.variant = "peace"; P.tint = { color: "#FFC98A", a: 0.2 }; P.vig = 0.24;
     const st = { talk: false, done: 0 }; P.limits = { max: B.elder + 150, msg: "먼저 마을 사람에게 말을 걸어 보세요." };
-    const sE = standing("c", "villager_a"), sB = standing("b", "baker"), sM = standing("f", "villager_a"), sS = standing("k", "villager_a");
+    const sE = standing("c", "smith"), sB = standing("b", "baker"), sM = standing("f", "smith"), sS = standing("k", "smith");
     const elder = npc(P, "elder", "elder", sE.sprite, B.elder, sE.h, Object.assign({}, sE.extra, { range: 110, mark: true }));
     npc(P, "baker", "vendor", sB.sprite, B.baker, sB.h, Object.assign({}, sB.extra, { range: 110, interact: { label: "대화: 빵을 나누는 주민", fn: () => P.cutscene(async () => { await P.say(T.s1b_baker); P.setFlag("met_baker_evening"); }) } }));
     npc(P, "musician", "musician", sM.sprite, B.musician, sM.h, Object.assign({}, sM.extra, { range: 100, interact: { label: "대화: 악사", fn: () => P.cutscene(() => P.say(T.s1b_musician)) } }));

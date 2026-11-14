@@ -10,10 +10,16 @@ window.AU = window.AU || {};
     load() {
       for (const [key, spec] of Object.entries(AU.ASSETS)) {
         const im = new Image(); const rec = { image: im, ok: false, frames: spec.frames || 1 };
-        im.onload = () => { rec.ok = true; if (!rec.orig) rec.orig = im; if (AU.Tint) AU.Tint.onLoaded(key); };
-        im.onerror = () => { if (spec.optional) { console.info("[아우텔리아] 선택 그림 없음(임시 도형으로 표시):", spec.path); return; } this.missing.add(key); console.warn("[아우텔리아] 이미지 누락, 대체 그래픽으로 표시:", spec.path); };
+        im.onload = () => { rec.ok = true; rec.done = true; if (!rec.orig) rec.orig = im; if (AU.Tint) AU.Tint.onLoaded(key); };
+        im.onerror = () => { rec.done = true; if (spec.optional) { console.info("[아우텔리아] 선택 그림 없음(임시 도형으로 표시):", spec.path); return; } this.missing.add(key); console.warn("[아우텔리아] 이미지 누락, 대체 그래픽으로 표시:", spec.path); };
         im.src = spec.path; this.map[key] = rec;
       }
+    },
+    // 그림이 모두 불러와질 때까지(성공이든 실패든) 기다림. 느린 접속에서 장면이 대체 그림(옛 주민 그림)으로 만들어지는 것을 막음
+    whenSettled(match, maxMs) {
+      const keys = Object.keys(this.map).filter((k) => match(k));
+      const open = () => keys.filter((k) => !(this.map[k].done));
+      return new Promise((res) => { const t0 = Date.now(); const tick = () => { if (!open().length || Date.now() - t0 > (maxMs || 10000)) res(open().length); else setTimeout(tick, 80); }; tick(); });
     },
     has(key) { return !!(this.map[key] && this.map[key].ok); },
     get(key) { return this.map[key] && this.map[key].image; }
