@@ -18,6 +18,9 @@ AU.ASSETS = {
   baker:        { path: "assets/char/baker.webp" },
   porto_general: { path: "assets/char/porto_general.webp" },
   porto_smith:  { path: "assets/char/porto_smith.webp" },
+  porto_foreman: { path: "assets/char/porto_foreman.webp" },
+  ob_fence_broken: { path: "assets/object/fence_broken.webp", optional: true }, ob_fence_fixed: { path: "assets/object/fence_fixed.webp", optional: true },
+  ob_trace_stain: { path: "assets/object/trace_stain.webp", optional: true }, ob_trace_crate: { path: "assets/object/trace_crate.webp", optional: true }, it_guild_parcel: { path: "assets/object/guild_parcel.webp", optional: true },
   mon_fox:   { path: "assets/monster/fox.webp", optional: true },
   mon_snake: { path: "assets/monster/snake.webp", optional: true },
   mon_rat:   { path: "assets/monster/rat.webp", optional: true },
@@ -29,7 +32,8 @@ AU.ASSETS = {
   pt_smith:      { path: "assets/portrait/smith.webp" },
   pt_baker:      { path: "assets/portrait/baker.webp" },
   pt_porto_general: { path: "assets/portrait/porto_general.webp" },
-  pt_porto_smith: { path: "assets/portrait/porto_smith.webp" }
+  pt_porto_smith: { path: "assets/portrait/porto_smith.webp" },
+  pt_porto_foreman: { path: "assets/portrait/porto_foreman.webp" }
 };
 
 /* ---------- 맵 ---------- */
@@ -86,11 +90,11 @@ AU.MAPS = {
     npcs: [],
     // 조사·수리 지점: 해당 목표가 진행 중일 때만 표시됩니다(kind: repair=목공 수리 / investigate=조사)
     spots: [
-      { id: "fence_a", x: 200, kind: "repair", label: "무너진 방책", done: "방책 기둥을 새로 세워 박았습니다." },
-      { id: "fence_b", x: 650, kind: "repair", label: "쪼개진 방책", done: "쪼개진 판자를 갈아 끼웠습니다." },
-      { id: "fence_c", x: 1000, kind: "repair", label: "기울어진 방책", done: "기울어진 기둥을 바로 세웠습니다." },
-      { id: "trace_stain", x: 440, kind: "investigate", label: "바위틈의 검은 얼룩", lines: ["바위틈에 말라붙은 검은 얼룩이 있습니다. 바닷물에도 씻기지 않은 듯 끈적하게 굳어 있습니다.", "짐승이 지나간 자리마다 이 얼룩이 남아 있습니다. 어둠의 기운이 짐승의 몸을 거쳐 흘러나온 흔적처럼 보입니다."] },
-      { id: "trace_crate", x: 1130, kind: "investigate", label: "부서진 짐 상자", lines: ["부서진 짐 상자의 옆면에 불도장이 찍혀 있습니다. 파도 같은 물결무늬입니다.", "어디선가 본 듯한 모양입니다. 상자 안은 비어 있지만 바닥에 검은 가루가 남아 있습니다."] }
+      { id: "fence_a", img: "fence", x: 200, kind: "repair", label: "무너진 방책", done: "방책 기둥을 새로 세워 박았습니다." },
+      { id: "fence_b", img: "fence", x: 650, kind: "repair", label: "쪼개진 방책", done: "쪼개진 판자를 갈아 끼웠습니다." },
+      { id: "fence_c", img: "fence", x: 1000, kind: "repair", label: "기울어진 방책", done: "기울어진 기둥을 바로 세웠습니다." },
+      { id: "trace_stain", img: "ob_trace_stain", x: 440, kind: "investigate", label: "바위틈의 검은 얼룩", lines: ["바위틈에 말라붙은 검은 얼룩이 있습니다. 바닷물에도 씻기지 않은 듯 끈적하게 굳어 있습니다.", "짐승이 지나간 자리마다 이 얼룩이 남아 있습니다. 어둠의 기운이 짐승의 몸을 거쳐 흘러나온 흔적처럼 보입니다."] },
+      { id: "trace_crate", img: "ob_trace_crate", x: 1130, kind: "investigate", label: "부서진 짐 상자", lines: ["부서진 짐 상자의 옆면에 불도장이 찍혀 있습니다. 파도 같은 물결무늬입니다.", "어디선가 본 듯한 모양입니다. 상자 안은 비어 있지만 바닥에 검은 가루가 남아 있습니다."] }
     ],
     spawns: [{ type: "crab", x: 360 }, { type: "crab", x: 600 }, { type: "rat", x: 820 }, { type: "crab", x: 1060 }],
     boss: { type: "trial_boss", x: 980 },     // 전직 시험 중에만 등장
@@ -262,7 +266,7 @@ AU.QUESTS = {
 AU.NPCS = {
   arche_guide: { name: "마을 사람 (임시)", sprite: "villager_a", portrait: "pt_villager_a", quests: ["q_first", "q_forest", "q_guild_talk"],
     idle: ["오늘도 평화로운 마을이에요.", "다친 곳은 없나요? 쉬어 가면서 하세요."] },
-  porto_foreman: { name: "선창 십장 (임시)", sprite: "smith", portrait: "pt_smith", quests: ["q_a1_fence", "q_a1_parcel", "q_a1_traces"],
+  porto_foreman: { name: "선창 십장 (임시)", sprite: "porto_foreman", portrait: "pt_porto_foreman", quests: ["q_a1_fence", "q_a1_parcel", "q_a1_traces"],
     idle: ["방파제는 자네 덕에 한시름 놨네.", "바닷바람이 거세니 몸조심하게."] },
   porto_guild: { name: "선창 길드 접수 (임시)", sprite: "villager_b", portrait: "pt_villager_b", quests: ["q_guild_rats", "q_guild_crabs"],
     idle: ["선창 길드입니다. 의뢰가 필요하면 말씀하세요.", "오늘은 부두가 조용하군요."] },
