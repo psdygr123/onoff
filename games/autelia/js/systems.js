@@ -62,6 +62,30 @@ window.AU = window.AU || {};
       if (!quiet) this.toast("획득: " + AU.ITEMS[id].name + (n > 1 ? " ×" + n : ""), "item");
       this.refreshCollectQuests(); this.changed();
     },
+    // 상인과 이야기해 상점을 연 동안에만 사고팔기·제작 가능(shop: "general" 잡화 / "smith" 무기)
+    shop: null,
+    openShop(kind) { this.shop = kind; },
+    buyItem(id, n = 1) {
+      const it = AU.ITEMS[id]; if (this.shop !== "general" || !it || !(it.buy > 0) || !AU.SHOP.general.buy.includes(id)) return false;
+      const cost = it.buy * n; if (this.S.silver < cost) { this.toast("은화가 부족합니다.", "warn"); return false; }
+      this.S.silver -= cost; this.giveItem(id, n, true); this.toast(it.name.replace(" (임시)", "") + (n > 1 ? " ×" + n : "") + " 구매: 은화 -" + cost, "good"); this.save("buy"); this.changed(); return true;
+    },
+    sellItem(id, n = 1) {
+      const it = AU.ITEMS[id]; if (!it || it.type !== "etc" || !(it.sell > 0)) return false;
+      if (this.shop !== "general") { this.toast("잡화상인에게 가서 팔 수 있습니다.", "warn"); return false; }
+      n = Math.min(n, this.count(id)); if (n < 1) return false;
+      this.takeItem(id, n); const gain = it.sell * n; this.gainSilver(gain);
+      this.toast(it.name.replace(" (임시)", "") + (n > 1 ? " ×" + n : "") + " 판매: 은화 +" + gain, "good"); this.save("sell"); this.changed(); return true;
+    },
+    canCraft(rid) { const r = AU.RECIPES.find((x) => x.id === rid); return !!r && r.mats.every(([m, n]) => this.count(m) >= n) && this.S.silver >= r.silver; },
+    craft(rid) {
+      const r = AU.RECIPES.find((x) => x.id === rid); if (!r) return false;
+      if (this.shop !== "smith") { this.toast("무기상인에게 가서 만들 수 있습니다.", "warn"); return false; }
+      if (!this.canCraft(rid)) { this.toast("재료나 은화가 부족합니다.", "warn"); return false; }
+      for (const [m, n] of r.mats) this.takeItem(m, n);
+      this.S.silver -= r.silver; this.giveItem(r.out, 1, true);
+      this.toast("제작 완료: " + AU.ITEMS[r.out].name.replace(" (임시)", ""), "good"); this.log("제작: " + AU.ITEMS[r.out].name); this.save("craft"); this.changed(); return true;
+    },
     takeItem(id, n = 1) {
       if (this.count(id) < n) return false;
       this.S.inv[id] -= n; if (this.S.inv[id] <= 0) delete this.S.inv[id];

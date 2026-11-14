@@ -7,7 +7,7 @@ window.AU = window.AU || {};
   const sign = (n) => (n > 0 ? 1 : n < 0 ? -1 : 0);
 
   const World = AU.World = {
-    mapId: null, map: null, player: null, monsters: [], fx: [], floaters: [], camX: 0, time: 0,
+    mapId: null, map: null, player: null, monsters: [], fx: [], floaters: [], drops: [], nearDrop: null, camX: 0, time: 0,
     trans: null, deadT: 0, prompt: "", nearNpc: null, nearPortal: null, bossCheckT: 0, blockedFn: () => false,
 
     init() {
@@ -24,7 +24,7 @@ window.AU = window.AU || {};
       S.map = id; S.x = x; S.visited[id] = true; // 이동 직후 저장해도 새 위치가 기록되도록
       const p = this.player; p.x = x; p.y = GROUND; p.vx = 0; p.vy = 0; p.rope = null; p.onGround = true;
       this.camX = Math.max(0, Math.min(m.width - W, x - W / 2));
-      this.monsters = []; this.fx = []; this.floaters = [];
+      this.monsters = []; this.fx = []; this.floaters = []; this.drops = []; this.nearDrop = null;
       (m.spawns || []).forEach((sp, i) => this.spawn(sp.type, sp.x, sp.y, sp.min, sp.max, "s" + i));
       this.bossCheckT = 0; this.syncBoss();
       if (!silent) { AU.G.save("map"); AU.Ev.emit("mapchange", { id }); }
@@ -71,6 +71,7 @@ window.AU = window.AU || {};
         }
       }
       for (const f of this.floaters) f.t += dt; this.floaters = this.floaters.filter((f) => f.t < 0.9);
+      this.updateDrops(dt);
       for (const f of this.fx) f.t += dt; this.fx = this.fx.filter((f) => f.t < f.dur);
 
       const blocked = this.isBlocked();
@@ -154,10 +155,11 @@ window.AU = window.AU || {};
 
     // 근처 NPC·포털 찾기(매 프레임 + 입력 순간에도 다시 계산)
     scan() {
-      const p = this.player, map = this.map; this.nearNpc = null; this.nearPortal = null;
+      const p = this.player, map = this.map; this.nearNpc = null; this.nearPortal = null; this.nearDrop = null;
+      for (const d of this.drops) if (Math.abs(p.x - d.x) < 64 && Math.abs(p.y - d.y) < 110 && d.vy > -50) { if (!this.nearDrop || Math.abs(p.x - d.x) < Math.abs(p.x - this.nearDrop.x)) this.nearDrop = d; }
       for (const n of map.npcs || []) if (Math.abs(p.x - n.x) < 90) { if (!this.nearNpc || Math.abs(p.x - n.x) < Math.abs(p.x - this.nearNpc.x)) this.nearNpc = n; }
       for (const pt of map.portals || []) if (Math.abs(p.x - pt.x) < 70 && p.onGround) this.nearPortal = pt;
-      this.prompt = this.nearNpc ? "Space 대화: " + AU.NPCS[this.nearNpc.id].name : this.nearPortal ? "↑ 이동: " + this.nearPortal.label : "";
+      this.prompt = this.nearDrop ? "Space 줍기: " + AU.ITEMS[this.nearDrop.id].name.replace(" (임시)", "") + (this.nearDrop.n > 1 ? " ×" + this.nearDrop.n : "") : this.nearNpc ? "Space 대화: " + AU.NPCS[this.nearNpc.id].name : this.nearPortal ? "↑ 이동: " + this.nearPortal.label : "";
       if (AU.Prologue && AU.Prologue.on) AU.Prologue.scan(this);
     },
 
@@ -175,6 +177,7 @@ window.AU = window.AU || {};
         }
       } else if (id === "attack") { p.atkBuf = 0.15;
       } else if (id === "interact") {
+        if (this.nearDrop) { this.pickupNear(); return; }
         if (this.nearNpc) { AU.UI.talkNpc(this.nearNpc.id); }
       } else if (id === "up") {
         if (this.nearPortal && !p.rope) { const pt = this.nearPortal; this.travel(pt.to, pt.toX); }
@@ -200,10 +203,37 @@ window.AU = window.AU || {};
       const exp = Math.round(m.d.exp * mult), silver = Math.round(rnd(m.d.silver[0], m.d.silver[1]));
       AU.G.gainSilver(silver);
       this.floater(m.x, m.y - m.d.h - 34, "+" + exp + " EXP", "#9FE870");
-      for (const [it, rate] of m.d.drops) if (Math.random() < rate) AU.G.giveItem(it, 1);
+      this.spawnDrops(m); // 아이템은 바닥에 떨어지고 Space로 직접 주움(은화는 바로 받음)
       AU.G.onKill(m.type);
       AU.G.gainExp(exp, m.d.name);
       AU.G.toast(m.d.name + " 처치: 경험치 +" + exp + ", 은화 +" + silver, "kill");
+    },
+    /* ---------- 드롭: 떨어진 아이템을 직접 줍기 ---------- */
+    // 드롭 표 한 줄: [아이템, 확률, 최소 개수(기본 1), 최대 개수(기본 최소와 같음)]
+    spawnDrops(m) {
+      let k = 0;
+      for (const row of m.d.drops || []) {
+        const [id, rate, lo = 1, hi = lo] = row; if (!AU.ITEMS[id] || Math.random() >= rate) continue;
+        const n = Math.round(lo + Math.random() * (hi - lo)); const dir = (k % 2 ? -1 : 1) * (0.7 + 0.5 * Math.floor(k / 2) + Math.random() * 0.4); k++;
+        this.drops.push({ id, n, x: m.x + (k - 1) * 6, y: m.y - m.d.h * 0.5, vx: dir * (50 + Math.random() * 70), vy: -(260 + Math.random() * 120), gy: m.y, age: 0, onGround: false });
+      }
+      if (this.drops.length && AU.Sfx) { try { AU.Sfx.play("drop"); } catch (e) { /* 무시 */ } }
+    },
+    updateDrops(dt) {
+      for (const d of this.drops) {
+        d.age += dt;
+        if (!d.onGround) {
+          d.vy += 1100 * dt; d.y += d.vy * dt; d.x += d.vx * dt; d.vx *= 0.96;
+          if (d.y >= d.gy) { d.y = d.gy; if (d.vy > 160) { d.vy *= -0.32; } else { d.vy = 0; d.onGround = true; } }
+        }
+      }
+      this.drops = this.drops.filter((d) => d.age < 90); // 90초 지나면 사라짐(마지막 10초는 깜빡임)
+    },
+    pickupNear() {
+      const d = this.nearDrop; if (!d || !this.drops.includes(d)) return false;
+      this.drops = this.drops.filter((x) => x !== d); this.nearDrop = null;
+      AU.G.giveItem(d.id, d.n); this.floater(d.x, d.y - 40, "+" + AU.ITEMS[d.id].name.replace(" (임시)", "") + (d.n > 1 ? " ×" + d.n : ""), (AU.RARITY[AU.ITEMS[d.id].rarity] || {}).color || "#fff");
+      return true;
     },
     basicAttack() {
       const p = this.player; p.atkCD = C.combat.attackCooldown; p.atkT = 0.22;
@@ -291,6 +321,7 @@ window.AU = window.AU || {};
       this.drawStructures(ctx);
       for (const n of map.npcs || []) this.drawNpc(ctx, n);
       for (const m of this.monsters) if (m.alive) this.drawMonster(ctx, m);
+      this.drawDrops(ctx);
       if (pro) PR.drawLayer(ctx, "mid");
       this.drawPlayer(ctx, p);
       if (pro) PR.drawLayer(ctx, "front");
@@ -388,6 +419,29 @@ window.AU = window.AU || {};
       ctx.restore();
     },
     // 적 그래픽은 임시(캔버스 도형). 정식 그림이 오면 sprite()로 교체
+    // 바닥 아이템: 그림이 아직 없어 모양과 색으로 구분(흔함=베이지, 드묾=청록, 희귀=금색+빛기둥). 희귀는 이름이 항상 보임
+    drawDrops(ctx) {
+      const p = this.player, placed = []; // 글자가 겹치지 않게 위로 쌓아 올림
+      for (const d of this.drops) {
+        const it = AU.ITEMS[d.id], rar = AU.RARITY[it.rarity] || AU.RARITY.common, left = 90 - d.age;
+        if (left < 10 && Math.floor(left * 4) % 2 === 0) continue; // 사라지기 전 깜빡임
+        const bob = d.onGround ? Math.sin(this.time * 3 + d.x) * 3 : 0, x = d.x, y = d.y - 10 + bob;
+        ctx.save();
+        if (it.rarity === "rare") { const a = 0.18 + 0.1 * Math.sin(this.time * 4); const g = ctx.createLinearGradient(0, y - 120, 0, y); g.addColorStop(0, "rgba(242,193,78,0)"); g.addColorStop(1, "rgba(242,193,78," + a + ")"); ctx.fillStyle = g; ctx.fillRect(x - 14, y - 120, 28, 120); }
+        ctx.fillStyle = "rgba(40,30,20,.25)"; ctx.beginPath(); ctx.ellipse(x, d.gy + 2, 11, 4, 0, 0, 7); ctx.fill();
+        ctx.translate(x, y); ctx.fillStyle = rar.color; ctx.strokeStyle = "#5A4630"; ctx.lineWidth = 2; ctx.beginPath();
+        if (it.type === "equip") { ctx.moveTo(0, -12); ctx.lineTo(11, 0); ctx.lineTo(0, 12); ctx.lineTo(-11, 0); } else if (it.type === "use") { ctx.arc(0, 0, 9, 0, 7); } else if (ctx.roundRect) { ctx.roundRect(-9, -8, 18, 16, 5); } else { ctx.rect(-9, -8, 18, 16); }
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+        ctx.restore();
+        const near = Math.abs(p.x - d.x) < 140 && Math.abs(p.y - d.y) < 160;
+        if (near || it.rarity === "rare") {
+          ctx.font = "600 13px 'Noto Sans KR', sans-serif"; ctx.textAlign = "center"; ctx.lineJoin = "round"; ctx.lineWidth = 3.5; ctx.strokeStyle = "rgba(30,22,15,.75)";
+          const t = it.name.replace(" (임시)", "") + (d.n > 1 ? " ×" + d.n : ""), w = ctx.measureText(t).width; let ly = y - 22;
+          while (placed.some((q) => Math.abs(q.x - x) < (q.w + w) / 2 + 4 && Math.abs(q.y - ly) < 16)) ly -= 16;
+          placed.push({ x, y: ly, w }); ctx.strokeText(t, x, ly); ctx.fillStyle = rar.color; ctx.fillText(t, x, ly);
+        }
+      }
+    },
     drawMonster(ctx, m) {
       const d = m.d, x = m.x, y = m.y, hop = m.state === "lunge" ? -10 : Math.abs(Math.sin(this.time * 6 + x)) * (m.state === "chase" ? 5 : 2);
       const sp = !!(d.sprite && AU.Img.has(d.sprite)); let th = d.h;

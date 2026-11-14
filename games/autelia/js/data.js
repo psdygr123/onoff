@@ -69,7 +69,7 @@ AU.MAPS = {
     name: "포르투 노바", bg: "harbor", width: 1600, safe: true,
     platforms: [{ x: 0, y: 590, w: 1600 }], ropes: [],
     portals: [{ x: 40, to: "harbor_road", toX: 2330, label: "항구 길" }, { x: 1560, to: "docks", toX: 90, label: "선창 외곽" }],
-    npcs: [{ id: "arche_guide", x: 330 }, { id: "porto_guild", x: 520 }, { id: "job_npc", x: 900 }, { id: "guide_npc", x: 1220 }],
+    npcs: [{ id: "arche_guide", x: 330 }, { id: "porto_guild", x: 520 }, { id: "porto_general", x: 700 }, { id: "job_npc", x: 900 }, { id: "porto_smith", x: 1060 }, { id: "guide_npc", x: 1220 }],
     spawns: [], start: 160,
     area: { x: 78, y: 40, desc: "중립 항구도시입니다. 선창 길드가 의뢰를 받습니다. (요청서 기준)" }
   },
@@ -91,10 +91,10 @@ AU.AREA_LINKS = [["forest", "harbor_road"], ["harbor_road", "porto"], ["porto", 
 // sprite/sw: 정식 그림(assets/monster/*.webp, 투명 배경, 오른쪽을 보는 옆모습 1장)이 있으면 그 그림을 sw(가로 px)로 그리고, 없으면 임시 도형으로 표시합니다.
 // 이전 아스텔리아 기획의 사냥터 구성(들짐승→부두 쥐→게→거대 적)을 규칙으로만 재사용. 모두 임시 수치.
 AU.MONSTERS = {
-  fox:   { name: "들여우", lv: 1, hp: 32, atk: 6, speed: 70, chase: 130, w: 72, h: 50, exp: 34, silver: [2, 5], drops: [["fur", 0.5], ["potion", 0.08]], color: "#F5A25D", ear: true, sprite: "mon_fox", sw: 92 },
-  snake: { name: "뱀", lv: 3, hp: 55, atk: 10, speed: 85, chase: 150, w: 90, h: 34, exp: 62, silver: [4, 8], drops: [["fur", 0.15], ["potion", 0.1]], color: "#7DBE6B", snake: true, sprite: "mon_snake", sw: 128 },
-  rat:   { name: "부두 쥐", lv: 5, hp: 90, atk: 15, speed: 100, chase: 160, w: 70, h: 46, exp: 90, silver: [6, 12], drops: [["potion", 0.12]], color: "#A79C94", ear: true, sprite: "mon_rat", sw: 88 },
-  crab:  { name: "집게 게", lv: 8, hp: 170, atk: 26, speed: 60, chase: 150, w: 92, h: 56, exp: 132, silver: [10, 18], drops: [["potion", 0.15]], color: "#E9777A", crab: true, sprite: "mon_crab", sw: 116 },
+  fox:   { name: "들여우", lv: 1, hp: 32, atk: 6, speed: 70, chase: 130, w: 72, h: 50, exp: 34, silver: [2, 5], drops: [["fur", 0.55, 1, 2], ["fox_tail", 0.18], ["potion", 0.08], ["fox_scarf", 0.015]], color: "#F5A25D", ear: true, sprite: "mon_fox", sw: 92 },
+  snake: { name: "뱀", lv: 3, hp: 55, atk: 10, speed: 85, chase: 150, w: 90, h: 34, exp: 62, silver: [4, 8], drops: [["snake_skin", 0.5], ["snake_fang", 0.16], ["potion", 0.1], ["snake_ring", 0.015]], color: "#7DBE6B", snake: true, sprite: "mon_snake", sw: 128 },
+  rat:   { name: "부두 쥐", lv: 5, hp: 90, atk: 15, speed: 100, chase: 160, w: 70, h: 46, exp: 90, silver: [6, 12], drops: [["rat_tooth", 0.55, 1, 2], ["potion", 0.12]], color: "#A79C94", ear: true, sprite: "mon_rat", sw: 88 },
+  crab:  { name: "집게 게", lv: 8, hp: 170, atk: 26, speed: 60, chase: 150, w: 92, h: 56, exp: 132, silver: [10, 18], drops: [["crab_claw", 0.5, 1, 2], ["crab_shell", 0.2], ["potion", 0.15], ["crab_vest", 0.015]], color: "#E9777A", crab: true, sprite: "mon_crab", sw: 116 },
   trial_boss: { name: "시험 대상 (임시)", lv: 10, hp: 700, atk: 40, speed: 75, chase: 420, w: 190, h: 150, exp: 600, silver: [60, 80], drops: [], color: "#9B7FD1", boss: true }
 };
 
@@ -103,10 +103,29 @@ AU.ITEMS = {
   sword_a: { name: "견습용 검 (임시)", type: "equip", slot: "weapon", stats: { atk: 4 }, desc: "견습 모험가가 쓰는 기본 검입니다." },
   cloth_a: { name: "견습용 작업복 (임시)", type: "equip", slot: "armor", stats: { hp: 20 }, desc: "움직이기 편한 작업복입니다." },
   charm_a: { name: "작은 부적 (임시)", type: "equip", slot: "accessory", stats: { dodge: 1, crit: 1 }, desc: "작은 행운이 깃들었다는 부적입니다." },
-  potion:  { name: "작은 회복약 (임시)", type: "use", heal: 50, desc: "HP를 50 회복합니다." },
-  fur:     { name: "여우 털 뭉치 (임시)", type: "etc", desc: "부드러운 털 뭉치입니다. 지금은 쓸모가 정해지지 않았습니다." },
+  potion:  { name: "작은 회복약 (임시)", type: "use", heal: 50, buy: 15, desc: "HP를 50 회복합니다." },
+  // rarity: common(흔함) / uncommon(드묾) / rare(희귀). sell: 안전한 곳(마을)에서 팔 때 받는 은화. 재료는 팔거나 제작(AU.RECIPES)에 씀
+  fur:     { name: "여우 털 뭉치 (임시)", type: "etc", rarity: "common", sell: 3, desc: "부드러운 털 뭉치입니다. 팔거나 장신구 제작에 씁니다." },
+  fox_tail: { name: "여우 꼬리털 (임시)", type: "etc", rarity: "uncommon", sell: 10, desc: "윤기가 도는 꼬리털입니다. 제작 재료로 쓰입니다." },
+  snake_skin: { name: "뱀 허물 (임시)", type: "etc", rarity: "common", sell: 5, desc: "바싹 마른 뱀 허물입니다. 팔거나 제작에 씁니다." },
+  snake_fang: { name: "독니 조각 (임시)", type: "etc", rarity: "uncommon", sell: 14, desc: "부러진 뱀의 이빨 조각입니다. 제작 재료로 쓰입니다." },
+  rat_tooth: { name: "쥐 이빨 (임시)", type: "etc", rarity: "common", sell: 6, desc: "작지만 단단한 이빨입니다. 팔 수 있습니다." },
+  crab_claw: { name: "게 집게 조각 (임시)", type: "etc", rarity: "common", sell: 8, desc: "떨어져 나온 집게 조각입니다. 팔거나 제작에 씁니다." },
+  crab_shell: { name: "단단한 게딱지 (임시)", type: "etc", rarity: "uncommon", sell: 18, desc: "바닷가 게의 단단한 껍데기입니다. 제작 재료로 쓰입니다." },
+  fox_scarf: { name: "여우 털 목도리 (임시)", type: "equip", slot: "accessory", rarity: "rare", sell: 0, stats: { crit: 2, dodge: 1 }, desc: "여우 털로 짠 포근한 목도리입니다." },
+  snake_ring: { name: "뱀 비늘 반지 (임시)", type: "equip", slot: "accessory", rarity: "rare", sell: 0, stats: { dodge: 3 }, desc: "비늘 무늬가 새겨진 반지입니다." },
+  crab_vest: { name: "게딱지 조끼 (임시)", type: "equip", slot: "armor", rarity: "rare", sell: 0, stats: { hp: 40 }, desc: "단단한 게딱지를 이어 붙인 조끼입니다." },
   guild_token: { name: "선창 길드 증표 (임시)", type: "quest", desc: "선창 길드의 의뢰를 받았다는 표시입니다." }
 };
+// 상점: 잡화상인은 재료를 사고 소비 아이템을 팔며, 무기상인은 장비를 만들어 줌
+AU.SHOP = { general: { buy: ["potion"] } };
+AU.RARITY = { common: { label: "흔함", color: "#D9C79A" }, uncommon: { label: "드묾", color: "#7FC8A9" }, rare: { label: "희귀", color: "#F2C14E" } };
+// 제작: 안전한 곳(마을)에서 재료와 은화로 희귀 장비를 직접 만듦(드롭보다 확실하지만 재료가 많이 듦)
+AU.RECIPES = [
+  { id: "cr_fox_scarf", out: "fox_scarf", mats: [["fur", 8], ["fox_tail", 3]], silver: 30 },
+  { id: "cr_snake_ring", out: "snake_ring", mats: [["snake_skin", 6], ["snake_fang", 4]], silver: 40 },
+  { id: "cr_crab_vest", out: "crab_vest", mats: [["crab_claw", 6], ["crab_shell", 5]], silver: 60 }
+];
 AU.SLOT_LABEL = { weapon: "무기", armor: "방어구", accessory: "장신구" };
 
 /* ---------- 직업 ---------- */
@@ -189,6 +208,11 @@ AU.NPCS = {
     idle: ["선창 길드입니다. 의뢰가 필요하면 말씀하세요.", "오늘은 부두가 조용하군요."] },
   job_npc: { name: "전직 담당 (임시)", sprite: "smith", portrait: "pt_smith", quests: ["q_job"],
     idle: ["10레벨이 되면 다시 오세요.", "준비가 되면 말을 걸어 주세요."] },
+  // 상인: 정식 그림이 오기 전까지 기존 인물 그림을 임시로 씀
+  porto_general: { name: "잡화상인 (임시)", sprite: "villager_a", portrait: "pt_villager_a", shop: "general",
+    idle: ["어서 오세요. 모험에서 주워 온 재료, 제가 사들입니다.", "회복약도 있어요. 필요하면 말씀하세요."] },
+  porto_smith: { name: "무기상인 (임시)", sprite: "smith", portrait: "pt_smith", shop: "smith",
+    idle: ["재료와 은화만 있으면 쓸 만한 장비를 만들어 드리죠.", "희귀한 재료는 늘 환영이오."] },
   guide_npc: { name: "모험 안내인 (임시)", sprite: "baker", portrait: "pt_baker", special: "missionGuide",
     idle: ["모험은 잘 되어 가나요?"] }
 };
