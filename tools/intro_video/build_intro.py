@@ -10,7 +10,7 @@ import sys, os, math, subprocess, numpy as np, cv2
 from PIL import Image, ImageDraw, ImageFont
 IMG = os.environ.get("INTRO_IMG", "/tmp/claude-0/intro_img")
 W, H, FPS, OV = 1280, 720, 30, 0.9
-TEMPO = float(os.environ.get("INTRO_TEMPO", "1.15"))   # 컷 길이 배율(1.0=v1). v1이 조금 빠르다는 의견으로 기본 1.15
+TEMPO = float(os.environ.get("INTRO_TEMPO", "1.35"))   # 컷 길이 배율(1.0=v1). v1이 조금 빠르다는 의견으로 기본 1.15
 DRIFT = 0.28                                            # 구름 흐름 속도(v1은 0.35)
 FONT = "/usr/share/fonts/opentype/noto/NotoSansCJK-Medium.ttc"
 SCENES = [
