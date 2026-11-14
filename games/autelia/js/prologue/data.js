@@ -23,7 +23,7 @@ window.AU = window.AU || {};
     for (const n of Object.keys(m.separate || {})) AU.ASSETS["pc_" + f.split("_")[0] + "_" + n] = { path: "assets/prologue/ch/" + f.split("_")[0] + "_" + n + ".webp", optional: true };
   }
   // 추가 그림(2차 패키지, tools/build_prologue_art2.py): 장애물·이음 골조·초상화
-  for (const f of ["obst_rock", "obst_log", "obst_burnt_beams", "joint_frame", "monument"]) AU.ASSETS["po_" + f] = { path: "assets/prologue/ob/" + f + ".webp", optional: true };
+  for (const f of ["obst_rock", "obst_log", "obst_burnt_beams", "joint_frame", "monument", "flagpole", "flag_0", "flag_1", "flag_2"]) AU.ASSETS["po_" + f] = { path: "assets/prologue/ob/" + f + ".webp", optional: true };
   for (const f of ["pt_pro_hero_m", "pt_pro_hero_f", "pt_pro_father", "pt_pro_elder", "pt_pro_baker", "pt_pro_child", "pt_pro_hero_m_surprised", "pt_pro_father_smile", "pt_pro_farmer", "pt_pro_priest", "pt_pro_musician", "pt_pro_scribe", "pt_pro_traveler", "pt_pro_florist"]) AU.ASSETS[f] = { path: "assets/prologue/pt/" + f + ".webp", optional: true };
   AU.ASSETS.fx_fire = { path: "assets/prologue/fx/fire.webp", optional: true }; AU.ASSETS.fx_smoke = { path: "assets/prologue/fx/smoke.webp", optional: true };   // 불꽃 6프레임·연기 4프레임 스트립
   AU.PRO_GENDER = "m"; // 남(m)/여(f) 주인공 시트 선택(성별 선택 기능이 생기면 이 값만 바꿉니다)

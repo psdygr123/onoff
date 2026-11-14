@@ -146,14 +146,26 @@ window.AU = window.AU || {};
     if (!live(P, g)) return; P.obj(OBJ.s0_walk); const k = P.keys(); P.hint("이동 " + k.move + " · 점프 " + k.jump + " · 상호작용 " + k.act, 9);
   } };
 
-  function drawPole(ctx, e, P) { // 깃대와 축제 깃발(e.f: 0 말려 있음 → 1 꼭대기까지 올라감)
-    const x = e.x, top = G - 250, fy = G - 78 - e.f * 150, wv = Math.sin(P.time * 3 + x) * 5 * e.f;
-    ctx.save(); ctx.strokeStyle = "#5b4126"; ctx.lineWidth = 3; ctx.lineCap = "round"; ctx.fillStyle = "#9a6b3a";
-    ctx.fillRect(x - 4, top, 8, G - top); ctx.strokeRect(x - 4, top, 8, G - top); ctx.fillStyle = "#E3B24A"; ctx.beginPath(); ctx.arc(x, top - 4, 7, 0, 7); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = e.col; ctx.beginPath();
-    if (e.f < 0.05) { ctx.rect(x + 4, fy, 22, 12); } else { ctx.moveTo(x + 4, fy); ctx.quadraticCurveTo(x + 36, fy - 6 + wv, x + 72 + wv, fy + 20); ctx.quadraticCurveTo(x + 36, fy + 34 + wv * 0.5, x + 4, fy + 40); ctx.closePath(); }
-    ctx.fill(); ctx.stroke(); if (e.f >= 0.05) { ctx.fillStyle = "rgba(255,255,255,.55)"; ctx.beginPath(); ctx.arc(x + 26, fy + 20, 7, 0, 7); ctx.fill(); }
-    ctx.restore(); if (e.mark) arrowMark(ctx, P, x, top - 40);
+  function drawPole(ctx, e, P) { // 깃대와 축제 깃발(e.f: 0 말려 있음 → 1 꼭대기까지 올라감). 정식 그림(깃대·깃발 3종)이 있으면 그것을 쓰고 없으면 코드 도형
+    const x = e.x, top = G - 262, fy = G - 80 - e.f * 150, fk = "po_flag_" + e.ci;
+    ctx.save();
+    if (A.has("po_flagpole")) A.pic(ctx, "po_flagpole", x, G + 4, 262, 1);
+    else { ctx.strokeStyle = "#5b4126"; ctx.lineWidth = 3; ctx.fillStyle = "#9a6b3a"; ctx.fillRect(x - 4, top, 8, G - top); ctx.strokeRect(x - 4, top, 8, G - top); ctx.fillStyle = "#E3B24A"; ctx.beginPath(); ctx.arc(x, top - 4, 7, 0, 7); ctx.fill(); ctx.stroke(); }
+    if (A.has(fk)) {
+      const im = AU.Img.get(fk), w = 92, h = w * im.naturalHeight / im.naturalWidth;
+      if (e.f < 0.05) { // 말려서 끈으로 묶은 깃발 뭉치(기둥에 기대어 놓음)
+        ctx.save(); ctx.translate(x + 12, G - 62); ctx.rotate(-0.12); ctx.fillStyle = e.col; ctx.strokeStyle = "#4a3320"; ctx.lineWidth = 2.5; A.rrect(ctx, -6, -34, 14, 70, 6); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = "rgba(255,255,255,.22)"; A.rrect(ctx, -3, -30, 4, 60, 2); ctx.fill(); ctx.strokeStyle = "#8a6a3a"; ctx.lineWidth = 3; for (const yy of [-18, 8]) { ctx.beginPath(); ctx.moveTo(-7, yy); ctx.lineTo(9, yy); ctx.stroke(); } ctx.restore();
+      } else { // 천이 바람에 흔들리도록 세로 띠로 잘라 물결을 줌(깃대 쪽은 고정, 끝으로 갈수록 크게 흔들림)
+        const N = 18, sw = im.naturalWidth / N, dw = w / N, t = P.time * 4 + x * 0.013, amp = 5 * Math.min(1, e.f * 1.4);
+        for (let k = 0; k < N; k++) { const r = k / (N - 1), dy = Math.sin(t - k * 0.55) * amp * r; ctx.drawImage(im, k * sw, 0, sw + 1, im.naturalHeight, x + 4 + k * dw, fy - h * 0.2 + dy, dw + 0.8, h); }
+      }
+    } else {
+      const wv = Math.sin(P.time * 3 + x) * 5 * e.f; ctx.strokeStyle = "#5b4126"; ctx.lineWidth = 3; ctx.fillStyle = e.col; ctx.beginPath();
+      if (e.f < 0.05) { ctx.rect(x + 4, fy, 22, 12); } else { ctx.moveTo(x + 4, fy); ctx.quadraticCurveTo(x + 36, fy - 6 + wv, x + 72 + wv, fy + 20); ctx.quadraticCurveTo(x + 36, fy + 34 + wv * 0.5, x + 4, fy + 40); ctx.closePath(); }
+      ctx.fill(); ctx.stroke();
+    }
+    ctx.restore(); if (e.mark) arrowMark(ctx, P, x, top - 36);
   }
   function setupBanners(P) {
     const R = LAY.road, B = R.b; P.variant = "peace"; P.tint = { color: "#FFC98A", a: 0.2 }; P.vig = 0.24;
@@ -164,7 +176,7 @@ window.AU = window.AU || {};
     npc(P, "musician", "musician", sM.sprite, B.musician, sM.h, Object.assign({}, sM.extra, { range: 100, interact: { label: "대화: 악사", fn: () => P.cutscene(() => P.say(T.s1b_musician)) } }));
     npc(P, "scribe", "scribe", sS.sprite, B.scribe, sS.h, Object.assign({}, sS.extra, { range: 100, interact: { label: "대화: 서기", fn: () => P.cutscene(() => P.say(T.s1b_scribe)) } }));
     const cols = ["#C0573E", "#E3B24A", "#4F8A6B"];
-    const poles = B.poles.map((x, i) => P.addEnt({ id: "pole" + i, x, f: 0, col: cols[i % 3], range: 90, layer: "mid", draw: drawPole, interact: { label: "깃발 달기", off: true, fn: () => hang(poles[i]) } }));
+    const poles = B.poles.map((x, i) => P.addEnt({ id: "pole" + i, x, f: 0, ci: i % 3, col: cols[i % 3], range: 90, layer: "mid", draw: drawPole, interact: { label: "깃발 달기", off: true, fn: () => hang(poles[i]) } }));
     elder.interact = { label: "대화: 나이 든 주민", fn: async () => {
       if (!st.talk) { st.talk = true; await P.cutscene(async () => { await P.say(T.s1b_elder); }); elder.mark = false; P.limits = { max: B.poles[2] + 130, msg: "먼저 깃발을 달아 주세요." };
         poles.forEach((q) => { q.interact.off = false; q.mark = true; }); P.obj(OBJ.s1b_flags.replace("{n}", 0)); return; }
@@ -196,6 +208,7 @@ window.AU = window.AU || {};
       draw(ctx, e, P) { const w = AU.World, art = A.has("pc_father_actions"); w.nameTag(ctx, e.name, e.x, G - (art && e.working ? 172 : 160));
         if (art) A.spr(ctx, "pc_father_actions", e.working ? (Math.sin(P.time * 5) > 0.15 ? "hammer2" : "hammer1") : "stand", e.x, G, e.face);
         else { w.sprite(ctx, "smith", e.x, G, 150, e.face, 0); if (e.working) { const sw = Math.max(0, Math.sin(P.time * 5)); A.hammer(ctx, e.x + e.face * 30, G - 76, e.face * (-0.5 + sw * 1.9), 0.9); } }
+        if (v.fhold) A.plank(ctx, e.x + e.face * 14, G - 88 + Math.sin(P.time * 6) * (v.fwalk ? 1.5 : 0), 120, -0.03 * e.face);   // 건네받은 목재를 두 손으로 듦
         if (e.mark && !P.locked()) { const by = G - 204 + Math.sin(P.time * 4) * 4; ctx.fillStyle = "#E8B94E"; ctx.strokeStyle = "#fff"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(e.x - 11, by - 12); ctx.lineTo(e.x + 11, by - 12); ctx.lineTo(e.x, by + 4); ctx.closePath(); ctx.fill(); ctx.stroke(); } } });
     const pile = P.addEnt({ id: "pile", x: L.pile, range: 90, layer: "mid", interact: { label: "목재 들기", off: true, fn: () => { if (st.carry) return; st.carry = true; v.carry = true; P.sfx("pick"); pile.mark = false; father.mark = true; father.interact.label = "목재 건네기"; P.hint("목재를 들었습니다. 아버지에게 가져가세요.", 3.5); } },
       draw(ctx, e, P) { for (let i = 0; i < v.pile; i++) A.plank(ctx, e.x + (i % 2) * 6, G - 10 - i * 15, 150, (i % 2 ? 0.01 : -0.01)); ctx.fillStyle = "#6e4a25"; ctx.fillRect(e.x - 66, G - 6, 8, 6); ctx.fillRect(e.x + 58, G - 6, 8, 6);
@@ -209,14 +222,17 @@ window.AU = window.AU || {};
           ctx.drawImage(AU.Img.get("po_plank_a"), x - 80, 466, 54, 14); ctx.drawImage(AU.Img.get("po_plank_a"), x + 26, 466, 54, 14);
         } else { ctx.fillStyle = "#B98B4E"; ctx.strokeStyle = "#5b4126"; ctx.lineWidth = 3; ctx.fillRect(x - 76, 470, 14, G - 470); ctx.strokeRect(x - 76, 470, 14, G - 470); ctx.fillRect(x + 62, 470, 14, G - 470); ctx.strokeRect(x + 62, 470, 14, G - 470);
           ctx.fillRect(x - 76, 470, 46, 16); ctx.strokeRect(x - 76, 470, 46, 16); ctx.fillRect(x + 30, 470, 46, 16); ctx.strokeRect(x + 30, 470, 46, 16); }
-        if (v.fly && v.fly.t >= 1) A.plank(ctx, x, jy, 66, 0); else if (v.planked) A.plank(ctx, x, jy, 66, 0);
+        if (v.planked) A.plank(ctx, x, jy - (1 - (v.drop == null ? 1 : v.drop)) * 26, 66, 0);
         for (let i = 0; i < 3; i++) { const sunk = v.nails > i; ctx.fillStyle = sunk ? "#555a62" : "#9aa0a8"; ctx.fillRect(x - 18 + i * 18, jy + (sunk ? -3 : -12), 6, sunk ? 3 : 12); }
         if (e.mark && !P.locked()) { const by = 440 + Math.sin(P.time * 4) * 4; ctx.fillStyle = "#E8B94E"; ctx.strokeStyle = "#fff"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(x - 11, by - 12); ctx.lineTo(x + 11, by - 12); ctx.lineTo(x, by + 4); ctx.closePath(); ctx.fill(); ctx.stroke(); } ctx.restore(); } });
 
     father.interact = { label: "대화: 아버지", fn: async () => {
       if (!st.talk) { st.talk = true; await P.cutscene(async () => { await P.say(T.father1); }); pile.interact.off = false; pile.mark = true; father.mark = false; P.obj(OBJ.s1_lumber); return; }
       if (st.carry && !st.installed) { st.installed = true; await P.cutscene(async () => {
-        v.carry = false; P.sfx("pick"); v.fly = { t: 0, x0: AU.World.player.x + 10, y0: G - 126 }; await P.tween(v.fly, { t: 1 }, 0.9, (k) => k); v.planked = true; P.sfx("plank"); P.burst("dust", L.joint, 478, 6); P.shake(4, 0.2);
+        v.carry = false; P.sfx("pick"); father.working = false; father.faceP = false; father.face = AU.World.player.x < father.x ? -1 : 1; v.fhold = true; await P.wait(0.45);   // 주인공이 목재를 건네면 아버지가 망치를 멈추고 받음
+        const home = father.x, tx = L.joint - 96; father.face = tx >= father.x ? 1 : -1; v.fwalk = true; await P.tween(father, { x: tx }, Math.max(0.6, Math.abs(tx - father.x) / 110), (k) => k); v.fwalk = false; father.face = 1; await P.wait(0.25);   // 틀 앞까지 들고 걸어감
+        v.fhold = false; v.planked = true; v.drop = 0; P.sfx("plank"); await P.tween(v, { drop: 1 }, 0.55, (k) => k * k); P.burst("dust", L.joint, 478, 4); P.shake(2, 0.12); await P.wait(0.3);   // 가만히 내려놓음
+        v.fwalk = true; father.face = -1; await P.tween(father, { x: home }, Math.max(0.5, Math.abs(tx - home) / 110), (k) => k); v.fwalk = false; father.face = 1; father.working = true; await P.wait(0.2);
         await P.say(T.father2); });
         frame.interact.off = false; frame.mark = true; father.mark = false; P.obj(OBJ.s1_joint); return; }
       if (st.finished) { if (!P.flag("father_final_conversation_complete")) await finalTalk(); return; }
