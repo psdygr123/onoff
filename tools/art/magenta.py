@@ -31,9 +31,10 @@ def portrait(src, out, bg=(233, 204, 157), size=(512, 600)):
     im = key(Image.open(src))
     w, h = size
     s = Image.new("RGB", im.size, bg); s.paste(im, (0, 0), im)
-    # 정사각 원본 -> 512x600 비율(가로 줄이기): 중앙 크롭
-    cw = round(s.height * w / h); x0 = (s.width - cw) // 2
-    s = s.crop((x0, 0, x0 + cw, s.height)).resize(size, Image.LANCZOS)
+    # 정사각 원본을 가로폭에 맞춰 전체가 보이게 축소하고 아래에 붙임(위 남는 부분은 배경색)
+    k = w / s.width; sc = s.resize((w, round(s.height * k)), Image.LANCZOS)
+    canvas = Image.new("RGB", size, bg); canvas.paste(sc, (0, h - sc.height))
+    s = canvas
     s.save(out, quality=90)
     return s
 
