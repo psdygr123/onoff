@@ -21,7 +21,7 @@ window.AU = window.AU || {};
   // 목공 동작 시트(새 그림): 목재 안아 들기·건네기·망치 내리치기 (주인공 남/여, 아버지). tools로 만든 변환본이라 메타를 여기서 등록
   AR.ch = AR.ch || {};
   AR.ch.player_m_work = { frames: 4, names: ["carry", "give", "swing_up", "swing_dn"], separate: {}, cw: 300, ch: 330, standH: 300, foot: 150 };
-  AR.ch.player_f_work = { frames: 4, names: ["carry", "give", "swing_up", "swing_dn"], separate: {}, cw: 300, ch: 330, standH: 300, foot: 150 };
+  AR.ch.player_f_work = { frames: 4, names: ["carry", "give", "swing_up", "swing_dn"], separate: {}, cw: 300, ch: 345, standH: 300, foot: 150 };
   AR.ch.father_work = { frames: 4, names: ["reach", "hold", "walk1", "walk2"], separate: {}, cw: 300, ch: 330, standH: 300, foot: 150 };
   for (const [f, m] of Object.entries(AR.ch || {})) {
     AU.ASSETS["pc_" + f] = { path: "assets/prologue/ch/" + f + ".webp", frames: m.frames, optional: true };
