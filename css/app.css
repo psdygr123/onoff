@@ -288,7 +288,7 @@ main { display: block; outline: none; }
 .tabpanel { animation: tabin .35s ease; }
 .tabpanel[hidden] { display: none; }
 @keyframes tabin { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-.tabpanel .lead { max-width: none; }   /* 소개 카드 안에서는 폭을 끝까지 써서 문장 중간에 끊기지 않게 */
+.tabpanel .lead { max-width: none; font-size: 1.125rem; text-wrap: pretty; }   /* 소개 카드 안에서는 폭을 끝까지 쓰고(문장 중간 끊김 방지) 글씨도 카드 크기에 맞게 키움 */
 .tabpanel .lead + .lead { margin-top: 10px; }
 
 /* 스크롤 등장 */
