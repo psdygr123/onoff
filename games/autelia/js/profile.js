@@ -83,7 +83,9 @@
       for (const L of AU.JOB_LINES) {
         const c = h("button", "jcard" + (L.open ? "" : " lock")); c.type = "button"; c.id = "jl-" + L.id; c.dataset.line = L.id; c.setAttribute("role", "radio");
         if (!L.open) c.setAttribute("aria-disabled", "true");
-        const art = h("div", "jart"); art.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + L.icon + "</svg>";
+        const art = h("div", "jart"), key = "job_" + L.id, spec = AU.ASSETS[key];
+        if (spec) { const im = new Image(); im.alt = ""; im.src = spec.path; im.draggable = false; art.classList.add("has-img"); im.onerror = () => { art.classList.remove("has-img"); art.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + L.icon + "</svg>"; }; art.append(im); } // 그림이 있으면 그림, 없거나 못 불러오면 임시 도형
+        else art.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + L.icon + "</svg>";
         c.append(h("i", L.open ? "chk" : "lk", L.open ? "✓" : "🔒"), art, h("b", null, L.name), h("p", null, L.open ? L.desc : "아직 열리지 않은 길입니다."), h("em", null, L.open ? "Lv.10 전직: " + AU.JOBS[L.job].name : "준비 중"));
         c.onclick = () => { if (!L.open) { note.textContent = L.name + " 계열은 아직 준비 중입니다. 지금은 전사 계열로 시작할 수 있습니다."; return; } sel = L.id; note.textContent = ""; mark(); };
         row.append(c); els[L.id] = c;

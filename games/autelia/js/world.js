@@ -36,7 +36,9 @@ window.AU = window.AU || {};
     syncBoss() {
       const m = this.map; if (!m.boss) return;
       const has = this.monsters.some((q) => q.type === m.boss.type && q.alive);
-      if (AU.G.bossActive() && !has) this.spawn(m.boss.type, m.boss.x, undefined, undefined, undefined, "boss");
+      // 보스 등장 조건: 기본은 전직 시험 중. quest(+afterSpot)가 있으면 그 퀘스트가 진행 중이고 지정 지점을 마쳤을 때
+      const on = m.boss.quest ? (AU.G.questStatus(m.boss.quest) === "active" && (!m.boss.afterSpot || AU.G.spotDone(m.boss.afterSpot)) && !(AU.G.S.flags["boss_" + m.boss.type])) : AU.G.bossActive();
+      if (on && !has) this.spawn(m.boss.type, m.boss.x, undefined, undefined, undefined, "boss");
     },
     spawn(type, x, y, min, max, tag) {
       const d = AU.MONSTERS[type];

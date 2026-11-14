@@ -113,6 +113,7 @@ window.AU = window.AU || {};
      ============================================================ */
   function arrowMark(ctx, P, x, by) { if (P.locked()) return; const y = by + Math.sin(P.time * 4) * 4; ctx.fillStyle = "#E8B94E"; ctx.strokeStyle = "#fff"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(x - 11, y - 12); ctx.lineTo(x + 11, y - 12); ctx.lineTo(x, y + 4); ctx.closePath(); ctx.fill(); ctx.stroke(); }
   function drawStele(ctx, x, y) { // 빛의 승리 기념비: 돌비석 + 태양 문양 + 새긴 글줄
+    if (A.has("po_monument")) { A.pic(ctx, "po_monument", x, y + 8, 210, 1); return; }   // 정식 그림(없으면 아래 코드 도형)
     ctx.save(); ctx.translate(x, y); ctx.lineJoin = "round"; ctx.strokeStyle = "#5b4126"; ctx.lineWidth = 3;
     ctx.fillStyle = "rgba(60,40,20,.26)"; ctx.beginPath(); ctx.ellipse(0, 3, 70, 9, 0, 0, 7); ctx.fill();
     ctx.fillStyle = "#b4a68e"; A.rrect(ctx, -58, -28, 116, 28, 6); ctx.fill(); ctx.stroke();
