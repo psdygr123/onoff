@@ -7,7 +7,7 @@ const note = (id, name, ok, ev) => { ok ? pass++ : fail++; console.log((ok ? 'PA
   const b = await chromium.launch(); const p = await (await b.newContext({ viewport: { width: 1280, height: 720 } })).newPage(); const errs = [];
   p.on('pageerror', (e) => errs.push('PAGEERR ' + e.message)); p.on('console', (m) => { if (m.type() === 'error' && !/ERR_TUNNEL|Failed to load resource|fonts/.test(m.text())) errs.push('CONSOLE ' + m.text()); });
   const ev = (fn, a) => p.evaluate(fn, a);
-  const fresh = async () => { await p.goto(URL); await ev(() => localStorage.clear()); await p.goto(URL); await p.waitForSelector('#btn-start'); await p.click('#btn-start'); await sleep(300); if (await p.$('#charsetup')) { await p.fill('#sname', '시험'); await p.click('#setup-ok'); } await sleep(1500); };
+  const fresh = async () => { await p.goto(URL); await ev(() => localStorage.clear()); await p.goto(URL); await p.waitForSelector('#btn-start'); await p.click('#btn-start'); await sleep(300); if (await p.$('#job-next')) { await p.click('#job-next'); await sleep(200); } if (await p.$('#charsetup')) { await p.fill('#sname', '시험'); await p.click('#setup-ok'); } await sleep(1500); };
   // ===== A. 도입 글 =====
   await fresh();
   const cards = await ev(() => AU.PRO_TEXT.cards);

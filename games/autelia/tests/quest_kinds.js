@@ -8,7 +8,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   p.on('pageerror', (e) => errs.push('PAGEERR ' + e.message)); p.on('console', (m) => { if (m.type() === 'error' && !/ERR_TUNNEL|Failed to load resource/.test(m.text())) errs.push('CONSOLE ' + m.text()); });
   const ev = (fn, a) => p.evaluate(fn, a);
   await p.goto(URL); await ev(() => localStorage.clear()); await p.goto(URL); await p.waitForSelector('#btn-start'); await p.click('#btn-start'); await sleep(300);
-  if (await p.$('#charsetup')) { await p.fill('#sname', '시험용'); await p.click('#setup-ok'); await sleep(300); }
+  if (await p.$('#job-next')) { await p.click('#job-next'); await sleep(200); } if (await p.$('#charsetup')) { await p.fill('#sname', '시험용'); await p.click('#setup-ok'); await sleep(300); }
   await ev(() => AU.Prologue.debugComplete('arche')); await sleep(200);
   const key = async (k, ms = 60) => { await p.keyboard.down(k); await sleep(ms); await p.keyboard.up(k); };
   // 준비: 선행 퀘스트 완료, 레벨 6
@@ -18,7 +18,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await ev(() => AU.G.startQuest('q_a1_fence'));
   note('K1', '시작하면 수리 목표 0/3 + 처치 0/4', await ev(() => { const r = AU.G.S.quests.q_a1_fence; return JSON.stringify(r.prog) === '[0,0]' && !!r.spots; }), await ev(() => JSON.stringify(AU.G.S.quests.q_a1_fence)));
   // 부두 외곽으로
-  await ev(() => { AU.World.enterMap('docks', 200, true); }); await sleep(400);
+  await ev(() => { AU.World.enterMap('docks', 200, true); AU.World.monsters = []; AU.World.spawn = () => null; }); await sleep(400);   // 시험 중 몬스터에게 맞아 수리가 끊기지 않도록 몬스터를 비움
   const near = await ev(() => { AU.World.scan(); const w = AU.World; return { s: w.nearSpot && w.nearSpot.id, prompt: w.prompt }; });
   note('K2', '방책 앞에서 “Space 수리” 안내', near.s === 'fence_a' && /수리/.test(near.prompt), JSON.stringify(near));
   // 수리 시작 후 움직이면 취소

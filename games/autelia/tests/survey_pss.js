@@ -9,7 +9,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const ev = (fn, a) => p.evaluate(fn, a);
   async function boot(q) {
     await p.goto(BASE + '/index.html' + q); await p.waitForSelector('#btn-start,#btn-continue'); const c = await p.$('#btn-continue');
-    if (c) await c.click(); else { await p.click('#btn-start'); await sleep(300); if (await p.$('#charsetup')) { await p.fill('#sname', '시험용'); await p.click('#setup-ok'); await sleep(300); } }
+    if (c) await c.click(); else { await p.click('#btn-start'); await sleep(300); if (await p.$('#job-next')) { await p.click('#job-next'); await sleep(200); } if (await p.$('#charsetup')) { await p.fill('#sname', '시험용'); await p.click('#setup-ok'); await sleep(300); } }
     await sleep(300); await ev(() => AU.Prologue.debugComplete('arche')); await sleep(200);
     await ev(() => { AU.G.S.flags.missionsUnlocked = true; AU.G.discoverMissions(); AU.G.S.flags.guideMet = true; });
   }

@@ -18,6 +18,9 @@ AU.ASSETS = {
   baker:        { path: "assets/char/baker.webp" },
   porto_general: { path: "assets/char/porto_general.webp" },
   porto_smith:  { path: "assets/char/porto_smith.webp" },
+  porto_foreman: { path: "assets/char/porto_foreman.webp" },
+  ob_fence_broken: { path: "assets/object/fence_broken.webp", optional: true }, ob_fence_fixed: { path: "assets/object/fence_fixed.webp", optional: true },
+  ob_trace_stain: { path: "assets/object/trace_stain.webp", optional: true }, ob_trace_crate: { path: "assets/object/trace_crate.webp", optional: true }, it_guild_parcel: { path: "assets/object/guild_parcel.webp", optional: true },
   mon_fox:   { path: "assets/monster/fox.webp", optional: true },
   mon_snake: { path: "assets/monster/snake.webp", optional: true },
   mon_rat:   { path: "assets/monster/rat.webp", optional: true },
@@ -29,7 +32,8 @@ AU.ASSETS = {
   pt_smith:      { path: "assets/portrait/smith.webp" },
   pt_baker:      { path: "assets/portrait/baker.webp" },
   pt_porto_general: { path: "assets/portrait/porto_general.webp" },
-  pt_porto_smith: { path: "assets/portrait/porto_smith.webp" }
+  pt_porto_smith: { path: "assets/portrait/porto_smith.webp" },
+  pt_porto_foreman: { path: "assets/portrait/porto_foreman.webp" }
 };
 
 /* ---------- 맵 ---------- */
@@ -86,11 +90,11 @@ AU.MAPS = {
     npcs: [],
     // 조사·수리 지점: 해당 목표가 진행 중일 때만 표시됩니다(kind: repair=목공 수리 / investigate=조사)
     spots: [
-      { id: "fence_a", x: 200, kind: "repair", label: "무너진 방책", done: "방책 기둥을 새로 세워 박았습니다." },
-      { id: "fence_b", x: 650, kind: "repair", label: "쪼개진 방책", done: "쪼개진 판자를 갈아 끼웠습니다." },
-      { id: "fence_c", x: 1000, kind: "repair", label: "기울어진 방책", done: "기울어진 기둥을 바로 세웠습니다." },
-      { id: "trace_stain", x: 440, kind: "investigate", label: "바위틈의 검은 얼룩", lines: ["바위틈에 말라붙은 검은 얼룩이 있습니다. 바닷물에도 씻기지 않은 듯 끈적하게 굳어 있습니다.", "짐승이 지나간 자리마다 이 얼룩이 남아 있습니다. 어둠의 기운이 짐승의 몸을 거쳐 흘러나온 흔적처럼 보입니다."] },
-      { id: "trace_crate", x: 1130, kind: "investigate", label: "부서진 짐 상자", lines: ["부서진 짐 상자의 옆면에 불도장이 찍혀 있습니다. 파도 같은 물결무늬입니다.", "어디선가 본 듯한 모양입니다. 상자 안은 비어 있지만 바닥에 검은 가루가 남아 있습니다."] }
+      { id: "fence_a", img: "fence", x: 200, kind: "repair", label: "무너진 방책", done: "방책 기둥을 새로 세워 박았습니다." },
+      { id: "fence_b", img: "fence", x: 650, kind: "repair", label: "쪼개진 방책", done: "쪼개진 판자를 갈아 끼웠습니다." },
+      { id: "fence_c", img: "fence", x: 1000, kind: "repair", label: "기울어진 방책", done: "기울어진 기둥을 바로 세웠습니다." },
+      { id: "trace_stain", img: "ob_trace_stain", x: 440, kind: "investigate", label: "바위틈의 검은 얼룩", lines: ["바위틈에 말라붙은 검은 얼룩이 있습니다. 바닷물에도 씻기지 않은 듯 끈적하게 굳어 있습니다.", "짐승이 지나간 자리마다 이 얼룩이 남아 있습니다. 어둠의 기운이 짐승의 몸을 거쳐 흘러나온 흔적처럼 보입니다."] },
+      { id: "trace_crate", img: "ob_trace_crate", x: 1130, kind: "investigate", label: "부서진 짐 상자", lines: ["부서진 짐 상자의 옆면에 불도장이 찍혀 있습니다. 파도 같은 물결무늬입니다.", "어디선가 본 듯한 모양입니다. 상자 안은 비어 있지만 바닥에 검은 가루가 남아 있습니다."] }
     ],
     spawns: [{ type: "crab", x: 360 }, { type: "crab", x: 600 }, { type: "rat", x: 820 }, { type: "crab", x: 1060 }],
     boss: { type: "trial_boss", x: 980 },     // 전직 시험 중에만 등장
@@ -147,6 +151,15 @@ AU.JOBS = {
   warrior: { name: "전사" }
 };
 // 2·3차 전직은 직업 이름과 계열을 임의로 정하지 않고 자리만 둠 (요청서 7장)
+/* 직업 계열: 캐릭터를 만들 때 먼저 고름. 시작 직업은 모두 견습 모험가이고, Lv.10 전직 때 고른 계열의 1차 직업이 됨.
+   지금 열려 있는 계열은 전사뿐(open). 나머지 넷은 세계관의 다섯 영웅 직업으로, 화면에 잠긴 채 보여 줌. icon은 그림이 오기 전 임시 도형 */
+AU.JOB_LINES = [
+  { id: "warrior", name: "전사", open: true, job: "warrior", desc: "검과 방패로 가까이에서 버티며 싸웁니다.", icon: '<path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z"/>' },
+  { id: "mage", name: "마법사", open: false, icon: '<path d="M12 2l2.6 6.2 6.7.5-5.1 4.3 1.6 6.5L12 16l-5.8 3.5 1.6-6.5L2.7 8.7l6.7-.5z"/>' },
+  { id: "archer", name: "궁수", open: false, icon: '<path d="M5 3c8 3 8 15 0 18M5 3v18M3 12h17m-4-3 4 3-4 3" fill="none" stroke="currentColor" stroke-width="2"/>' },
+  { id: "rogue", name: "도적", open: false, icon: '<path d="M12 2c4 2 6 6 6 10l2 9H4l2-9c0-4 2-8 6-10z"/>' },
+  { id: "pirate", name: "해적", open: false, icon: '<path d="M12 3a2 2 0 110 4 2 2 0 010-4zm-1 5h2v9c3-.5 5-2.5 5.5-5l2 1c-1 4-4.5 7-8.5 7s-7.5-3-8.5-7l2-1c.5 2.5 2.5 4.5 5.5 5z"/>' }
+];
 AU.JOB_TIERS = [
   { level: 10, name: "1차 전직: 전사" },
   { level: 30, name: "2차 전직 (미정)" },
@@ -253,7 +266,7 @@ AU.QUESTS = {
 AU.NPCS = {
   arche_guide: { name: "마을 사람 (임시)", sprite: "villager_a", portrait: "pt_villager_a", quests: ["q_first", "q_forest", "q_guild_talk"],
     idle: ["오늘도 평화로운 마을이에요.", "다친 곳은 없나요? 쉬어 가면서 하세요."] },
-  porto_foreman: { name: "선창 십장 (임시)", sprite: "smith", portrait: "pt_smith", quests: ["q_a1_fence", "q_a1_parcel", "q_a1_traces"],
+  porto_foreman: { name: "선창 십장 (임시)", sprite: "porto_foreman", portrait: "pt_porto_foreman", quests: ["q_a1_fence", "q_a1_parcel", "q_a1_traces"],
     idle: ["방파제는 자네 덕에 한시름 놨네.", "바닷바람이 거세니 몸조심하게."] },
   porto_guild: { name: "선창 길드 접수 (임시)", sprite: "villager_b", portrait: "pt_villager_b", quests: ["q_guild_rats", "q_guild_crabs"],
     idle: ["선창 길드입니다. 의뢰가 필요하면 말씀하세요.", "오늘은 부두가 조용하군요."] },

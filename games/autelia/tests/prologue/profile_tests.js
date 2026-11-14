@@ -6,7 +6,16 @@ const R = []; const ok = (n, c, d) => { R.push([n, !!c]); console.log((c ? 'PASS
   await T.fresh();
   // P01 신규 시작: 시작 버튼 → 캐릭터 설정(프롤로그는 아직 시작 전)
   await p.click('#btn-start'); await sleep(250);
-  ok('P01a 신규 시작 시 캐릭터 설정 화면', !!(await p.$('#charsetup')));
+  // J: 1단계 직업 계열 고르기
+  const j0 = await ev(() => ({ box: !!document.querySelector('#jobsetup'), look: !!document.querySelector('#charsetup'), cards: Array.from(document.querySelectorAll('.jcard')).map((c) => c.dataset.line + (c.classList.contains('lock') ? ':lock' : '') + (c.classList.contains('sel') ? ':sel' : '')) }));
+  ok('J01 신규 시작 시 먼저 직업 계열 화면(모습 화면은 아직 없음)', j0.box && !j0.look, JSON.stringify(j0));
+  ok('J02 다섯 계열 표시, 전사만 선택 가능·기본 선택', j0.cards.join(',') === 'warrior:sel,mage:lock,archer:lock,rogue:lock,pirate:lock', j0.cards.join(','));
+  await p.click('#jl-mage', { force: true }); await sleep(150);
+  const j1 = await ev(() => ({ sel: document.querySelector('.jcard.sel').dataset.line, note: document.querySelector('.jnote').textContent }));
+  ok('J03 잠긴 계열을 누르면 선택되지 않고 안내만', j1.sel === 'warrior' && /준비 중/.test(j1.note), JSON.stringify(j1));
+  await T.shot('profile_job_step');
+  await p.click('#job-next'); await sleep(250);
+  ok('P01a 다음을 누르면 캐릭터 설정 화면', !!(await p.$('#charsetup')) && !(await p.$('#jobsetup')));
   let s = await ev(() => ({ on: AU.Prologue.on, st: AU.G.S.prologue.state, set: AU.Profile.isSet() }));
   ok('P01b 설정 전에는 프롤로그가 시작되지 않음', !s.on && s.st === 'NOT_STARTED' && !s.set, JSON.stringify(s));
   await T.shot('profile_setup_default');
@@ -17,9 +26,11 @@ const R = []; const ok = (n, c, d) => { R.push([n, !!c]); console.log((c ? 'PASS
   await p.fill('#sname', 'a b'); ok('P02z 오류 안내 문구 표시', /띄어쓰기/.test(await p.textContent('#shint')));
   // P03 뒤로 → 제목 화면
   await p.click('#setup-back'); await sleep(200);
+  ok('J04 모습 화면의 뒤로는 직업 계열 화면으로', !!(await p.$('#jobsetup')) && !(await p.$('#charsetup')));
+  await p.click('#job-back'); await sleep(200);
   ok('P03 뒤로 누르면 제목 화면으로 복귀(저장 없음)', !!(await p.$('#btn-start')) && !(await p.$('#charsetup')) && !(await ev(() => AU.Profile.isSet())));
   // P04 모습 선택(마우스·키보드)
-  await p.click('#btn-start'); await sleep(200);
+  await p.click('#btn-start'); await sleep(200); await p.click('#job-next'); await sleep(200);
   ok('P04a 기본 선택은 남성형', (await p.getAttribute('#sg-m', 'aria-checked')) === 'true');
   await p.click('#sg-f'); ok('P04b 여성형 클릭', (await p.getAttribute('#sg-f', 'aria-checked')) === 'true' && (await p.getAttribute('#sg-m', 'aria-checked')) === 'false');
   await p.focus('#sg-f'); await p.keyboard.press('ArrowLeft'); ok('P04c 방향키로 남성형 복귀', (await p.getAttribute('#sg-m', 'aria-checked')) === 'true');

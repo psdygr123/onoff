@@ -7,7 +7,7 @@ const R = []; const ok = (n, c, d) => { R.push([n, !!c]); console.log((c ? 'PASS
   const b = await chromium.launch(); const p = await (await b.newContext({ viewport: { width: 1280, height: 720 } })).newPage(); const errs = [];
   p.on('pageerror', (e) => errs.push(e.message)); const ev = (f, a) => p.evaluate(f, a);
   await p.goto(BASE); await ev(() => localStorage.clear()); await p.goto(BASE); await p.waitForSelector('#btn-start');
-  await p.click('#btn-start'); await sleep(250); await p.fill('#sname', '시험용'); await p.click('#setup-ok'); await sleep(700);
+  await p.click('#btn-start'); await sleep(250); await p.click('#job-next'); await sleep(200); await p.fill('#sname', '시험용'); await p.click('#setup-ok'); await sleep(700);
   let s = await ev(() => ({ cs: AU.Prologue.cs, dev: AU.UI.devVisible, vis: !document.querySelector('.skipbtn').classList.contains('hidden') }));
   ok('S01 처음 플레이: 오프닝 컷신 중이며 건너뛰기 버튼 없음', s.cs && !s.dev && !s.vis && s.cs.skip === false, JSON.stringify(s));
   await p.keyboard.press('Enter'); await sleep(300);
