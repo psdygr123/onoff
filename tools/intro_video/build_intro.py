@@ -10,6 +10,8 @@ import sys, os, math, subprocess, numpy as np, cv2
 from PIL import Image, ImageDraw, ImageFont
 IMG = os.environ.get("INTRO_IMG", "/tmp/claude-0/intro_img")
 W, H, FPS, OV = 1280, 720, 30, 0.9
+TEMPO = float(os.environ.get("INTRO_TEMPO", "1.15"))   # 컷 길이 배율(1.0=v1). v1이 조금 빠르다는 의견으로 기본 1.15
+DRIFT = 0.28                                            # 구름 흐름 속도(v1은 0.35)
 FONT = "/usr/share/fonts/opentype/noto/NotoSansCJK-Medium.ttc"
 SCENES = [
  dict(img="N1_god_light", D=6.5, z=(1.0, 1.09), c=((.5, .5), (.5, .5)), drift=dict(kind="ring", amp=5), glow=[("ring", .5, .5, .168)], motes=70,
@@ -24,8 +26,14 @@ SCENES = [
       sub=["백 년 전, 어둠이 먼저 경계를 넘어", "대전쟁이 시작되었다."]),
  dict(img="N4b_five_heroes", D=5.5, z=(1.0, 1.13), c=((.5, .5), (.38, .66)), drift=dict(kind="sky", frac=.6, amp=5), glow=[("sun", .05, .62, .35)], motes=50,
       sub=["빛의 신 곁에 다섯 영웅이 나섰다."]),
+ dict(img="N6_heroes_advance", D=6.5, z=(1.0, 1.10), c=((.5, .5), (.46, .68)), drift=dict(kind="sky", frac=.66, amp=7), glow=[("thread", .5, 0, .70)], motes=80, opt=True,
+      sub=["전쟁은 오래 이어졌고,", "사람들도 처음으로 자기 땅을 위해 싸웠다."]),
  dict(img="02_light_and_darkness", D=6.5, z=(1.0, 1.07), c=((.5, .5), (.47, .51)), drift=dict(kind="sky", frac=.70, amp=5), glow=[("thread", .497, 0, .72)], motes=85, victory=(1.0, 5.2),
       sub=["마지막 새벽, 빛이 이겼다."]),
+ dict(img="N7_silence_of_light", D=7.0, z=(1.0, 1.08), c=((.5, .5), (.5, .38)), drift=dict(kind="sky", frac=.6, amp=5), glow=[("sun", .5, .28, .22)], motes=45, opt=True,
+      sub=["그러나 전쟁이 끝난 뒤,", "빛의 신은 더는 모습을 보이지 않았다."]),
+ dict(img="N8_heroes_return", D=7.0, z=(1.0, 1.10), c=((.5, .5), (.5, .62)), drift=dict(kind="sky", frac=.5, amp=4), glow=[("sun", .06, .45, .3)], motes=50, opt=True,
+      sub=["다섯 영웅은 각자의 고향으로 돌아가", "조용히 늙어 갔다."]),
  dict(img="N5_erased_monument", D=6.0, z=(1.0, 1.08), c=((.5, .5), (.5, .56)), drift=dict(kind="sky", frac=.4, amp=4), glow=[("sun", .06, .32, .3)], motes=45,
       sub=["마을마다 비석이 세워졌다.", "이 평화를 잊지 말라고."]),
  dict(img="03_village_tapestry", D=5.5, z=(1.0, 1.10), c=((.5, .5), (.56, .58)), drift=dict(kind="sky", frac=.38, amp=4), glow=[("sun", .06, .36, .3)], motes=50,
@@ -33,6 +41,10 @@ SCENES = [
  dict(img="04_village_watercolor", D=7.0, z=(1.0, 1.08), c=((.5, .5), (.56, .56)), drift=dict(kind="sky", frac=.38, amp=3), glow=[("sun", .07, .48, .3)], motes=40, last=True,
       sub=["그리고 오늘, 아르케아 마을은", "빛의 승리 백 주년 축제를 맞이한다."]),
 ]
+SCENES = [x for x in SCENES if not x.get("opt") or os.path.exists(f"{IMG}/{x['img']}.png")]
+for x in SCENES:
+    x["D"] = round(x["D"] * TEMPO, 2)
+    if x.get("victory"): x["victory"] = (x["victory"][0] * TEMPO, x["victory"][1] * TEMPO)
 ease = lambda x: x * x * (3 - 2 * x)
 _cache = {}
 
@@ -77,7 +89,7 @@ def base_frame(i, t):
         elif k == "sun":
             cx, cy, r = g[1] * sw, g[2] * sh, g[3] * sw; add += np.exp(-(np.hypot(xx - cx, yy - cy) / r) ** 2) * (.10 + .10 * math.sin(t * 1.2 + 1))
     if s.get("flash"): add += np.exp(-((xx - sw * .5) / 260) ** 2) * np.clip(1 - yy / sh * 1.1, 0, 1) * (.06 + .05 * math.sin(t * 3.3))
-    a = t * .35; amp = s["drift"]["amp"]; m = c["mask"]; n = c["n"]
+    a = t * DRIFT; amp = s["drift"]["amp"]; m = c["mask"]; n = c["n"]
     dx = (n[0] * math.cos(a) + n[1] * math.sin(a)) * amp * m; dy = (n[2] * math.cos(a) + n[3] * math.sin(a)) * amp * .55 * m
     src = img
     if s.get("victory"):
