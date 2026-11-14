@@ -44,11 +44,13 @@
     set(name, gender, look) {
       const S = AU.G.S; S.profile = this.clean({ name: String(name).trim(), gender, look }); this.apply(); return S.profile;
     },
-    /* 대사 속 호칭: {이름} {이름이} {이름은} {이름을} {이름아} {이름과} → 닉네임(+조사) */
+    /* 대사 속 호칭: {성별:남|여} {자녀}(아들/딸) {이름} {이름이} {이름은} {이름을} {이름아} {이름과} → 닉네임(+조사) */
     fmt(text) {
-      if (typeof text !== "string" || text.indexOf("{이름") < 0) return text;
-      const n = this.name();
-      return text.replace(/\{이름([이은을아과])?\}/g, (m, p) => p ? n + PARTICLES[p][hasBatchim(n) ? 0 : 1] : n);
+      if (typeof text !== "string" || text.indexOf("{") < 0) return text;
+      const n = this.name(), f = this.gender() === "f";
+      // {성별:남자일 때|여자일 때} → 선택한 모습에 맞는 말. 예: "목수 {성별:아들|딸}이구나" / {자녀}는 아들·딸
+      return text.replace(/\{성별:([^|}]*)\|([^}]*)\}/g, (m, a, b) => (f ? b : a)).replace(/\{자녀\}/g, f ? "딸" : "아들")
+        .replace(/\{이름([이은을아과])?\}/g, (m, p) => p ? n + PARTICLES[p][hasBatchim(n) ? 0 : 1] : n);
     },
 
     /* ---------- 설정 화면 ---------- */

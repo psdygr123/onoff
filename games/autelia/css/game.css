@@ -275,3 +275,9 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
 .svbar .bt .prev { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--ink2); border-radius: 1px; }
 .svbar .bv { font-style: normal; font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; } .svbar .bd { font-size: 12px; color: var(--ink2); width: 104px; text-align: right; }
 .svextra { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline; padding: 8px 12px; background: var(--paper); border-radius: 9px; font-size: 13px; } .svextra .note { flex-basis: 100%; margin: 2px 0 0; }
+/* 마음 능력치 추이: 레이더 + 영역별 막대(이전 세로선·증감) */
+.mtrend { display: grid; grid-template-columns: minmax(200px, 270px) 1fr; gap: 14px 18px; align-items: center; } .mrad { text-align: center; } .mradsvg svg { width: 100%; max-width: 270px; height: auto; } .mradsvg .rl { font-size: 14px; font-weight: 700; fill: #4F7D6E; }
+.mleg { display: flex; justify-content: center; gap: 14px; font-size: 12px; color: var(--ink2); margin-top: 2px; } .mleg .lg::before { content: ""; display: inline-block; width: 18px; height: 0; border-top: 3px solid #4F7D6E; vertical-align: middle; margin-right: 5px; } .mleg .lg.prev::before { border-top: 2px dashed #8c949c; }
+.mtrend .mrow { grid-template-columns: 20px 74px minmax(30px, 1fr) auto; } .mtrend .mbar { position: relative; overflow: visible; } .mtrend .mbar i { background: #4F7D6E; } .mtrend .mprev { position: absolute; top: -3px; width: 0; height: 14px; border-left: 2px solid #5b6168; text-decoration: none; transform: translateX(-1px); }
+.mrow .mcmp { grid-column: 2 / -1; justify-self: end; font-size: 11px; color: var(--ink2); margin-top: -2px; font-variant-numeric: tabular-nums; }
+@media (max-width: 640px) { .mtrend { grid-template-columns: 1fr; } }

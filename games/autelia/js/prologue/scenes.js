@@ -79,7 +79,7 @@ window.AU = window.AU || {};
   };
   // 집 안(습격 상태): 배경 그림은 아늑한 실내라서, 불꽃·연기·그을린 잔해·열기를 코드로 겹쳐 '불타는 집'으로 보이게 함(2차 효과 그림)
   const HOUSE_FIRE = [[150, 238, 120, 0], [196, 222, 86, 8], [352, 270, 70, 1], [520, 168, 62, 9], [760, 156, 64, 10], [968, 246, 110, 2], [1030, 226, 78, 11], [1148, 300, 150, 3], [1010, 396, 80, 4], [1200, 400, 90, 12]];   // 서까래·창가·기둥 위쪽
-  const HOUSE_FLOOR = [[62, 590, 170, 5], [128, 590, 96, 13], [1136, 590, 185, 6], [1214, 590, 130, 14], [1010, 590, 92, 7]];                                       // 바닥 가장자리(아버지 위치 860 근처는 비움)
+  const HOUSE_FLOOR = [[1136, 590, 185, 6], [1214, 590, 130, 14], [1010, 590, 92, 7]];                                       // 바닥 불: 오른쪽 끝에만 남김(아버지 860 근처와, 집을 나가는 왼쪽 길목 x≈100~330은 불이 지나가는 길을 막지 않도록 비움)
   D.pro_house = {
     back(ctx, P) {
       if (!A.has("fx_fire")) return;
@@ -127,7 +127,7 @@ window.AU = window.AU || {};
   function setupMorning(P) {
     const R = LAY.road, M = R.m; P.variant = "peace"; P.tint = { color: "#EAF1FF", a: 0.07 }; P.vig = 0.15;
     P.limits = { max: M.limit, msg: "길 끝의 기념비를 먼저 읽어 보세요." };
-    const chat = (id, spk, sprite, x, h, label, key, extra) => npc(P, id, spk, sprite, x, h, Object.assign({ range: 100, interact: { label, fn: () => P.cutscene(() => P.say(T[key])) } }, extra || {}));
+    const chat = (id, spk, sprite, x, h, label, key, extra) => npc(P, id, spk, sprite, x, h, Object.assign({ range: 100, interact: { label, fn: () => P.cutscene(async () => { await P.say(T[key]); if (key === "s0_baker") P.setFlag("met_baker_morning"); }) } }, extra || {}));
     chat("child", "child", artSpr("pc_festival_child", "villager_b"), M.child, 118, "대화: 축제 어린이", "s0_child");
     { const s = standing("b", "baker"); chat("baker", "vendor", s.sprite, M.baker, s.h, "대화: 빵을 나누는 주민", "s0_baker", s.extra); }
     { const s = standing("c", "villager_a"); chat("elder", "elder", s.sprite, M.elder, s.h, "대화: 나이 든 주민", "s0_elder", s.extra); }
@@ -159,7 +159,7 @@ window.AU = window.AU || {};
     const st = { talk: false, done: 0 }; P.limits = { max: B.elder + 150, msg: "먼저 마을 사람에게 말을 걸어 보세요." };
     const sE = standing("c", "villager_a"), sB = standing("b", "baker"), sM = standing("f", "villager_a"), sS = standing("k", "villager_a");
     const elder = npc(P, "elder", "elder", sE.sprite, B.elder, sE.h, Object.assign({}, sE.extra, { range: 110, mark: true }));
-    npc(P, "baker", "vendor", sB.sprite, B.baker, sB.h, Object.assign({}, sB.extra, { range: 110, interact: { label: "대화: 빵을 나누는 주민", fn: () => P.cutscene(() => P.say(T.s1b_baker)) } }));
+    npc(P, "baker", "vendor", sB.sprite, B.baker, sB.h, Object.assign({}, sB.extra, { range: 110, interact: { label: "대화: 빵을 나누는 주민", fn: () => P.cutscene(async () => { await P.say(T.s1b_baker); P.setFlag("met_baker_evening"); }) } }));
     npc(P, "musician", "musician", sM.sprite, B.musician, sM.h, Object.assign({}, sM.extra, { range: 100, interact: { label: "대화: 악사", fn: () => P.cutscene(() => P.say(T.s1b_musician)) } }));
     npc(P, "scribe", "scribe", sS.sprite, B.scribe, sS.h, Object.assign({}, sS.extra, { range: 100, interact: { label: "대화: 서기", fn: () => P.cutscene(() => P.say(T.s1b_scribe)) } }));
     const cols = ["#C0573E", "#E3B24A", "#4F8A6B"];
@@ -280,7 +280,7 @@ window.AU = window.AU || {};
       const elder = npc(P, "traveler", "traveler", sT.sprite, L.elder, sT.h, Object.assign({}, sT.extra, { range: 100, interact: { label: "대화: 먼 마을에서 온 할머니", fn: () => P.cutscene(() => P.say(T.plaza_traveler)) } }));
       const child = npc(P, "florist", "florist", sF.sprite, L.child, sF.h, Object.assign({}, sF.extra, { range: 100, interact: { label: "대화: 꽃 심부름 온 사내아이", fn: () => P.cutscene(() => P.say(T.plaza_florist)) } }));
       const vendor = npc(P, "vendor", "vendor", artSpr("pc_villager_b_actions", "baker"), L.vendor, 150, { frame: A.sprFrame("pc_villager_b_actions", "cheer2"), range: 110, mark: true, interact: { label: "대화: 빵을 나누는 주민", fn: async () => {
-        await P.cutscene(async () => { await P.say(T.vendor); }); if (P.flag("festival_interaction_complete")) return;
+        await P.cutscene(async () => { await P.say(P.flag("met_baker_morning") && P.flag("met_baker_evening") ? T.vendor2 : (P.flag("met_baker_morning") || P.flag("met_baker_evening")) ? T.vendor1 : T.vendor); });   // 이미 만난 횟수에 따라 첫인사를 달리함 if (P.flag("festival_interaction_complete")) return;
         P.setFlag("festival_interaction_complete"); vendor.mark = false; P.limits = { min: 40, max: null, msg: "마을길로는 돌아갈 수 없습니다. 광장 중앙으로 가 보세요." }; P.obj(OBJ.s2_center);
         P.trigger({ id: "center", goal: L.center, test: (p) => p.x >= L.center, fn: () => centerEvent() }); } } });
       void elder; void child;
