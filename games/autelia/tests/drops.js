@@ -63,6 +63,8 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const shop1 = await ev(() => ({ win: AU.UI.curName, shop: AU.G.shop }));
   note('D10d', '상점 창이 열림', shop1.win === 'shop' && shop1.shop === 'general', JSON.stringify(shop1));
   await p.screenshot({ path: SH + 'shop_sell.png' });
+  const art = await ev(() => ['porto_general', 'porto_smith', 'pt_porto_general', 'pt_porto_smith'].map((k) => k + ':' + AU.Img.has(k)).join(','));
+  note('D10e', '상인 그림 4장이 불러와짐', !/false/.test(art), art);
   const safe = await ev(() => { const G = AU.G; const s0 = G.S.silver; const ok = G.sellItem('fox_tail', 1); return { ok, gain: G.S.silver - s0, tail: G.S.inv.fox_tail }; });
   note('D11', '잡화상인에게 판매: 은화 +10', safe.ok && safe.gain === 10 && safe.tail === 2, JSON.stringify(safe));
   const buy = await ev(() => { const G = AU.G; const s0 = G.S.silver, p0 = G.count('potion'); const ok = G.buyItem('potion', 2); return { ok, spent: s0 - G.S.silver, got: G.count('potion') - p0 }; });

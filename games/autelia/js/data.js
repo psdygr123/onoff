@@ -16,6 +16,8 @@ AU.ASSETS = {
   villager_b:   { path: "assets/char/villager_b.webp" },
   smith:        { path: "assets/char/smith.webp" },
   baker:        { path: "assets/char/baker.webp" },
+  porto_general: { path: "assets/char/porto_general.webp" },
+  porto_smith:  { path: "assets/char/porto_smith.webp" },
   mon_fox:   { path: "assets/monster/fox.webp", optional: true },
   mon_snake: { path: "assets/monster/snake.webp", optional: true },
   mon_rat:   { path: "assets/monster/rat.webp", optional: true },
@@ -25,7 +27,9 @@ AU.ASSETS = {
   pt_villager_a: { path: "assets/portrait/villager_a.webp" },
   pt_villager_b: { path: "assets/portrait/villager_b.webp" },
   pt_smith:      { path: "assets/portrait/smith.webp" },
-  pt_baker:      { path: "assets/portrait/baker.webp" }
+  pt_baker:      { path: "assets/portrait/baker.webp" },
+  pt_porto_general: { path: "assets/portrait/porto_general.webp" },
+  pt_porto_smith: { path: "assets/portrait/porto_smith.webp" }
 };
 
 /* ---------- 맵 ---------- */
@@ -208,10 +212,9 @@ AU.NPCS = {
     idle: ["선창 길드입니다. 의뢰가 필요하면 말씀하세요.", "오늘은 부두가 조용하군요."] },
   job_npc: { name: "전직 담당 (임시)", sprite: "smith", portrait: "pt_smith", quests: ["q_job"],
     idle: ["10레벨이 되면 다시 오세요.", "준비가 되면 말을 걸어 주세요."] },
-  // 상인: 정식 그림이 오기 전까지 기존 인물 그림을 임시로 씀
-  porto_general: { name: "잡화상인 (임시)", sprite: "villager_a", portrait: "pt_villager_a", shop: "general",
+  porto_general: { name: "잡화상인 (임시)", sprite: "porto_general", portrait: "pt_porto_general", shop: "general",
     idle: ["어서 오세요. 모험에서 주워 온 재료, 제가 사들입니다.", "회복약도 있어요. 필요하면 말씀하세요."] },
-  porto_smith: { name: "무기상인 (임시)", sprite: "smith", portrait: "pt_smith", shop: "smith",
+  porto_smith: { name: "무기상인 (임시)", sprite: "porto_smith", portrait: "pt_porto_smith", shop: "smith",
     idle: ["재료와 은화만 있으면 쓸 만한 장비를 만들어 드리죠.", "희귀한 재료는 늘 환영이오."] },
   guide_npc: { name: "모험 안내인 (임시)", sprite: "baker", portrait: "pt_baker", special: "missionGuide",
     idle: ["모험은 잘 되어 가나요?"] }
