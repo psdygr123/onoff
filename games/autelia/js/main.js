@@ -91,7 +91,7 @@ window.AU = window.AU || {};
     // 신규 시작(프롤로그 전, 캐릭터 설정이 없음)이면 먼저 캐릭터 설정 화면을 거침
     const needSetup = !AU.Profile.isSet() && S.prologue.state === "NOT_STARTED";
     const openSetup = (mode, onDone) => AU.Profile.openSetup(t, { mode, initial: AU.Profile.get(), onBack: () => buildTitle(hasSave), onDone });
-    b1.onclick = needSetup ? () => openSetup("new", (name, gender, look) => { AU.Profile.set(name, gender, look); AU.G.save("profile"); start(); }) : start;
+    b1.onclick = needSetup ? () => openSetup("new", (name, gender, look, line) => { AU.Profile.set(name, gender, look, line); AU.G.save("profile"); start(); }) : start;
     const box = document.createElement("div"); box.className = "panel titlebox";
     box.innerHTML = '<div class="tlogo">아우텔리아</div><div class="tsub">프롤로그 체험 · 시제품 v' + AU.VERSION + '</div>';
     box.append(b1);

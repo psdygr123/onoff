@@ -8,7 +8,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   p.on('pageerror', (e) => errs.push('PAGEERR ' + e.message)); p.on('console', (m) => { if (m.type() === 'error' && !/ERR_TUNNEL|Failed to load resource/.test(m.text())) errs.push('CONSOLE ' + m.text()); });
   const ev = (fn, a) => p.evaluate(fn, a);
   await p.goto(BASE + '/index.html?survey=1'); await ev(() => localStorage.clear()); await p.goto(BASE + '/index.html?survey=1'); await p.waitForSelector('#btn-start'); await p.click('#btn-start'); await sleep(300);
-  if (await p.$('#charsetup')) { await p.fill('#sname', '시험용'); await p.click('#setup-ok'); await sleep(300); }
+  if (await p.$('#job-next')) { await p.click('#job-next'); await sleep(200); } if (await p.$('#charsetup')) { await p.fill('#sname', '시험용'); await p.click('#setup-ok'); await sleep(300); }
   await ev(() => { AU.Prologue.debugComplete('arche'); AU.G.S.flags.missionsUnlocked = true; AU.G.discoverMissions(); }); await sleep(200);
   const openRecord = async () => { await ev(() => { AU.UI.close(); AU.UI.survey.view = 'list'; AU.UI.survey.key = null; AU.UI.survey.phase = null; AU.UI.tab.j = 'record'; AU.UI.open('journal'); }); await sleep(300); };
   const meta = await ev(() => { const s = AU.SCALES.perma_ko; const g = {}; s.items.forEach((i) => (g[i.subscale] = g[i.subscale] || []).push(i.n)); return { n: s.items.length, g, range: [s.min, s.max], rev: s.items.filter((i) => i.reversed).length, ch: s.choices.length, anch: s.choices.some((c) => c.label), rights: s.review.rightsStatus, first: s.items[0].text, last: s.items[22].text }; });

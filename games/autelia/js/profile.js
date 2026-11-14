@@ -17,7 +17,12 @@
     /* 저장값 정리: 이름은 규칙에 맞을 때만, 모습은 m/f 만 인정 */
     clean(p) {
       const o = p && typeof p === "object" ? p : {};
-      return { name: typeof o.name === "string" && NAME_RE.test(o.name) ? o.name : "", gender: o.gender === "m" || o.gender === "f" ? o.gender : "", look: AU.Tint ? AU.Tint.clean(o.look) : { hair: 0, vest: 0, pants: 0 } };
+      return { name: typeof o.name === "string" && NAME_RE.test(o.name) ? o.name : "", gender: o.gender === "m" || o.gender === "f" ? o.gender : "", look: AU.Tint ? AU.Tint.clean(o.look) : { hair: 0, vest: 0, pants: 0 }, line: this.cleanLine(o.line) };
+    },
+    // 직업 계열: 열려 있는 계열만 인정. 계열 선택이 생기기 전의 저장은 전사 계열로 봄
+    cleanLine(v) { const L = (AU.JOB_LINES || []).find((x) => x.id === v && x.open); return L ? L.id : "warrior"; },
+    line() { return this.cleanLine(this.get().line); },
+    lineInfo() { return (AU.JOB_LINES || []).find((x) => x.id === this.line()) || null;
     },
     get() { return (AU.G && AU.G.S && AU.G.S.profile) || { name: "", gender: "", look: { hair: 0, vest: 0, pants: 0 } }; },
     isSet() { const p = this.get(); return !!p.name && !!p.gender; },
@@ -41,8 +46,8 @@
       if (SP && SP.hero) { Object.assign(SP.hero, { name: this.name(), portrait: g === "f" ? "pt_pro_hero_f" : "pt_pro_hero_m", alt: this.portraitKey() }); }
       if (SP && SP.heroS) { Object.assign(SP.heroS, { name: this.name(), portrait: g === "f" ? "pt_pro_hero_f" : "pt_pro_hero_m_surprised", alt: this.portraitKey() }); }
     },
-    set(name, gender, look) {
-      const S = AU.G.S; S.profile = this.clean({ name: String(name).trim(), gender, look }); this.apply(); return S.profile;
+    set(name, gender, look, line) {
+      const S = AU.G.S; S.profile = this.clean({ name: String(name).trim(), gender, look, line: line || (S.profile && S.profile.line) }); this.apply(); return S.profile;
     },
     /* 대사 속 호칭: {성별:남|여} {자녀}(아들/딸) {이름} {이름이} {이름은} {이름을} {이름아} {이름과} → 닉네임(+조사) */
     fmt(text) {
@@ -61,11 +66,39 @@
       return { cls: "sp fb", css: "background-image:url(" + AU.ASSETS[pk].path + ");" };
     },
     /* root: 화면을 그릴 요소(#title), opts: { mode:"new"|"edit", initial:{name,gender}, onDone(name,gender), onBack() } */
+    /* 새 캐릭터: 1단계 직업 계열 → 2단계 모습·이름. 수정(edit)은 2단계만 */
     openSetup(root, opts) {
+      if (opts.mode === "new" && !opts._line) return this.openJobStep(root, opts);
+      return this.openLookStep(root, opts);
+    },
+    stepBar(h, n) { const s = h("div", "ssteps"); s.append(h(n === 1 ? "b" : "span", null, "1 직업 계열"), document.createTextNode("›"), h(n === 2 ? "b" : "span", null, "2 모습·이름")); return s; },
+    openJobStep(root, opts) {
+      const h = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
+      root.innerHTML = ""; let sel = this.cleanLine(opts._lineSel || (opts.initial && opts.initial.line));
+      const box = h("div", "panel setupbox jobbox"); box.id = "jobsetup"; box.setAttribute("role", "dialog"); box.setAttribute("aria-label", "직업 계열 고르기");
+      box.append(this.stepBar(h, 1), h("p", "stitle", "직업 계열 고르기"), h("p", "ssub", "어떤 길을 걸을지 먼저 정해 주세요. 견습 모험가로 시작해 Lv.10 전직 때 이 계열의 직업이 됩니다."));
+      const row = h("div", "jcards"); row.setAttribute("role", "radiogroup"); row.setAttribute("aria-label", "직업 계열"); const els = {};
+      const note = h("p", "jnote", ""); note.setAttribute("aria-live", "polite");
+      const mark = () => { for (const L of AU.JOB_LINES) if (L.open) { els[L.id].classList.toggle("sel", L.id === sel); els[L.id].setAttribute("aria-checked", L.id === sel ? "true" : "false"); } };
+      for (const L of AU.JOB_LINES) {
+        const c = h("button", "jcard" + (L.open ? "" : " lock")); c.type = "button"; c.id = "jl-" + L.id; c.dataset.line = L.id; c.setAttribute("role", "radio");
+        if (!L.open) c.setAttribute("aria-disabled", "true");
+        const art = h("div", "jart"); art.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + L.icon + "</svg>";
+        c.append(h("i", L.open ? "chk" : "lk", L.open ? "✓" : "🔒"), art, h("b", null, L.name), h("p", null, L.open ? L.desc : "아직 열리지 않은 길입니다."), h("em", null, L.open ? "Lv.10 전직: " + AU.JOBS[L.job].name : "준비 중"));
+        c.onclick = () => { if (!L.open) { note.textContent = L.name + " 계열은 아직 준비 중입니다. 지금은 전사 계열로 시작할 수 있습니다."; return; } sel = L.id; note.textContent = ""; mark(); };
+        row.append(c); els[L.id] = c;
+      }
+      const foot = h("div", "sfoot"), back = h("button", "btn", "뒤로"), next = h("button", "btn primary big", "다음: 모습·이름 정하기"); back.type = next.type = "button"; back.id = "job-back"; next.id = "job-next";
+      back.onclick = () => opts.onBack(); next.onclick = () => this.openLookStep(root, Object.assign({}, opts, { _line: sel }));
+      box.addEventListener("keydown", (e) => { if (e.key === "Escape") { e.preventDefault(); opts.onBack(); } else if (e.key === "Enter" && e.target === next) { /* 버튼 기본 동작 */ } });
+      foot.append(back, next); box.append(row, note, foot); root.append(box); root.classList.remove("hidden"); mark(); next.focus();
+    },
+    openLookStep(root, opts) {
       const h = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
       const init = this.clean(opts.initial), st = { name: init.name, gender: init.gender || "m", look: Object.assign({}, init.look) }, edit = opts.mode === "edit";
       root.innerHTML = "";
       const box = h("div", "panel setupbox"); box.id = "charsetup"; box.setAttribute("role", "dialog"); box.setAttribute("aria-label", "캐릭터 설정");
+      if (!edit) box.append(this.stepBar(h, 2));
       box.append(h("p", "stitle", edit ? "캐릭터 설정" : "캐릭터 만들기"), h("p", "ssub", edit ? "닉네임과 모습을 바꿀 수 있습니다. 진행 기록은 그대로 유지됩니다." : "모험을 시작하기 전에 이름과 모습을 정해 주세요. 시작 전에는 언제든 돌아와 바꿀 수 있습니다."));
       const body = h("div", "sbody"), left = h("div"), right = h("div", "sright");
       left.append(h("div", "slabel", "모습"));
@@ -119,11 +152,11 @@
         hint.textContent = err && (showErr || inp.value.length > 0) ? err : "2~8자 · 한글, 영문, 숫자 · 대화에서 \"주인공\" 대신 이 이름으로 표시됩니다";
         return !err;
       };
-      const done = () => { if (!refresh(true)) { inp.focus(); return; } opts.onDone(inp.value.trim(), st.gender, AU.Tint ? AU.Tint.clean(st.look) : undefined); };
+      const done = () => { if (!refresh(true)) { inp.focus(); return; } opts.onDone(inp.value.trim(), st.gender, AU.Tint ? AU.Tint.clean(st.look) : undefined, opts._line); };
       inp.addEventListener("input", () => refresh(false));
       inp.addEventListener("keydown", (e) => { if (e.isComposing) return; if (e.key === "Enter") { e.preventDefault(); done(); } });
       box.addEventListener("keydown", (e) => { if (e.key === "Escape" && !e.isComposing) { e.preventDefault(); goBack(); } });
-      const goBack = () => { if (AU.Tint) AU.Tint.setLook(init.look); opts.onBack(); }; // 취소하면 원래 색으로 되돌림
+      const goBack = () => { if (AU.Tint) AU.Tint.setLook(init.look); if (!edit && opts._line) { const o = Object.assign({}, opts, { _lineSel: opts._line }); delete o._line; this.openJobStep(root, o); } else opts.onBack(); };   // 새 캐릭터: 2단계의 뒤로는 1단계(직업 계열)로 // 취소하면 원래 색으로 되돌림
       ok.onclick = done; back.onclick = goBack;
       select(st.gender); refresh(false); inp.focus(); inp.select();
     }

@@ -11,6 +11,7 @@ async function open(opts = {}) {
     P: () => ev(() => { const P = AU.Prologue, w = AU.World; return { st: P.st().state, on: P.on, cs: !!P.cs, frozen: P.frozen, fade: +P.fadeS.a.toFixed(2), dlg: !!AU.UI.dialog, obj: P.objEl.textContent, x: Math.round(w.player.x), y: Math.round(w.player.y), map: w.mapId, prompt: w.prompt, flags: Object.keys(P.st().flags).filter((k) => P.st().flags[k]), inv: JSON.stringify(AU.G.S.inv), end: !P.endEl.classList.contains('hidden'), err: AU.main.lastError || null }; }),
     async fresh() { await p.goto(URL); await ev(() => localStorage.clear()); await p.goto(URL); await p.waitForSelector('#btn-start'); },
     async setup(page = p, name = '시험용', g = 'm') { // 신규 시작 때 나오는 캐릭터 설정 화면을 채우고 확정
+      if (await page.$('#job-next')) { await page.click('#job-next'); await sleep(200); }
       if (await page.$('#charsetup')) { await page.click('#sg-' + g); await page.fill('#sname', name); await page.click('#setup-ok'); }
     },
     async start() { await p.click('#btn-start'); await sleep(200); await T.setup(); await sleep(200); },
