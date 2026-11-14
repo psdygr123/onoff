@@ -44,7 +44,7 @@ window.AU = window.AU || {};
         if (n === "hammer") { this.tone(190, 0.09, "square", 0.22, 90); this.noise(0.07, 0.35, 3000); }
         else if (n === "thud") { this.tone(95, 0.3, "sine", 0.5, 38); this.noise(0.2, 0.25, 500); }
         else if (n === "boom") { this.noise(1.6, 0.9, 380); this.tone(70, 1.2, "sawtooth", 0.35, 28); }
-        else if (n === "chime") { this.tone(784, 1.4, "sine", 0.16); setTimeout(() => this.tone(1175, 1.6, "sine", 0.13), 180); setTimeout(() => this.tone(1568, 1.8, "sine", 0.09), 380); }
+        else if (n === "temple_glow") { this.tone(147, 5, "sine", 0.1); setTimeout(() => this.tone(220, 4.5, "sine", 0.08), 150); setTimeout(() => this.tone(294, 4, "sine", 0.06), 300); } // 새 합성기가 없을 때만 쓰는 예비 소리
         else if (n === "gull") { this.tone(1500, 0.22, "sine", 0.07, 950); setTimeout(() => this.tone(1350, 0.3, "sine", 0.06, 800), 260); }
         else if (n === "pick") { this.tone(420, 0.08, "triangle", 0.2, 620); }
         else if (n === "item") { this.tone(660, 0.12, "triangle", 0.2); setTimeout(() => this.tone(990, 0.2, "triangle", 0.18), 100); }

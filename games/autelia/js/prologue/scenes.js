@@ -231,7 +231,7 @@ window.AU = window.AU || {};
       });
       await P.cutscene(async () => { // CS-01 신전 완공
         await P.camPan(L.tx - 20, 1.8); await P.wait(0.4); P.sfx("stone"); v.jointIn = true; P.shake(5, 0.4); P.burst("dust", L.tx + 40, 330, 10);
-        await P.wait(0.6); P.tween(v, { scaff: 0 }, 2.6); P.sfx("chime"); P.tween(v, { glow: 1 }, 2.2); P.emitter({ kind: "glow", x0: L.tx - 300, x1: L.tx + 300, y0: 330, y1: 540, rate: 12 }); v.done = true; frame.hidden = true;
+        await P.wait(0.6); P.tween(v, { scaff: 0 }, 2.6); P.sfx("temple_glow"); P.tween(v, { glow: 1 }, 2.2); P.emitter({ kind: "glow", x0: L.tx - 300, x1: L.tx + 300, y0: 330, y1: 540, rate: 12 }); v.done = true; frame.hidden = true;
         await P.wait(3.2); P.camFollow(); await P.wait(0.8);
       }, { id: "cs01a", skip: true, bars: true });
       st.finished = true; father.mark = true; father.working = false; father.faceP = true; father.interact.label = "대화: 아버지"; P.obj(OBJ.s1_back);
