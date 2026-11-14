@@ -120,6 +120,10 @@ window.AU = window.AU || {};
 
   // --- 메뉴·대화 ---
   def("click", "버튼 클릭", (c, b, t) => { T(c, b, t, { f: 700, type: "triangle", dur: 0.045, vol: 0.07 }); N(c, b, t, { f: 2600, dur: 0.02, vol: 0.05 }); });
+  // 선택 전용(캐릭터 만들기의 카드·색 고르기): 잡음 틱 없이 부드럽게. 셋 중 하나를 sfx_wire.js의 SELECT_SOUND로 고릅니다.
+  def("select_a", "선택(A) 부드러운 '뽁' · 낮고 둥근 한 음", (c, b, t) => T(c, b, t, { f: 520, f2: 400, dur: 0.09, vol: 0.06, a: 0.008, lp: 1400 }));
+  def("select_b", "선택(B) 맑은 두 음 · 아주 작은 종소리", (c, b, t) => { T(c, b, t, { f: 660, dur: 0.16, vol: 0.035, a: 0.006, rev: 0.3 }); T(c, b, t + 0.06, { f: 990, dur: 0.2, vol: 0.03, a: 0.006, rev: 0.3 }); });
+  def("select_c", "선택(C) 거의 안 들리는 숨소리 · 종이 스침", (c, b, t) => N(c, b, t, { type: "lowpass", f: 900, f2: 500, q: 0.5, dur: 0.07, a: 0.015, vol: 0.05 }));
   def("menu_open", "메뉴 열기(종이 소리)", (c, b, t) => N(c, b, t, { f: 1400, f2: 3000, q: 0.6, dur: 0.18, a: 0.05, vol: 0.09 }));
   def("menu_close", "메뉴 닫기", (c, b, t) => N(c, b, t, { f: 3000, f2: 1300, q: 0.6, dur: 0.16, a: 0.04, vol: 0.08 }));
   def("blip", "대화 넘김(아주 작은 틱)", (c, b, t) => T(c, b, t, { f: rnd(470, 560), dur: 0.055, vol: 0.045, a: 0.006 }));

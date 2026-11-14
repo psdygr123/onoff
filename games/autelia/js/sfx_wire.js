@@ -61,5 +61,11 @@ window.AU = window.AU || {};
   wrap(UI, "say", null, blip);
   wrap(UI, "advanceDialog", null, blip);
   if (AU.Prologue) { wrap(AU.Prologue, "say", null, blip); }
-  document.addEventListener("click", (e) => { const b = e.target && e.target.closest && e.target.closest("#ui button, #title button"); if (b && performance.now() - lastBlip > 200) play("click"); }, true);
+  // 캐릭터 만들기의 카드·색 선택은 전용 소리(select_a/b/c 중 택1, 시험 페이지에서 비교). 나머지 버튼은 기존 click.
+  const SELECT_SOUND = "select_a";
+  document.addEventListener("click", (e) => {
+    const b = e.target && e.target.closest && e.target.closest("#ui button, #title button");
+    if (!b || performance.now() - lastBlip <= 200) return;
+    play(b.classList.contains("scard") || b.classList.contains("swatch") ? SELECT_SOUND : "click");
+  }, true);
 })();
