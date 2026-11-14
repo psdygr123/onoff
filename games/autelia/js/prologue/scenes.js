@@ -314,7 +314,7 @@ window.AU = window.AU || {};
   SC.SCENE_03_ATTACK = { name: "검은 화염", async enter(P) {
     const g = P.gen; P.room("pro_plaza", LAY.plaza.w - 180, (P) => setupPlaza(P, "attack")); P.fadeS.color = "#fff"; P.fadeS.a = 1; P.setFlag("attack_triggered"); P.face(1);
     await P.cutscene(async () => { // CS-02 축제 습격
-      await P.wait(0.5); P.amb("fire", true); P.sfx("boom"); P.shake(12, 1.4); P.fade(0, 1.6);
+      await P.wait(0.5); P.amb("raid", true); P.sfx("boom"); P.shake(12, 1.4); P.fade(0, 1.6);
       await P.zoomTo(1.22, 2.0, 640, 300); runner(P, 1100, -1, 230); runner(P, 1240, -1, 200); runner(P, 980, 1, 210);
       await P.wait(1.0); P.sfx("collapse"); P.shake(8, 0.8); P.burst("dust", 1050, 300, 12); await P.say(T.attack);
       await P.zoomTo(1, 1.4); P.face(-1); await P.wait(0.6); await P.say(T.hero_dad);
@@ -368,18 +368,18 @@ window.AU = window.AU || {};
   async function willScene(father, bag) {
     const P = AU.Prologue, g = P.gen, v = P.v;
     await P.cutscene(async () => { // CS-03 아버지의 유언
-      P.obj(""); P.amb("fire", true); P.face(1); await P.say([T.will[0]]); await P.walkTo(612, 1.5); await P.say([T.will[1]]); P.pose("kneel"); P.zoomTo(1.25, 1.6, 700, 450); await P.wait(1.0);
+      P.obj(""); P.amb("raid_far", true); P.face(1); await P.say([T.will[0]]); await P.walkTo(612, 1.5); await P.say([T.will[1]]); P.pose("kneel"); P.zoomTo(1.25, 1.6, 700, 450); await P.wait(1.0);
       await P.say(T.will.slice(2, 5)); // 아버지 "...왔구나." / 주인공 / 아버지 "아니... 시간이 없다."
       await P.tween(father, { hand: 1 }, 1.3); father.frag = true; await P.wait(0.5);
       P.closeup = { a: 0 }; P.sfx("fragment"); await P.tween(P.closeup, { a: 1 }, 0.9); P.setFlag("metal_fragment_acquired"); P.give("metal_fragment"); father.frag = false; await P.wait(3.0); await P.tween(P.closeup, { a: 0 }, 0.8); P.closeup = null;
       await P.tween(father, { hand: 0.5 }, 0.6); await P.say(T.will2);
-      P.sfx("slump"); await P.tween(father, { hand: 0, drop: 1 }, 0.8); P.amb("fire", false); await P.wait(1.8); await P.say(T.will3);
-      P.setFlag("father_final_words_seen"); P.pose(null); P.zoomTo(1, 1.2); await P.wait(0.9); P.amb("fire", true);
+      P.sfx("slump"); await P.tween(father, { hand: 0, drop: 1 }, 0.8); P.amb("raid_far", false); await P.wait(1.8); await P.say(T.will3);
+      P.setFlag("father_final_words_seen"); P.pose(null); P.zoomTo(1, 1.2); await P.wait(0.9); P.amb("raid_far", true);
     }, { id: "cs03", skip: true, bars: true });
     if (!live(P, g)) return; bag.hidden = false; P.obj(OBJ.s4_bag); P.limits = { min: 120, max: null, msg: "도구 가방을 챙겨야 합니다." };
   }
   SC.SCENE_04_FATHER = { name: "아버지의 마지막 유언", async enter(P) {
-    const g = P.gen; P.room("pro_house", LAY.house.start, (P) => setupHouse(P)); P.amb("fire", true);
+    const g = P.gen; P.room("pro_house", LAY.house.start, (P) => setupHouse(P)); P.amb("raid_far", true);
     await P.cutscene(async () => { await P.fade(0, 1.6); }); if (!live(P, g)) return; P.obj(OBJ.s3_dad);
   } };
 
@@ -410,7 +410,7 @@ window.AU = window.AU || {};
       P.trigger({ id: "look", test: (p) => p.x >= LAY.escape.look, fn: () => lookBack() });
       P.trigger({ id: "end", goal: LAY.escape.end, test: (p) => p.x >= LAY.escape.end, fn: () => escapeEnd() });
     });
-    P.amb("wind", true); P.amb("fire", true);
+    P.amb("wind", true); P.amb("raid_far", true);
     await P.cutscene(async () => { await P.fade(0, 1.6); }); if (!live(P, g)) return;
     P.obj(OBJ.s5_escape); P.hint("점프 " + k.jump + " · 이동 " + k.move, 6);
   } };
@@ -424,7 +424,7 @@ window.AU = window.AU || {};
   async function escapeEnd() {
     const P = AU.Prologue, g = P.gen, v = P.v;
     await P.cutscene(async () => { // CS-04 아르케아와 작별 + 사흘 동안의 이동(짧은 화면 전환)
-      P.obj(""); P.setFlag("arkea_escape_complete"); await P.fade(1, 0.9); P.amb("wind", false); P.amb("fire", false);
+      P.obj(""); P.setFlag("arkea_escape_complete"); await P.fade(1, 0.9); P.amb("wind", false); P.amb("raid_far", false);
       const t0 = { t: 0 }; P.shotFn = (ctx) => montage(ctx, P, t0.t); P.fadeS.a = 0; await P.tween(t0, { t: 10.8 }, 10.8, (k) => k); P.shotFn = null; P.fadeS.a = 1;
     }, { id: "cs04", skip: true });
     if (live(P, g)) { P.frozen = true; P.advance(); }

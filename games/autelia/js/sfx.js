@@ -185,6 +185,44 @@ window.AU = window.AU || {};
     const a = chain(c, bus, "bandpass", 900, 0.7, 0.07), b = chain(c, bus, "lowpass", 220, 0.7, 0.13);
     o.nodes.push(a.s, b.s); o.timers.push(setInterval(() => { if (Math.random() < 0.5) N(c, bus, c.currentTime, { type: "highpass", f: rnd(1800, 3500), dur: rnd(0.02, 0.06), vol: rnd(0.04, 0.14) }); }, 110));
   };
+  /* 습격 환경음(코드로 합성한 임시 소리): 불 타는 소리 위에 비명·고함, 나무 부서지는 소리, 쇠붙이 부딪는 소리, 무너지는 둔탁한 소리를 드문드문 얹음.
+     실제 녹음 파일이 오면 같은 이름의 파일로 바꿔 끼우면 됨. far=true는 멀리서 들리는 작은 버전(집 안 장면: 아버지 유언을 가리지 않게) */
+  function shout(c, bus, t, o) { // 사람 목소리 비슷한 외침: 톱니파를 모음 필터(포르만트) 두 개에 통과시키고 음높이를 올렸다 내림
+    const dur = o.dur || rnd(0.35, 0.8), os = c.createOscillator(), g = c.createGain(), vib = c.createOscillator(), vg = c.createGain();
+    os.type = "sawtooth"; os.frequency.setValueAtTime(o.f * 0.85, t); os.frequency.linearRampToValueAtTime(o.f * 1.18, t + dur * 0.35); os.frequency.linearRampToValueAtTime(o.f * 0.8, t + dur);
+    vib.frequency.value = rnd(5, 8); vg.gain.value = o.f * 0.03; vib.connect(vg); vg.connect(os.frequency);
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(o.vol, t + 0.05); g.gain.setValueAtTime(o.vol, t + dur * 0.6); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    const F = o.vowel || [[760, 4], [1250, 5]]; for (const [ff, q] of F) { const f = c.createBiquadFilter(); f.type = "bandpass"; f.frequency.value = ff * rnd(0.92, 1.08); f.Q.value = q; os.connect(f); f.connect(g); }
+    g.connect(bus.out); if (o.rev) { const r = c.createGain(); r.gain.value = o.rev; g.connect(r); r.connect(bus.rev); }
+    os.start(t); vib.start(t); os.stop(t + dur + 0.05); vib.stop(t + dur + 0.05);
+  }
+  function woodCrack(c, bus, t, vol, far) { // 나무가 갈라지는 딱 소리 + 부서진 조각이 떨어지는 달그락
+    N(c, bus, t, { type: "bandpass", f: rnd(1400, 2400), q: 1.4, dur: 0.05, a: 0.001, vol, rev: far ? 0.5 : 0.2 }); N(c, bus, t + 0.01, { type: "lowpass", f: 420, dur: 0.18, a: 0.002, vol: vol * 0.9, rev: far ? 0.5 : 0.25 });
+    for (let i = 0; i < 4; i++) N(c, bus, t + 0.08 + i * rnd(0.04, 0.09), { type: "highpass", f: rnd(1800, 3600), dur: 0.025, a: 0.001, vol: vol * rnd(0.25, 0.5), rev: 0.2 });
+  }
+  function clang(c, bus, t, vol, far) { // 쇠붙이 부딪는 소리
+    const f = rnd(900, 1700); N(c, bus, t, { type: "highpass", f: 3000, dur: 0.04, a: 0.001, vol, rev: far ? 0.5 : 0.3 });
+    [1, 2.76, 5.4].forEach((m, i) => T(c, bus, t, { f: f * m, dur: 0.35 / (1 + i), vol: vol * [0.7, 0.35, 0.18][i], a: 0.001, rev: far ? 0.6 : 0.35 }));
+  }
+  function rumble(c, bus, t, vol) { N(c, bus, t, { type: "lowpass", f: 180, dur: 0.9, a: 0.02, vol, rev: 0.4 }); T(c, bus, t, { f: 70, f2: 38, dur: 0.7, vol: vol * 0.8, a: 0.01 }); }
+  const VOW = { a: [[800, 5], [1200, 6]], o: [[500, 5], [900, 6]], i: [[350, 5], [2300, 7]] };
+  function raidLoop(far) {
+    return (c, bus, o) => {
+      L.fire(c, bus, o);
+      const k = far ? 0.45 : 1, rv = far ? 0.6 : 0.25;
+      o.timers.push(setInterval(() => { // 사람 외침: 남성(낮음)·여성·아이(높음), 가끔 둘이 겹침
+        const n = Math.random() < 0.3 ? 2 : 1;
+        for (let i = 0; i < n; i++) { const kind = Math.random(), f0 = kind < 0.4 ? rnd(120, 170) : kind < 0.8 ? rnd(230, 330) : rnd(380, 520), v = [VOW.a, VOW.o, VOW.i][Math.floor(rnd(0, 3))];
+          shout(c, bus, c.currentTime + i * rnd(0.1, 0.4), { f: f0, vol: rnd(0.09, 0.17) * k, dur: rnd(0.35, 0.9), vowel: v, rev: rv }); }
+      }, far ? 2300 : 1100));
+      o.timers.push(setInterval(() => { if (Math.random() < 0.45) woodCrack(c, bus, c.currentTime, rnd(0.1, 0.18) * k, far); }, far ? 2700 : 1600));
+      o.timers.push(setInterval(() => { if (Math.random() < 0.35) clang(c, bus, c.currentTime, rnd(0.07, 0.13) * k, far); }, far ? 3100 : 1900));
+      o.timers.push(setInterval(() => { if (Math.random() < 0.18) rumble(c, bus, c.currentTime, rnd(0.1, 0.18) * k); }, 3500));
+    };
+  }
+  S.raidParts = { shout, woodCrack, clang, rumble };   // 시험용(오프라인 렌더로 크기 확인)
+  L.raid = raidLoop(false);
+  L.raid_far = raidLoop(true);
   L.wind = (c, bus, o) => { const a = chain(c, bus, "bandpass", 450, 0.6, 0.13); o.nodes.push(a.s, lfo(c, 0.11, 260, a.f.frequency), lfo(c, 0.07, 0.05, a.g.gain)); };
   L.waves = (c, bus, o) => {
     const a = chain(c, bus, "lowpass", 560, 0.5, 0.1), b = chain(c, bus, "highpass", 2200, 0.5, 0.025);
