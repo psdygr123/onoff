@@ -182,10 +182,16 @@ window.AU = window.AU || {};
         if (this.nearSpot) { this.useSpot(this.nearSpot); return; }
         if (this.nearNpc) { AU.UI.talkNpc(this.nearNpc.id); }
       } else if (id === "up") {
-        if (this.nearPortal && !p.rope) { const pt = this.nearPortal; this.travel(pt.to, pt.toX); }
+        if (this.nearPortal && !p.rope) { const pt = this.nearPortal; if (pt.lock) { AU.UI.toast(pt.lock, "info"); return; } if (!this.portalOpen(pt)) { AU.UI.toast(pt.reqText || "아직 갈 수 없습니다.", "warn"); return; } this.travel(pt.to, pt.toX); }
       } else if (id.startsWith("skill")) this.useSkillSlot(+id.slice(5) - 1);
     },
 
+    // 포털이 열려 있는지: reqQuest(+reqIn 상태 목록) 또는 reqSpot(조사·수리 지점 완료) 조건이 있으면 확인
+    portalOpen(pt) {
+      if (pt.reqQuest && !(pt.reqIn || ["done"]).includes(AU.G.questStatus(pt.reqQuest))) return false;
+      if (pt.reqSpot && !AU.G.spotDone(pt.reqSpot)) return false;
+      return true;
+    },
     /* ---------- 조사·수리 지점 ---------- */
     useSpot(sp) {
       if (this.work) return;

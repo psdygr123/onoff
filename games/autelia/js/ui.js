@@ -253,7 +253,7 @@ window.AU = window.AU || {};
       const dl = AU.G.tryDeliver(npcId); if (dl) return this.say(npc, dl);                       // 전달 퀘스트: 물건을 내미는 대화
       const pc = AU.G.pendingChoice(npcId);                                                        // 선택 퀘스트: 정답 없는 갈림길
       if (pc) return this.say(npc, pc.o.prompt || pc.q.choice.prompt, { choices: pc.q.choice.options.map((op) => ({ label: op.label, key: null, fn: () => { AU.G.applyChoice(pc.qid, pc.i, op); this.say(npc, op.reply, { end: () => { if (AU.QUESTS[pc.qid].giver === npcId && AU.G.questStatus(pc.qid) === "ready") this.say(npc, AU.QUESTS[pc.qid].done, { end: () => AU.G.turnIn(pc.qid) }); } }); } })), noCancel: true });
-      let qid = (npc.quests || []).find((id) => AU.G.questStatus(id) === "ready" && AU.QUESTS[id].giver === npcId);
+      let qid = (npc.quests || []).find((id) => AU.G.questStatus(id) === "ready" && (AU.QUESTS[id].turnIn || AU.QUESTS[id].giver) === npcId);
       if (qid) {
         const q = AU.QUESTS[qid];
         return this.say(npc, q.done, { end: () => { AU.G.turnIn(qid); } });
@@ -261,6 +261,7 @@ window.AU = window.AU || {};
       qid = (npc.quests || []).find((id) => AU.G.questStatus(id) === "available" && AU.QUESTS[id].giver === npcId);
       if (qid) {
         const q = AU.QUESTS[qid];
+        if (q.fee && S.silver < q.fee) { this.toast("은화가 필요합니다. (" + q.fee + ")", "warn"); return this.say(npc, q.feeShort || ["은화가 모자랍니다."]); }
         return this.say(npc, q.offer, { choices: [{ label: "수락", key: "interact", fn: () => AU.G.startQuest(qid) }, { label: "나중에", key: "menu", fn: () => {} }] });
       }
       const act = (npc.quests || []).find((id) => AU.G.questStatus(id) === "active" && AU.QUESTS[id].giver === npcId);

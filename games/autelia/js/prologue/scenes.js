@@ -141,7 +141,7 @@ window.AU = window.AU || {};
   }
   SC.SCENE_00_MORNING = { name: "아침의 아르케아", async enter(P) {
     const g = P.gen; P.room("pro_road", LAY.road.m.start, (P) => setupMorning(P)); P.amb("birds", true);
-    await P.cutscene(async () => { await P.wait(0.9); await P.cards(T.cards); await P.fade(0, 1.8); await P.caption(T.cap1, 3.4); }, { id: "cs00a", skip: true });
+    await P.cutscene(async () => { await P.wait(0.9); P.amb("birds", false); await P.introVideo(T.cards); P.amb("birds", true); await P.fade(0, 1.8); await P.caption(T.cap1, 3.4); }, { id: "cs00a", skip: true });
     if (!live(P, g)) return; P.obj(OBJ.s0_walk); const k = P.keys(); P.hint("이동 " + k.move + " · 점프 " + k.jump + " · 상호작용 " + k.act, 9);
   } };
 

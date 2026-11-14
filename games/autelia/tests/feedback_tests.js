@@ -1,6 +1,6 @@
 /* 2026-11-12 시험 피드백 반영 확인: 도입 글·이전 버튼·방향 화살표·퀘스트 추적창·조작 안내·피로도 설명 */
 const { chromium } = require('playwright');
-const URL = (process.env.GAME_URL || 'http://localhost:8801') + '/index.html?dev=1', SH = (process.env.SHOTS || '/tmp/claude-0/shots') + '/';
+const URL = (process.env.GAME_URL || 'http://localhost:8801') + '/index.html?dev=1&intro=cards', SH = (process.env.SHOTS || '/tmp/claude-0/shots') + '/';
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms)); let pass = 0, fail = 0;
 const note = (id, name, ok, ev) => { ok ? pass++ : fail++; console.log((ok ? 'PASS ' : 'FAIL ') + id + ' ' + name + (ev ? ' :: ' + ev : '')); };
 (async () => {

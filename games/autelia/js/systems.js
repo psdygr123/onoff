@@ -146,6 +146,7 @@ window.AU = window.AU || {};
     startQuest(id) {
       if (this.questStatus(id) !== "available") return false;
       const q = AU.QUESTS[id];
+      if (q.fee) { if (this.S.silver < q.fee) { this.toast("은화가 부족합니다. (필요 " + q.fee + ")", "warn"); return false; } this.S.silver -= q.fee; this.toast("은화 -" + q.fee, "info"); }   // 수락할 때 내는 값(정보료 등)
       this.S.quests[id] = { state: "active", prog: q.objectives.map(() => 0), spots: {} };
       for (const [it, n] of q.startItems || []) this.giveItem(it, n);   // 전달 퀘스트: 수락할 때 맡는 물건
       this.log("퀘스트 수락: " + q.title); this.toast("퀘스트 수락: " + q.title, "quest");
@@ -236,6 +237,8 @@ window.AU = window.AU || {};
       if (r.silver) this.gainSilver(r.silver);
       for (const [it, n] of r.items || []) this.giveItem(it, n);
       this.log("퀘스트 완료: " + q.title); this.toast("퀘스트 완료: " + q.title, "good");
+      if (q.setFlags) Object.assign(this.S.flags, q.setFlags);
+      for (const t of q.after || []) this.toast(t, "info");
       if (q.jobChange) this.jobChange(q.jobChange);
       if (r.exp) this.gainExp(r.exp, q.title);
       this.save("quest"); this.changed(); return true;

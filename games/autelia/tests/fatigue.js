@@ -1,6 +1,6 @@
 /* 피로도 시험: 쌓임·가득 참 제한·변동 표시·쉼 미션·은화 휴식·주간 초기화·구 저장(활력) 변환 */
 const { chromium } = require('playwright');
-const URL = (process.env.GAME_URL || 'http://localhost:8801') + '/index.html?dev=1', SH = (process.env.SHOTS || '/tmp/claude-0/shots') + '/';
+const URL = (process.env.GAME_URL || 'http://localhost:8801') + '/index.html?dev=1&intro=cards', SH = (process.env.SHOTS || '/tmp/claude-0/shots') + '/';
 const R = []; const note = (id, name, ok, ev) => { R.push({ id, ok }); console.log((ok ? 'PASS ' : 'FAIL ') + id + ' ' + name + ' :: ' + ev); };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 (async () => {

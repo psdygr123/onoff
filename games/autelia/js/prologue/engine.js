@@ -243,6 +243,48 @@ window.AU = window.AU || {};
       }
       this.cardReady = false; el.classList.remove("on", "show"); el.innerHTML = "";
     },
+    /* 도입 영상(신화 10컷, 무음) + 자막. 처음 보는 사람은 건너뛸 수 없고, 같은 브라우저에서 한 번 끝까지 본 사람에게는 오른쪽 위에 건너뛰기 버튼이 나옵니다.
+       영상을 못 불러오거나 재생이 안 되면(주소에 ?intro=cards 포함) 기존 글 카드로 대신합니다. */
+    async introVideo(cards) {
+      if (this.skipping) return;
+      const ok = /[?&]intro=cards/.test(location.search) ? false : await this._playIntro();
+      if (!ok) await this.cards(cards);
+    },
+    _playIntro() {
+      return new Promise((resolve) => {
+        const seen = !!AU.Store.get("autelia.introSeen"), I = AU.INTRO; if (!I || !I.cuts) return resolve(false);
+        const R = AU.UI.root, box = document.createElement("div"); box.className = "introv";
+        const v = document.createElement("video"); v.playsInline = true; v.preload = "auto"; v.muted = true; v.disablePictureInPicture = true;
+        const sub = document.createElement("div"); sub.className = "introsub"; box.append(v, sub);
+        let skipBtn = null; if (seen) { skipBtn = document.createElement("button"); skipBtn.type = "button"; skipBtn.className = "btn introskip"; skipBtn.innerHTML = "건너뛰기 <em>Enter</em>"; box.append(skipBtn); }
+        const mkSrc = (src, type) => { const s = document.createElement("source"); s.src = src; s.type = type; return s; };
+        v.append(mkSrc("assets/video/intro.webm", 'video/webm; codecs="vp9"'), mkSrc("assets/video/intro.mp4", 'video/mp4; codecs="avc1.42E01E"'));
+        let done = false, started = false, raf = 0, lastKey = -1;
+        const finish = (played, completed) => {
+          if (done) return; done = true; cancelAnimationFrame(raf); clearTimeout(guard); document.removeEventListener("keydown", onKey, true);
+          if (completed) AU.Store.set("autelia.introSeen", 1);
+          try { v.pause(); } catch (e) { /* 무시 */ } box.classList.remove("on");
+          setTimeout(() => { box.remove(); resolve(played); }, 450);
+        };
+        const onKey = (e) => { if (seen && !e.repeat && (e.code === "Enter" || e.code === "NumpadEnter")) { e.preventDefault(); e.stopPropagation(); finish(true, true); } };
+        const tick = () => {
+          if (done) return;
+          if (this.skipping) { finish(true, false); return; }
+          const t = v.currentTime; let k = -1; for (let i = 0; i < I.cuts.length; i++) if (t >= I.cuts[i].start && t <= I.cuts[i].end) { k = i; break; }
+          if (k !== lastKey) { lastKey = k; sub.classList.remove("show"); if (k >= 0) { sub.innerHTML = I.cuts[k].lines.map((l) => "<p>" + esc(l) + "</p>").join(""); void sub.offsetWidth; sub.classList.add("show"); } }
+          raf = requestAnimationFrame(tick);
+        };
+        // 4초 안에 재생이 시작되지 않으면 카드로 대신함
+        const guard = setTimeout(() => { if (!started) finish(false, false); }, 4000);
+        v.addEventListener("error", () => { if (!started) finish(false, false); }, true);
+        v.addEventListener("playing", () => { started = true; clearTimeout(guard); box.classList.add("on"); raf = requestAnimationFrame(tick); });
+        v.addEventListener("ended", () => finish(true, true));
+        v.addEventListener("stalled", () => { /* 느린 연결: 대기 */ });
+        if (skipBtn) skipBtn.onclick = () => finish(true, true);
+        document.addEventListener("keydown", onKey, true);
+        R.append(box); const pr = v.play(); if (pr && pr.catch) pr.catch(() => { if (!started) finish(false, false); });
+      });
+    },
     recall(text, sec) { this.recallEl.textContent = text; this.recallEl.classList.add("show"); clearTimeout(this._rt); this._rt = setTimeout(() => this.recallEl.classList.remove("show"), (sec || 5) * 1000); },
     // 대사: [[화자키, 문장], …]. 화자는 data.js의 AU.PRO_SPEAKERS
     say(lines) {
