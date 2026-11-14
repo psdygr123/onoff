@@ -107,9 +107,9 @@ AU.AREA_LINKS = [["forest", "harbor_road"], ["harbor_road", "porto"], ["porto", 
 // sprite/sw: 정식 그림(assets/monster/*.webp, 투명 배경, 오른쪽을 보는 옆모습 1장)이 있으면 그 그림을 sw(가로 px)로 그리고, 없으면 임시 도형으로 표시합니다.
 // 이전 아스텔리아 기획의 사냥터 구성(들짐승→부두 쥐→게→거대 적)을 규칙으로만 재사용. 모두 임시 수치.
 AU.MONSTERS = {
-  fox:   { name: "들여우", lv: 1, hp: 32, atk: 6, speed: 70, chase: 130, w: 72, h: 50, exp: 34, silver: [2, 5], drops: [["fur", 0.55, 1, 2], ["fox_tail", 0.18], ["potion", 0.08], ["fox_scarf", 0.015]], color: "#F5A25D", ear: true, sprite: "mon_fox", sw: 92 },
+  fox:   { motion: "pounce", name: "들여우", lv: 1, hp: 32, atk: 6, speed: 70, chase: 130, w: 72, h: 50, exp: 34, silver: [2, 5], drops: [["fur", 0.55, 1, 2], ["fox_tail", 0.18], ["potion", 0.08], ["fox_scarf", 0.015]], color: "#F5A25D", ear: true, sprite: "mon_fox", sw: 92 },
   snake: { name: "뱀", lv: 3, hp: 55, atk: 10, speed: 85, chase: 150, w: 90, h: 34, exp: 62, silver: [4, 8], drops: [["snake_skin", 0.5], ["snake_fang", 0.16], ["potion", 0.1], ["snake_ring", 0.015]], color: "#7DBE6B", snake: true, sprite: "mon_snake", sw: 128 },
-  rat:   { name: "부두 쥐", lv: 5, hp: 90, atk: 15, speed: 100, chase: 160, w: 70, h: 46, exp: 90, silver: [6, 12], drops: [["rat_tooth", 0.55, 1, 2], ["potion", 0.12]], color: "#A79C94", ear: true, sprite: "mon_rat", sw: 88 },
+  rat:   { motion: "pounce", name: "부두 쥐", lv: 5, hp: 90, atk: 15, speed: 100, chase: 160, w: 70, h: 46, exp: 90, silver: [6, 12], drops: [["rat_tooth", 0.55, 1, 2], ["potion", 0.12]], color: "#A79C94", ear: true, sprite: "mon_rat", sw: 88 },
   crab:  { name: "집게 게", lv: 8, hp: 170, atk: 26, speed: 60, chase: 150, w: 92, h: 56, exp: 132, silver: [10, 18], drops: [["crab_claw", 0.5, 1, 2], ["crab_shell", 0.2], ["potion", 0.15], ["crab_vest", 0.015]], color: "#E9777A", crab: true, sprite: "mon_crab", sw: 116 },
   trial_boss: { name: "시험 대상 (임시)", lv: 10, hp: 700, atk: 40, speed: 75, chase: 420, w: 190, h: 150, exp: 600, silver: [60, 80], drops: [], color: "#9B7FD1", boss: true }
 };
@@ -168,9 +168,9 @@ AU.JOB_TIERS = [
 
 /* ---------- 스킬 (전사, 임시) ---------- */
 AU.SKILLS = {
-  strike: { name: "강타 (임시)", cost: 15, cd: 3, mult: 2.2, range: 135, desc: "앞쪽의 적에게 강한 일격을 가합니다. (공격력 220%)" },
-  spin:   { name: "회전 베기 (임시)", cost: 25, cd: 6, mult: 1.5, radius: 150, desc: "주변 양쪽의 적을 한꺼번에 벱니다. (공격력 150%)" },
-  focus:  { name: "숨 고르기 (임시)", cost: 20, cd: 10, heal: 0.35, desc: "HP를 최대 HP의 35% 회복합니다." }
+  strike: { name: "결의의 일격", cost: 15, cd: 3, mult: 2.2, range: 135, desc: "마음을 모아 앞쪽의 적에게 강한 일격을 가합니다. (공격력 220%)" },
+  spin:   { name: "소용돌이 베기", cost: 25, cd: 6, mult: 1.5, radius: 150, desc: "몸을 돌리며 주변 양쪽의 적을 한꺼번에 벱니다. (공격력 150%)" },
+  focus:  { name: "마음 다잡기", cost: 20, cd: 10, heal: 0.35, desc: "숨을 고르고 마음을 다잡아 HP를 최대 HP의 35% 회복합니다." }
 };
 AU.WARRIOR_SKILLS = ["strike", "spin", "focus"];
 

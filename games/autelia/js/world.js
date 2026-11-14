@@ -78,7 +78,7 @@ window.AU = window.AU || {};
       this.updatePlayer(dt, blocked);
       this.updateMonsters(dt);
       // 쿨다운
-      p.invuln = Math.max(0, p.invuln - dt); p.flash = Math.max(0, p.flash - dt); p.atkT = Math.max(0, p.atkT - dt);
+      p.invuln = Math.max(0, p.invuln - dt); p.flash = Math.max(0, p.flash - dt); p.atkT = Math.max(0, p.atkT - dt); if (p.sk) { p.sk.t += dt; if (p.sk.t >= p.sk.dur) p.sk = null; }
       p.atkCD = Math.max(0, p.atkCD - dt); p.gcd = Math.max(0, p.gcd - dt);
       for (const k of Object.keys(p.cd)) p.cd[k] = Math.max(0, p.cd[k] - dt);
       // 안전 지역 자연 회복
@@ -222,6 +222,7 @@ window.AU = window.AU || {};
     },
     killMonster(m) {
       m.alive = false; m.respawnT = m.d.boss ? -1 : 8; m.hp = 0;
+      if (m.d.sprite && AU.Img.has(m.d.sprite)) this.fx.push({ kind: "ghost", img: m.d.sprite, sw: m.d.sw, x: m.x, y: m.y, dir: m.dir, t: 0, dur: 0.55 });
       const S = AU.G.S, mult = C.exp.killMultiplier;
       const exp = Math.round(m.d.exp * mult), silver = Math.round(rnd(m.d.silver[0], m.d.silver[1]));
       AU.G.gainSilver(silver);
@@ -274,17 +275,24 @@ window.AU = window.AU || {};
       const sk = AU.SKILLS[id];
       if ((p.cd[id] || 0) > 0 || p.gcd > 0) return;
       if (!AU.G.canSpend(id)) { AU.G.toast("피로도가 가득 차 스킬을 쓸 수 없습니다. 기본 공격은 가능하며, 휴식(스킬 창)이나 쉼 미션으로 줄일 수 있습니다.", "warn"); this.floater(p.x, p.y - 140, "피로도 가득", "#FF9AA2"); return; }
-      AU.G.spend(id); if (!S.flags.fatigueTip) { S.flags.fatigueTip = true; AU.G.toast("피로도가 쌓였습니다. 스킬을 쓸 때마다 쌓이며, 가득 차면 스킬을 쓸 수 없습니다(기본 공격은 가능). 휴식이나 쉼 미션으로 줄일 수 있습니다.", "info"); } p.cd[id] = sk.cd; p.gcd = C.combat.skillGlobalCooldown; p.atkT = 0.3;
+      AU.G.spend(id); if (!S.flags.fatigueTip) { S.flags.fatigueTip = true; AU.G.toast("피로도가 쌓였습니다. 스킬을 쓸 때마다 쌓이며, 가득 차면 스킬을 쓸 수 없습니다(기본 공격은 가능). 휴식이나 쉼 미션으로 줄일 수 있습니다.", "info"); } p.cd[id] = sk.cd; p.gcd = C.combat.skillGlobalCooldown; p.atkT = 0.3; p.sk = { id, t: 0, dur: id === "spin" ? 0.45 : id === "focus" ? 0.6 : 0.34 };
       if (id === "strike") {
         const x0 = p.dir > 0 ? p.x : p.x - sk.range, x1 = x0 + sk.range;
         this.fx.push({ kind: "slash", x: p.x + p.dir * 70, y: p.y - 64, dir: p.dir, t: 0, dur: 0.3, r: 90, color: "#FFD36B" });
+        this.fx.push({ kind: "slash", x: p.x + p.dir * 84, y: p.y - 58, dir: p.dir, t: -0.06, dur: 0.3, r: 118, color: "#FFF1B8", thin: true });
+        this.fx.push({ kind: "sparks", x: p.x + p.dir * (sk.range - 10), y: p.y - 60, dir: p.dir, t: -0.08, dur: 0.4, n: 9, color: "#FFD36B", spread: 70 });
+        this.fx.push({ kind: "wave", x: p.x + p.dir * (sk.range - 20), y: p.y - 6, t: -0.08, dur: 0.35, r: 54, color: "#FFE9A8" });
         for (const m of this.monsters) if (m.alive && m.x + m.d.w / 2 > x0 && m.x - m.d.w / 2 < x1 && Math.abs(m.y - p.y) < 100) this.hurtMonster(m, sk.mult, p.dir, 220);
       } else if (id === "spin") {
         this.fx.push({ kind: "ring", x: p.x, y: p.y - 50, t: 0, dur: 0.35, r: sk.radius, color: "#9FD6F5" });
+        this.fx.push({ kind: "whirl", x: p.x, y: p.y - 58, t: 0, dur: 0.45, r: sk.radius, color: "#CFEAFB" });
+        this.fx.push({ kind: "wave", x: p.x, y: p.y - 4, t: 0.05, dur: 0.4, r: sk.radius * 0.9, color: "#BFE3F7" });
         for (const m of this.monsters) if (m.alive && Math.abs(m.x - p.x) < sk.radius + m.d.w / 2 && Math.abs(m.y - p.y) < 100) this.hurtMonster(m, sk.mult, sign(m.x - p.x) || p.dir, 200);
       } else if (id === "focus") {
         const max = AU.G.d().maxHp, v = Math.round(max * sk.heal); S.hp = Math.min(max, S.hp + v);
         this.fx.push({ kind: "ring", x: p.x, y: p.y - 50, t: 0, dur: 0.5, r: 60, color: "#A6E3C9" });
+        this.fx.push({ kind: "motes", x: p.x, y: p.y, t: 0, dur: 0.9, n: 14, color: "#B9F0D3" });
+        this.fx.push({ kind: "pillar", x: p.x, y: p.y, t: 0, dur: 0.6, color: "#A6E3C9" });
         this.floater(p.x, p.y - 140, "+" + v, "#6BCB77");
       }
       AU.G.changed();
@@ -453,21 +461,40 @@ window.AU = window.AU || {};
       const gk = AU.Profile.gender() === "f" ? ["player_female", "player_male"] : ["player_male", "player_female"], key = AU.Img.has(gk[0]) ? gk[0] : gk[1], moving = Math.abs(p.vx) > 20 && p.onGround;
       const frame = moving ? Math.floor(this.time * 9) % 4 : (p.rope ? Math.floor(p.anim) % 2 : 0);
       const lean = p.atkT > 0 ? p.dir * 6 : 0, PR = AU.Prologue, pro = !!(PR && PR.on), pose = pro ? PR.poseOf(p) : null;
+      let skm = null; if (p.sk && !pro) { const q = p.sk.t / p.sk.dur, e = Math.sin(Math.min(1, q) * Math.PI); skm = p.sk.id === "strike" ? { dx: p.dir * 16 * e, rot: p.dir * (q < 0.35 ? -0.1 * (q / 0.35) : 0.2 * e), sx: 1 + 0.06 * e, sy: 1 - 0.04 * e } : p.sk.id === "spin" ? { dx: 0, rot: 0, sx: Math.cos(q * Math.PI * 4), sy: 1 + 0.03 * e } : { dx: 0, rot: 0, sx: 1 + 0.03 * e, sy: 1 - 0.07 * e }; if (Math.abs(skm.sx) < 0.12) skm.sx = skm.sx < 0 ? -0.12 : 0.12; }
+      if (skm) { ctx.save(); ctx.translate(p.x + skm.dx, p.y); ctx.rotate(skm.rot); ctx.scale(skm.sx, skm.sy); ctx.translate(-p.x, -p.y); }
       if (pose) { ctx.save(); ctx.translate(p.x + (pose.dx || 0), p.y); ctx.rotate(pose.rot || 0); ctx.scale(pose.sx || 1, pose.sy || 1); ctx.translate(-p.x, -p.y); }
       if (pro && PR.drawHero(ctx, p, pose, moving)) { /* 프롤로그 정식 그림 */ }
       else if (!this.sprite(ctx, key, p.x + lean, p.y, C.player.spriteHeight, p.dir, frame)) { ctx.fillStyle = "#FFB3C7"; this.rr(ctx, p.x - 22, p.y - 118, 44, 118, 16); ctx.fill(); }
       if (pose) ctx.restore();
+      if (skm) ctx.restore();
       ctx.globalAlpha = 1;
       if (pro) PR.drawPlayerExtras(ctx, p, pose); // 들고 있는 목재·망치·등에 멘 가방
       if (p.flash > 0) { ctx.fillStyle = "rgba(255,90,90," + (p.flash * 2) + ")"; this.rr(ctx, p.x - 26, p.y - 124, 52, 124, 18); ctx.fill(); }
     },
     drawFx(ctx, f) {
+      if (f.t < 0) return; // 지연 시작 이펙트
       const k = f.t / f.dur; ctx.save(); ctx.globalAlpha = 1 - k;
       if (f.kind === "slash") {
-        ctx.translate(f.x, f.y); ctx.scale(f.dir, 1); ctx.strokeStyle = f.color; ctx.lineWidth = 12 * (1 - k * 0.6); ctx.lineCap = "round";
+        ctx.translate(f.x, f.y); ctx.scale(f.dir, 1); ctx.strokeStyle = f.color; ctx.lineWidth = (f.thin ? 6 : 12) * (1 - k * 0.6); ctx.lineCap = "round";
         ctx.beginPath(); ctx.arc(-20, 0, f.r * (0.7 + k * 0.4), -1.1, 1.1); ctx.stroke();
       } else if (f.kind === "ring") {
         ctx.strokeStyle = f.color; ctx.lineWidth = 8; ctx.beginPath(); ctx.ellipse(f.x, f.y, f.r * (0.3 + k * 0.7), f.r * (0.2 + k * 0.4), 0, 0, Math.PI * 2); ctx.stroke();
+      } else if (f.kind === "wave") { // 바닥을 훑는 충격파
+        ctx.strokeStyle = f.color; ctx.lineWidth = 5 * (1 - k); ctx.beginPath(); ctx.ellipse(f.x, f.y, f.r * (0.2 + k * 0.8), 9 * (0.5 + k * 0.7), 0, 0, Math.PI * 2); ctx.stroke();
+      } else if (f.kind === "whirl") { // 몸을 도는 칼날 궤적(소용돌이 베기)
+        ctx.translate(f.x, f.y); ctx.scale(1, 0.55); ctx.strokeStyle = f.color; ctx.lineCap = "round";
+        for (let i = 0; i < 3; i++) { const a0 = k * 9 + i * 2.094; ctx.lineWidth = 9 * (1 - k * 0.7); ctx.beginPath(); ctx.arc(0, 0, f.r * (0.55 + k * 0.45), a0, a0 + 1.5); ctx.stroke(); }
+      } else if (f.kind === "sparks") { // 사방으로 튀는 불꽃
+        ctx.fillStyle = f.color;
+        for (let i = 0; i < f.n; i++) { const a = -1.2 + (i / (f.n - 1)) * 2.4 + (i % 2 ? 0.15 : -0.1), d = f.spread * (0.3 + k) * (0.6 + (i % 3) * 0.25); ctx.beginPath(); ctx.arc(f.x + Math.cos(a) * d * f.dir, f.y + Math.sin(a) * d * 0.8 + k * 20, 4 * (1 - k * 0.7), 0, 7); ctx.fill(); }
+      } else if (f.kind === "motes") { // 떠오르는 빛 알갱이(마음 다잡기)
+        ctx.fillStyle = f.color;
+        for (let i = 0; i < f.n; i++) { const ox = Math.sin(i * 12.9) * 46, sp = 0.6 + (i % 4) * 0.2; ctx.beginPath(); ctx.arc(f.x + ox + Math.sin(this.time * 5 + i) * 5, f.y - 20 - k * 120 * sp, 3.5 * (1 - k * 0.5), 0, 7); ctx.fill(); }
+      } else if (f.kind === "pillar") { // 은은한 빛기둥
+        const g = ctx.createLinearGradient(0, f.y - 150, 0, f.y); g.addColorStop(0, "rgba(166,227,201,0)"); g.addColorStop(1, "rgba(166,227,201,.55)"); ctx.fillStyle = g; ctx.fillRect(f.x - 34, f.y - 150, 68, 150);
+      } else if (f.kind === "ghost") { // 쓰러지는 적: 기울며 가라앉고 사라짐
+        const im = AU.Img.get(f.img); if (im) { const dw = f.sw, dh = dw * im.naturalHeight / im.naturalWidth; ctx.translate(f.x, f.y + k * 14); ctx.scale(f.dir < 0 ? -1 : 1, 1 - k * 0.35); ctx.rotate(-0.5 * k); if ("filter" in ctx) ctx.filter = "brightness(" + (1.8 - k * 0.8) + ")"; ctx.drawImage(im, -dw / 2, -dh, dw, dh); }
       }
       ctx.restore();
     },
@@ -500,8 +527,22 @@ window.AU = window.AU || {};
       const sp = !!(d.sprite && AU.Img.has(d.sprite)); let th = d.h;
       if (sp) { // 정식 그림: 한 장을 코드로 움직임(걷기 통통, 준비 동작 웅크림, 돌진 늘어남, 피격 번쩍임)
         const im = AU.Img.get(d.sprite), dw = d.sw, dh = dw * im.naturalHeight / im.naturalWidth; let sx = 1, sy = 1, rot = 0;
-        if (m.state === "windup") { const k = Math.min(1, m.st / 0.5); sy = 1 - 0.14 * k; sx = 1 + 0.08 * k; rot = -0.12 * k; } else if (m.state === "lunge") { sx = 1.14; sy = 0.9; rot = 0.1; }
-        ctx.save(); ctx.translate(x, y - hop); ctx.scale(m.dir < 0 ? -1 : 1, 1); ctx.rotate(rot); ctx.scale(sx, sy);
+        const mo = d.motion || "", tt = this.time, ph = x * 0.013; let ox = 0, up = 0;
+        sy += 0.018 * Math.sin(tt * 3 + ph); sx -= 0.01 * Math.sin(tt * 3 + ph); // 숨쉬기
+        if (m.state === "chase") { rot += 0.035 * Math.sin(tt * 13 + ph); sy += 0.025 * Math.sin(tt * 13 + ph + 1); } // 달려드는 흔들림
+        if (m.state === "windup") {
+          const k = Math.min(1, m.st / 0.5);
+          if (mo === "pounce") { sy = 1 - 0.22 * k; sx = 1 + 0.14 * k; rot = -0.06 * k; ox = -12 * k; }                 // 낮게 웅크리고 뒤로 물러남
+          else if (mo === "swing") { sy = 1 + 0.05 * k; sx = 1 - 0.04 * k; rot = -0.3 * k; ox = -6 * k; up = 6 * k; }   // 철퇴를 뒤로 들어 올림
+          else { sy = 1 - 0.14 * k; sx = 1 + 0.08 * k; rot = -0.12 * k; }
+        } else if (m.state === "lunge") {
+          const q = Math.min(1, m.st / 0.28);
+          if (mo === "pounce") { sx = 1.2; sy = 0.84; rot = 0.16; up = Math.sin(q * Math.PI) * 30; ox = 14 * q; }       // 도약해서 덮침
+          else if (mo === "swing") { sx = 1.06; sy = 0.96; rot = -0.3 + 0.62 * q; ox = 18 * q; }                        // 위에서 아래로 내려침
+          else { sx = 1.14; sy = 0.9; rot = 0.1; }
+        }
+        if (m.flash > 0) { sx *= 0.92; sy *= 1.07; rot -= 0.1; ox -= 6; } // 맞았을 때 움찔
+        ctx.save(); ctx.translate(x + ox * (m.dir < 0 ? -1 : 1), y - hop - up); ctx.scale(m.dir < 0 ? -1 : 1, 1); ctx.rotate(rot); ctx.scale(sx, sy);
         if (m.flash > 0 && "filter" in ctx) ctx.filter = "brightness(2.2)";
         ctx.drawImage(im, -dw / 2, -dh, dw, dh); ctx.restore(); th = dh * sy;
       } else {
