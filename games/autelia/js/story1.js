@@ -32,8 +32,8 @@ window.AU = window.AU || {};
 
   /* ---------- 적 ---------- */
   Object.assign(AU.MONSTERS, {
-    merc: { name: "블랙 웨이브 용병", lv: 9, hp: 260, atk: 34, speed: 90, chase: 210, w: 60, h: 112, exp: 170, silver: [12, 20], drops: [["iron_scrap", 0.5, 1, 2], ["potion", 0.15]], color: "#4D4D5C", motion: "swing", sprite: "mon_merc", sw: 120 },
-    wolf: { name: "오염된 늑대", lv: 10, hp: 300, atk: 38, speed: 115, chase: 230, w: 88, h: 54, exp: 200, silver: [12, 18], drops: [["wolf_pelt", 0.55, 1, 2], ["potion", 0.12]], color: "#6C6F7A", ear: true, motion: "pounce", sprite: "mon_wolf", sw: 118 }
+    merc: { name: "블랙 웨이브 용병", lv: 9, hp: 260, atk: 34, speed: 90, chase: 210, w: 60, h: 112, exp: 170, silver: [12, 20], drops: [["iron_scrap", 0.5, 1, 2], ["potion", 0.15]], color: "#4D4D5C", motion: "swing", sprite: "mon_merc", sw: 88 },
+    wolf: { name: "오염된 늑대", lv: 10, hp: 300, atk: 38, speed: 115, chase: 230, w: 88, h: 54, exp: 200, silver: [12, 18], drops: [["wolf_pelt", 0.55, 1, 2], ["potion", 0.12]], color: "#6C6F7A", ear: true, motion: "pounce", sprite: "mon_wolf", sw: 140 }
   });
 
   /* ---------- NPC ---------- */
