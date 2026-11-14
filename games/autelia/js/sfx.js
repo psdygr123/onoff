@@ -78,29 +78,29 @@ window.AU = window.AU || {};
   def("plank", "목재 판자를 내려놓는 둔탁한 소리", (c, b, t) => { const k = v(); T(c, b, t, { f: 150 * k, f2: 68, dur: 0.28, vol: 0.5 }); N(c, b, t, { type: "lowpass", f: 700, dur: 0.16, vol: 0.28 }); T(c, b, t, { f: 330 * k, f2: 200, dur: 0.08, type: "triangle", vol: 0.15 }); });
   def("door", "나무 문이 닫히는 소리", (c, b, t) => { T(c, b, t, { f: 100, f2: 46, dur: 0.34, vol: 0.45 }); N(c, b, t, { type: "lowpass", f: 500, dur: 0.2, vol: 0.2 }); N(c, b, t + 0.13, { type: "highpass", f: 3200, dur: 0.03, vol: 0.18 }); });
   def("stone", "무거운 돌이 제자리에 끼워지는 소리", (c, b, t) => { N(c, b, t, { type: "lowpass", f: 520, f2: 240, dur: 0.55, a: 0.12, vol: 0.2 }); T(c, b, t + 0.5, { f: 62, f2: 34, dur: 0.45, vol: 0.5 }); N(c, b, t + 0.5, { type: "lowpass", f: 350, dur: 0.3, vol: 0.28 }); });
-  def("chime", "기념비에 빛이 켜지는 맑은 종소리", (c, b, t) => { arp(c, b, t, [784, 1175, 1568], 0.2, 0.11, 2.4); N(c, b, t + 0.1, { type: "highpass", f: 6000, dur: 1.6, a: 0.4, vol: 0.02, rev: 0.4 }); });
+  def("chime", "기념비에 빛이 켜짐(낮은 종 한 번이 길게 울리고 숨처럼 번짐)", (c, b, t) => { T(c, b, t, { f: 196, dur: 3.6, vol: 0.07, a: 0.9, rev: 0.6 }); bell(c, b, t + 0.15, 392, 0.1, 3.4, 0.7); T(c, b, t + 0.15, { f: 588, dur: 2.2, vol: 0.02, a: 0.02, rev: 0.7 }); N(c, b, t + 0.3, { type: "highpass", f: 5200, dur: 2.2, a: 0.7, vol: 0.012, rev: 0.5 }); });
   def("boom", "멀리서 울리는 폭발과 진동(날카롭지 않게)", (c, b, t) => { N(c, b, t, { type: "lowpass", f: 420, f2: 70, dur: 2.2, a: 0.05, vol: 0.55 }); T(c, b, t, { f: 64, f2: 26, dur: 1.7, vol: 0.4, a: 0.03 }); for (let i = 0; i < 9; i++) N(c, b, t + 0.35 + i * rnd(0.12, 0.2), { type: "highpass", f: rnd(1500, 3000), dur: 0.06, vol: rnd(0.02, 0.08) }); });
   def("collapse", "나무 기둥이 무너져 내리는 소리", (c, b, t) => { N(c, b, t, { f: 1800, q: 1.5, dur: 0.06, vol: 0.3 }); T(c, b, t, { f: 85, f2: 38, dur: 0.6, vol: 0.45 }); N(c, b, t + 0.08, { type: "lowpass", f: 800, f2: 200, dur: 0.7, vol: 0.25 }); for (let i = 0; i < 6; i++) N(c, b, t + 0.2 + i * 0.1, { f: rnd(900, 2500), dur: 0.05, vol: 0.06 }); });
   def("cloth", "현수막·천이 펄럭이는 소리", (c, b, t) => { N(c, b, t, { f: 1000, f2: 2000, q: 0.6, dur: 1.2, a: 0.25, vol: 0.12 }); N(c, b, t + 0.15, { f: 600, f2: 1400, q: 0.6, dur: 0.9, a: 0.2, vol: 0.08 }); });
   def("pick", "작은 물건을 집는 소리", (c, b, t) => { N(c, b, t, { f: 2200, q: 0.7, dur: 0.12, vol: 0.13 }); T(c, b, t + 0.03, { f: 2800 * v(), dur: 0.09, vol: 0.05 }); });
-  def("item", "아이템을 얻는 짧은 소리", (c, b, t) => arp(c, b, t, [659, 988], 0.09, 0.1, 0.7));
-  def("keyitem", "중요한 물건을 얻는 따뜻한 소리", (c, b, t) => arp(c, b, t, [523, 659, 880, 1319], 0.1, 0.1, 1.2));
+  def("item", "아이템 획득(작게 반짝, 한 음)", (c, b, t) => { bell(c, b, t, 1319, 0.07, 0.55, 0.3); N(c, b, t, { type: "highpass", f: 6500, dur: 0.12, vol: 0.012 }); });
+  def("keyitem", "중요한 물건 획득(따뜻한 두 음이 겹쳐 울림)", (c, b, t) => { bell(c, b, t, 523, 0.09, 1.8, 0.5); bell(c, b, t + 0.14, 784, 0.07, 1.8, 0.5); T(c, b, t, { f: 262, dur: 1.6, vol: 0.04, a: 0.25, rev: 0.5 }); });
   def("slump", "사람이 천천히 무릎 꿇고 쓰러지는 부드러운 소리", (c, b, t) => { N(c, b, t, { type: "lowpass", f: 320, dur: 0.3, vol: 0.28 }); T(c, b, t, { f: 72, f2: 44, dur: 0.35, vol: 0.28 }); N(c, b, t + 0.02, { f: 1500, f2: 700, q: 0.5, dur: 0.45, a: 0.08, vol: 0.06 }); });
   def("fragment", "금속 조각을 집는 소리(은은한 울림)", (c, b, t) => { T(c, b, t, { f: 3200, dur: 0.2, vol: 0.07, rev: 0.4 }); T(c, b, t, { f: 5100, dur: 0.12, vol: 0.04, rev: 0.4 }); T(c, b, t + 0.05, { f: 220, dur: 1.0, vol: 0.05, vib: 5, vibD: 4, a: 0.2, rev: 0.5 }); });
   def("bag", "가죽 도구 가방을 드는 소리", (c, b, t) => { N(c, b, t, { f: 700, q: 0.7, dur: 0.22, vol: 0.2 }); for (let i = 0; i < 3; i++) { N(c, b, t + 0.06 + i * 0.07, { f: rnd(3000, 4500), q: 2, dur: 0.04, vol: 0.08 }); T(c, b, t + 0.06 + i * 0.07, { f: rnd(2500, 3800), dur: 0.1, vol: 0.03 }); } });
   def("gull", "먼 곳의 갈매기 울음", (c, b, t) => { const k = v(); T(c, b, t, { f: 1350 * k, f2: 1900 * k, dur: 0.2, vol: 0.06, vib: 22, vibD: 40, a: 0.03, rev: 0.7 }); T(c, b, t + 0.2, { f: 1900 * k, f2: 1050 * k, dur: 0.4, vol: 0.06, vib: 22, vibD: 40, a: 0.03, rev: 0.7 }); T(c, b, t + 0.2, { f: 3800 * k, f2: 2100 * k, dur: 0.3, vol: 0.015, rev: 0.7 }); });
 
   // --- 발걸음 ---
-  def("step_dirt", "흙길 발걸음", (c, b, t) => { N(c, b, t, { type: "lowpass", f: 800 * v(), f2: 350, dur: 0.08, vol: 0.14 }); T(c, b, t, { f: 110 * v(), f2: 70, dur: 0.06, vol: 0.06 }); });
-  def("step_wood", "나무 바닥 발걸음", (c, b, t) => { N(c, b, t, { f: 1300 * v(), q: 1.1, dur: 0.05, vol: 0.12 }); T(c, b, t, { f: 210 * v(), f2: 120, dur: 0.09, vol: 0.1, type: "triangle" }); });
-  def("step_stone", "돌길 발걸음", (c, b, t) => { N(c, b, t, { type: "highpass", f: 1600 * v(), dur: 0.04, vol: 0.14 }); T(c, b, t, { f: 190 * v(), f2: 130, dur: 0.05, vol: 0.06 }); });
+  def("step_dirt", "흙길 발걸음(마른 흙·잔돌이 밟히는 질감)", (c, b, t) => { const k = v(); N(c, b, t, { type: "lowpass", f: 520 * k, f2: 260, q: 0.4, dur: 0.07, a: 0.004, vol: 0.09 }); for (let i = 0; i < 4; i++) N(c, b, t + 0.006 + i * rnd(0.008, 0.016), { f: rnd(2200, 4800), q: 1.4, dur: 0.018, vol: rnd(0.012, 0.03) }); });
+  def("step_wood", "나무 바닥 발걸음(속이 빈 나무가 울리는 톡)", (c, b, t) => { const k = v(); N(c, b, t, { f: 900 * k, q: 1.6, dur: 0.045, a: 0.003, vol: 0.1 }); T(c, b, t, { f: 240 * k, f2: 200 * k, dur: 0.05, vol: 0.05, type: "sine", a: 0.003 }); N(c, b, t + 0.012, { f: 2200, q: 2, dur: 0.02, vol: 0.025 }); });
+  def("step_stone", "돌길 발걸음(딱딱한 바닥에 닿는 또각)", (c, b, t) => { const k = v(); N(c, b, t, { type: "highpass", f: 2200 * k, dur: 0.02, a: 0.002, vol: 0.08 }); N(c, b, t, { f: 1500 * k, q: 3, dur: 0.04, a: 0.002, vol: 0.08, rev: 0.2 }); N(c, b, t + 0.004, { type: "lowpass", f: 380, dur: 0.045, vol: 0.05 }); });
 
   // --- 본편: 이동·전투 ---
-  def("jump", "점프", (c, b, t) => { N(c, b, t, { f: 800, f2: 1700, q: 0.6, dur: 0.12, vol: 0.1 }); T(c, b, t, { f: 260, f2: 520, dur: 0.1, vol: 0.04 }); });
-  def("land", "착지", (c, b, t) => { N(c, b, t, { type: "lowpass", f: 600, dur: 0.09, vol: 0.16 }); T(c, b, t, { f: 105, f2: 60, dur: 0.12, vol: 0.15 }); });
-  def("swing", "공격 휘두름(바람 가르는 소리)", (c, b, t) => { const k = v(); N(c, b, t, { f: 600 * k, f2: 2300 * k, q: 0.9, dur: 0.2, a: 0.07, vol: 0.2 }); });
+  def("jump", "점프(천이 스치고 숨을 들이쉬는 가벼운 소리)", (c, b, t) => { N(c, b, t, { f: 420, f2: 1500, q: 0.5, dur: 0.14, a: 0.05, vol: 0.09 }); N(c, b, t + 0.02, { type: "highpass", f: 2600, dur: 0.1, a: 0.04, vol: 0.02 }); });
+  def("land", "착지(가볍게 내딛는 소리 + 천 스침)", (c, b, t) => { N(c, b, t, { type: "lowpass", f: 480, f2: 250, q: 0.4, dur: 0.1, a: 0.004, vol: 0.12 }); N(c, b, t + 0.008, { f: 1800, q: 0.8, dur: 0.05, vol: 0.04 }); N(c, b, t + 0.02, { f: 700, f2: 450, q: 0.5, dur: 0.12, a: 0.03, vol: 0.03 }); });
+  def("swing", "공격 휘두름(날이 바람을 가르는 소리)", (c, b, t) => { const k = v(); N(c, b, t, { f: 700 * k, f2: 2800 * k, q: 1.2, dur: 0.16, a: 0.06, vol: 0.17 }); N(c, b, t + 0.05, { type: "highpass", f: 3500, dur: 0.09, a: 0.03, vol: 0.03 }); });
   def("skill", "스킬 사용", (c, b, t) => { N(c, b, t, { f: 500, f2: 3200, q: 1, dur: 0.3, a: 0.1, vol: 0.2 }); bell(c, b, t + 0.12, 1047, 0.05, 0.5); });
-  def("hit", "몬스터를 맞힘", (c, b, t) => { T(c, b, t, { f: 190 * v(), f2: 62, dur: 0.12, vol: 0.38 }); N(c, b, t, { f: 1600, q: 1, dur: 0.06, vol: 0.28 }); });
+  def("hit", "몬스터를 맞힘(둔탁한 타격 + 짧은 스침)", (c, b, t) => { const k = v(); N(c, b, t, { type: "lowpass", f: 700 * k, f2: 250, q: 0.5, dur: 0.1, a: 0.002, vol: 0.3 }); N(c, b, t, { f: 1900, q: 0.9, dur: 0.045, vol: 0.18 }); T(c, b, t, { f: 150 * k, f2: 80, dur: 0.07, vol: 0.12 }); });
   def("crit", "강한 일격", (c, b, t) => { D.hit.fn(c, b, t); bell(c, b, t, 1760, 0.08, 0.35); N(c, b, t, { type: "highpass", f: 4000, dur: 0.12, vol: 0.12 }); });
   def("mon_fox", "들여우 울음", (c, b, t) => { T(c, b, t, { f: 900, f2: 1400, dur: 0.1, vol: 0.12, type: "triangle", a: 0.02 }); T(c, b, t + 0.1, { f: 1400, f2: 700, dur: 0.14, vol: 0.12, type: "triangle", a: 0.01 }); });
   def("mon_snake", "뱀의 쉭 소리", (c, b, t) => N(c, b, t, { type: "highpass", f: 4200, dur: 0.38, a: 0.06, vol: 0.14 }));
@@ -111,12 +111,12 @@ window.AU = window.AU || {};
   def("kill", "몬스터가 사라짐", (c, b, t) => { N(c, b, t, { f: 1500, f2: 400, q: 0.6, dur: 0.35, vol: 0.18 }); T(c, b, t + 0.05, { f: 1800, f2: 2700, dur: 0.16, vol: 0.04, rev: 0.4 }); });
 
   // --- 성장·보상 ---
-  def("levelup", "레벨 업", (c, b, t) => { arp(c, b, t, [523, 659, 784, 1047], 0.09, 0.12, 1.1); N(c, b, t + 0.3, { type: "highpass", f: 5500, dur: 1.0, a: 0.2, vol: 0.025, rev: 0.4 }); });
-  def("jobchange", "전직(하프 소리가 올라가는 축하)", (c, b, t) => { arp(c, b, t, [392, 440, 523, 587, 659, 784, 880, 1047], 0.08, 0.08, 1.0); arp(c, b, t + 0.8, [523, 659, 784], 0.0, 0.1, 2.2); });
-  def("potion", "물약을 마시는 소리", (c, b, t) => { for (let i = 0; i < 3; i++) { T(c, b, t + i * 0.12, { f: 320, f2: 150, dur: 0.09, vol: 0.12 }); N(c, b, t + i * 0.12, { f: 900, q: 2, dur: 0.08, vol: 0.06 }); } T(c, b, t + 0.45, { f: 2600, dur: 0.12, vol: 0.05, rev: 0.4 }); });
+  def("levelup", "레벨 업(밝은 세 화음이 부풀며 반짝)", (c, b, t) => { [523, 659, 784].forEach((f, i) => bell(c, b, t + i * 0.07, f, 0.09, 1.9, 0.5)); bell(c, b, t + 0.35, 1047, 0.07, 1.6, 0.5); T(c, b, t, { f: 262, dur: 1.8, vol: 0.05, a: 0.2, rev: 0.5 }); N(c, b, t + 0.3, { type: "highpass", f: 5500, dur: 1.2, a: 0.25, vol: 0.02, rev: 0.4 }); });
+  def("jobchange", "전직(하프처럼 오음 음계가 올라가 큰 화음으로 끝남)", (c, b, t) => { [330, 392, 440, 523, 587, 784].forEach((f, i) => bell(c, b, t + i * 0.1, f, 0.065, 1.2, 0.5)); [523, 659, 784].forEach((f) => bell(c, b, t + 0.85, f, 0.08, 3.0, 0.65)); T(c, b, t + 0.85, { f: 131, dur: 3.0, vol: 0.07, a: 0.4, rev: 0.6 }); });
+  def("potion", "물약을 마시는 소리(꿀꺽 세 번 + 병 닿는 소리)", (c, b, t) => { for (let i = 0; i < 3; i++) { N(c, b, t + i * 0.13, { f: 420 - i * 40, f2: 220, q: 2.2, dur: 0.09, a: 0.015, vol: 0.12 }); T(c, b, t + i * 0.13, { f: 180, f2: 110, dur: 0.07, vol: 0.05, a: 0.01 }); } T(c, b, t + 0.5, { f: 3100, dur: 0.1, vol: 0.03, rev: 0.4 }); });
   def("coin", "은화 소리", (c, b, t) => { bell(c, b, t, 2200, 0.07, 0.3, 0.2); bell(c, b, t + 0.07, 3300, 0.06, 0.3, 0.2); });
-  def("drop", "물건이 튀어나옴", (c, b, t) => T(c, b, t, { f: 600, f2: 950, dur: 0.06, vol: 0.1 }));
-  def("equip", "장비를 착용함", (c, b, t) => { N(c, b, t, { f: 3000, q: 3, dur: 0.04, vol: 0.12 }); T(c, b, t, { f: 400, f2: 300, dur: 0.07, vol: 0.08 }); });
+  def("drop", "물건이 튀어나옴(작게 통통)", (c, b, t) => { N(c, b, t, { f: 1400, f2: 2200, q: 1.2, dur: 0.05, vol: 0.07 }); T(c, b, t, { f: 700, f2: 1000, dur: 0.05, vol: 0.04, type: "triangle" }); });
+  def("equip", "장비 착용(가죽·천이 걸리는 소리 + 작은 쇳소리)", (c, b, t) => { N(c, b, t, { f: 900, f2: 1600, q: 0.8, dur: 0.1, a: 0.03, vol: 0.09 }); N(c, b, t + 0.07, { f: 3200, q: 3, dur: 0.03, vol: 0.06 }); });
 
   // --- 메뉴·대화 ---
   def("click", "버튼 클릭", (c, b, t) => { T(c, b, t, { f: 700, type: "triangle", dur: 0.045, vol: 0.07 }); N(c, b, t, { f: 2600, dur: 0.02, vol: 0.05 }); });
@@ -127,23 +127,23 @@ window.AU = window.AU || {};
   def("menu_open", "메뉴 열기(종이 소리)", (c, b, t) => N(c, b, t, { f: 1400, f2: 3000, q: 0.6, dur: 0.18, a: 0.05, vol: 0.09 }));
   def("menu_close", "메뉴 닫기", (c, b, t) => N(c, b, t, { f: 3000, f2: 1300, q: 0.6, dur: 0.16, a: 0.04, vol: 0.08 }));
   def("blip", "대화 넘김(아주 작은 틱)", (c, b, t) => T(c, b, t, { f: rnd(470, 560), dur: 0.055, vol: 0.045, a: 0.006 }));
-  def("accept", "퀘스트 수락", (c, b, t) => arp(c, b, t, [523, 784], 0.1, 0.09, 0.8));
-  def("complete", "퀘스트 완료", (c, b, t) => { arp(c, b, t, [523, 659, 784, 1047], 0.11, 0.1, 1.1); bell(c, b, t + 0.5, 1568, 0.08, 1.6); });
+  def("accept", "퀘스트 수락(낮고 짧은 종 한 번)", (c, b, t) => { bell(c, b, t, 440, 0.08, 0.9, 0.35); });
+  def("complete", "퀘스트 완료(한 칸 올라가는 두 음, 길게 여운)", (c, b, t) => { bell(c, b, t, 523, 0.09, 1.4, 0.5); bell(c, b, t + 0.18, 784, 0.09, 2.0, 0.55); T(c, b, t + 0.1, { f: 262, dur: 1.8, vol: 0.035, a: 0.3, rev: 0.5 }); });
   def("warn", "할 수 없음(부드러운 낮은 음)", (c, b, t) => T(c, b, t, { f: 190, f2: 150, dur: 0.16, vol: 0.12, lp: 600 }));
   def("save", "저장됨", (c, b, t) => bell(c, b, t, 1047, 0.05, 0.7));
 
   // --- 장면·상태 ---
   def("boss", "보스 등장(낮은 울림이 부풀어 오름)", (c, b, t) => { T(c, b, t, { f: 55, f2: 62, dur: 2.6, vol: 0.25, a: 1.4, type: "sawtooth", lp: 180 }); T(c, b, t + 1.4, { f: 70, f2: 38, dur: 0.6, vol: 0.4 }); N(c, b, t + 1.4, { type: "lowpass", f: 300, dur: 0.4, vol: 0.2 }); });
   def("death", "쓰러짐(차분하게 내려가는 음)", (c, b, t) => { T(c, b, t, { f: 400, f2: 150, dur: 1.0, vol: 0.14, a: 0.05, rev: 0.5 }); });
-  def("revive", "되살아남(반짝임)", (c, b, t) => { arp(c, b, t, [523, 659, 784], 0.14, 0.07, 1.4); });
+  def("revive", "되살아남(따뜻한 울림이 서서히 차오름)", (c, b, t) => { T(c, b, t, { f: 262, dur: 2.0, vol: 0.06, a: 0.7, rev: 0.6 }); T(c, b, t, { f: 392, dur: 2.0, vol: 0.035, a: 0.9, rev: 0.6 }); bell(c, b, t + 0.7, 784, 0.05, 1.6, 0.6); });
   def("mapchange", "지도 이동", (c, b, t) => N(c, b, t, { f: 500, f2: 1700, q: 0.5, dur: 0.5, a: 0.18, vol: 0.1 }));
   // 옛 이름 호환
   def("thud", "쿵(범용)", (c, b, t) => { T(c, b, t, { f: 95, f2: 38, dur: 0.3, vol: 0.45 }); N(c, b, t, { type: "lowpass", f: 500, dur: 0.2, vol: 0.22 }); });
   def("step", "발걸음(범용)", (c, b, t) => D.step_dirt.fn(c, b, t));
 
   /* 소리마다 크기를 맞춘 보정값(작은 소리는 키우고 큰 소리는 줄임). 시험으로 측정한 최대 크기를 목표 크기에 맞춘 값 */
-  const GAIN = {"hammer": 1.66, "plank": 1.24, "door": 1.1, "stone": 0.69, "chime": 0.81, "boom": 0.69, "collapse": 0.87, "cloth": 0.87, "pick": 2.07, "item": 1.06, "keyitem": 0.91, "slump": 1.12, "fragment": 1.88, "bag": 1.85, "gull": 1.35, "step_dirt": 1.5, "step_wood": 1.9, "step_stone": 1.94, "jump": 3.33, "land": 1.67, "swing": 1.15, "skill": 1.07, "hit": 1.7, "crit": 1.6, "mon_fox": 1.32, "mon_snake": 1.15, "mon_rat": 1.94, "mon_crab": 2.9, "mon_trial_boss": 1.65, "hurt": 1.46, "kill": 2.63, "levelup": 0.9, "jobchange": 0.83, "potion": 1.16, "coin": 1.38, "drop": 2.44, "equip": 3.08, "click": 3.7, "menu_open": 1.54, "menu_close": 1.85, "blip": 3.89, "accept": 1.09, "complete": 1.17, "warn": 2.35, "save": 2.45, "death": 1.45, "revive": 1.06, "mapchange": 0.92, "boss": 0.86, "thud": 1.49, "step": 2.14};
-  S.DEFS = D;
+  const GAIN = {"hammer": 1.66, "plank": 1.24, "door": 1.1, "stone": 0.69, "chime": 1.01, "boom": 0.69, "collapse": 0.87, "cloth": 0.87, "pick": 2.07, "item": 2.33, "keyitem": 1.16, "slump": 1.12, "fragment": 1.88, "bag": 1.85, "gull": 1.35, "step_dirt": 2.56, "step_wood": 3.93, "step_stone": 3.55, "jump": 1.91, "land": 3.08, "swing": 1.95, "skill": 1.07, "hit": 1.99, "crit": 1.6, "mon_fox": 1.32, "mon_snake": 1.15, "mon_rat": 1.94, "mon_crab": 2.9, "mon_trial_boss": 1.65, "hurt": 1.46, "kill": 2.63, "levelup": 0.8, "jobchange": 0.72, "potion": 1.71, "coin": 1.38, "drop": 5.0, "equip": 2.5, "click": 3.7, "menu_open": 1.54, "menu_close": 1.85, "blip": 3.89, "accept": 1.85, "complete": 1.2, "warn": 2.35, "save": 2.45, "death": 1.45, "revive": 1.04, "mapchange": 0.92, "boss": 0.86, "thud": 1.49, "step": 2.14, "select_a": 3.57, "select_b": 3.12, "select_c": 2.22};
+  S.DEFS = D; S.GAIN = GAIN;
   S.CATALOG = Object.keys(D).map((k) => ({ id: k, desc: D[k].desc }));
 
   /* ---------- 재생 ---------- */
