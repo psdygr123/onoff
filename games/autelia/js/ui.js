@@ -32,6 +32,7 @@ window.AU = window.AU || {};
   const keyOf = (actionId) => AU.keyLabel(AU.Input.bindings[actionId]);
 
   const UI = AU.UI = {
+    h, btn,
     cur: null, curName: null, dialog: null, pending: { STR: 0, VIT: 0, AGI: 0, DEX: 0, WIL: 0 }, afterDialog: [], listening: null, tab: {}, selected: {},
     anyOpen() { return !!(this.cur || this.dialog || this.modal); },
 
@@ -566,6 +567,7 @@ window.AU = window.AU || {};
     } else if (tab === "record") {
       const cnt = AU.G.permaCounts();
       b.append(UI.mindBlock());
+      if (AU.Survey && AU.Survey.enabled() && UI.surveyPanel) b.append(UI.surveyPanel());
       b.append(h("div", { class: "permabar" }, Object.entries(AU.PERMA).map(([k, n]) => h("div", { class: "pc" }, h("b", { text: k }), h("span", { text: n }), h("em", { text: cnt[k] + "회" })))));
       const rows = S.missions.log.slice().reverse();
       b.append(h("p", { class: "note", text: "인증 방식은 아직 정해지지 않아 모두 ‘직접 기록’입니다." }));
@@ -642,7 +644,8 @@ window.AU = window.AU || {};
           num("dv-rsmax", S.fatigueMax), btn("최대값 설정", "mini", () => AU.G.setFatigueMax(+$("#dv-rsmax", UI.winEl).value)), btn("주간 갱신 실행", "mini", () => AU.G.refreshWeekly(true))),
         h("div", null, h("h4", { text: "기타" }), btn("HP 전부 회복", "mini", () => { S.hp = AU.G.d().maxHp; AU.G.changed(); }), btn("은화 +100", "mini", () => { AU.G.gainSilver(100); AU.G.changed(); }), btn("훈련 포인트 +3 (지급 경로 우회)", "mini", () => { S.trainingPoints += 3; AU.G.changed(); }),
           btn("전직 시험 퀘스트 바로 완료 준비", "mini", () => { if (!S.jobChanged && S.level >= 10) { S.quests.q_job = { state: "ready", prog: [1] }; AU.G.changed(); AU.G.toast("전직 담당에게 가면 전직합니다.", "info"); } else AU.G.toast("10레벨 이상 · 미전직 상태에서만 가능합니다.", "warn"); })),
-        h("div", null, h("h4", { text: "마음 기록 인터페이스 시험" }), btn("PSS 샘플 기록 추가", "mini", () => AU.G.addCheckin({ scale: "PSS", score: 12, items: null, source: "dev-sample" })), h("p", { class: "note", text: "기록 " + S.mind.checkins.length + "건. 게임 자원과 별도 저장되며, 점수→" + C.resource.name + " 환산은 하지 않습니다." }))));
+        h("div", null, h("h4", { text: "설문 기록(PSS·PERMA)" }), btn(AU.Survey && AU.Survey.enabled() ? "설문 기능 끄기" : "설문 기능 켜기", "mini", () => { AU.Survey.setEnabled(!AU.Survey.enabled()); UI.renderWin(); }, { "data-dev": "survey-toggle" }), btn("PSS CSV", "mini", () => AU.Survey.download("pss"), { "data-dev": "survey-csv-pss" }), btn("PERMA CSV", "mini", () => AU.Survey.download("perma"), { "data-dev": "survey-csv-perma" }), btn("설문 기록 모두 지우기", "mini danger", () => { if (confirm("이 기기의 설문 응답을 모두 지웁니다.")) { AU.Survey.resetAll(); UI.renderWin(); } }, { "data-dev": "survey-reset" }), h("p", { class: "note", text: "기본은 꺼짐. 주소 끝에 ?survey=1 로도 켤 수 있습니다. 사용 허가·연구 승인 전에는 이용자에게 켜지 않습니다." })),
+        h("div", null, h("h4", { text: "마음 기록 인터페이스 시험" }), btn("PSS 샘플 기록 추가", "mini", () => AU.G.addCheckin({ scale: "PSS", score: 12, items: null, source: "dev-sample" })), h("p", { class: "note", text: "기록 " + S.mind.checkins.length + "건. 게임 자원과 별도 저장되며, 점수→" + C.fatigue.name + " 환산은 하지 않습니다." }))));
     const PR = AU.Prologue, grid = b.querySelector(".devgrid");
     if (PR && grid) grid.append(h("div", null, h("h4", { text: "프롤로그" }), h("div", { class: "devrow" }, PR.ORDER.map((_, n) => btn("장면 " + (n + 1), "mini", () => { UI.close(); PR.devJump(n); }))),
       btn("즉시 완료 → 포르투 노바", "mini", () => { UI.close(); PR.debugComplete("porto"); }), btn("컷신 건너뛰기", "mini", () => { UI.close(); PR.skip(); }),
