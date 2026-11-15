@@ -410,9 +410,12 @@ window.AU = window.AU || {};
       ctx.save(); ctx.translate(x, y); ctx.scale(dir < 0 ? -1 : 1, 1);
       ctx.drawImage(im, Math.max(0, Math.min(fr - 1, frame)) * fw, 0, fw, fh, -dw / 2, -height, dw, height); ctx.restore(); return true;
     },
-    nameTag(ctx, text, x, y, color) { // 어두운 반투명 이름표(배경이 복잡해도 읽히도록)
-      ctx.font = "500 14px 'Noto Sans KR', sans-serif"; ctx.textAlign = "center";
-      const w = ctx.measureText(text).width + 16; ctx.fillStyle = color || "rgba(30,24,18,.68)"; this.rr(ctx, x - w / 2, y - 16, w, 23, 6); ctx.fill();
+    nameTag(ctx, text, x, y, color) { // 유리 느낌의 알약형 이름표(배경이 복잡해도 읽히도록 어둡고 반투명)
+      text = String(text).replace(/\s*\((임시|임시 명칭)\)/g, "");
+      ctx.font = "600 14px 'Noto Sans KR', sans-serif"; ctx.textAlign = "center";
+      const w = ctx.measureText(text).width + 22, h = 24, x0 = x - w / 2, y0 = y - 17;
+      ctx.save(); ctx.fillStyle = color || "rgba(20,28,40,.62)"; this.rr(ctx, x0, y0, w, h, h / 2); ctx.fill();
+      ctx.strokeStyle = "rgba(255,255,255,.3)"; ctx.lineWidth = 1; ctx.stroke(); ctx.restore();
       ctx.fillStyle = "#FFFFFF"; ctx.fillText(text, x, y);
     },
     // 조사·수리 지점: 목표가 진행 중이면 눈에 띄게, 수리를 마친 곳은 고쳐진 모습으로 남김(그림이 오기 전 임시 도형)
@@ -446,7 +449,7 @@ window.AU = window.AU || {};
     drawNpc(ctx, n) {
       const d = AU.NPCS[n.id], y = GROUND, face = this.player.x < n.x ? -1 : 1;
       if (!this.sprite(ctx, d.sprite, n.x, y, 150, face, 0)) { ctx.fillStyle = "#C9B8A0"; this.rr(ctx, n.x - 30, y - 130, 60, 130, 20); ctx.fill(); ctx.fillStyle = "#5B4636"; ctx.font = "14px sans-serif"; ctx.textAlign = "center"; ctx.fillText("이미지 없음", n.x, y - 60); }
-      this.nameTag(ctx, d.name, n.x, y - 160);
+      if (Math.abs(this.player.x - n.x) < 280) this.nameTag(ctx, d.name, n.x, y - 160); // 가까이 갈 때만 이름표를 보여 화면을 어지럽히지 않음
       // 퀘스트 표시: 받을 수 있으면 !, 완료 가능하면 ?
       let mark = "";
       for (const id of d.quests || []) { const s = AU.G.questStatus(id); if (s === "ready" && AU.QUESTS[id].giver === n.id) { mark = "?"; break; } if (s === "available" && !mark) mark = "!"; }

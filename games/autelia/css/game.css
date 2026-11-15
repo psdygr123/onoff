@@ -301,3 +301,31 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
 .introsub p { margin: 0 0 8px; font-size: 32px; font-weight: 500; letter-spacing: .04em; line-height: 1.45; }
 .introskip { position: absolute; top: 18px; right: 24px; font-size: 13px; padding: 7px 14px; background: rgba(251, 247, 238, .9); z-index: 2; }
 .introskip em { font-style: normal; font-size: 11px; color: var(--ink2); margin-left: 6px; }
+
+/* ----- HUD 유리(글라스) 스타일: 이름표·미니맵·목표창·메뉴·상태창·슬롯을 한 가지 모양으로 통일 ----- */
+.hudpanel, .minimap, .tracker, .menubtn, .slot, .keyhint { background: rgba(20, 28, 40, .55) !important; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, .25) !important; border-radius: 14px; box-shadow: 0 4px 18px rgba(0, 0, 0, .3) !important; color: #fff; }
+.hudpanel { padding: 12px 16px 12px; }
+.lvbadge { color: #fff; } .jobname { color: rgba(255, 255, 255, .78); }
+.bar { background: rgba(255, 255, 255, .16); border-radius: 8px; } .bar i { border-radius: 8px; }
+.bar.rs i { background: #E0A94E; } .bar.ex i { background: #FFD978; } .bar.ex b { color: #fff; }
+.menubtn { color: #fff; font-weight: 600; } .menubtn:hover { background: rgba(40, 54, 76, .7) !important; }
+.menubtn .dot { border-color: rgba(20, 28, 40, .9); }
+.devbtn { background: rgba(20, 28, 40, .45); color: #fff; border: 1px solid rgba(255, 255, 255, .25); }
+.topleft { width: 270px; }
+.minimap { padding: 10px 12px 12px; }
+.minilabel { color: #fff; font-size: 12.5px; font-weight: 700; letter-spacing: .04em; display: flex; justify-content: space-between; margin: 0 1px 6px; } .minilabel::after { content: "클릭: 월드맵"; font-weight: 400; opacity: .55; font-size: 11px; }
+.minicv { width: 246px; height: 86px; background: rgba(255, 255, 255, .06); border-radius: 8px; }
+.tracker { padding: 0; pointer-events: auto !important; }
+.tracker .thead { display: flex; align-items: center; gap: 8px; padding: 8px 10px 4px 12px; cursor: grab; user-select: none; touch-action: none; }
+.tracker .thead:active { cursor: grabbing; }
+.tracker .tgrip { opacity: .5; font-size: 12px; letter-spacing: -2px; } .tracker .tname { flex: 1; font-size: 12px; letter-spacing: .18em; font-weight: 700; color: #FFD978; }
+.tracker .tfold { font: inherit; font-size: 13px; line-height: 1; color: #fff; background: rgba(255, 255, 255, .12); border: 0; border-radius: 6px; width: 24px; height: 22px; cursor: pointer; } .tracker .tfold:hover { background: rgba(255, 255, 255, .25); }
+.tracker .tbody { padding: 0 14px 12px; }
+.tracker .tt { color: #FFD978; font-size: 13.5px; } .tracker .to { color: #fff; font-size: 13.5px; } .tracker .ok { color: #9BE0B4; } .tracker .td { color: rgba(255, 255, 255, .72); font-size: 12.5px; margin-top: 2px; }
+.tracker .tq + .tq { margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255, 255, 255, .15); }
+.tracker.fold .tbody { max-height: 24px; overflow: hidden; padding-bottom: 8px; }
+.tracker.fold .tbody .tq:not(:first-child), .tracker.fold .tbody .to ~ .to, .tracker.fold .tbody .td { display: none; }
+.tracker.moved { position: fixed; z-index: 3; width: 270px; }
+.slot { color: #fff; } .slot .sk { color: #fff; } .slot .skey { background: rgba(255, 255, 255, .22); } .slot .scost { color: #FFD978; } .slot.empty { opacity: .8; }
+.keyhint { color: #fff; }
+.tracker .tnext .to { color: #fff; font-size: 13.5px; } .tracker .tnext .tt { display: none; } .tracker .td { color: rgba(255, 255, 255, .72); }

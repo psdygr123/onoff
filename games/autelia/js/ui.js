@@ -65,7 +65,11 @@ window.AU = window.AU || {};
       this.hud.mapLabel = h("div", { class: "minilabel" });
       this.hud.mini = h("canvas", { class: "minicv", width: 428, height: 150, title: "클릭하면 월드맵" });
       this.hud.miniBox = h("div", { class: "panel minimap", onclick: () => this.toggleWin("worldmap") }, this.hud.mapLabel, this.hud.mini);
-      this.hud.tracker = h("div", { class: "tracker panel" });
+      this.hud.trackBody = h("div", { class: "tbody" });
+      this.hud.trackFold = h("button", { class: "tfold", type: "button", title: "접기/펴기", onclick: (e) => { e.stopPropagation(); this.setTrackFold(!this.hud.tracker.classList.contains("fold")); } }, "▾");
+      this.hud.trackHead = h("div", { class: "thead", title: "끌어서 위치를 옮길 수 있어요" }, h("span", { class: "tgrip" }, "⋮⋮"), h("span", { class: "tname" }, "목표"), this.hud.trackFold);
+      this.hud.tracker = h("div", { class: "tracker panel" }, this.hud.trackHead, this.hud.trackBody);
+      this.initTrackerDrag();
       this.hud.keyhint = h("div", { class: "keyhint" });
       const topleft = h("div", { class: "topleft" }, this.hud.miniBox, this.hud.tracker);
       this.hud.menuBtn = btn("메뉴", "menubtn", () => this.toggleMenu(), { title: "메뉴 (Esc)" });
@@ -87,19 +91,25 @@ window.AU = window.AU || {};
     // 미니맵: 지형·포털·NPC·몬스터·플레이어와 현재 화면 범위를 작게 그림
     drawMini() {
       const cv = this.hud.mini, c = cv.getContext("2d"), W = AU.World, m = W.map, p = W.player; if (!m) return;
-      const cw = cv.width, ch = cv.height, s = Math.min((cw - 16) / m.width, (ch - 16) / C.H), ox = (cw - m.width * s) / 2, oy = (ch - C.H * s) / 2;
-      const X = (x) => ox + x * s, Y = (y) => oy + y * s;
+      const cw = cv.width, ch = cv.height, sx = cw / m.width, s = ch / C.H, mw = cw, mh = ch, ox = 0, oy = 0; // 지도는 상자 전체를 채우도록 가로·세로를 따로 맞춤
+      const X = (x) => x * sx, Y = (y) => y * s;
       c.clearRect(0, 0, cw, ch);
-      c.fillStyle = m.safe ? "rgba(79,125,110,.16)" : "rgba(185,139,69,.14)"; c.fillRect(ox, oy, m.width * s, C.H * s);
-      c.strokeStyle = "rgba(60,45,30,.55)"; c.lineWidth = 2; c.beginPath(); c.moveTo(X(0), Y(C.GROUND)); c.lineTo(X(m.width), Y(C.GROUND)); c.stroke();
-      c.lineWidth = 3; for (const pl of m.platforms) if (pl.y < C.GROUND) { c.beginPath(); c.moveTo(X(pl.x), Y(pl.y)); c.lineTo(X(pl.x + pl.w), Y(pl.y)); c.stroke(); }
-      c.strokeStyle = "rgba(139,94,52,.7)"; c.lineWidth = 2; for (const r of m.ropes || []) { c.beginPath(); c.moveTo(X(r.x), Y(r.top)); c.lineTo(X(r.x), Y(r.bottom)); c.stroke(); }
-      c.strokeStyle = "rgba(60,45,30,.45)"; c.lineWidth = 1.5; c.strokeRect(X(W.camX), oy, C.W * s, C.H * s); // 지금 화면에 보이는 범위
-      const dot = (x, y, col, r) => { c.fillStyle = col; c.beginPath(); c.arc(X(x), Y(y), r, 0, 7); c.fill(); };
-      for (const pt of m.portals || []) { c.fillStyle = "#4F7D6E"; const px = X(pt.x), py = Y(C.GROUND - 40); c.beginPath(); c.moveTo(px, py - 9); c.lineTo(px + 7, py + 3); c.lineTo(px - 7, py + 3); c.closePath(); c.fill(); }
-      for (const n of m.npcs || []) dot(n.x, C.GROUND - 40, "#E0A83A", 5);
-      for (const q of W.monsters) if (q.alive) dot(q.x, q.y - 20, q.d.boss ? "#8A3BC0" : "#D5695F", q.d.boss ? 7 : 4.5);
-      c.strokeStyle = "#fff"; c.lineWidth = 2.5; dot(p.x, p.y - 40, "#2F6FB0", 6); c.beginPath(); c.arc(X(p.x), Y(p.y - 40), 6, 0, 7); c.stroke();
+      // 일러스트 지도: 이 지역의 배경 그림을 작게 줄여 바탕으로 쓰고, 그 위에 출입구·NPC·몬스터·내 위치를 표시
+      c.save(); c.beginPath(); c.rect(ox, oy, mw, mh); c.clip();
+      const bg = this.miniBg(m); if (bg) { c.drawImage(bg, ox, oy, mw, mh); c.fillStyle = "rgba(15,22,34,.22)"; c.fillRect(ox, oy, mw, mh); }
+      else { c.fillStyle = m.safe ? "rgba(79,125,110,.55)" : "rgba(185,139,69,.5)"; c.fillRect(ox, oy, mw, mh); }
+      c.restore();
+      c.strokeStyle = "rgba(255,255,255,.55)"; c.lineWidth = 1.5; c.strokeRect(X(W.camX), oy + .75, C.W * sx, mh - 1.5); // 지금 화면에 보이는 범위
+      const dot = (x, y, col, r) => { c.fillStyle = col; c.strokeStyle = "rgba(20,28,40,.85)"; c.lineWidth = 1.5; c.beginPath(); c.arc(X(x), Y(y), r, 0, 7); c.fill(); c.stroke(); };
+      for (const pt of m.portals || []) { c.fillStyle = "#FFFFFF"; c.strokeStyle = "rgba(20,28,40,.85)"; c.lineWidth = 1.5; const px = X(pt.x), py = Y(C.GROUND - 40); c.beginPath(); c.moveTo(px, py - 12); c.lineTo(px + 9, py + 4); c.lineTo(px - 9, py + 4); c.closePath(); c.fill(); c.stroke(); }
+      for (const n of m.npcs || []) dot(n.x, C.GROUND - 40, "#FFD978", 6);
+      for (const q of W.monsters) if (q.alive) dot(q.x, q.y - 20, q.d.boss ? "#B070E8" : "#E9776D", q.d.boss ? 8 : 5);
+      c.strokeStyle = "#fff"; c.lineWidth = 3; c.fillStyle = "#4AA3FF"; c.beginPath(); c.arc(X(p.x), Y(p.y - 40), 7, 0, 7); c.fill(); c.stroke();
+    },
+    miniBg(m) { // 배경 그림을 지도 크기로 한 번만 줄여 둠(프레임마다 큰 그림을 줄이지 않도록)
+      const k = m.bg; if (!k || !AU.Img.has(k)) return null; this._miniBg = this._miniBg || {};
+      if (!this._miniBg[k]) { const im = AU.Img.get(k), cv = document.createElement("canvas"); cv.width = 428; cv.height = 150; cv.getContext("2d").drawImage(im, 0, 0, im.naturalWidth, im.naturalHeight, 0, 0, 428, 150); this._miniBg[k] = cv; }
+      return this._miniBg[k];
     },
     setText(el, key, v) { if (this.hud.cache[key] !== v) { this.hud.cache[key] = v; el.textContent = v; } },
     setStyle(el, key, prop, v) { const k = key + prop; if (this.hud.cache[k] !== v) { this.hud.cache[k] = v; el.style[prop] = v; } },
@@ -171,11 +181,11 @@ window.AU = window.AU || {};
       return out.slice(0, 2);
     },
     updateTracker() {
-      const S = AU.G.S, t = this.hud.tracker, PR = AU.Prologue;
+      const S = AU.G.S, T = this.hud.tracker, t = this.hud.trackBody, PR = AU.Prologue;
       const list = Object.entries(S.quests).filter(([, r]) => r.state === "active" || r.state === "ready").sort((a, b) => (AU.QUESTS[a[0]].type === "main" ? 0 : 1) - (AU.QUESTS[b[0]].type === "main" ? 0 : 1));
       const picks = this.anyOpen() || (PR && PR.on) ? [] : list.slice(0, 3);
       const goals = picks.length < 2 && !this.anyOpen() && !(PR && PR.on) ? this.nextGoals() : [];
-      if (!picks.length && !goals.length) { t.style.display = "none"; this.hud.cache.trk = null; this._trkDirs = []; return; }
+      if (!picks.length && !goals.length) { T.style.display = "none"; this.hud.cache.trk = null; this._trkDirs = []; return; }
       const key = picks.map(([id, r]) => id + r.state + JSON.stringify(r.prog)).join("|") + "|" + AU.G.count("fur") + "|" + goals.join("/");
       if (this.hud.cache.trk !== key) {
         this.hud.cache.trk = key; t.innerHTML = ""; this._trkDirs = []; for (const k of Object.keys(this.hud.cache)) if (k.indexOf("trkd") === 0) delete this.hud.cache[k];
@@ -188,7 +198,21 @@ window.AU = window.AU || {};
         if (goals.length) { const box = h("div", { class: "tq tnext" }, h("div", { class: "tt" }, "다음 목표")); goals.forEach((g) => box.append(h("div", { class: "to" }, g))); t.append(box); }
       }
       for (const d of this._trkDirs || []) { const txt = this.questGuide(d.id); this.setText(d.el, "trkd" + d.id, txt); d.el.style.display = txt ? "block" : "none"; }
-      t.style.display = "block";
+      T.style.display = "block";
+    },
+    /* 목표창: 접기와 끌어서 옮기기(위치·접힘은 이 브라우저에 기억) */
+    setTrackFold(on) { this.hud.tracker.classList.toggle("fold", !!on); this.hud.trackFold.textContent = on ? "▸" : "▾"; try { localStorage.setItem("au_trk_fold", on ? "1" : "0"); } catch (e) {} },
+    initTrackerDrag() {
+      const T = this.hud.tracker, H = this.hud.trackHead; let pos = null;
+      try { pos = JSON.parse(localStorage.getItem("au_trk_pos") || "null"); if (localStorage.getItem("au_trk_fold") === "1") this.setTrackFold(true); } catch (e) {}
+      const put = (x, y) => { T.classList.add("moved"); T.style.left = x + "px"; T.style.top = y + "px"; };
+      if (pos && isFinite(pos.x) && isFinite(pos.y)) put(pos.x, pos.y);
+      let st = null;
+      H.addEventListener("pointerdown", (e) => { if (e.target === this.hud.trackFold) return; const st0 = document.getElementById("stage"), sc = st0 ? st0.getBoundingClientRect().width / 1280 : 1, r = T.getBoundingClientRect(), s0 = st0.getBoundingClientRect(); st = { sc, dx: (e.clientX - r.left) / sc, dy: (e.clientY - r.top) / sc, ox: s0.left, oy: s0.top }; H.setPointerCapture(e.pointerId); e.preventDefault(); });
+      H.addEventListener("pointermove", (e) => { if (!st) return; const x = Math.max(0, Math.min(1280 - T.offsetWidth, (e.clientX - st.ox) / st.sc - st.dx)), y = Math.max(0, Math.min(720 - 40, (e.clientY - st.oy) / st.sc - st.dy)); put(x, y); pos = { x, y }; });
+      const end = () => { if (st && pos) { try { localStorage.setItem("au_trk_pos", JSON.stringify(pos)); } catch (e) {} } st = null; };
+      H.addEventListener("pointerup", end); H.addEventListener("pointercancel", end);
+      H.addEventListener("dblclick", () => { T.classList.remove("moved"); T.style.left = T.style.top = ""; pos = null; try { localStorage.removeItem("au_trk_pos"); } catch (e) {} });
     },
     updateKeyHint() { // 초반(Lv.5 미만)에는 기본 조작을 화면 왼쪽 아래에 계속 보여 줌
       const S = AU.G.S, PR = AU.Prologue, on = !(PR && PR.on) && S.level < 5 && !this.anyOpen(), el = this.hud.keyhint; if (!el) return;
