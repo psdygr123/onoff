@@ -22,6 +22,7 @@ window.AU = window.AU || {};
   AR.ch = AR.ch || {};
   AR.ch.player_m_work = { frames: 4, names: ["carry", "give", "swing_up", "swing_dn"], separate: {}, cw: 300, ch: 330, standH: 300, foot: 150 };
   AR.ch.player_f_work = { frames: 4, names: ["carry", "give", "swing_up", "swing_dn"], separate: {}, cw: 300, ch: 345, standH: 300, foot: 150 };
+  AR.ch.player_m_bag = { frames: 7, names: ["stand", "walk1", "walk2", "walk3", "walk4", "jump_up", "jump_down"], separate: {}, cw: 210, ch: 310, standH: 300, foot: 105 };   // 가방을 멘 이동 시트(남)
   AR.ch.father_work = { frames: 4, names: ["reach", "hold", "walk1", "walk2"], separate: {}, cw: 300, ch: 330, standH: 300, foot: 150 };
   for (const [f, m] of Object.entries(AR.ch || {})) {
     AU.ASSETS["pc_" + f] = { path: "assets/prologue/ch/" + f + ".webp", frames: m.frames, optional: true };
