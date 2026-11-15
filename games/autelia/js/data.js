@@ -19,6 +19,7 @@ AU.ASSETS = {
   porto_general: { path: "assets/char/porto_general.webp" },
   porto_smith:  { path: "assets/char/porto_smith.webp" },
   porto_foreman: { path: "assets/char/porto_foreman.webp" },
+  ob_rock_s: { path: "assets/object/rock_s.webp", optional: true }, ob_rock_m: { path: "assets/object/rock_m.webp", optional: true }, ob_rock_big: { path: "assets/object/rock_big.webp", optional: true }, ob_rock_tall: { path: "assets/object/rock_tall.webp", optional: true }, ob_rock_low: { path: "assets/object/rock_low.webp", optional: true },
   ob_fence_broken: { path: "assets/object/fence_broken.webp", optional: true }, ob_fence_fixed: { path: "assets/object/fence_fixed.webp", optional: true },
   ob_trace_stain: { path: "assets/object/trace_stain.webp", optional: true }, ob_trace_crate: { path: "assets/object/trace_crate.webp", optional: true }, it_guild_parcel: { path: "assets/object/guild_parcel.webp", optional: true },
   job_warrior: { path: "assets/job/warrior.webp", optional: true }, job_mage: { path: "assets/job/mage.webp", optional: true }, job_archer: { path: "assets/job/archer.webp", optional: true }, job_rogue: { path: "assets/job/rogue.webp", optional: true }, job_pirate: { path: "assets/job/pirate.webp", optional: true },
@@ -52,8 +53,8 @@ AU.MAPS = {
   forest: {
     name: "숲길 (임시 명칭)", bg: "forest_road", width: 3000, safe: false,
     // 발판·밧줄 위치는 이전 시제품의 숲길 그림에 맞춘 값을 그대로 사용
-    platforms: [{ x: 0, y: 590, w: 3000 }, { x: 630, y: 542, w: 100, h: 48 }, { x: 900, y: 520, w: 110, h: 70 },
-                { x: 1350, y: 390, w: 650, h: 200 }, { x: 2000, y: 460, w: 85, h: 130 }, { x: 2085, y: 530, w: 85, h: 60 }], // h가 있으면 옆이 막힌 단단한 바위·턱
+    platforms: [{ x: 0, y: 590, w: 3000 }, { x: 620, y: 542, w: 130, h: 48, img: "ob_rock_s" }, { x: 900, y: 520, w: 190, h: 70, img: "ob_rock_m" },
+                { x: 1350, y: 390, w: 650, h: 200, img: "ob_rock_big" }, { x: 2000, y: 460, w: 120, h: 130, img: "ob_rock_tall" }, { x: 2120, y: 530, w: 120, h: 60, img: "ob_rock_low" }], // h가 있으면 옆이 막힌 단단한 바위·턱(img: 눈에 보이는 바위 그림)
     ropes: [{ x: 1315, top: 370, bottom: 590 }],
     portals: [{ x: 2950, to: "harbor_road", toX: 90, label: "항구 길" }],
     npcs: [],

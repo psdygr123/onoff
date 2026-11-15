@@ -405,6 +405,14 @@ window.AU = window.AU || {};
     },
     drawStructures(ctx) {
       const map = this.map;
+      for (const pl of map.platforms) if (pl.h && pl.img && AU.Img.has(pl.img)) { // 막히는 바위·턱: 그림으로 보이게(높이가 그림보다 크면 위로 쌓아 올림)
+        const im = AU.Img.get(pl.img), rw = pl.w * 1.12, rh = rw * im.naturalHeight / im.naturalWidth, bottom = pl.y + pl.h + 4, cx = pl.x + pl.w / 2;
+        const rows = Math.max(1, Math.ceil((pl.h - rh * 0.25) / (rh * 0.72)));
+        for (let k = 0; k < rows; k++) {
+          const sc = 1 - 0.1 * k, w2 = rw * sc, h2 = rh * sc; let yb = bottom - k * rh * 0.72; if (k === rows - 1 && rows > 1) yb = pl.y + h2 * 0.92;
+          ctx.drawImage(im, cx - w2 / 2 + (k % 2 ? 6 : 0), yb - h2, w2, h2);
+        }
+      }
       for (const pl of map.platforms) if (pl.thin) { // 얇은 발판(임시 그래픽)
         ctx.fillStyle = "#C99B5C"; this.rr(ctx, pl.x, pl.y, pl.w, 14, 6); ctx.fill(); ctx.strokeStyle = "#7A5530"; ctx.lineWidth = 3; ctx.stroke();
         ctx.fillStyle = "#E7C48C"; this.rr(ctx, pl.x + 6, pl.y + 2, pl.w - 12, 4, 2); ctx.fill();
