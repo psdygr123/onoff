@@ -59,7 +59,7 @@ window.AU = window.AU || {};
     back(ctx, P) { const v = P.v, L = LAY.temple, fa = v.scaff == null ? 1 : v.scaff;
       if (A.has("po_temple_frame")) { if (v.done) A.temple(ctx, L.tx, L.tBase, L.tW, 0, { state: "done", glow: v.glow || 0 }); A.temple(ctx, L.tx, L.tBase, L.tW, 0, { state: "frame", alpha: v.done ? fa : 1 }); }
       else { A.temple(ctx, 1560, 556, 640, 400, { state: v.done ? "done" : "frame", t: P.time, glow: v.glow || 0, joint: v.jointIn ? 1 : 0, gapX: 1560 + 640 * 0.12 }); A.scaffold(ctx, 1240, 556, 640, 330, fa); } },
-    mid(ctx, P) { if (P.v.fly && P.v.fly.t < 1) { const f = P.v.fly, J = LAY.temple.joint, x = f.x0 + (J - f.x0) * f.t, y = f.y0 + ((A.has("po_joint_frame") ? 514 : 478) - f.y0) * f.t - Math.sin(f.t * Math.PI) * 90; A.plank(ctx, x, y, 90, -0.3 + f.t * 0.3); } },
+    mid(ctx, P) { if (P.v.fly && P.v.fly.t < 1) { const f = P.v.fly, J = LAY.temple.joint, x = f.x0 + (J - f.x0) * f.t, y = f.y0 + ((A.has("po_joint_frame") ? 494 : 478) - f.y0) * f.t - Math.sin(f.t * Math.PI) * 90; A.plank(ctx, x, y, 90, -0.3 + f.t * 0.3); } },
     front(ctx, P) { /* 입자는 엔진이 그림 */ }
   };
   D.pro_road = {
@@ -218,15 +218,15 @@ window.AU = window.AU || {};
         if (e.mark && !P.locked()) { const by = G - 130 + Math.sin(P.time * 4) * 4; ctx.fillStyle = "#E8B94E"; ctx.strokeStyle = "#fff"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(e.x - 11, by - 12); ctx.lineTo(e.x + 11, by - 12); ctx.lineTo(e.x, by + 4); ctx.closePath(); ctx.fill(); ctx.stroke(); } } });
     const frame = P.addEnt({ id: "frame", x: L.joint, range: 100, layer: "mid", interact: { label: "이음새 망치질", off: true, fn: () => hammerJoint() },
       draw(ctx, e, P) { const x = e.x; ctx.save();
-        const jf = A.has("po_joint_frame"), jy = jf ? 514 : 478; // 정식 이음 골조 그림이 있으면 그것을 쓰고, 널빤지·못 높이를 빈 가운데 칸에 맞춤
-        if (jf) A.pic(ctx, "po_joint_frame", x, G, 118, 1);
+        const jf = A.has("po_joint_frame"), jy = jf ? 494 : 478; // 정식 이음 골조 그림이 있으면 그것을 쓰고, 널빤지·못 높이를 빈 가운데 칸에 맞춤
+        if (jf) A.pic(ctx, "po_joint_frame", x, G, 130, 1);
         else if (A.has("po_plank_a")) { // (임시) 정식 널빤지 그림으로 짠 작은 이음 골조(기둥 2 + 가로대 2)
           const post = (px) => { ctx.save(); ctx.translate(px, 530); ctx.rotate(Math.PI / 2); ctx.drawImage(AU.Img.get("po_plank_b"), -60, -9, 120, 18); ctx.restore(); }; post(x - 69); post(x + 69);
           ctx.drawImage(AU.Img.get("po_plank_a"), x - 80, 466, 54, 14); ctx.drawImage(AU.Img.get("po_plank_a"), x + 26, 466, 54, 14);
         } else { ctx.fillStyle = "#B98B4E"; ctx.strokeStyle = "#5b4126"; ctx.lineWidth = 3; ctx.fillRect(x - 76, 470, 14, G - 470); ctx.strokeRect(x - 76, 470, 14, G - 470); ctx.fillRect(x + 62, 470, 14, G - 470); ctx.strokeRect(x + 62, 470, 14, G - 470);
           ctx.fillRect(x - 76, 470, 46, 16); ctx.strokeRect(x - 76, 470, 46, 16); ctx.fillRect(x + 30, 470, 46, 16); ctx.strokeRect(x + 30, 470, 46, 16); }
-        if (v.planked) A.plank(ctx, x, jy - (1 - (v.drop == null ? 1 : v.drop)) * 26, 66, 0);
-        for (let i = 0; i < 3; i++) { const sunk = v.nails > i; ctx.fillStyle = sunk ? "#555a62" : "#9aa0a8"; ctx.fillRect(x - 18 + i * 18, jy + (sunk ? -3 : -12), 6, sunk ? 3 : 12); }
+        if (v.planked) A.plank(ctx, x, jy - (1 - (v.drop == null ? 1 : v.drop)) * 26, jf ? 124 : 66, 0);
+        for (let i = 0; i < 3; i++) { const sunk = v.nails > i; ctx.fillStyle = sunk ? "#555a62" : "#9aa0a8"; ctx.fillRect(x - (jf ? 36 : 18) + i * (jf ? 36 : 18), jy + (sunk ? -3 : -12), 6, sunk ? 3 : 12); }
         if (e.mark && !P.locked()) { const by = 440 + Math.sin(P.time * 4) * 4; ctx.fillStyle = "#E8B94E"; ctx.strokeStyle = "#fff"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(x - 11, by - 12); ctx.lineTo(x + 11, by - 12); ctx.lineTo(x, by + 4); ctx.closePath(); ctx.fill(); ctx.stroke(); } ctx.restore(); } });
 
     father.interact = { label: "대화: 아버지", fn: async () => {
