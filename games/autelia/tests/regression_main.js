@@ -95,7 +95,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const lvMid = await S();
   await p.keyboard.press('j'); await sleep(150);
   const jtxt = await ev(() => document.querySelector('.window').textContent);
-  const tabsCount = await ev(() => document.querySelectorAll('.window .tabs').length);
+  const tabsCount = await ev(() => document.querySelectorAll('.window .jgroup').length);
   await p.keyboard.press('Escape');
   await p.keyboard.press('q'); await sleep(100); const qtxt = await ev(() => document.querySelector('.window').textContent); await p.keyboard.press('Escape');
   await p.keyboard.press('Escape'); await sleep(100); const mtxt = await ev(() => document.querySelector('.window').textContent); await p.keyboard.press('Escape');
@@ -125,12 +125,12 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await p.keyboard.press('Escape'); await sleep(100);
 
   // ===== 현실 미션 흐름 / 13. 중복 지급 방지 =====
-  await p.keyboard.press('j'); await sleep(100);
+  await p.keyboard.press('j'); await sleep(100); await ev(() => { AU.UI.tab.jg = 'real'; AU.UI.tab.j = 'missions'; AU.UI.renderWin(); }); await sleep(100);
   const lockedMsg = await ev(() => document.querySelector('.window .lockbox') ? document.querySelector('.window .lockbox').textContent : '');
   await p.keyboard.press('Escape');
   await goto('porto', 1200); await sleep(100); for (let i = 0; i < 4; i++) { await p.keyboard.press('Space'); await sleep(120); }
   const guideMet = await ev(() => AU.G.S.flags.guideMet);
-  await p.keyboard.press('j'); await sleep(150); await p.screenshot({ path: SH + 'missions.png' });
+  await p.keyboard.press('j'); await sleep(150); await ev(() => { AU.UI.tab.jg = 'real'; AU.UI.tab.j = 'missions'; AU.UI.renderWin(); }); await sleep(100); await p.screenshot({ path: SH + 'missions.png' });
   const cardCount = await ev(() => document.querySelectorAll('.window .mission').length);
   // 화면 버튼으로 수락 → 해 봤어요 → 완료했어요
   const tp0 = (await S()).tp;

@@ -143,7 +143,7 @@ window.AU = window.AU || {};
   SC.SCENE_00_MORNING = { name: "아침의 아르케아", async enter(P) {
     const g = P.gen; P.room("pro_road", LAY.road.m.start, (P) => setupMorning(P)); P.amb("birds", true);
     await P.cutscene(async () => { await P.wait(0.9); P.amb("birds", false); await P.introVideo(T.cards); P.amb("birds", true); await P.fade(0, 1.8); await P.caption(T.cap1, 3.4); }, { id: "cs00a", skip: true });
-    if (!live(P, g)) return; P.obj(OBJ.s0_walk); const k = P.keys(); P.hint("이동 " + k.move + " · 점프 " + k.jump + " · 상호작용 " + k.act, 9);
+    if (!live(P, g)) return; P.obj(OBJ.s0_walk); const k = P.keys(); P.hint("좌우 방향키(" + k.move + ")로 걸어 보세요.", 9);
   } };
 
   function drawPole(ctx, e, P) { // 깃대와 축제 깃발(e.f: 0 말려 있음 → 1 꼭대기까지 올라감). 정식 그림(깃대·깃발 3종)이 있으면 그것을 쓰고 없으면 코드 도형
@@ -286,7 +286,7 @@ window.AU = window.AU || {};
       P.sfx("hammer"); await P.wait(0.9); P.sfx("hammer"); await P.wait(0.8); P.sfx("hammer"); await P.wait(0.7); P.sfx("hammer"); await P.wait(0.6);
       P.fade(0, 2.4); await P.wait(1.4); await P.caption(T.cap1b, 3.2);
     }, { id: "cs00", skip: true });
-    if (!live(P, g)) return; P.obj(OBJ.s1_talk); const k = P.keys(); P.hint("이동 " + k.move + " · 점프 " + k.jump + " · 상호작용 " + k.act, 9);
+    if (!live(P, g)) return; P.obj(OBJ.s1_talk);
   } };
 
   /* ============================================================

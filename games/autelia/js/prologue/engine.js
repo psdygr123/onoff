@@ -354,6 +354,7 @@ window.AU = window.AU || {};
       let best = 1e9;
       for (const e of this.ents) { if (e.hidden || !e.interact || e.interact.off) continue; const d = Math.abs(p.x - e.x); if (d < (e.range || 100) && d < best) { best = d; this.nearEnt = e; } }
       world.prompt = this.nearEnt ? "Space " + this.nearEnt.interact.label : "";
+      if (this.nearEnt && !this.replay) { const F = AU.G.S.flags; if (!F.tipAct) { F.tipAct = true; this.hint("가까이 가면 " + AU.keyLabel(AU.Input.bindings.interact) + " 키로 말을 걸거나 살펴볼 수 있습니다.", 6); } }
     },
     /* 목표 방향 안내: 표시(mark)가 켜진 개체 또는 goal(x)이 있는 출구 트리거 중 가장 가까운 곳의 방향을 화면 가장자리 화살표로 알려 줌 */
     guideTarget() {

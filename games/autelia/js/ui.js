@@ -215,7 +215,7 @@ window.AU = window.AU || {};
       H.addEventListener("dblclick", () => { T.classList.remove("moved"); T.style.left = T.style.top = ""; pos = null; try { localStorage.removeItem("au_trk_pos"); } catch (e) {} });
     },
     updateKeyHint() { // 초반(Lv.5 미만)에는 기본 조작을 화면 왼쪽 아래에 계속 보여 줌
-      const S = AU.G.S, PR = AU.Prologue, on = !(PR && PR.on) && S.level < 5 && !this.anyOpen(), el = this.hud.keyhint; if (!el) return;
+      const S = AU.G.S, PR = AU.Prologue, on = false, el = this.hud.keyhint; if (!el) return;
       const B = AU.Input.bindings, K = AU.keyLabel, txt = "이동 " + K(B.left) + "·" + K(B.right) + "   점프 " + K(B.jump) + "   공격 " + K(B.attack) + "   말 걸기 " + K(B.interact);
       this.setText(el, "kh", on ? txt : ""); el.style.display = on ? "block" : "none";
     },
@@ -253,11 +253,11 @@ window.AU = window.AU || {};
     open(name) {
       if (this.dialog || this.modal) return;
       if (this.curName === "stats" && name !== "stats") this.resetPending();
-      this.cur = true; this.curName = name; this.winEl.classList.remove("hidden"); this.renderWin();
+      this.cur = true; this.curName = name; this.winEl.classList.remove("hidden"); this.renderWin(); if (AU.Guide) AU.Guide.opened(name);
       AU.Input.held.clear();
     },
     close() {
-      this.resetPending(); this.cur = null; this.curName = null; this.listening = null; AU.G.shop = null; this.winEl.classList.add("hidden"); this.winEl.innerHTML = "";
+      this.resetPending(); this.cur = null; this.curName = null; this.listening = null; AU.G.shop = null; this.winEl.classList.add("hidden"); this.winEl.innerHTML = ""; if (AU.Guide) AU.Guide.closed();
       AU.Input.held.clear(); AU.G.save("menu-close");
     },
     resetPending() { for (const k of Object.keys(this.pending)) this.pending[k] = 0; },
@@ -267,6 +267,7 @@ window.AU = window.AU || {};
       const title = h("div", { class: "wtitle" }, h("span", { text: WIN_TITLE[name] }), name !== "menu" ? h("span", { class: "whint", text: this.winKeyHint(name) }) : null, btn("✕", "close", () => this.close(), { "aria-label": "닫기" }));
       const body = h("div", { class: "wbody" });
       R.call(this, body);
+      { const gb = AU.Guide && AU.Guide.winBox(name); if (gb) body.prepend(gb); }
       const box = h("div", { class: "window panel win-" + name }, title, body);
       this.winEl.innerHTML = ""; this.winEl.append(box); body.scrollTop = prevScroll;
     },
@@ -314,7 +315,7 @@ window.AU = window.AU || {};
       const ppk = AU.Img.has(np.portrait) ? np.portrait : (np.alt && AU.Img.has(np.alt) ? np.alt : np.portrait), pt = AU.Img.has(ppk) ? h("img", { src: AU.ASSETS[ppk].path, alt: "" }) : h("div", { class: "ptfallback", text: np.name.slice(0, 1) });
       const back = d.i > 0 ? btn("◀ 이전 (" + AU.keyLabel(AU.Input.bindings.left) + ")", "dback", () => this.backDialog()) : null;
       const choices = last && d.opt.choices ? h("div", { class: "choices" }, back, d.opt.choices.map((c) => btn(c.label + (keyOf(c.key) ? "  (" + keyOf(c.key) + ")" : ""), c.key === "interact" ? "primary" : "", () => this.finishDialog(c)))) : null;
-      this.dlgEl.innerHTML = ""; this.dlgEl.append(h("div", { class: "panel dlgbox" }, h("div", { class: "pt" }, pt), h("div", { class: "dtext" }, h("div", { class: "dname", text: AU.Profile.fmt(np.name) }), h("div", { class: "dline", text: text }),
+      this.dlgEl.innerHTML = ""; this.dlgEl.append(h("div", { class: "panel dlgbox" }, h("div", { class: "pt" }, pt), h("div", { class: "dtext" }, h("div", { class: "dname", text: AU.Profile.fmt(np.name) }), h("div", { class: "dline", text: text }), AU.G.S.flags.tipDlg ? null : h("div", { class: "dtip", text: keyOf("interact") + " : 다음 대사 · " + AU.keyLabel(AU.Input.bindings.left) + " : 이전 대사 (아래 버튼을 눌러도 됩니다)" }),
         choices || h("div", { class: "dnext" }, back, btn(last ? "닫기 (" + keyOf("interact") + ")" : "다음 ▶ (" + keyOf("interact") + ")", "", () => this.advanceDialog())))));
     },
     backDialog() { const d = this.dialog; if (!d || d.i <= 0) return; d.i--; this.renderDialog(); },
@@ -326,7 +327,7 @@ window.AU = window.AU || {};
     },
     finishDialog(choice) {
       const d = this.dialog; if (!d) return;
-      this.dialog = null; this.dlgEl.classList.add("hidden"); this.dlgEl.innerHTML = ""; AU.Input.held.clear();
+      this.dialog = null; AU.G.S.flags.tipDlg = true; this.dlgEl.classList.add("hidden"); this.dlgEl.innerHTML = ""; AU.Input.held.clear();
       if (choice && choice.fn) choice.fn(); if (!choice && d.opt.end) d.opt.end();
       this.flushAfter();
     },
@@ -408,19 +409,57 @@ window.AU = window.AU || {};
     }
     b.append(list);
   };
+  /* ---------- 아이템 아이콘: assets/item/<id>.webp 가 있으면 그림, 없으면 종류별 도형 ---------- */
+  const GL = {
+    sword: '<path d="M20 3l1 1-9 9-2-2z"/><path d="M7 12l5 5-2 2-5-5z"/><path d="M4 17l3 3-2 2-3-3z"/>',
+    tunic: '<path d="M8 3L3 7l2 4 2-1v11h10V10l2 1 2-4-5-4c-1.5 2-6.5 2-8 0z"/>',
+    charm: '<path d="M12 3l3 5-3 8-3-8z"/><path d="M12 16v5" stroke="currentColor" stroke-width="2" fill="none"/>',
+    ring: '<circle cx="12" cy="14" r="6" fill="none" stroke="currentColor" stroke-width="3"/><path d="M9 6h6l-3 4z"/>',
+    scarf: '<path d="M4 6c5 3 11 3 16 0v5c-5 3-11 3-16 0zM15 12l4 9h-4z"/>',
+    potion: '<path d="M9 2h6v2h-1v5l4.5 9a2 2 0 01-1.8 3H7.3a2 2 0 01-1.8-3L10 9V4H9z"/>',
+    fur: '<path d="M5 15a4 4 0 014-6 4 4 0 017 0 4 4 0 013 6 4 4 0 01-5 3 4 4 0 01-8-1 3 3 0 01-1-2z"/>',
+    tail: '<path d="M4 20C4 9 11 4 20 4c0 9-5 16-16 16z"/>',
+    skin: '<path d="M3 9c4-4 6 4 10 0s6 4 8 0v6c-4 4-6-4-10 0s-6-4-8 0z"/>',
+    fang: '<path d="M7 3h10c0 8-3 13-5 18-2-5-5-10-5-18z"/>',
+    tooth: '<path d="M8 5h8l-1 8-3 6-3-6z"/>',
+    claw: '<path d="M4 20c-2-8 3-15 10-16-3 2-3 5-1 7 2 1 5 0 7-2 0 6-4 11-16 11z"/>',
+    shell: '<path d="M3 17c0-8 5-13 9-13s9 5 9 13zM12 4v13M7 6l3 11M17 6l-3 11" />',
+    scrap: '<path d="M12 2l8 4.5v9L12 22l-8-6.5v-9z"/><circle cx="12" cy="12" r="3" fill="#fff" opacity=".6"/>',
+    pelt: '<path d="M5 5l4 2h6l4-2 2 6-3 2v7H6v-7l-3-2z"/>',
+    token: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5" fill="#fff" opacity=".55"/>',
+    parcel: '<path d="M3 8l9-5 9 5v10l-9 4-9-4z"/><path d="M12 3v19M3 8l9 5 9-5" stroke="#fff" stroke-width="1.5" fill="none" opacity=".7"/>',
+    map: '<path d="M4 4h13a3 3 0 013 3v13H7a3 3 0 01-3-3z"/><path d="M8 9h8M8 13h8" stroke="#fff" stroke-width="1.6" opacity=".7"/>',
+    shard: '<path d="M12 2l6 8-3 12-8-9z"/>',
+    bag: '<path d="M8 3h8l1 4c3 3 4 7 3 12a2 2 0 01-2 2H6a2 2 0 01-2-2c-1-5 0-9 3-12z"/><path d="M8 8h8" stroke="#fff" stroke-width="1.6" opacity=".7"/>',
+    sheet: '<path d="M5 3h10l4 4v14H5z"/><path d="M8 11h8M8 15h8" stroke="#fff" stroke-width="1.6" opacity=".7"/>',
+    box: '<path d="M4 7l8-4 8 4v10l-8 4-8-4z"/>'
+  };
+  const ICON_OF = { sword_a: "sword", cloth_a: "tunic", charm_a: "charm", potion: "potion", fur: "fur", fox_tail: "tail", snake_skin: "skin", snake_fang: "fang", rat_tooth: "tooth", crab_claw: "claw", crab_shell: "shell", fox_scarf: "scarf", snake_ring: "ring", crab_vest: "tunic", guild_token: "token", guild_parcel: "parcel", barsha_map: "map", jepeto_blueprint: "sheet", iron_scrap: "scrap", wolf_pelt: "pelt", metal_fragment: "shard", carpenter_bag: "bag" };
+  UI.itemIcon = function (id, px) {
+    const it = AU.ITEMS[id] || {}, size = px || 40, box = h("span", { class: "iicon r-" + (it.rarity || it.type), style: "width:" + size + "px;height:" + size + "px" });
+    if (it.img) { box.append(h("img", { src: it.img, alt: "", draggable: "false" })); return box; }
+    const g = GL[ICON_OF[id]] || (it.type === "equip" ? GL.sword : it.type === "use" ? GL.potion : GL.box);
+    box.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">' + g + "</svg>";
+    return box;
+  };
+  const INV_CATS = [["all", "전체", () => true], ["equip", "장비", (it) => it.type === "equip"], ["use", "소비", (it) => it.type === "use"], ["etc", "재료·기타", (it) => it.type === "etc"], ["quest", "퀘스트·중요", (it) => it.type === "quest" || it.type === "story"]];
   R.inventory = function (b) {
     const S = AU.G.S;
-    if ((UI.tab.inv || "bag") === "craft") { b.append(h("div", { class: "tabs" }, [["bag", "가방"], ["craft", "제작법"]].map(([k, l]) => btn(l, (UI.tab.inv || "bag") === k ? "on" : "", () => { UI.tab.inv = k; UI.renderWin(); })))); UI.craftPanel(b); b.append(h("div", { class: "silver", text: "은화 " + S.silver })); return; }
-    b.append(h("div", { class: "tabs" }, [["bag", "가방"], ["craft", "제작법"]].map(([k, l]) => btn(l, (UI.tab.inv || "bag") === k ? "on" : "", () => { UI.tab.inv = k; UI.renderWin(); }))));
-    const ids = Object.keys(S.inv), sel = UI.selected.inv && S.inv[UI.selected.inv] ? UI.selected.inv : ids[0];
-    UI.selected.inv = sel;
+    const top = h("div", { class: "tabs" }, [["bag", "가방"], ["craft", "제작법"]].map(([k, l]) => btn(l, (UI.tab.inv || "bag") === k ? "on" : "", () => { UI.tab.inv = k; UI.renderWin(); })));
+    if ((UI.tab.inv || "bag") === "craft") { b.append(top); UI.craftPanel(b); b.append(h("div", { class: "silver", text: "은화 " + S.silver })); return; }
+    b.append(top);
     const TYPE = { equip: "장비", use: "소비", etc: "기타", quest: "퀘스트", story: "중요 물품" };
-    const grid = h("div", { class: "itemgrid" });
-    if (!ids.length) grid.append(h("p", { class: "empty", text: "가방이 비어 있습니다." }));
-    ids.forEach((id) => { const it = AU.ITEMS[id]; grid.append(h("button", { type: "button", class: "item" + (id === sel ? " sel" : ""), onclick: () => { UI.selected.inv = id; UI.renderWin(); } }, h("span", { class: "iname", text: it.name.replace(" (임시)", "") }), h("span", { class: "itype t-" + it.type, text: TYPE[it.type] }), h("span", { class: "icount", text: "×" + S.inv[id] }))); });
+    const ids = Object.keys(S.inv), cat = UI.tab.invcat || "all", catDef = INV_CATS.find((c) => c[0] === cat) || INV_CATS[0];
+    b.append(h("div", { class: "catbar" }, INV_CATS.map(([k, l, f]) => { const n = ids.filter((id) => f(AU.ITEMS[id])).length; return h("button", { type: "button", class: "cat" + (k === cat ? " on" : ""), onclick: () => { UI.tab.invcat = k; UI.renderWin(); } }, h("span", { text: l }), h("em", { text: n })); })));
+    const shown = ids.filter((id) => catDef[2](AU.ITEMS[id]));
+    const sel = UI.selected.inv && shown.includes(UI.selected.inv) ? UI.selected.inv : shown[0];
+    UI.selected.inv = sel;
+    const grid = h("div", { class: "tilegrid" });
+    if (!shown.length) grid.append(h("p", { class: "empty", text: ids.length ? "이 분류에 해당하는 아이템이 없습니다." : "가방이 비어 있습니다." }));
+    shown.forEach((id) => { const it = AU.ITEMS[id]; grid.append(h("button", { type: "button", class: "tile" + (id === sel ? " sel" : ""), title: it.name, onclick: () => { UI.selected.inv = id; UI.renderWin(); } }, UI.itemIcon(id, 44), h("span", { class: "tname", text: it.name.replace(" (임시)", "") }), h("span", { class: "tcount", text: "×" + S.inv[id] }))); });
     const det = h("div", { class: "detail" });
     if (sel) {
-      const it = AU.ITEMS[sel]; det.append(h("h3", { text: it.name }), h("div", { class: "tags" }, h("span", { class: "tag", text: TYPE[it.type] }), it.slot ? h("span", { class: "tag", text: AU.SLOT_LABEL[it.slot] }) : null, it.rarity ? h("span", { class: "tag", text: (AU.RARITY[it.rarity] || {}).label }) : null, h("span", { class: "tag", text: "보유 " + S.inv[sel] })), h("p", { text: it.desc }));
+      const it = AU.ITEMS[sel]; det.append(h("div", { class: "dhead" }, UI.itemIcon(sel, 56), h("h3", { text: it.name })), h("div", { class: "tags" }, h("span", { class: "tag", text: TYPE[it.type] }), it.slot ? h("span", { class: "tag", text: AU.SLOT_LABEL[it.slot] }) : null, it.rarity ? h("span", { class: "tag", text: (AU.RARITY[it.rarity] || {}).label }) : null, h("span", { class: "tag", text: "보유 " + S.inv[sel] })), h("p", { text: it.desc }));
       if (it.stats) det.append(h("p", { class: "stat", text: Object.entries(it.stats).map(([k, v]) => statName(k) + " +" + v).join(" · ") }));
       if (it.type === "use") det.append(btn("사용", "primary", () => AU.G.useItem(sel)));
       if (it.type === "etc" && it.sell > 0) det.append(h("p", { class: "stat", text: "판매가 은화 " + it.sell }), h("p", { class: "note", text: "포르투 노바의 잡화상인에게 팔 수 있습니다." }));
@@ -428,7 +467,7 @@ window.AU = window.AU || {};
       if (it.type === "quest") det.append(h("p", { class: "note", text: "퀘스트용 아이템입니다. 사용하거나 장착할 수 없습니다." }));
       if (it.type === "story") det.append(h("p", { class: "note", text: "이야기와 관련된 중요한 물건입니다. 사용하거나 버릴 수 없고, 본편에서도 계속 간직합니다." }));
     } else det.append(h("p", { class: "empty", text: "아이템을 선택하면 설명이 표시됩니다." }));
-    b.append(h("div", { class: "silver", text: "은화 " + S.silver }), h("div", { class: "split" }, grid, det));
+    b.append(h("div", { class: "silver", text: "은화 " + S.silver }), h("div", { class: "split inv" }, grid, det));
   };
   const statName = (k) => ({ atk: "공격력", hp: "최대 HP", dodge: "회피율", crit: "치명타율" }[k] || k);
 
@@ -512,7 +551,22 @@ window.AU = window.AU || {};
     b.append(h("div", { class: "statlayout" }, left1, h("div", { class: "statmid" }, rows, h("p", { class: "note", text: hint }), actions), derived));
   };
 
+  R.worldContinent = function (b) {
+    const S = AU.G.S, cur = AU.World.mapId, RG = AU.WORLD_REGIONS, here = (RG.find((r) => r.open && r.maps.includes(cur)) || RG[0]).id;
+    const sel = RG.find((r) => r.id === UI.selected.region) || RG.find((r) => r.id === here); UI.selected.region = sel.id;
+    const map = h("div", { class: "mapbox continent" }, UI.mapToggle());
+    for (const r of RG) {
+      const seen = r.open && r.maps.some((m) => S.visited[m]);
+      map.append(h("button", { type: "button", class: "node" + (r.id === here ? " here" : "") + (seen ? "" : " unseen") + (r.id === sel.id ? " sel" : ""), style: "left:" + r.x + "%;top:" + r.y + "%", onclick: () => { UI.selected.region = r.id; UI.renderWin(); } }, h("i", { text: r.id === here ? "●" : seen ? "○" : "?" }), h("span", { text: seen ? r.name : r.open ? r.name : r.name + " · 미발견" })));
+    }
+    const seen = sel.open && sel.maps.some((m) => S.visited[m]);
+    const info = h("div", { class: "detail" }, h("h3", { text: sel.open ? sel.name : "아직 가 보지 않은 땅 (" + sel.name + ")" }), h("div", { class: "tags" }, h("span", { class: "tag", text: sel.id === here ? "현재 권역" : seen ? "방문함" : "미발견" })), h("p", { text: sel.desc }));
+    if (sel.open) { const ms = sel.maps.filter((m) => AU.MAPS[m] && !AU.MAPS[m].prologue); const vis = ms.filter((m) => S.visited[m]); info.append(h("p", { class: "note", text: "방문한 지역 " + vis.length + " / " + ms.filter((m) => !AU.MAPS[m].hidden || S.visited[m]).length }), h("p", { class: "note", text: vis.map((m) => AU.MAPS[m].name.replace(" (임시 명칭)", "")).join(" · ") }), btn("이 권역의 지역 지도 보기", "primary", () => { UI.tab.wm = "area"; UI.renderWin(); })); }
+    b.append(h("div", { class: "split map" }, map, info), h("p", { class: "note", text: "● 현재 권역 · ○ 방문한 권역 · ? 미발견 · 대륙 이름과 다른 권역은 이야기가 진행되면 알게 됩니다." }));
+  };
+  UI.mapToggle = function () { const c = UI.tab.wm === "continent"; return h("button", { type: "button", class: "maptoggle", onclick: () => { UI.tab.wm = c ? "area" : "continent"; UI.renderWin(); } }, c ? "◀ 지역 지도" : "대륙 전체 보기"); };
   R.worldmap = function (b) {
+    if (UI.tab.wm === "continent") return R.worldContinent(b);
     const S = AU.G.S, cur = AU.World.mapId, sel = UI.selected.map || cur; UI.selected.map = sel;
     const dest = new Set();
     for (const [id, rec] of Object.entries(S.quests)) {
@@ -524,7 +578,7 @@ window.AU = window.AU || {};
         if (o.kind === "talk" || o.kind === "deliver" || o.kind === "choice") dest.add(mapOfNpc(o.target));
         if (o.targets) for (const m of Object.keys(AU.MAPS)) if ((AU.MAPS[m].spots || []).some((s2) => o.targets.includes(s2.id))) dest.add(m); });
     }
-    const map = h("div", { class: "mapbox" });
+    const map = h("div", { class: "mapbox" }, UI.mapToggle());
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg"); svg.setAttribute("viewBox", "0 0 100 100"); svg.setAttribute("preserveAspectRatio", "none"); svg.setAttribute("class", "maplines");
     for (const [a, c] of AU.AREA_LINKS) {
       const A = AU.MAPS[a].area, B = AU.MAPS[c].area, both = S.visited[a] && S.visited[c];
@@ -576,7 +630,7 @@ window.AU = window.AU || {};
     const full = S.fatigue >= S.fatigueMax - 1e-6;
     b.append(h("div", { class: "restbox" + (full ? " full" : "") }, h("b", { text: "피로도 " + S.fatigue + " / " + S.fatigueMax }), h("span", { text: full ? "가득 찼습니다. 스킬을 쓰려면 먼저 줄여 주세요." : "스킬을 쓸수록 쌓입니다." }),
       btn("휴식하기 (은화 " + AU.G.restPrice() + " · 피로도 −" + C.fatigue.restSilverRecover + ")", "mini", () => AU.G.restWithSilver(), { title: "오늘 남은 횟수 " + AU.G.restSilverLeft() + "회" }),
-      S.flags.missionsUnlocked ? btn("쉼 현실 미션 보기", "mini", () => { UI.tab.j = "rest"; UI.open("journal"); }) : null));
+      S.flags.missionsUnlocked ? btn("쉼 현실 미션 보기", "mini", () => { UI.tab.jg = "real"; UI.tab.j = "rest"; UI.open("journal"); }) : null));
     const slots = h("div", { class: "skslots" }, [0, 1, 2].map((i) => { const id = S.skills.slots[i]; return h("div", { class: "skslot" }, h("div", { class: "skey", text: keyOf("skill" + (i + 1)) }), h("div", { class: "skname", text: id ? AU.SKILLS[id].name.replace(" (임시)", "") : "비어 있음" }), id ? btn("해제", "mini", () => { S.skills.slots[i] = null; AU.G.save("skill"); AU.G.changed(); }) : null); }));
     const list = h("div", { class: "sklist" });
     for (const id of S.skills.unlocked) {
@@ -588,12 +642,35 @@ window.AU = window.AU || {};
     b.append(h("h4", { text: "단축 슬롯" }), slots, h("h4", { text: "배운 스킬" }), list, h("p", { class: "note", text: "단축키 자체는 키보드 설정(" + keyOf("keysettings") + ")에서 바꿀 수 있습니다. 새로운 직업 스킬은 이 목록에 추가되는 구조입니다." }));
   };
 
+  const PRO_STEPS = [["stele_read", "마을길 끝의 기념비를 읽었다"], ["banners_done", "축제 깃발을 깃대에 달았다"], ["temple_work_complete", "신전 건축 현장에서 아버지를 도왔다"], ["festival_interaction_complete", "축제 광장에서 주민들과 이야기를 나눴다"], ["father_final_conversation_complete", "아버지와 마지막 이야기를 나눴다"], ["metal_fragment_acquired", "의문의 금속 조각을 손에 넣었다"], ["carpenter_bag_acquired", "목수 도구 가방을 챙겼다"], ["arkea_escape_complete", "아르케아를 탈출했다"], ["porto_nova_reached", "포르투 노바에 도착했다"]];
   R.journal = function (b) {
     const S = AU.G.S, un = S.flags.missionsUnlocked;
-    const tab = !un ? "log" : (UI.tab.j || "missions");
-    if (un) b.append(h("div", { class: "tabs" }, [["missions", "현실 미션"], ["rest", "쉼"], ["record", "마음 기록"], ["log", "모험 기록"]].map(([k, l]) => btn(l, tab === k ? "on" : "", () => { UI.tab.j = k; UI.renderWin(); }))));
-    if (tab === "log") {
-      const rows = S.journal.slice().reverse(); b.append(h("div", { class: "logs" }, rows.map((e) => h("div", { class: "logrow" }, h("span", { text: e.t }), h("b", { text: e.text })))));
+    const grp = !un ? "game" : (UI.tab.jg || "game");
+    if (un) b.append(h("div", { class: "jgroup" }, [["game", "모험 이야기"], ["real", "현실 활동"]].map(([k, l]) => h("button", { type: "button", class: "jg " + k + (grp === k ? " on" : ""), onclick: () => { UI.tab.jg = k; UI.renderWin(); } }, l))));
+    let tab;
+    if (grp === "game") {
+      tab = ["pro", "a1", "log"].includes(UI.tab.j) ? UI.tab.j : "a1";
+      b.append(h("div", { class: "tabs" }, [["pro", "프롤로그"], ["a1", "1막 · 항구도시"], ["log", "전체 기록"]].map(([k, l]) => btn(l, tab === k ? "on" : "", () => { UI.tab.j = k; UI.renderWin(); }))));
+    } else {
+      tab = ["missions", "rest", "record"].includes(UI.tab.j) ? UI.tab.j : "missions";
+      b.append(h("div", { class: "realband", text: "게임 속 이야기와는 별개인 현실 활동입니다. 하지 않아도 모험은 계속되고, 직접 해 보고 기록하는 방식입니다." }),
+        h("div", { class: "tabs" }, [["missions", "현실 미션"], ["rest", "쉼"], ["record", "마음 기록"]].map(([k, l]) => btn(l, tab === k ? "on" : "", () => { UI.tab.j = k; UI.renderWin(); }))));
+    }
+    const logOf = (act) => { const j = S.journal, arr = j.findIndex((e) => /포르투 노바에 도착/.test(e.text)); return j.map((e, i) => ({ e, a: e.a || (arr >= 0 && i <= arr ? "pro" : "a1") })).filter((x) => !act || x.a === act).map((x) => x.e).reverse(); };
+    const logBox = (rows) => h("div", { class: "logs" }, rows.length ? rows.map((e) => h("div", { class: "logrow" }, h("span", { text: e.t }), h("b", { text: e.text }))) : h("p", { class: "empty", text: "아직 기록이 없습니다." }));
+    if (tab === "pro") {
+      const F = (S.prologue && S.prologue.flags) || {}, done = PRO_STEPS.filter(([k]) => F[k]).length;
+      b.append(h("div", { class: "chaphead" }, h("b", { text: "프롤로그 · 아르케아" }), h("span", { class: "tag", text: done >= PRO_STEPS.length ? "완료" : done + " / " + PRO_STEPS.length })), h("p", { class: "note", text: "평화로운 축제 날, 마을에서 일어난 일들입니다." }),
+        h("div", { class: "steps" }, PRO_STEPS.map(([k, t]) => h("div", { class: "step" + (F[k] ? " ok" : "") }, (F[k] ? "✔ " : "□ ") + (F[k] || S.prologue.legacy ? t : "아직 모르는 일")))), h("h4", { text: "기록" }), logBox(logOf("pro")));
+    } else if (tab === "a1") {
+      const ids = Object.keys(AU.QUESTS).filter((id) => !AU.QUESTS[id].dev);
+      const rows = ids.map((id) => ({ id, q: AU.QUESTS[id], rec: S.quests[id] })), shown = rows.filter((r) => r.rec), nDone = shown.filter((r) => r.rec.state === "done").length;
+      b.append(h("div", { class: "chaphead" }, h("b", { text: "1막 · 항구도시 포르투 노바" }), h("span", { class: "tag", text: "퀘스트 " + nDone + " 완료 / " + shown.length + " 수락" })), h("p", { class: "note", text: "상세 조건과 보상은 퀘스트창(" + keyOf("quests") + ")에서 볼 수 있습니다." }));
+      const lst = h("div", { class: "steps" }); if (!shown.length) lst.append(h("p", { class: "empty", text: "아직 받은 퀘스트가 없습니다. 포르투 노바의 NPC에게 말을 걸어 보세요." }));
+      shown.forEach((r) => { const st = r.rec.state; lst.append(h("div", { class: "step" + (st === "done" ? " ok" : "") }, (st === "done" ? "✔ " : st === "ready" ? "▶ " : "□ ") + r.q.title.replace(" (임시)", ""), h("em", { text: st === "done" ? "완료" : st === "ready" ? "의뢰인에게 돌아가기" : "진행 중" }))); });
+      b.append(lst, h("h4", { text: "기록" }), logBox(logOf("a1")));
+    } else if (tab === "log") {
+      b.append(logBox(logOf(null)));
     } else if (tab === "missions") {
       if (!S.flags.guideMet) { b.append(h("div", { class: "lockbox" }, h("h3", { text: "새로운 이야기를 기다리고 있어요" }), h("p", { text: "포르투 노바의 모험 안내인(임시)과 이야기를 나누면 이곳에 내용이 나타납니다." }))); return; }
       const M = S.missions;

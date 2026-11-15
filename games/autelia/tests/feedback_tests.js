@@ -43,7 +43,7 @@ const note = (id, name, ok, ev) => { ok ? pass++ : fail++; console.log((ok ? 'PA
   await ev(() => { AU.G.S.prologue.state = 'COMPLETED'; AU.Prologue.on = false; AU.Prologue.setHud(false); AU.World.enterMap('porto', 400, true); AU.World.trans = null; AU.Prologue.frozen = false; AU.Prologue.cs = null; });
   await sleep(600);
   const kh = await ev(() => ({ vis: getComputedStyle(document.querySelector('.keyhint')).display, txt: document.querySelector('.keyhint').textContent }));
-  note('D1', '초반(Lv.5 미만) 조작 안내가 화면 아래에 상시 표시', kh.vis === 'block' && /공격 Control|공격 Ctrl|공격/.test(kh.txt) && /점프/.test(kh.txt), JSON.stringify(kh));
+  note('D1', '조작 안내는 상시 표시하지 않음(프롤로그·첫 상호작용에서 단계 안내)', kh.vis === 'none', JSON.stringify(kh));
   const tr0 = await ev(() => document.querySelector('.tracker').innerText);
   note('D2', '퀘스트가 없을 때 새 의뢰·Lv.10 목표 안내', /목표/.test(tr0) && /새 의뢰: 빈 주머니/.test(tr0) && /Lv\.10까지/.test(tr0), tr0.replace(/\n/g, ' / '));
   await ev(() => { const S = AU.G.S; S.quests.q_s1_silver = { state: 'done', prog: [1], spots: {} }; S.quests.q_s1_test = { state: 'done', prog: [2], spots: {} }; AU.G.startQuest('q_first'); }); await sleep(400);
