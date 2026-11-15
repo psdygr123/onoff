@@ -482,6 +482,14 @@ window.AU = window.AU || {};
       const g = AU.Profile.gender(), loco = "pc_player_" + g + "_locomotion", act = "pc_player_" + g + "_actions";
       const PA = AU.PArt, spr = PA && PA.spr; if (!spr || !AU.Img.has(loco) || !AU.Img.has(act)) return false;
       if (p.rope) return false;
+      const cb = "pc_player_" + g + "_combat", hasCb = AU.Img.has(cb);
+      if (hasCb) {
+        const sk = p.sk && p.sk.id; let cf = null;
+        if (p.dead) cf = "down"; else if (p.flash > 0) cf = "hurt";
+        else if (sk === "strike") cf = "strike"; else if (sk === "spin") cf = "spin";
+        else if (p.atkT > 0) cf = p.atkT > 0.11 ? "attack1" : "attack2";
+        if (cf) return PA.spr(ctx, cb, cf, p.x, p.y, p.dir);
+      }
       let key = act, fr = "idle";
       if (!p.onGround) { key = loco; fr = p.vy < 0 ? "jump_up" : "jump_down"; } else if (moving) { key = loco; fr = "walk" + (1 + (Math.floor(this.time * 9) % 4)); }
       return PA.spr(ctx, key, fr, p.x + lean, p.y, p.dir);
@@ -492,7 +500,7 @@ window.AU = window.AU || {};
       const gk = AU.Profile.gender() === "f" ? ["player_female", "player_male"] : ["player_male", "player_female"], key = AU.Img.has(gk[0]) ? gk[0] : gk[1], moving = Math.abs(p.vx) > 20 && p.onGround;
       const frame = moving ? Math.floor(this.time * 9) % 4 : (p.rope ? Math.floor(p.anim) % 2 : 0);
       const lean = p.atkT > 0 ? p.dir * 6 : 0, PR = AU.Prologue, pro = !!(PR && PR.on), pose = pro ? PR.poseOf(p) : null;
-      let skm = null; if (p.sk && !pro) { const q = p.sk.t / p.sk.dur, e = Math.sin(Math.min(1, q) * Math.PI); skm = p.sk.id === "strike" ? { dx: p.dir * 16 * e, rot: p.dir * (q < 0.35 ? -0.1 * (q / 0.35) : 0.2 * e), sx: 1 + 0.06 * e, sy: 1 - 0.04 * e } : p.sk.id === "spin" ? { dx: 0, rot: 0, sx: Math.cos(q * Math.PI * 4), sy: 1 + 0.03 * e } : { dx: 0, rot: 0, sx: 1 + 0.03 * e, sy: 1 - 0.07 * e }; if (Math.abs(skm.sx) < 0.12) skm.sx = skm.sx < 0 ? -0.12 : 0.12; }
+      let skm = null; if (p.sk && !pro && !AU.Img.has("pc_player_" + AU.Profile.gender() + "_combat")) { const q = p.sk.t / p.sk.dur, e = Math.sin(Math.min(1, q) * Math.PI); skm = p.sk.id === "strike" ? { dx: p.dir * 16 * e, rot: p.dir * (q < 0.35 ? -0.1 * (q / 0.35) : 0.2 * e), sx: 1 + 0.06 * e, sy: 1 - 0.04 * e } : p.sk.id === "spin" ? { dx: 0, rot: 0, sx: Math.cos(q * Math.PI * 4), sy: 1 + 0.03 * e } : { dx: 0, rot: 0, sx: 1 + 0.03 * e, sy: 1 - 0.07 * e }; if (Math.abs(skm.sx) < 0.12) skm.sx = skm.sx < 0 ? -0.12 : 0.12; }
       if (skm) { ctx.save(); ctx.translate(p.x + skm.dx, p.y); ctx.rotate(skm.rot); ctx.scale(skm.sx, skm.sy); ctx.translate(-p.x, -p.y); }
       if (pose) { ctx.save(); ctx.translate(p.x + (pose.dx || 0), p.y); ctx.rotate(pose.rot || 0); ctx.scale(pose.sx || 1, pose.sy || 1); ctx.translate(-p.x, -p.y); }
       if (pro && PR.drawHero(ctx, p, pose, moving)) { /* 프롤로그 정식 그림 */ }

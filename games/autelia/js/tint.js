@@ -11,7 +11,7 @@ window.AU = window.AU || {};
   const MASKS = {
     player_male: "01_char_player_male", player_female: "02_char_player_female",
     pc_player_m_locomotion: "03_pro_player_m_locomotion", pc_player_f_locomotion: "04_pro_player_f_locomotion",
-    pc_player_m_actions: "05_pro_player_m_actions", pc_player_f_actions: "06_pro_player_f_actions",
+    pc_player_m_actions: "05_pro_player_m_actions", pc_player_f_actions: "06_pro_player_f_actions", pc_player_m_combat: "12_pro_player_m_combat", pc_player_f_combat: "13_pro_player_f_combat",
     pt_player_male: "07_portrait_player_male", pt_player_female: "08_portrait_player_female",
     pt_pro_hero_m: "09_pt_pro_hero_m", pt_pro_hero_f: "10_pt_pro_hero_f", pt_pro_hero_m_surprised: "11_pt_pro_hero_m_surprised"
   };
