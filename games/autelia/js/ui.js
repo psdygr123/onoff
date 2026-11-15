@@ -665,14 +665,22 @@ window.AU = window.AU || {};
   };
   const rewardText = (r) => [r.exp ? "경험치 " + r.exp : null, r.silver ? "은화 " + r.silver : null, ...(r.items || []).map(([i, n]) => AU.ITEMS[i].name + " ×" + n)].filter(Boolean).join(" · ") || "없음";
 
+  UI.fatigueMeter = function (S, withActions) { // 스킬창·쉼 탭에 쓰는 큰 피로도 표시
+    const pc = S.fatigue / S.fatigueMax, full = S.fatigue >= S.fatigueMax - 1e-6, cls = full ? "full" : pc >= 0.8 ? "hot" : pc >= 0.5 ? "mid" : "ok";
+    const state = full ? "가득 참 — 스킬을 쓸 수 없습니다" : pc >= 0.8 ? "많이 쌓였습니다 — 곧 스킬을 쓸 수 없어요" : pc >= 0.5 ? "절반을 넘었습니다" : "여유 있습니다";
+    const box = h("div", { class: "fmeter " + cls }, h("div", { class: "ftop" }, h("span", { class: "fname", text: "🌀 " + C.fatigue.name }), h("span", { class: "fnum" }, h("b", { text: String(+S.fatigue.toFixed(1)) }), " / " + S.fatigueMax), h("span", { class: "fstate", text: state })),
+      h("div", { class: "fbar" }, h("i", { style: "width:" + (pc * 100).toFixed(1) + "%" })));
+    if (withActions) box.append(h("div", { class: "fact" }, h("span", { class: "fhint", text: "스킬을 쓸수록 쌓이고, 쉬면 줄어듭니다." }),
+      btn("휴식하기 (은화 " + AU.G.restPrice() + " · 피로도 −" + C.fatigue.restSilverRecover + ")", "mini", () => AU.G.restWithSilver(), { title: "오늘 남은 횟수 " + AU.G.restSilverLeft() + "회" }),
+      S.flags.missionsUnlocked ? btn("쉼 현실 미션 보기", "mini", () => { UI.tab.jg = "real"; UI.tab.j = "rest"; UI.open("journal"); }) : null));
+    return box;
+  };
+
   R.skills = function (b) {
     const S = AU.G.S;
     if (!S.jobChanged) { b.append(h("div", { class: "lockbox" }, h("h3", { text: "아직 배운 스킬이 없습니다" }), h("p", { text: "10레벨 전직 후 직업 스킬이 열립니다. (현재 " + AU.jobName(S) + " · Lv." + S.level + ")" }), h("p", { class: "note", text: "기본 공격(" + keyOf("attack") + ")은 " + C.fatigue.name + "가 쌓이지 않습니다." }))); return; }
+    b.append(UI.fatigueMeter(S, true));
     b.append(h("p", { class: "note vigor", text: FATIGUE_TIP.replace(/^피로도: /, "피로도란? ") }));
-    const full = S.fatigue >= S.fatigueMax - 1e-6;
-    b.append(h("div", { class: "restbox" + (full ? " full" : "") }, h("b", { text: "피로도 " + S.fatigue + " / " + S.fatigueMax }), h("span", { text: full ? "가득 찼습니다. 스킬을 쓰려면 먼저 줄여 주세요." : "스킬을 쓸수록 쌓입니다." }),
-      btn("휴식하기 (은화 " + AU.G.restPrice() + " · 피로도 −" + C.fatigue.restSilverRecover + ")", "mini", () => AU.G.restWithSilver(), { title: "오늘 남은 횟수 " + AU.G.restSilverLeft() + "회" }),
-      S.flags.missionsUnlocked ? btn("쉼 현실 미션 보기", "mini", () => { UI.tab.jg = "real"; UI.tab.j = "rest"; UI.open("journal"); }) : null));
     const slots = h("div", { class: "skslots" }, [0, 1, 2].map((i) => { const id = S.skills.slots[i]; return h("div", { class: "skslot" }, h("div", { class: "skey", text: keyOf("skill" + (i + 1)) }), h("div", { class: "skname", text: id ? AU.SKILLS[id].name.replace(" (임시)", "") : "비어 있음" }), id ? btn("해제", "mini", () => { S.skills.slots[i] = null; AU.G.save("skill"); AU.G.changed(); }) : null); }));
     const list = h("div", { class: "sklist" });
     for (const id of S.skills.unlocked) {
@@ -728,7 +736,7 @@ window.AU = window.AU || {};
       }
       b.append(grid);
     } else if (tab === "rest") {
-      b.append(h("p", { class: "note", text: "쉼 미션은 선택입니다. 하지 않아도 모험은 계속할 수 있고, 하면 피로도가 줄어듭니다. 같은 미션은 하루에 한 번입니다. 직접 해 보고 ‘해 봤어요’를 눌러 주세요." }), h("div", { class: "restbox" }, h("b", { text: "피로도 " + S.fatigue + " / " + S.fatigueMax })));
+      b.append(h("p", { class: "note", text: "쉼 미션은 선택입니다. 하지 않아도 모험은 계속할 수 있고, 하면 피로도가 줄어듭니다. 같은 미션은 하루에 한 번입니다. 직접 해 보고 ‘해 봤어요’를 눌러 주세요." }), UI.fatigueMeter(S, false));
       const grid = h("div", { class: "missions" });
       for (const m of AU.REST_MISSIONS) { const ok = AU.G.restMissionAvailable(m.id);
         grid.append(h("div", { class: "mission st-" + (ok ? "available" : "done") }, h("div", { class: "mh" }, h("span", { class: "tag", text: "쉼 · 피로도 −" + m.recover }), h("span", { class: "tag", text: ok ? "오늘 가능" : "오늘 완료" })), h("b", { text: m.title }), h("p", { text: m.desc }),
