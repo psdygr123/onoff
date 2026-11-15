@@ -478,6 +478,14 @@ window.AU = window.AU || {};
         ctx.font = "700 20px 'Noto Sans KR', sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillStyle = "#FFFFFF"; ctx.fillText(mark, n.x, by + 2); ctx.textBaseline = "alphabetic";
       }
     },
+    drawHeroArt(ctx, p, lean, moving) { // 프롤로그 주인공 시트(성별 따라 m/f, 색은 Tint가 입힘). 그림이 없으면 false
+      const g = AU.Profile.gender(), loco = "pc_player_" + g + "_locomotion", act = "pc_player_" + g + "_actions";
+      const PA = AU.PArt, spr = PA && PA.spr; if (!spr || !AU.Img.has(loco) || !AU.Img.has(act)) return false;
+      if (p.rope) return false;
+      let key = act, fr = "idle";
+      if (!p.onGround) { key = loco; fr = p.vy < 0 ? "jump_up" : "jump_down"; } else if (moving) { key = loco; fr = "walk" + (1 + (Math.floor(this.time * 9) % 4)); }
+      return PA.spr(ctx, key, fr, p.x + lean, p.y, p.dir);
+    },
     drawPlayer(ctx, p) {
       if (p.invuln > 0 && Math.floor(this.time * 20) % 2 === 0 && !p.dead) ctx.globalAlpha = 0.45;
       if (p.dead) ctx.globalAlpha = 0.5;
@@ -488,6 +496,7 @@ window.AU = window.AU || {};
       if (skm) { ctx.save(); ctx.translate(p.x + skm.dx, p.y); ctx.rotate(skm.rot); ctx.scale(skm.sx, skm.sy); ctx.translate(-p.x, -p.y); }
       if (pose) { ctx.save(); ctx.translate(p.x + (pose.dx || 0), p.y); ctx.rotate(pose.rot || 0); ctx.scale(pose.sx || 1, pose.sy || 1); ctx.translate(-p.x, -p.y); }
       if (pro && PR.drawHero(ctx, p, pose, moving)) { /* 프롤로그 정식 그림 */ }
+      else if (!pro && this.drawHeroArt(ctx, p, lean, moving)) { /* 프롤로그와 같은 주인공 그림 */ }
       else if (!this.sprite(ctx, key, p.x + lean, p.y, C.player.spriteHeight, p.dir, frame)) { ctx.fillStyle = "#FFB3C7"; this.rr(ctx, p.x - 22, p.y - 118, 44, 118, 16); ctx.fill(); }
       if (pose) ctx.restore();
       if (skm) ctx.restore();
