@@ -242,7 +242,7 @@ window.AU = window.AU || {};
     },
     killMonster(m) {
       m.alive = false; m.respawnT = m.d.boss ? -1 : 8; m.hp = 0;
-      if (m.d.sprite && AU.Img.has(m.d.sprite)) this.fx.push({ kind: "ghost", img: m.d.sprite, sw: m.d.sw, x: m.x, y: m.y, dir: m.dir, t: 0, dur: 0.55 });
+      if (m.d.sprite && AU.Img.has(m.d.sprite)) this.fx.push({ kind: "ghost", img: (m.d.poses && m.d.poses.down) || m.d.sprite, sw: m.d.sw, refW: m.d.refW, still: !!m.d.poses, x: m.x, y: m.y, dir: m.dir, t: 0, dur: 0.55 });
       const S = AU.G.S, mult = C.exp.killMultiplier;
       const gap = S.level - (m.d.lv || S.level), gm = m.d.boss ? 1 : gap <= 0 ? Math.min(1.3, 1 - gap * 0.1) : gap <= 2 ? 1 : gap === 3 ? 0.7 : gap === 4 ? 0.45 : gap === 5 ? 0.25 : 0.1; // 몬스터 레벨 기준: 높은 상대는 보너스, 한참 낮은 상대는 경험치 급감
       const exp = Math.max(1, Math.round(m.d.exp * mult * gm)), silver = Math.round(rnd(m.d.silver[0], m.d.silver[1]));
@@ -373,6 +373,9 @@ window.AU = window.AU || {};
       if (pro) PR.drawLayer(ctx, "back");
       this.drawStructures(ctx);
       for (const n of map.npcs || []) this.drawNpc(ctx, n);
+      if (map.fgSlice && AU.Img.has(map.bg)) { // 계산대 등 배경 일부를 NPC 앞에 다시 그려 NPC가 뒤에 서 있는 것처럼 보이게 함
+        const im = AU.Img.get(map.bg), k = H / im.naturalHeight, f = map.fgSlice; ctx.drawImage(im, f[0], f[1], f[2], f[3], f[0] * k, f[1] * k, f[2] * k, f[3] * k);
+      }
       this.drawSpots(ctx);
       for (const m of this.monsters) if (m.alive) this.drawMonster(ctx, m);
       this.drawDrops(ctx);
@@ -474,7 +477,7 @@ window.AU = window.AU || {};
       }
     },
     drawNpc(ctx, n) {
-      const d = AU.NPCS[n.id], y = GROUND, face = this.player.x < n.x ? -1 : 1;
+      const d = AU.NPCS[n.id], y = n.npcY || GROUND, face = this.player.x < n.x ? -1 : 1;
       if (!this.sprite(ctx, d.sprite, n.x, y, 150, face, 0)) { ctx.fillStyle = "#C9B8A0"; this.rr(ctx, n.x - 30, y - 130, 60, 130, 20); ctx.fill(); ctx.fillStyle = "#5B4636"; ctx.font = "14px sans-serif"; ctx.textAlign = "center"; ctx.fillText("이미지 없음", n.x, y - 60); }
       { const dx = Math.abs(this.player.x - n.x); if (dx > 80) this.nameTag(ctx, d.name, n.x, y + 17); } // 이름표는 상시 표시(주인공과 겹치는 거리에서만 숨김)
       // 퀘스트 표시: 받을 수 있으면 !, 완료 가능하면 ?
@@ -544,7 +547,7 @@ window.AU = window.AU || {};
       } else if (f.kind === "pillar") { // 은은한 빛기둥
         const g = ctx.createLinearGradient(0, f.y - 150, 0, f.y); g.addColorStop(0, "rgba(166,227,201,0)"); g.addColorStop(1, "rgba(166,227,201,.55)"); ctx.fillStyle = g; ctx.fillRect(f.x - 34, f.y - 150, 68, 150);
       } else if (f.kind === "ghost") { // 쓰러지는 적: 기울며 가라앉고 사라짐
-        const im = AU.Img.get(f.img); if (im) { const dw = f.sw, dh = dw * im.naturalHeight / im.naturalWidth; ctx.translate(f.x, f.y + k * 14); ctx.scale(f.dir < 0 ? -1 : 1, 1 - k * 0.35); ctx.rotate(-0.5 * k); if ("filter" in ctx) ctx.filter = "brightness(" + (1.8 - k * 0.8) + ")"; ctx.drawImage(im, -dw / 2, -dh, dw, dh); }
+        const im = AU.Img.get(f.img); if (im) { const dw = f.refW ? f.sw * im.naturalWidth / f.refW : f.sw, dh = dw * im.naturalHeight / im.naturalWidth; ctx.translate(f.x, f.y + k * (f.still ? 6 : 14)); ctx.scale(f.dir < 0 ? -1 : 1, f.still ? 1 : 1 - k * 0.35); if (!f.still) ctx.rotate(-0.5 * k); if ("filter" in ctx) ctx.filter = "brightness(" + (1.8 - k * 0.8) + ")"; ctx.drawImage(im, -dw / 2, -dh, dw, dh); }
       }
       ctx.restore();
     },
@@ -575,7 +578,14 @@ window.AU = window.AU || {};
     drawMonster(ctx, m) {
       const d = m.d, x = m.x, y = m.y, hop = m.state === "lunge" ? -10 : Math.abs(Math.sin(this.time * 6 + x)) * (m.state === "chase" ? 5 : 2);
       const sp = !!(d.sprite && AU.Img.has(d.sprite)); let th = d.h;
-      if (sp) { // 정식 그림: 한 장을 코드로 움직임(걷기 통통, 준비 동작 웅크림, 돌진 늘어남, 피격 번쩍임)
+      if (sp && d.poses) { // 여러 동작 그림(보스): 상태에 맞는 그림을 골라 그림. 코드 늘림 없이 그림 자체가 동작
+        const P = d.poses, step = Math.floor(this.time / 0.22 + x * 0.01) % 2 === 0 ? "walkA" : "walkB";
+        let key = P.idle; if (m.flash > 0) key = P.hurt; else if (m.state === "lunge") key = P.attack; else if (m.state === "windup") key = P.windup; else if (m.state === "chase" || m.state === "patrol") key = P[step];
+        const im = AU.Img.get(AU.Img.has(key) ? key : d.sprite), dw = d.sw * im.naturalWidth / (d.refW || im.naturalWidth), dh = dw * im.naturalHeight / im.naturalWidth;
+        const lunge = m.state === "lunge" ? Math.min(1, m.st / 0.28) : 0;
+        ctx.save(); ctx.translate(x + (m.dir < 0 ? -1 : 1) * 14 * lunge, y - (m.state === "chase" || m.state === "patrol" ? Math.abs(Math.sin(this.time * 7)) * 3 : 0)); ctx.scale(m.dir < 0 ? -1 : 1, 1);
+        ctx.drawImage(im, -dw / 2, -dh, dw, dh); ctx.restore(); th = dh * 0.92;
+      } else if (sp) { // 정식 그림: 한 장을 코드로 움직임(걷기 통통, 준비 동작 웅크림, 돌진 늘어남, 피격 번쩍임)
         const im = AU.Img.get(d.sprite), dw = d.sw, dh = dw * im.naturalHeight / im.naturalWidth; let sx = 1, sy = 1, rot = 0;
         const mo = d.motion || "", tt = this.time, ph = x * 0.013; let ox = 0, up = 0;
         sy += 0.018 * Math.sin(tt * 3 + ph); sx -= 0.01 * Math.sin(tt * 3 + ph); // 숨쉬기

@@ -568,11 +568,11 @@ window.AU = window.AU || {};
   UI.mapToggle = function () { const c = UI.tab.wm === "continent"; return h("button", { type: "button", class: "maptoggle", onclick: () => { UI.tab.wm = c ? "area" : "continent"; UI.renderWin(); } }, c ? "◀ 지역 지도" : "대륙 전체 보기"); };
   R.worldmap = function (b) {
     if (UI.tab.wm === "continent") return R.worldContinent(b);
-    const S = AU.G.S, cur = AU.World.mapId, sel = UI.selected.map || cur; UI.selected.map = sel;
+    const S = AU.G.S, cur0 = AU.World.mapId, cur = (AU.MAPS[cur0] && AU.MAPS[cur0].parent) || cur0, sel = UI.selected.map || cur; UI.selected.map = sel;
     const dest = new Set();
     for (const [id, rec] of Object.entries(S.quests)) {
       if (rec.state === "done") continue; const q = AU.QUESTS[id];
-      const mapOfNpc = (nid) => Object.keys(AU.MAPS).find((m) => !AU.MAPS[m].prologue && (!AU.MAPS[m].hidden || S.visited[m]) && (AU.MAPS[m].npcs || []).some((n) => n.id === nid));
+      const mapOfNpc = (nid) => { const f = Object.keys(AU.MAPS).find((m) => !AU.MAPS[m].prologue && (!AU.MAPS[m].hidden || S.visited[m]) && (AU.MAPS[m].npcs || []).some((n) => n.id === nid)); return f && AU.MAPS[f].parent ? AU.MAPS[f].parent : f; };
       if (rec.state === "ready") { dest.add(mapOfNpc(q.giver)); continue; }
       q.objectives.forEach((o, i) => { if (AU.G.objectiveDone(q, rec, i)) return;
         if (o.kind === "kill") for (const m of Object.keys(AU.MAPS)) { const mp = AU.MAPS[m]; if ((mp.spawns || []).some((s) => s.type === o.target) || (mp.boss && mp.boss.type === o.target)) dest.add(m); }
@@ -582,12 +582,13 @@ window.AU = window.AU || {};
     const map = h("div", { class: "mapbox" }, UI.mapToggle());
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg"); svg.setAttribute("viewBox", "0 0 100 100"); svg.setAttribute("preserveAspectRatio", "none"); svg.setAttribute("class", "maplines");
     for (const [a, c] of AU.AREA_LINKS) {
+      if (AU.MAPS[a].interior || AU.MAPS[c].interior) continue;
       const A = AU.MAPS[a].area, B = AU.MAPS[c].area, both = S.visited[a] && S.visited[c];
       const ln = document.createElementNS("http://www.w3.org/2000/svg", "line"); ln.setAttribute("x1", A.x); ln.setAttribute("y1", A.y); ln.setAttribute("x2", B.x); ln.setAttribute("y2", B.y); ln.setAttribute("class", both ? "on" : "off"); svg.append(ln);
     }
     map.append(svg);
     for (const [id, m] of Object.entries(AU.MAPS)) {
-      if (m.prologue || (m.hidden && !S.visited[id])) continue; // 프롤로그 맵과 가지 못하는 지역은 월드맵에 표시하지 않음
+      if (m.prologue || m.interior || (m.hidden && !S.visited[id])) continue; // 프롤로그 맵과 가지 못하는 지역은 월드맵에 표시하지 않음
       const seen = !!S.visited[id];
       map.append(h("button", { type: "button", class: "node" + (id === cur ? " here" : "") + (seen ? "" : " unseen") + (id === sel ? " sel" : ""), style: "left:" + m.area.x + "%;top:" + m.area.y + "%", onclick: () => { UI.selected.map = id; UI.renderWin(); } },
         h("i", { text: seen ? (id === cur ? "●" : "○") : "?" }), h("span", { text: seen ? m.name.replace(" (임시 명칭)", "") : "미발견" }), dest.has(id) ? h("u", { text: "★" }) : null));

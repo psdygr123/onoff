@@ -18,7 +18,17 @@ AU.ASSETS = {
   baker:        { path: "assets/char/baker.webp" },
   porto_general: { path: "assets/char/porto_general.webp" },
   porto_smith:  { path: "assets/char/porto_smith.webp" },
+  porto_armor:  { path: "assets/char/porto_armor.webp" },
   porto_foreman: { path: "assets/char/porto_foreman.webp" },
+  general_store: { path: "assets/bg/general_store.webp" },
+  weapon_store: { path: "assets/bg/weapon_store.webp" },
+  mon_umbra_base: { path: "assets/monster/umbra_base.webp", optional: true },
+  mon_umbra_walkA: { path: "assets/monster/umbra_walkA.webp", optional: true },
+  mon_umbra_walkB: { path: "assets/monster/umbra_walkB.webp", optional: true },
+  mon_umbra_windup: { path: "assets/monster/umbra_windup.webp", optional: true },
+  mon_umbra_attack: { path: "assets/monster/umbra_attack.webp", optional: true },
+  mon_umbra_hurt: { path: "assets/monster/umbra_hurt.webp", optional: true },
+  mon_umbra_down: { path: "assets/monster/umbra_down.webp", optional: true },
   ob_rock_s: { path: "assets/object/rock_s.webp", optional: true }, ob_rock_m: { path: "assets/object/rock_m.webp", optional: true }, ob_rock_big: { path: "assets/object/rock_big.webp", optional: true }, ob_rock_tall: { path: "assets/object/rock_tall.webp", optional: true }, ob_rock_low: { path: "assets/object/rock_low.webp", optional: true },
   ob_fence_broken: { path: "assets/object/fence_broken.webp", optional: true }, ob_fence_fixed: { path: "assets/object/fence_fixed.webp", optional: true },
   ob_trace_stain: { path: "assets/object/trace_stain.webp", optional: true }, ob_trace_crate: { path: "assets/object/trace_crate.webp", optional: true }, it_guild_parcel: { path: "assets/object/guild_parcel.webp", optional: true },
@@ -35,6 +45,7 @@ AU.ASSETS = {
   pt_baker:      { path: "assets/portrait/baker.webp" },
   pt_porto_general: { path: "assets/portrait/porto_general.webp" },
   pt_porto_smith: { path: "assets/portrait/porto_smith.webp" },
+  pt_porto_armor: { path: "assets/portrait/porto_armor.webp" },
   pt_porto_foreman: { path: "assets/portrait/porto_foreman.webp" }
 };
 
@@ -78,8 +89,8 @@ AU.MAPS = {
   porto: {
     name: "포르투 노바", bg: "harbor", width: 1600, safe: true,
     platforms: [{ x: 0, y: 590, w: 1600 }], ropes: [],
-    portals: [{ x: 40, to: "harbor_road", toX: 2330, label: "항구 길" }, { x: 1560, to: "docks", toX: 90, label: "선창 외곽" }],
-    npcs: [{ id: "porto_dock", x: 330 }, { id: "porto_guild", x: 520 }, { id: "porto_general", x: 700 }, { id: "job_npc", x: 900 }, { id: "porto_smith", x: 1060 }, { id: "guide_npc", x: 1220 }, { id: "porto_foreman", x: 1390 }],
+    portals: [{ x: 40, to: "harbor_road", toX: 2330, label: "항구 길" }, { x: 1560, to: "docks", toX: 90, label: "선창 외곽" }, { x: 700, to: "general_store", toX: 90, label: "잡화점" }, { x: 1060, to: "weapon_store", toX: 90, label: "무기점" }],
+    npcs: [{ id: "porto_dock", x: 330 }, { id: "porto_guild", x: 520 }, { id: "job_npc", x: 900 }, { id: "guide_npc", x: 1220 }, { id: "porto_foreman", x: 1390 }],
     // 길드 목공 시험: 부두 끝에 방치된 고기잡이배(해당 퀘스트 진행 중에만 표시)
     spots: [
       { id: "boat_a", img: "fence", x: 250, kind: "repair", label: "썩은 뱃바닥", done: "썩은 뱃바닥을 쳐내고 새 판자를 맞춰 넣었습니다." },
@@ -87,6 +98,24 @@ AU.MAPS = {
     ],
     spawns: [], start: 160,
     area: { x: 78, y: 40, desc: "중립 항구도시입니다. 선창 길드가 의뢰를 받습니다. (요청서 기준)" }
+  },
+  general_store: {
+    name: "포르투 잡화점", bg: "general_store", width: 1500, safe: true, interior: true, parent: "porto",
+    platforms: [{ x: 0, y: 590, w: 1500 }], ropes: [],
+    portals: [{ x: 70, to: "porto", toX: 700, label: "나가기" }],
+    npcs: [{ id: "porto_general", x: 960, npcY: 462 }],
+    fgSlice: [665, 421, 660, 180],   // 계산대: 상인보다 앞에 다시 그려 상인이 계산대 뒤에 서 있게 함
+    spots: [], spawns: [], start: 200,
+    area: { x: 74, y: 36, desc: "포르투 노바의 잡화점입니다. 재료를 팔고 회복약을 살 수 있습니다." }
+  },
+  weapon_store: {
+    name: "포르투 무기점", bg: "weapon_store", width: 1500, safe: true, interior: true, parent: "porto",
+    platforms: [{ x: 0, y: 590, w: 1500 }], ropes: [],
+    portals: [{ x: 70, to: "porto", toX: 1060, label: "나가기" }],
+    npcs: [{ id: "porto_armor", x: 400 }, { id: "porto_smith", x: 940, npcY: 462 }],
+    fgSlice: [625, 425, 640, 175],
+    spots: [], spawns: [], start: 200,
+    area: { x: 82, y: 36, desc: "포르투 노바의 무기점입니다. 장비를 제작하고 방어구 상인과 이야기할 수 있습니다." }
   },
   docks: {
     name: "선창 외곽 (임시 명칭)", bg: "storage", width: 1280, safe: false,
@@ -110,12 +139,12 @@ AU.MAPS = {
 };
 /* 대륙 지도: 이름은 아직 정해지지 않음(미정). 열리지 않은 권역은 이름 대신 방향만 보여 줌(스포일러 방지). maps는 지역 지도 id */
 AU.WORLD_REGIONS = [
-  { id: "south", name: "남부 해안", x: 50, y: 82, open: true, maps: ["forest", "harbor_road", "porto", "docks", "jandari"], desc: "대륙 최남단의 해안 지대입니다. 정보와 상인의 자유 항구도시 포르투 노바가 있습니다." },
+  { id: "south", name: "남부 해안", x: 50, y: 82, open: true, maps: ["forest", "harbor_road", "porto", "docks", "jandari", "general_store", "weapon_store"], desc: "대륙 최남단의 해안 지대입니다. 정보와 상인의 자유 항구도시 포르투 노바가 있습니다." },
   { id: "west", name: "서부", x: 20, y: 52, open: false, desc: "아직 가 보지 않은 땅입니다. 이야기가 진행되면 길이 열립니다." },
   { id: "north", name: "북부", x: 48, y: 18, open: false, desc: "아직 가 보지 않은 땅입니다. 이야기가 진행되면 길이 열립니다." },
   { id: "east", name: "동부", x: 80, y: 44, open: false, desc: "아직 가 보지 않은 땅입니다. 이야기가 진행되면 길이 열립니다." }
 ];
-AU.AREA_LINKS = [["forest", "harbor_road"], ["harbor_road", "porto"], ["porto", "docks"]];
+AU.AREA_LINKS = [["forest", "harbor_road"], ["harbor_road", "porto"], ["porto", "docks"], ["porto", "general_store"], ["porto", "weapon_store"]];
 
 /* ---------- 적 ---------- */
 // sprite/sw: 정식 그림(assets/monster/*.webp, 투명 배경, 오른쪽을 보는 옆모습 1장)이 있으면 그 그림을 sw(가로 px)로 그리고, 없으면 임시 도형으로 표시합니다.
@@ -125,7 +154,8 @@ AU.MONSTERS = {
   snake: { name: "뱀", lv: 3, hp: 88, atk: 14, speed: 85, chase: 150, w: 90, h: 34, exp: 62, silver: [4, 8], drops: [["snake_skin", 0.5], ["snake_fang", 0.16], ["potion", 0.1], ["snake_ring", 0.015]], color: "#7DBE6B", snake: true, sprite: "mon_snake", sw: 128 },
   rat:   { motion: "pounce", name: "부두 쥐", lv: 5, hp: 144, atk: 21, speed: 100, chase: 160, w: 70, h: 46, exp: 90, silver: [6, 12], drops: [["rat_tooth", 0.55, 1, 2], ["potion", 0.12]], color: "#A79C94", ear: true, sprite: "mon_rat", sw: 88 },
   crab:  { name: "집게 게", lv: 8, hp: 272, atk: 36, speed: 60, chase: 150, w: 92, h: 56, exp: 132, silver: [10, 18], drops: [["crab_claw", 0.5, 1, 2], ["crab_shell", 0.2], ["potion", 0.15], ["crab_vest", 0.015]], color: "#E9777A", crab: true, sprite: "mon_crab", sw: 116 },
-  trial_boss: { name: "시험 대상 (임시)", lv: 10, hp: 700, atk: 40, speed: 75, chase: 420, w: 190, h: 150, exp: 600, silver: [60, 80], drops: [], color: "#9B7FD1", boss: true }
+  trial_boss: { name: "움브라", lv: 10, hp: 700, atk: 40, speed: 75, chase: 420, w: 240, h: 150, exp: 600, silver: [60, 80], drops: [], color: "#9B7FD1", boss: true, motion: "swing",
+    sprite: "mon_umbra_base", sw: 300, refW: 345, poses: { idle: "mon_umbra_base", walkA: "mon_umbra_walkA", walkB: "mon_umbra_walkB", windup: "mon_umbra_windup", attack: "mon_umbra_attack", hurt: "mon_umbra_hurt", down: "mon_umbra_down" } }
 };
 
 /* ---------- 아이템 ---------- */
@@ -283,9 +313,9 @@ AU.QUESTS = {
   },
   q_job: {
     title: "전직 시험 (임시)", type: "main", giver: "job_npc", minLevel: 10, pre: [],
-    area: "docks", desc: "선창 외곽에 나타나는 시험 대상을 처치합니다. 정식 전직 이벤트는 스토리 자료가 오면 교체합니다. (TODO)",
+    area: "docks", desc: "선창 외곽에 나타나는 움브라를 처치합니다. 정식 전직 이벤트는 스토리 자료가 오면 교체합니다. (TODO)",
     objectives: [{ kind: "kill", target: "trial_boss", count: 1 }],
-    offer: ["10레벨이 되었군요. 전직 시험을 치르겠습니까? 선창 외곽에 시험 대상이 나타납니다.", "(임시 이벤트입니다. 정식 전직 이벤트는 스토리 담당자가 정합니다.)"],
+    offer: ["10레벨이 되었군요. 전직 시험을 치르겠습니까? 선창 외곽에 움브라가 나타납니다.", "(임시 이벤트입니다. 정식 전직 이벤트는 스토리 담당자가 정합니다.)"],
     done: ["시험을 통과했습니다. 이제 전사의 길로 들어섭니다."],
     reward: { exp: 0, silver: 100, items: [] },
     jobChange: "warrior"
@@ -304,6 +334,8 @@ AU.NPCS = {
     idle: ["선창 길드입니다. 의뢰가 필요하면 말씀하세요.", "오늘은 부두가 조용하군요."] },
   job_npc: { name: "전직 담당 (임시)", sprite: "smith", portrait: "pt_smith", quests: ["q_job"],
     idle: ["10레벨이 되면 다시 오세요.", "준비가 되면 말을 걸어 주세요."] },
+  porto_armor: { name: "방어구 상인 (임시)", sprite: "porto_armor", portrait: "pt_porto_armor", quests: [],
+    idle: ["방어구는 몸에 맞는 게 제일이에요. 천천히 구경하세요.", "무기점 주인이 망치를 잡으면 저는 갑옷을 손봅니다."] },
   porto_general: { name: "잡화상인 (임시)", sprite: "porto_general", portrait: "pt_porto_general", shop: "general",
     idle: ["어서 오세요. 모험에서 주워 온 재료, 제가 사들입니다.", "회복약도 있어요. 필요하면 말씀하세요."] },
   porto_smith: { name: "무기상인 (임시)", sprite: "porto_smith", portrait: "pt_porto_smith", shop: "smith",
