@@ -418,7 +418,7 @@ AU.QUESTS = {
 AU.NPCS = {
   porto_dock: { name: "니코스", sprite: "villager_a", portrait: "pt_villager_a", quests: ["q_s1_silver"],
     idle: ["쇳조각 얘기는 잔다리 골목의 정보상이 밝지. 은화는 챙겨 가게.", "부두는 새벽부터 바쁘다네."] },
-  arche_guide: { name: "엘레니", sprite: "villager_a", portrait: "pt_villager_a", quests: [],
+  arche_guide: { name: "엘레니", title: "주민", sprite: "villager_a", portrait: "pt_villager_a", quests: [],
     idle: ["오늘도 평화로운 마을이에요.", "다친 곳은 없나요? 쉬어 가면서 하세요."] },
   porto_foreman: { name: "테오도로스", sprite: "porto_foreman", portrait: "pt_porto_foreman", quests: ["q_s1_test", "q_first", "q_forest", "q_guild_talk", "q_a1_parcel", "q_a1_traces"],
     idle: ["창고 일은 자네 덕에 한시름 놨네.", "바닷바람이 거세니 몸조심하게."] },
@@ -426,7 +426,7 @@ AU.NPCS = {
     idle: ["선창 길드입니다. 의뢰가 필요하면 말씀하세요.", "오늘은 부두가 조용하군요."] },
   job_npc: { name: "레오니다스", sprite: "smith", portrait: "pt_smith", quests: ["q_job"],
     idle: ["10레벨이 되면 다시 오세요.", "준비가 되면 말을 걸어 주세요."] },
-  porto_armor: { name: "이리스", sprite: "porto_armor", portrait: "pt_porto_armor", quests: [],
+  porto_armor: { name: "이리스", title: "점원", sprite: "porto_armor", portrait: "pt_porto_armor", quests: [],
     idle: ["방어구는 몸에 맞는 게 제일이에요. 천천히 구경하세요.", "무기점 주인이 망치를 잡으면 저는 갑옷을 손봅니다."] },
   porto_general: { name: "페넬로페", sprite: "porto_general", portrait: "pt_porto_general", shop: "general",
     idle: ["어서 오세요. 모험에서 주워 온 재료, 제가 사들입니다.", "회복약도 있어요. 필요하면 말씀하세요."] },

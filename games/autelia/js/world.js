@@ -497,15 +497,15 @@ window.AU = window.AU || {};
       if (id === "job_npc") return { t: "전직", c: "#B04A4A", bg: "rgba(110,36,36,.78)" };
       if (d.special === "missionGuide") return { t: "안내", c: "#2F8F83", bg: "rgba(20,84,78,.78)" };
       if ((d.quests || []).length) return { t: "의뢰", c: "#3F6FB5", bg: "rgba(28,56,110,.78)" };
-      return null;
+      return { t: d.title || "주민", c: "#7A7A72", bg: "rgba(62,62,58,.78)", plain: true };
     },
     drawNpcOverlay(ctx, n) { // 이름표·퀘스트 표시: 계산대 등 전경 조각보다 위에 그려 가려지지 않게 함
       const d = AU.NPCS[n.id], y = n.npcY || GROUND;
-      const role = this.npcRole(n.id), far = Math.abs(this.player.x - n.x) > 80, st = this.npcStyle || "";
+      const role = this.npcRole(n.id), far = Math.abs(this.player.x - n.x) > 80, st = "C";
       if (st === "C" && role) { ctx.save(); ctx.globalAlpha = .55; ctx.strokeStyle = role.c; ctx.lineWidth = 4; ctx.beginPath(); ctx.ellipse(n.x, y + 2, 38, 9, 0, 0, 7); ctx.stroke(); ctx.restore(); }
       if (far) {
         if (st === "A" && role) this.nameTag(ctx, role.t + " · " + d.name, n.x, y + 17, role.bg);
-        else if (st === "C" && role) this.nameTag(ctx, d.name, n.x, y + 17, role.bg);
+        else if (st === "C" && role) this.nameTag(ctx, role.plain ? role.t + " · " + d.name : d.name, n.x, y + 17, role.bg);
         else this.nameTag(ctx, d.name, n.x, y + 17);
       }
       if (st === "B" && role) { const by = y - 172; ctx.font = "700 13px 'Noto Sans KR', sans-serif"; const w = ctx.measureText(role.t).width + 16; ctx.save(); ctx.fillStyle = role.c; ctx.strokeStyle = "#FFFFFF"; ctx.lineWidth = 2; this.rr(ctx, n.x - w / 2, by - 11, w, 22, 6); ctx.fill(); ctx.stroke(); ctx.fillStyle = "#FFFFFF"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(role.t, n.x, by + 1); ctx.restore(); }
