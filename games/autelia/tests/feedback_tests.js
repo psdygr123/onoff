@@ -52,7 +52,7 @@ const note = (id, name, ok, ev) => { ok ? pass++ : fail++; console.log((ok ? 'PA
   await ev(() => { const S = AU.G.S; S.level = 8; S.quests.q_first = { state: 'done', prog: [3] }; S.quests.q_forest = { state: 'done', prog: [5] }; S.quests.q_guild_talk = { state: 'done', prog: [1] }; S.quests.q_guild_rats = { state: 'done', prog: [8] }; delete S.quests.q_first.state; S.quests.q_first.state = 'done'; AU.G.startQuest('q_guild_crabs'); AU.G.startQuest('q_job'); S.level = 10; AU.G.startQuest('q_job'); S.quests.q_guild_crabs = { state: 'ready', prog: [5] }; });
   await sleep(500);
   const tr2 = await ev(() => ({ t: document.querySelector('.tracker').innerText, n: document.querySelectorAll('.tracker .tq').length }));
-  note('D4', '퀘스트 2개(집게 게 완료·전직 시험 진행)가 동시에 보임', tr2.n >= 2 && /집게 게 퇴치/.test(tr2.t) && /전직 시험/.test(tr2.t) && /의뢰인에게 돌아가기: 선창 길드 접수/.test(tr2.t) && /선창 외곽 방향|이 지역/.test(tr2.t), tr2.t.replace(/\n/g, ' / '));
+  note('D4', '퀘스트 2개(집게 게 완료·전직 시험 진행)가 동시에 보임', tr2.n >= 2 && /집게 게 퇴치/.test(tr2.t) && /전직 시험/.test(tr2.t) && /의뢰인에게 돌아가기: 다프네/.test(tr2.t) && /선창 외곽 방향|이 지역/.test(tr2.t), tr2.t.replace(/\n/g, ' / '));
   await ev(() => { AU.G.S.level = 5; });
   await sleep(300);
   const kh2 = await ev(() => getComputedStyle(document.querySelector('.keyhint')).display);

@@ -16,7 +16,7 @@ window.AU = window.AU || {};
   }
   const btn = (label, cls, fn, extra) => h("button", Object.assign({ type: "button", class: "btn " + (cls || ""), onclick: fn }, extra || {}), label);
   const WIN_KEYS = { inventory: "inventory", equipment: "equipment", stats: "stats", worldmap: "worldmap", quests: "quests", skills: "skills", journal: "journal", help: "help", keysettings: "keysettings" };
-  const WIN_TITLE = { inventory: "인벤토리", equipment: "장비", stats: "스탯", worldmap: "월드맵", quests: "퀘스트", skills: "스킬", journal: "모험일지", help: "기능 안내", keysettings: "설정 (소리·키보드)", menu: "메뉴", jobcard: "전직", shop: "상점", dev: "개발 테스트 (임시)" };
+  const WIN_TITLE = { inventory: "인벤토리", equipment: "장비", stats: "스탯", worldmap: "월드맵", quests: "퀘스트", skills: "스킬", journal: "모험일지", help: "기능 안내", keysettings: "설정 (소리·키보드)", menu: "메뉴", jobcard: "전직", shop: "상점", dev: "개발 테스트" };
 
   /* ---------- 키 이름 표시 ---------- */
   AU.keyLabel = function (code) {
@@ -191,7 +191,7 @@ window.AU = window.AU || {};
         this.hud.cache.trk = key; t.innerHTML = ""; this._trkDirs = []; for (const k of Object.keys(this.hud.cache)) if (k.indexOf("trkd") === 0) delete this.hud.cache[k];
         picks.forEach(([id, rec]) => {
           const q = AU.QUESTS[id]; const box = h("div", { class: "tq" }); box.append(h("div", { class: "tt" }, q.title.replace(" (임시)", "")));
-          if (rec.state === "ready") box.append(h("div", { class: "to ok" }, "보고하러 가기: " + AU.NPCS[q.turnIn || q.giver].name.replace(" (임시)", "")));
+          if (rec.state === "ready") box.append(h("div", { class: "to ok" }, ((q.turnIn && q.turnIn !== q.giver) ? "보고하러 가기: " : "의뢰인에게 돌아가기: ") + AU.NPCS[q.turnIn || q.giver].name.replace(" (임시)", "")));
           else q.objectives.forEach((o, i) => box.append(h("div", { class: "to" + (AU.G.objectiveDone(q, rec, i) ? " ok" : "") }, this.objText(o, rec, i))));
           const dir = h("div", { class: "td" }); box.append(dir); this._trkDirs.push({ el: dir, id }); t.append(box);
         });
@@ -378,7 +378,7 @@ window.AU = window.AU || {};
       btn("게임으로 돌아가기", "primary", () => this.close()),
       btn("게임 종료하기", "", () => this.confirm("정말로 종료하겠습니까?\n현재까지 게임을 저장합니다.", "저장하고 종료", () => AU.main.exitGame())));
     b.append(row);
-    b.append(h("p", { class: "note", text: "저장 위치: 이 브라우저(" + (AU.Store.persistent ? "로컬 저장소" : "임시 메모리: 접속 종료 시 사라짐") + ") · 마지막 저장: " + (S.savedAt ? new Date(S.savedAt).toLocaleTimeString("ko-KR") : "없음") + " · 버전 " + AU.VERSION }));
+    b.append(h("p", { class: "note", text: "저장 위치: 이 브라우저(" + (AU.Store.persistent ? "로컬 저장소" : "저장 공간을 쓸 수 없어 접속을 종료하면 사라집니다") + ") · 마지막 저장: " + (S.savedAt ? new Date(S.savedAt).toLocaleTimeString("ko-KR") : "없음") + " · 버전 " + AU.VERSION }));
   };
 
   // 제작 탭: 재료와 은화로 장비를 만듦(마을에서만)

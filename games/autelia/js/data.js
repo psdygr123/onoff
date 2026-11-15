@@ -59,7 +59,7 @@ AU.MAPS = {
     portals: [{ x: 2420, to: "forest", toX: 90, label: "숲길" }],
     npcs: [{ id: "arche_guide", x: 620 }],
     spawns: [], start: 300,
-    area: { x: 16, y: 64, desc: "주인공이 살던 마을입니다. 정식 지역 설명은 스토리 자료가 오면 넣습니다. (TODO)" }
+    area: { x: 16, y: 64, desc: "주인공이 살던 산골 마을입니다. 모험이 시작되는 곳입니다." }
   },
   forest: {
     name: "숲길", bg: "forest_road", width: 3000, safe: false,
@@ -206,8 +206,8 @@ AU.JOB_LINES = [
 ];
 AU.JOB_TIERS = [
   { level: 10, name: "1차 전직: 전사" },
-  { level: 30, name: "2차 전직 (미정)" },
-  { level: 50, name: "3차 전직 (미정)" }
+  { level: 30, name: "2차 전직 (준비 중)" },
+  { level: 50, name: "3차 전직 (준비 중)" }
 ];
 
 /* ---------- 스킬 (전사, 임시) ---------- */
