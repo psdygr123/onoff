@@ -47,7 +47,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await p.screenshot({ path: SH + 'perma_result.png' });
   // 사후 + 비교
   await ev(() => { const s = AU.SCALES.perma_ko; s.items.forEach((i, k) => AU.Survey.setAnswer('perma', 'check', i.itemId, [7, 6, 9, 2, 7, 9, 5, 10, 4, 7, 1, 8, 7, 0, 6, 2, 9, 8, 8, 5, 7, 10, 6][k])); AU.Survey.submit('perma', 'check'); });
-  await openRecord(); await p.click('[data-scale="perma"] .svh [data-act="result"]'); await sleep(150);
+  await openRecord(); await ev(() => { AU.UI.survey.key = 'perma'; AU.UI.survey.phase = 'check'; AU.UI.survey.subId = null; AU.UI.survey.view = 'result'; AU.UI.renderWin(); }); await sleep(150);
   const cmp = await ev(() => ({ prev: document.querySelectorAll('.svbar .prev').length, bd: document.querySelector('.svbar[data-perma="P"] .bd').textContent, txt: document.querySelector('.svbox').textContent }));
   note('P12', '시작 전 대비: 이전 표식 5개, 차이 표시, 판정 문구 없음', cmp.prev === 5 && /이전/.test(cmp.bd) && !/호전|악화/.test(cmp.txt), cmp.bd);
   await p.screenshot({ path: SH + 'perma_compare.png' });

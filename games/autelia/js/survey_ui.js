@@ -71,13 +71,7 @@ window.AU = window.AU || {};
         btn(n ? "이어서 하기" : hist.length ? "다시 해보기" : "처음 해보기", "mini primary", () => { state.key = key; state.phase = "check"; state.subId = null; state.view = n ? "form" : "intro"; rerender(); }, { "data-act": "start" })));
       if (hist.length) {
         sec.append(hist.length > 1 ? trendView(key, hist, rerender) : h("p", { class: "note", text: "한 번 더 기록하면 변화 그래프가 그려집니다. 점을 누르면 그날의 메모와 그 사이 한 미션 수를 볼 수 있습니다." }));
-        const lst = h("div", { class: "svhist" });
-        hist.slice().reverse().forEach((sub, i) => {
-          const c = sub.scores, txt = key === "pss" ? "부정 " + c.negSum + " · 긍정 " + c.posRawSum : "PERMA " + f1(c.permaMean15);
-          lst.append(h("div", { class: "svh", "data-sub": sub.submissionId }, h("span", { text: fmtDate(sub.submittedAt) }), h("b", { text: txt }), h("span", { class: "grow" }),
-            btn("보기", "mini", () => { state.key = key; state.phase = "check"; state.subId = sub.submissionId; state.view = "result"; rerender(); }, { "data-act": "result" })));
-        });
-        sec.append(lst);
+
       }
       v.append(sec);
     }

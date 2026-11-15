@@ -63,7 +63,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   note('S13', '범위 밖·정수 아님·없는 문항 거부, 미완료 제출 거부', bad.a === false && bad.b === false && bad.c === false && bad.d === 'incomplete', JSON.stringify(bad));
   // 사후 설문 + 비교
   await ev(() => { for (let n = 1; n <= 10; n++) AU.Survey.setAnswer('pss', 'check', 'pss10_' + String(n).padStart(2, '0'), 2); AU.Survey.submit('pss', 'check'); });
-  await ev(() => { AU.UI.survey.view = 'list'; AU.UI.survey.phase = null; }); await openRecord(); await p.click('[data-scale="pss"] .svh [data-act="result"]'); await sleep(150);
+  await ev(() => { AU.UI.survey.view = 'list'; AU.UI.survey.phase = null; }); await openRecord(); await ev(() => { AU.UI.survey.key = 'pss'; AU.UI.survey.phase = 'check'; AU.UI.survey.subId = null; AU.UI.survey.view = 'result'; AU.UI.renderWin(); }); await sleep(150);
   const cmpTxt = await p.textContent('.svcmp');
   const post = await ev(() => AU.Survey.load().submissions.find((s) => s.phase === 'check' && s.scores.total === 20).scores);
   note('S14', '시작 전 대비 변화 표시(같은 버전끼리, 판정 문구 없음)', /부정적 지각/.test(cmpTxt) && post.total === 20 && !/호전|악화|위험|정상/.test(cmpTxt), cmpTxt.slice(0, 80));
