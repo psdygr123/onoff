@@ -22,6 +22,86 @@ AU.ASSETS = {
   porto_foreman: { path: "assets/char/porto_foreman.webp" },
   general_store: { path: "assets/bg/general_store.webp" },
   weapon_store: { path: "assets/bg/weapon_store.webp" },
+  guild_hall: { path: "assets/bg/guild_hall.webp" },
+  warehouse: { path: "assets/bg/warehouse.webp" },
+  mon_umbra_base: { path: "assets/monster/umbra_base.webp", optional: true },
+  mon_umbra_walkA: { path: "assets/monster/umbra_walkA.webp", optional: true },
+  mon_umbra_walkB: { path: "assets/monster/umbra_walkB.webp", optional: true },
+  mon_umbra_windup: { path: "assets/monster/umbra_windup.webp", optional: true },
+  mon_umbra_attack: { path: "assets/monster/umbra_attack.webp", optional: true },
+  mon_umbra_hurt: { path: "assets/monster/umbra_hurt.webp", optional: true },
+  mon_umbra_down: { path: "assets/monster/umbra_down.webp", optional: true },
+  ob_rock_s: { path: "assets/object/rock_s.webp", optional: true }, ob_rock_m: { path: "assets/object/rock_m.webp", optional: true }, ob_rock_big: { path: "assets/object/rock_big.webp", optional: true }, ob_rock_tall: { path: "assets/object/rock_tall.webp", optional: true }, ob_rock_low: { path: "assets/object/rock_low.webp", optional: true },
+  ob_fence_broken: { path: "assets/object/fence_broken.webp", optional: true }, ob_fence_fixed: { path: "assets/object/fence_fixed.webp", optional: true },
+  ob_trace_stain: { path: "assets/object/trace_stain.webp", optional: true }, ob_trace_crate: { path: "assets/object/trace_crate.webp", optional: true }, it_guild_parcel: { path: "assets/object/guild_parcel.webp", optional: true },
+  job_warrior: { path: "assets/job/warrior.webp", optional: true }, job_mage: { path: "assets/job/mage.webp", optional: true }, job_archer: { path: "assets/job/archer.webp", optional: true }, job_rogue: { path: "assets/job/rogue.webp", optional: true }, job_pirate: { path: "assets/job/pirate.webp", optional: true },
+  mon_fox:   { path: "assets/monster/fox.webp", optional: true },
+  mon_snake: { path: "assets/monster/snake.webp", optional: true },
+  mon_rat:   { path: "assets/monster/rat.webp", optional: true },
+  mon_crab:  { path: "assets/monster/crab.webp", optional: true },
+  pt_player_male: { path: "assets/portrait/player_male.webp" },
+  pt_player_female: { path: "assets/portrait/player_female.webp" },
+  pt_villager_a: { path: "assets/portrait/villager_a.webp" },
+  pt_villager_b: { path: "assets/portrait/villager_b.webp" },
+  pt_smith:      { path: "assets/portrait/smith.webp" },
+  pt_baker:      { path: "assets/portrait/baker.webp" },
+  pt_porto_general: { path: "assets/portrait/porto_general.webp" },
+  pt_porto_smith: { path: "assets/portrait/porto_smith.webp" },
+  pt_porto_armor: { path: "assets/portrait/porto_armor.webp" },
+  pt_porto_foreman: { path: "assets/portrait/porto_foreman.webp" }
+};
+
+/* ---------- 맵 ---------- */
+// 지역 이름은 요청서에 나온 아르케아·포르투 노바만 확정. 나머지 이름은 임시 일반 명칭입니다(TODO).
+AU.MAPS = {
+  arche: {
+    // 프롤로그 이후 이야기에서 아르케아는 습격으로 파괴된 마을이라 신규 플레이어는 갈 수 없음. 기존(프롤로그 이전) 저장을 위해 데이터는 유지.
+    name: "아르케아 마을", bg: "plaza", width: 2484, safe: true, hidden: true,
+    platforms: [{ x: 0, y: 590, w: 2484 }], ropes: [],
+    portals: [{ x: 2420, to: "forest", toX: 90, label: "숲길" }],
+    npcs: [{ id: "arche_guide", x: 620 }],
+    spawns: [], start: 300,
+    area: { x: 16, y: 64, desc: "주인공이 살던 산골 마을입니다. 모험이 시작되는 곳입니다." }
+  },
+  forest: {
+    name: "숲길", bg: "forest_road", width: 3000, safe: false,
+    // 발판·밧줄 위치는 이전 시제품의 숲길 그림에 맞춘 값을 그대로 사용
+    platforms: [{ x: 0, y: 590, w: 3000 }, { x: 620, y: 542, w: 130, h: 48, img: "ob_rock_s" }, { x: 900, y: 520, w: 190, h: 70, img: "ob_rock_m" },
+                { x: 1350, y: 390, w: 650, h: 200, img: "ob_rock_big" }, { x: 2000, y: 460, w: 80, h: 130, img: "ob_rock_tall" }, { x: 2085, y: 530, w: 120, h: 60, img: "ob_rock_low" }], // h가 있으면 옆이 막힌 단단한 바위·턱(img: 눈에 보이는 바위 그림)
+    ropes: [{ x: 1315, top: 370, bottom: 590 }],
+    portals: [{ x: 2950, to: "harbor_road", toX: 90, label: "항구 길" }],
+    npcs: [],
+    spawns: [
+      { type: "fox", x: 520 }, { type: "fox", x: 880 }, { type: "fox", x: 1250 }, { type: "fox", x: 1600, y: 390, min: 1370, max: 1990 },
+      { type: "fox", x: 1850, y: 390, min: 1370, max: 1990 }, { type: "fox", x: 2200 }, { type: "snake", x: 2450 }, { type: "snake", x: 2750 }
+    ],
+    area: { x: 36, y: 46, desc: "마을과 항구를 잇는 길입니다. 들짐승이 자주 나옵니다." }
+  },
+  harbor_road: {
+    name: "항구 길", bg: "harbor_road", width: 2450, safe: false,
+    platforms: [{ x: 0, y: 590, w: 2450 }], ropes: [],
+    portals: [{ x: 50, to: "forest", toX: 2860, label: "숲길" }, { x: 2400, to: "porto", toX: 90, label: "포르투 노바" }],
+    npcs: [],
+    spawns: [
+      { type: "snake", x: 600 }, { type: "rat", x: 900 }, { type: "rat", x: 1200 }, { type: "rat", x: 1500 },
+      { type: "snake", x: 1750 }, { type: "fox", x: 2000 }, { type: "fox", x: 2250 }
+    ],
+    area: { x: 58, y: 56, desc: "포르투 노바로 이어지는 바닷가 길입니다." }
+  },
+  porto: {
+    name: "포르투 노바", bg: "harbor", width: 2689, safe: true,
+    platforms: [{ x: 0, y: 590, w: 2689 }], ropes: [],
+    portals: [{ x: 40, to: "harbor_road", toX: 2330, label: "항구 길" }, { x: 1560, to: "docks", toX: 90, label: "선창 외곽" }, { x: 700, to: "general_store", toX: 90, label: "해풍 잡화점" }, { x: 1060, to: "weapon_store", toX: 90, label: "철파도 무기점" },
+              { x: 1736, to: "guild_hall", toX: 110, label: "선창 길드" }, { x: 2080, to: "warehouse", toX: 110, label: "부두 창고" }],
+    npcs: [{ id: "porto_dock", x: 330 }, { id: "job_npc", x: 900 }, { id: "guide_npc", x: 1250 }],
+    spots: [],
+    spawns: [], start: 160,
+    area: { x: 78, y: 40, desc: "중립 항구도시입니다. 선창 길드와 부두 창고, 상점이 모여 있습니다." }
+  },
+  general_store: { path: "assets/bg/general_store.webp" },
+  weapon_store: { path: "assets/bg/weapon_store.webp" },
+  guild_hall: { path: "assets/bg/guild_hall.webp" },
+  warehouse: { path: "assets/bg/warehouse.webp" },
   mon_umbra_base: { path: "assets/monster/umbra_base.webp", optional: true },
   mon_umbra_walkA: { path: "assets/monster/umbra_walkA.webp", optional: true },
   mon_umbra_walkB: { path: "assets/monster/umbra_walkB.webp", optional: true },
@@ -117,6 +197,32 @@ AU.MAPS = {
     spots: [], spawns: [], start: 200,
     area: { x: 82, y: 36, desc: "포르투 노바의 무기점입니다. 장비를 제작하고 방어구 상인과 이야기할 수 있습니다." }
   },
+  guild_hall: {
+    name: "선창 길드", bg: "guild_hall", width: 1280, safe: true, interior: true, parent: "porto",
+    platforms: [{ x: 0, y: 590, w: 1280 }], ropes: [],
+    portals: [{ x: 100, to: "porto", toX: 1736, label: "나가기" }],
+    npcs: [{ id: "porto_foreman", x: 840 }, { id: "porto_guild", x: 1120, npcY: 505 }],
+    fgSlice: [975, 425, 305, 165],   // 접수 카운터: 접수원보다 앞에 다시 그려 카운터 뒤에 서 있게 함
+    spots: [
+      { id: "bench_a", img: "", x: 290, kind: "repair", label: "재단 작업대", done: "나무 결을 읽어 판자를 알맞은 길이로 잘라 냈습니다." },
+      { id: "bench_b", img: "", x: 480, kind: "repair", label: "조립 작업대", done: "잘라 낸 판자를 짜 맞추고 쇠못으로 고정했습니다." },
+      { id: "bench_c", img: "", x: 690, kind: "repair", label: "마감 작업대", done: "대패로 모서리를 다듬고 기름을 먹였습니다." }
+    ],
+    spawns: [], start: 220,
+    area: { x: 80, y: 30, desc: "선창 길드의 본관입니다. 의뢰를 받고 목공 시험을 치릅니다." }
+  },
+  warehouse: {
+    name: "부두 창고", bg: "warehouse", width: 1280, safe: true, interior: true, parent: "porto",
+    platforms: [{ x: 0, y: 590, w: 1280 }], ropes: [],
+    portals: [{ x: 100, to: "porto", toX: 2080, label: "나가기" }],
+    npcs: [],
+    spots: [
+      { id: "trace_stain", img: "ob_trace_stain", x: 560, kind: "investigate", label: "바위틈의 검은 얼룩", lines: ["바위틈에 말라붙은 검은 얼룩이 있습니다. 바닷물에도 씻기지 않은 듯 끈적하게 굳어 있습니다.", "짐승이 지나간 자리마다 이 얼룩이 남아 있습니다. 어둠의 기운이 짐승의 몸을 거쳐 흘러나온 흔적처럼 보입니다."] },
+      { id: "trace_crate", img: "ob_trace_crate", x: 1140, kind: "investigate", label: "부서진 짐 상자", lines: ["부서진 짐 상자의 옆면에 불도장이 찍혀 있습니다. 파도 같은 물결무늬입니다.", "어디선가 본 듯한 모양입니다. 상자 안은 비어 있지만 바닥에 검은 가루가 남아 있습니다."] }
+    ],
+    spawns: [], start: 220,
+    area: { x: 84, y: 34, desc: "부두 옆의 큰 창고입니다. 최근 이상한 흔적이 남는다는 소문이 있습니다." }
+  },
   docks: {
     name: "선창 외곽", bg: "storage", width: 1280, safe: false,
     // thin: 위에 올라설 수 있고 ↓+점프로 내려올 수 있는 얇은 발판(임시 그래픽)
@@ -126,11 +232,6 @@ AU.MAPS = {
     npcs: [],
     // 조사·수리 지점: 해당 목표가 진행 중일 때만 표시됩니다(kind: repair=목공 수리 / investigate=조사)
     spots: [
-      { id: "fence_a", img: "fence", x: 200, kind: "repair", label: "무너진 방책", done: "방책 기둥을 새로 세워 박았습니다." },
-      { id: "fence_b", img: "fence", x: 650, kind: "repair", label: "쪼개진 방책", done: "쪼개진 판자를 갈아 끼웠습니다." },
-      { id: "fence_c", img: "fence", x: 1000, kind: "repair", label: "기울어진 방책", done: "기울어진 기둥을 바로 세웠습니다." },
-      { id: "trace_stain", img: "ob_trace_stain", x: 440, kind: "investigate", label: "바위틈의 검은 얼룩", lines: ["바위틈에 말라붙은 검은 얼룩이 있습니다. 바닷물에도 씻기지 않은 듯 끈적하게 굳어 있습니다.", "짐승이 지나간 자리마다 이 얼룩이 남아 있습니다. 어둠의 기운이 짐승의 몸을 거쳐 흘러나온 흔적처럼 보입니다."] },
-      { id: "trace_crate", img: "ob_trace_crate", x: 1130, kind: "investigate", label: "부서진 짐 상자", lines: ["부서진 짐 상자의 옆면에 불도장이 찍혀 있습니다. 파도 같은 물결무늬입니다.", "어디선가 본 듯한 모양입니다. 상자 안은 비어 있지만 바닥에 검은 가루가 남아 있습니다."] }
     ],
     spawns: [{ type: "crab", x: 360 }, { type: "crab", x: 600 }, { type: "rat", x: 820 }, { type: "crab", x: 1060 }],
     boss: { type: "trial_boss", x: 980 },     // 전직 시험 중에만 등장
@@ -139,12 +240,12 @@ AU.MAPS = {
 };
 /* 대륙 지도: 이름은 아직 정해지지 않음(미정). 열리지 않은 권역은 이름 대신 방향만 보여 줌(스포일러 방지). maps는 지역 지도 id */
 AU.WORLD_REGIONS = [
-  { id: "south", name: "남부 해안", x: 50, y: 82, open: true, maps: ["forest", "harbor_road", "porto", "docks", "jandari", "general_store", "weapon_store"], desc: "대륙 최남단의 해안 지대입니다. 정보와 상인의 자유 항구도시 포르투 노바가 있습니다." },
+  { id: "south", name: "남부 해안", x: 50, y: 82, open: true, maps: ["forest", "harbor_road", "porto", "docks", "jandari", "general_store", "weapon_store", "guild_hall", "warehouse"], desc: "대륙 최남단의 해안 지대입니다. 정보와 상인의 자유 항구도시 포르투 노바가 있습니다." },
   { id: "west", name: "서부", x: 20, y: 52, open: false, desc: "아직 가 보지 않은 땅입니다. 이야기가 진행되면 길이 열립니다." },
   { id: "north", name: "북부", x: 48, y: 18, open: false, desc: "아직 가 보지 않은 땅입니다. 이야기가 진행되면 길이 열립니다." },
   { id: "east", name: "동부", x: 80, y: 44, open: false, desc: "아직 가 보지 않은 땅입니다. 이야기가 진행되면 길이 열립니다." }
 ];
-AU.AREA_LINKS = [["forest", "harbor_road"], ["harbor_road", "porto"], ["porto", "docks"], ["porto", "general_store"], ["porto", "weapon_store"]];
+AU.AREA_LINKS = [["forest", "harbor_road"], ["harbor_road", "porto"], ["porto", "docks"], ["porto", "general_store"], ["porto", "weapon_store"], ["porto", "guild_hall"], ["porto", "warehouse"]];
 
 /* ---------- 적 ---------- */
 // sprite/sw: 정식 그림(assets/monster/*.webp, 투명 배경, 오른쪽을 보는 옆모습 1장)이 있으면 그 그림을 sw(가로 px)로 그리고, 없으면 임시 도형으로 표시합니다.
@@ -227,14 +328,14 @@ AU.QUESTS = {
     area: "jandari", desc: "잔다리 골목의 정보상 바르샤를 찾아가 쇳조각의 출처를 묻습니다.", objectives: [{ kind: "talk", target: "barsha" }],
     offer: ["그 쇳조각... 내 눈엔 평범한 쇠가 아니군. 이런 건 잔다리 골목의 정보상 영감이 밝지.", "다만 그 영감은 은화 냄새가 나야 입을 열어. 믿기 어려우면 가서 직접 물어보게. 골목 입구는 이 길 왼쪽 끝일세."],
     reminder: ["잔다리 골목은 이 길 왼쪽 끝에 있네. 영감은 공방 안쪽에 있어."],
-    done: ["거절당했나? 그럴 줄 알았네. 은화부터 벌어야 하는 게 이 도시의 법이거든.", "손재주 있는 일꾼을 찾는 곳이 있네. 선창 길드 십장을 찾아가 보게. 부두 오른쪽 끝에 있다네."],
+    done: ["거절당했나? 그럴 줄 알았네. 은화부터 벌어야 하는 게 이 도시의 법이거든.", "손재주 있는 일꾼을 찾는 곳이 있네. 선창 길드 십장 테오도로스를 찾아가 보게. 부두 안쪽의 닻 깃발 달린 건물이 길드일세."],
     reward: { exp: 20, silver: 0, items: [] }
   },
   q_s1_test: {
     title: "길드의 시험", type: "main", giver: "porto_foreman", minLevel: 1, pre: ["q_s1_silver"],
-    area: "porto", desc: "부두에 방치된 고기잡이배 두 곳을 목공으로 고칩니다.", objectives: [{ kind: "repair", targets: ["boat_a", "boat_b"] }],
-    offer: ["이봐, 신참. 여긴 남의 집 땔감이나 팰 풋내기가 올 곳이 아니야.", "정 일하고 싶다면 손재주부터 보여 보게. 부두 양끝에 쪼개진 고기잡이배가 있네. 고쳐 놓으면 얘기를 들어 주지."],
-    reminder: ["배에 다가가 {interact}를 누르고 있으면 수리하네. 뱃바닥과 뱃전, 두 곳일세."],
+    area: "guild_hall", desc: "선창 길드 안의 작업대 세 곳(재단·조립·마감)에서 목공 솜씨를 보입니다.", objectives: [{ kind: "repair", targets: ["bench_a", "bench_b", "bench_c"] }],
+    offer: ["이봐, 신참. 여긴 남의 집 땔감이나 팰 풋내기가 올 곳이 아니야.", "정 일하고 싶다면 손재주부터 보여 보게. 저기 작업대 세 개가 보이지? 재단, 조립, 마감 순서대로 한 번씩 손을 대 보게. 제대로 하면 얘기를 들어 주지."],
+    reminder: ["작업대에 다가가 {interact}를 누르고 있으면 작업하네. 재단, 조립, 마감 세 곳일세."],
     done: ["...나무 결을 볼 줄 아는 놈이군. 제대로 배운 손이야.", "창고 구석의 이 검을 빌려주지. 값은 보수에서 깎을 걸세. 이제 일을 맡겨도 되겠어."],
     reward: { exp: 120, silver: 30, items: [["sword_a", 1]] }
   },
@@ -276,17 +377,8 @@ AU.QUESTS = {
     done: ["수고하셨습니다. 이번 보수입니다."],
     reward: { exp: 1200, silver: 200, items: [] }
   },
-  q_a1_fence: {
-    title: "방책 수리", type: "main", giver: "porto_foreman", minLevel: 4, pre: ["q_guild_talk"],
-    area: "docks", desc: "선창 외곽의 무너진 방책 세 곳을 고치고, 기어드는 게를 4마리 쫓아냅니다.",
-    objectives: [{ kind: "repair", targets: ["fence_a", "fence_b", "fence_c"] }, { kind: "kill", target: "crab", count: 4 }],
-    offer: ["...나무 결을 볼 줄 아는 눈이군. 연장을 다루는 손이 제대로 배운 손이야.", "선창 외곽의 방책이 여기저기 부서졌네. 고치면서 기어드는 게도 쫓아내 주게. 보수는 세 배로 쳐주지."],
-    reminder: ["방책에 다가가 {interact}를 누르고 있으면 수리합니다. 게는 방책을 갉아먹으니 보이는 대로 쫓아내게."],
-    done: ["방책이 말끔하군. 못 박는 소리가 일정한 게 마음에 들어.", "약속한 보수일세. 받아 가게."],
-    reward: { exp: 900, silver: 180, items: [] }
-  },
   q_a1_parcel: {
-    title: "길드 짐 전하기", type: "sub", giver: "porto_foreman", minLevel: 5, pre: ["q_a1_fence"],
+    title: "길드 짐 전하기", type: "sub", giver: "porto_foreman", minLevel: 5, pre: ["q_guild_talk"],
     desc: "길드 짐 꾸러미를 포르투 노바의 잡화상인에게 전합니다.", startItems: [["guild_parcel", 1]],
     objectives: [{ kind: "deliver", item: "guild_parcel", target: "porto_general" }],
     offer: ["심부름을 하나 부탁하겠네. 이 꾸러미를 잡화상인에게 전해 주게.", "마을 안이니 멀지 않을 걸세."],
@@ -296,11 +388,11 @@ AU.QUESTS = {
     reward: { exp: 250, silver: 50, items: [["potion", 2]] }
   },
   q_a1_traces: {
-    title: "방파제의 흔적", type: "main", giver: "porto_foreman", minLevel: 6, pre: ["q_a1_parcel"],
-    area: "docks", desc: "선창 외곽에서 짐승이 남긴 이상한 흔적 두 곳을 조사하고, 십장에게 알립니다.",
+    title: "창고의 흔적", type: "main", giver: "porto_foreman", minLevel: 6, pre: ["q_a1_parcel"],
+    area: "warehouse", desc: "부두 창고 안에 남은 이상한 흔적 두 곳을 조사하고, 십장에게 알립니다.",
     objectives: [{ kind: "investigate", targets: ["trace_stain", "trace_crate"] }, { kind: "choice", id: "traces", target: "porto_foreman" }],
-    offer: ["요즘 방파제에 이상한 흔적이 남는다는 말이 돌아. 짐승이 지나간 자리라는데, 직접 보고 와 주겠나?", "바위틈과 부서진 짐 상자 쪽일세."],
-    reminder: ["선창 외곽의 바위틈과 부서진 상자를 살펴보고 오게."],
+    offer: ["요즘 부두 창고에 이상한 흔적이 남는다는 말이 돌아. 짐승이 지나간 자리라는데, 직접 보고 와 주겠나?", "창고 안쪽 구석과 부서진 짐 상자 쪽일세. 부두의 큰 목조 창고 말일세."],
+    reminder: ["부두 창고 안쪽 구석과 부서진 상자를 살펴보고 오게."],
     choice: {
       prompt: ["다녀왔나? 뭘 보았는지 말해 보게.", "...듣고 보니 심상치 않군. 이 일을 어떻게 하면 좋겠나?"],
       options: [
@@ -308,7 +400,7 @@ AU.QUESTS = {
         { label: "일단 혼자 알아본다", flag: "alone", reply: ["혼자서 말인가. 위험한 일일세. 그래도 먼저 확인해 보겠다면 말리진 않겠네.", "다만 무슨 일이든 알게 되면 귀띔은 해 주게."] }
       ]
     },
-    done: ["수고했네. 자네 덕에 방파제 일이 한결 분명해졌어."],
+    done: ["수고했네. 자네 덕에 창고 일이 한결 분명해졌어."],
     reward: { exp: 800, silver: 100, items: [] }
   },
   q_job: {
@@ -328,8 +420,8 @@ AU.NPCS = {
     idle: ["쇳조각 얘기는 잔다리 골목의 정보상이 밝지. 은화는 챙겨 가게.", "부두는 새벽부터 바쁘다네."] },
   arche_guide: { name: "엘레니", sprite: "villager_a", portrait: "pt_villager_a", quests: [],
     idle: ["오늘도 평화로운 마을이에요.", "다친 곳은 없나요? 쉬어 가면서 하세요."] },
-  porto_foreman: { name: "테오도로스", sprite: "porto_foreman", portrait: "pt_porto_foreman", quests: ["q_s1_test", "q_first", "q_forest", "q_guild_talk", "q_a1_fence", "q_a1_parcel", "q_a1_traces"],
-    idle: ["방파제는 자네 덕에 한시름 놨네.", "바닷바람이 거세니 몸조심하게."] },
+  porto_foreman: { name: "테오도로스", sprite: "porto_foreman", portrait: "pt_porto_foreman", quests: ["q_s1_test", "q_first", "q_forest", "q_guild_talk", "q_a1_parcel", "q_a1_traces"],
+    idle: ["창고 일은 자네 덕에 한시름 놨네.", "바닷바람이 거세니 몸조심하게."] },
   porto_guild: { name: "다프네", sprite: "villager_b", portrait: "pt_villager_b", quests: ["q_guild_rats", "q_guild_crabs"],
     idle: ["선창 길드입니다. 의뢰가 필요하면 말씀하세요.", "오늘은 부두가 조용하군요."] },
   job_npc: { name: "레오니다스", sprite: "smith", portrait: "pt_smith", quests: ["q_job"],
