@@ -537,13 +537,23 @@ window.AU = window.AU || {};
     return box;
   };
 
+  UI.heroPreview = function (fallback) { // 설정한 외형(성별·머리·조끼·바지 색) 그대로의 전신 모습. 그림이 안 그려지면 초상화로 대체
+    try {
+      const cv = h("canvas", { width: 170, height: 210, class: "herocv", "aria-label": "내 캐릭터 외형" }), ctx = cv.getContext("2d");
+      const pl = { x: 85, y: 200, dir: 1, onGround: true, vy: 0, flash: 0, atkT: 0, rope: false, dead: false };
+      const draw = () => { try { ctx.clearRect(0, 0, 170, 210); ctx.save(); AU.World.drawHeroArt(ctx, pl, 0, false); ctx.restore(); } catch (e) { /* 무시 */ } };
+      draw(); setTimeout(draw, 250); setTimeout(draw, 800);
+      return cv;
+    } catch (e) { return fallback; }
+  };
+
   R.stats = function (b) {
     const S = AU.G.S, P = UI.pending, pend = Object.values(P).reduce((a, c) => a + c, 0), pool = AU.G.pool(), left = pool - pend;
     const tot = {}; for (const k of Object.keys(S.stats)) tot[k] = AU.statTotal(S, k) + P[k];
     const d0 = AU.G.d(), d1 = AU.derive(S, { stats: tot });
     const NAMES = { STR: ["근력", "공격력"], VIT: ["체력", "최대 HP"], AGI: ["민첩", "회피"], DEX: ["기교", "치명타"], WIL: ["의지", "스킬 피로 효율"] };
     const pk = AU.Profile.portraitKey(), pt = AU.Img.has(pk) ? h("img", { src: AU.ASSETS[pk].path, alt: "" }) : h("div", { class: "ptfallback", text: "나" });
-    const left1 = h("div", { class: "statchar" }, h("div", { class: "pt" }, pt), h("div", { class: "cname", text: "모험가" }), h("div", { class: "clv", text: "Lv." + S.level + " · " + AU.jobName(S) }),
+    const left1 = h("div", { class: "statchar" }, h("div", { class: "pt hero" }, UI.heroPreview(pt)), h("div", { class: "cname", text: AU.Profile.name() || "모험가" }), h("div", { class: "clv", text: "Lv." + S.level + " · " + AU.jobName(S) }),
       h("div", { class: "ptbox" }, h("div", { class: "ptrow" }, h("span", { text: "레벨 포인트" }), h("b", { text: S.freePoints })), h("div", { class: "ptrow" }, h("span", { text: "훈련 포인트" }), h("b", { text: S.trainingPoints })), h("div", { class: "ptrow big" }, h("span", { text: "분배 가능" }), h("b", { text: left }))),
       h("div", { class: "tiers" }, AU.JOB_TIERS.map((t) => h("div", { class: "tier" + (S.level >= t.level ? " reach" : "") }, h("b", { text: "Lv." + t.level }), h("span", { text: t.name })))));
     const rows = h("div", { class: "statrows" });
