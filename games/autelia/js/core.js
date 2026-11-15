@@ -56,6 +56,7 @@ window.AU = window.AU || {};
       v: C.save.version, level: 1, exp: 0, job: "apprentice", jobChanged: false,
       stats: Object.assign({}, C.stats.base), alloc: { STR: 0, VIT: 0, AGI: 0, DEX: 0, WIL: 0 },
       freePoints: 0, trainingPoints: 0, gateBand: 0,
+      outfit: { head: null, top: "basic", bottom: "basic", shoes: "basic", cloak: null }, // 옷 변경 준비(착용 중인 외형 아이템 id, 지금은 기본만)
       hp: 1, fatigue: 0, fatigueMax: C.fatigue.max, fatigueWeek: AU.weekId(), rest: { done: {}, log: [], silverToday: { d: "", n: 0 } },
       silver: 0, inv: {}, equip: { weapon: null, armor: null, accessory: null },
       map: "pro_temple", x: AU.MAPS.pro_temple.start, visited: { pro_temple: true },
