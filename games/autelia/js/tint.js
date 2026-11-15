@@ -13,7 +13,8 @@ window.AU = window.AU || {};
     pc_player_m_locomotion: "03_pro_player_m_locomotion", pc_player_f_locomotion: "04_pro_player_f_locomotion",
     pc_player_m_actions: "05_pro_player_m_actions", pc_player_f_actions: "06_pro_player_f_actions", pc_player_m_combat: "12_pro_player_m_combat", pc_player_f_combat: "13_pro_player_f_combat",
     pt_player_male: "07_portrait_player_male", pt_player_female: "08_portrait_player_female",
-    pt_pro_hero_m: "09_pt_pro_hero_m", pt_pro_hero_f: "10_pt_pro_hero_f", pt_pro_hero_m_surprised: "11_pt_pro_hero_m_surprised"
+    pt_pro_hero_m: "09_pt_pro_hero_m", pt_pro_hero_f: "10_pt_pro_hero_f", pt_pro_hero_m_surprised: "11_pt_pro_hero_m_surprised",
+    pc_player_m_work: "14_pro_player_m_work", pc_player_f_work: "15_pro_player_f_work", pc_player_m_bag: "16_pro_player_m_bag"   // 목공·가방 시트(자동 생성 1차 초안)
   };
   /* 색 후보: 첫 칸(null)은 원본색. h=색상(0~360), s=채도, v=밝기 배율. sw=견본 색 */
   const PALETTE = {
