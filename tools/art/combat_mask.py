@@ -23,6 +23,12 @@ for L in range(1, n0 + 1):
     comp = lab0 == L; ys, xs = np.where(comp & sel)
     if len(ys) > 3000 and (ys.max() - ys.min()) > 200: res[comp & (res == 3) & (np.arange(s.shape[0])[:, None] < ys.min() + 0.45 * (ys.max() - ys.min()))] = 0
 pm = ndi.binary_closing(res == 3, iterations=3) & sel & (res != 2); res[pm] = 3
+for L in range(1, n0 + 1):                       # 바지 빈틈 메우기(발목 위까지, 어두운 갈색만)
+    comp = lab0 == L; ys, xs = np.where(comp & sel)
+    if len(ys) > 3000 and (ys.max() - ys.min()) > 200:
+        h0 = ys.max() - ys.min(); rows = np.arange(s.shape[0])[:, None]
+        gm = ndi.binary_closing(res == 3, iterations=16) & comp & sel & (res == 0) & (sat > 0.12) & (mx < 0.8) & (rows < ys.min() + 0.78 * h0) & (rows > ys.min() + 0.45 * h0)
+        res[gm] = 3
 r, gg, b = rgb[..., 0], rgb[..., 1], rgb[..., 2]
 hairlike = sel & (res == 0) & (r > gg) & (gg > b) & (sat > 0.5) & (mx > 0.45) & ((gg - b) / np.maximum(r - b, 1e-6) < 0.75)
 lab, n = ndi.label(ndi.binary_dilation(sel, iterations=4)); 

@@ -467,7 +467,7 @@ window.AU = window.AU || {};
     drawNpc(ctx, n) {
       const d = AU.NPCS[n.id], y = GROUND, face = this.player.x < n.x ? -1 : 1;
       if (!this.sprite(ctx, d.sprite, n.x, y, 150, face, 0)) { ctx.fillStyle = "#C9B8A0"; this.rr(ctx, n.x - 30, y - 130, 60, 130, 20); ctx.fill(); ctx.fillStyle = "#5B4636"; ctx.font = "14px sans-serif"; ctx.textAlign = "center"; ctx.fillText("이미지 없음", n.x, y - 60); }
-      { const dx = Math.abs(this.player.x - n.x); if (dx < 280 && dx > 95) this.nameTag(ctx, d.name, n.x, y + 17); } // 가까이 갈 때만 이름표를 보여 화면을 어지럽히지 않음
+      { const dx = Math.abs(this.player.x - n.x); if (dx > 80) this.nameTag(ctx, d.name, n.x, y + 17); } // 이름표는 상시 표시(주인공과 겹치는 거리에서만 숨김)
       // 퀘스트 표시: 받을 수 있으면 !, 완료 가능하면 ?
       let mark = "";
       for (const id of d.quests || []) { const s = AU.G.questStatus(id); if (s === "ready" && AU.QUESTS[id].giver === n.id) { mark = "?"; break; } if (s === "available" && !mark) mark = "!"; }
