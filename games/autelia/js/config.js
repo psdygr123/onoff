@@ -21,7 +21,7 @@ AU.CONFIG = {
   },
 
   // [임시] 다음 레벨 필요 EXP = round(base × level^exponent). 요청서 6장 제안식
-  exp: { base: 100, exponent: 1.5, maxLevel: 50, killMultiplier: 1 },
+  exp: { base: 150, exponent: 1.8, maxLevel: 50, killMultiplier: 1 },
 
   levels: {
     jobLevels: [10, 30, 50],      // 1·2·3차 전직 레벨
