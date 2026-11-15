@@ -127,13 +127,18 @@ window.AU = window.AU || {};
     },
 
     /* ---------- 스탯 분배: 미리보기 → 최종 적용 ---------- */
-    pool() { return this.S.freePoints + this.S.trainingPoints; },
+    // 레벨 포인트는 5레벨 구간(10·15·20…)마다 현실 미션을 한 번 완료해야 분배할 수 있음. 훈련 포인트는 항상 분배 가능
+    gateBand() { return Math.max(10, Math.floor(this.S.level / 5) * 5); },
+    gateOpen() { return (this.S.gateBand || 0) >= this.gateBand(); },
+    openGate() { const S = this.S, b = this.gateBand(); if ((S.gateBand || 0) < b) { S.gateBand = b; if (S.freePoints > 0) this.toast("레벨 포인트 " + S.freePoints + "점을 분배할 수 있습니다 (S 키)", "good"); } },
+    usableFree() { return this.gateOpen() ? this.S.freePoints : 0; },
+    pool() { return this.usableFree() + this.S.trainingPoints; },
     // pending: { STR: 2, ... }. 레벨 포인트를 먼저 쓰고 부족하면 훈련 포인트를 씀
     applyAllocation(pending) {
       const S = this.S, need = Object.values(pending).reduce((a, b) => a + b, 0);
       if (need <= 0 || need > this.pool()) return false;
       const oldMax = this.d().maxHp;
-      let left = need; const useFree = Math.min(S.freePoints, left); S.freePoints -= useFree; left -= useFree;
+      let left = need; const useFree = Math.min(this.usableFree(), left); S.freePoints -= useFree; left -= useFree;
       S.trainingPoints -= left;
       for (const [k, v] of Object.entries(pending)) S.alloc[k] += v;
       S.hp = Math.min(this.d().maxHp, S.hp + Math.max(0, this.d().maxHp - oldMax)); // 최대 HP가 늘어난 만큼 함께 회복
@@ -296,7 +301,7 @@ window.AU = window.AU || {};
     restMissionAvailable(id) { return this.S.flags.missionsUnlocked && this.S.rest.done[id] !== AU.dateStr(); },
     doRestMission(id) {
       const S = this.S, m = this.restMission(id); if (!m || !this.restMissionAvailable(id)) return false;
-      S.rest.done[id] = AU.dateStr(); S.rest.log.push({ t: AU.dateStr(), id, recover: m.recover }); if (S.rest.log.length > 200) S.rest.log.shift();
+      this.openGate(); S.rest.done[id] = AU.dateStr(); S.rest.log.push({ t: AU.dateStr(), id, recover: m.recover }); if (S.rest.log.length > 200) S.rest.log.shift();
       const before = S.fatigue; this.relieve("mission", m.recover, m.title);
       this.log("쉼 미션 완료: " + m.title); this.toast("쉼 미션 완료! 피로도 −" + Math.round((before - S.fatigue) * 10) / 10 + " (현재 " + S.fatigue + " / " + S.fatigueMax + ")", "good");
       this.save("rest"); return true;
@@ -366,7 +371,7 @@ window.AU = window.AU || {};
       // 수행 상태(state)와 인증 자료(proof)는 따로 기록. 지금은 자기보고만 있음
       S.missions.log.push({ t: AU.dateStr(), id, perma: m.perma, state: r.state, points, capped, proof: "self_report" });
       if (next === "done") {
-        this.log("현실 미션 완료: " + m.title);
+        this.openGate(); this.log("현실 미션 완료: " + m.title);
         const mindTxt = gained ? " · 마음 [" + AU.PERMA[m.perma] + "] +" + gained : "";
         this.toast((points ? "현실 미션 완료! 훈련 포인트 +" + points : (r.rewarded && capped ? "이번 주 훈련 포인트 한도에 도달해 포인트는 지급되지 않았습니다" : "현실 미션 완료")) + mindTxt, "good");
       }

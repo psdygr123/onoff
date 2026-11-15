@@ -125,7 +125,7 @@ window.AU = window.AU || {};
       const hpv = Math.max(0, Math.ceil(S.hp));
       this.setStyle(this.hud.hp.firstChild, "hp", "width", Math.max(0, Math.min(100, S.hp / d.maxHp * 100)).toFixed(1) + "%"); this.setText(this.hud.hp.lastChild, "hpt", "HP " + hpv + " / " + d.maxHp);
       this.setStyle(this.hud.rs.firstChild, "rs", "width", (S.fatigue / S.fatigueMax * 100).toFixed(1) + "%"); this.setText(this.hud.rs.children[1], "rst", C.fatigue.name + " " + (+S.fatigue.toFixed(1)) + " / " + S.fatigueMax);
-      this.hud.rs.classList.toggle("full", S.fatigue >= S.fatigueMax - 1e-6);
+      this.hud.rs.classList.toggle("full", S.fatigue >= S.fatigueMax - 1e-6); { const pc = S.fatigue / S.fatigueMax; this.hud.rs.classList.toggle("mid", pc >= 0.5 && pc < 0.8); this.hud.rs.classList.toggle("hot", pc >= 0.8); }
       const need = AU.expToNext(S.level), atCap = S.level >= AU.levelCap(S);
       this.setStyle(this.hud.ex.firstChild, "ex", "width", (atCap && !S.jobChanged ? 100 : Math.min(100, S.exp / need * 100)).toFixed(1) + "%");
       this.setText(this.hud.ex.lastChild, "ext", atCap && !S.jobChanged ? "EXP 전직 필요" : "EXP " + S.exp + " / " + need + " (" + (S.exp / need * 100).toFixed(1) + "%)");
@@ -547,6 +547,28 @@ window.AU = window.AU || {};
     } catch (e) { return fallback; }
   };
 
+  /* 시간이 필요한 현실·쉼 미션: 게임 안에서 안내와 타이머를 보여 주고, 시간이 지난 뒤에만 ‘해 봤어요’를 누를 수 있게 함 */
+  UI.guided = function (title, g, onDone) {
+    const wrap = UI.modalEl; UI.modal = true; wrap.classList.remove("hidden"); wrap.innerHTML = "";
+    const end = Date.now() + g.secs * 1000, fmt = (s) => Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
+    const circle = h("div", { class: "gcircle" }), phase = h("div", { class: "gphase" }), clock = h("div", { class: "gclock" }), tip = h("div", { class: "gtip" });
+    const done = btn("해 봤어요", "primary", () => { close(); onDone(); }, { disabled: "" }), quit = btn("그만두기", "", () => close());
+    const intro = g.intro ? h("ul", { class: "gintro" }, g.intro.map((t) => h("li", { text: t }))) : null;
+    wrap.append(h("div", { class: "panel modal guided" }, h("h3", { text: title }), g.kind === "timer" ? null : circle, phase, clock, intro, g.kind === "steps" ? tip : null, h("div", { class: "choices" }, done, quit)));
+    let iv = null;
+    const close = () => { clearInterval(iv); UI.modal = false; wrap.classList.add("hidden"); wrap.innerHTML = ""; };
+    const tick = () => {
+      if (wrap.classList.contains("hidden")) { clearInterval(iv); return; }
+      const left = Math.max(0, Math.ceil((end - Date.now()) / 1000)), el = g.secs - left;
+      clock.textContent = left > 0 ? "남은 시간 " + fmt(left) : "시간이 되었습니다. 수고하셨어요.";
+      if (g.kind === "breath") { const t = el % 10, inh = t < 4; phase.textContent = left > 0 ? (inh ? "들이쉬세요… " + (4 - t) : "내쉬세요… " + (10 - t)) : ""; const f = inh ? t / 4 : 1 - (t - 4) / 6; circle.style.transform = "scale(" + (0.55 + 0.45 * f).toFixed(3) + ")"; }
+      else if (g.kind === "steps") { const i = Math.min(g.steps.length - 1, Math.floor(el / (g.secs / g.steps.length))); phase.textContent = left > 0 ? (i + 1) + " / " + g.steps.length : ""; tip.textContent = left > 0 ? g.steps[i] : ""; }
+      else phase.textContent = "";
+      if (left <= 0) { done.removeAttribute("disabled"); done.classList.add("ready"); clearInterval(iv); }
+    };
+    iv = setInterval(tick, 250); tick();
+  };
+
   R.stats = function (b) {
     const S = AU.G.S, P = UI.pending, pend = Object.values(P).reduce((a, c) => a + c, 0), pool = AU.G.pool(), left = pool - pend;
     const tot = {}; for (const k of Object.keys(S.stats)) tot[k] = AU.statTotal(S, k) + P[k];
@@ -554,7 +576,7 @@ window.AU = window.AU || {};
     const NAMES = { STR: ["근력", "공격력"], VIT: ["체력", "최대 HP"], AGI: ["민첩", "회피"], DEX: ["기교", "치명타"], WIL: ["의지", "스킬 피로 효율"] };
     const pk = AU.Profile.portraitKey(), pt = AU.Img.has(pk) ? h("img", { src: AU.ASSETS[pk].path, alt: "" }) : h("div", { class: "ptfallback", text: "나" });
     const left1 = h("div", { class: "statchar" }, h("div", { class: "pt hero" }, UI.heroPreview(pt)), h("div", { class: "cname", text: AU.Profile.name() || "모험가" }), h("div", { class: "clv", text: "Lv." + S.level + " · " + AU.jobName(S) }),
-      h("div", { class: "ptbox" }, h("div", { class: "ptrow" }, h("span", { text: "레벨 포인트" }), h("b", { text: S.freePoints })), h("div", { class: "ptrow" }, h("span", { text: "훈련 포인트" }), h("b", { text: S.trainingPoints })), h("div", { class: "ptrow big" }, h("span", { text: "분배 가능" }), h("b", { text: left }))),
+      h("div", { class: "ptbox" }, h("div", { class: "ptrow" }, h("span", { text: "레벨 포인트" }), h("b", { text: S.freePoints + (S.freePoints > 0 && !AU.G.gateOpen() ? " 🔒" : "") })), h("div", { class: "ptrow" }, h("span", { text: "훈련 포인트" }), h("b", { text: S.trainingPoints })), h("div", { class: "ptrow big" }, h("span", { text: "분배 가능" }), h("b", { text: left }))),
       h("div", { class: "tiers" }, AU.JOB_TIERS.map((t) => h("div", { class: "tier" + (S.level >= t.level ? " reach" : "") }, h("b", { text: "Lv." + t.level }), h("span", { text: t.name })))));
     const rows = h("div", { class: "statrows" });
     for (const k of Object.keys(S.stats)) {
@@ -566,8 +588,8 @@ window.AU = window.AU || {};
     const cmp = (label, k, u, bonus) => h("div", { class: "cmp" }, h("span", { text: label }), h("b", { text: d0[k] + u }), d1[k] !== d0[k] ? h("span", { text: "→ " }) : null, d1[k] !== d0[k] ? h("b", { class: "up", text: d1[k] + u }) : null, bonus ? h("em", { text: "장비 +" + bonus + u }) : null);
     const derived = h("div", { class: "derived" }, h("h3", { text: "전투 능력치" }), cmp("공격력", "atk", "", eq.atk), cmp("최대 HP", "maxHp", "", eq.hp), cmp("회피율", "dodge", "%", eq.dodge), cmp("치명타율", "crit", "%", eq.crit), cmp("스킬 피로 감소", "eff", "%", 0));
     const actions = h("div", { class: "statactions" }, btn("초기화", "", () => { UI.resetPending(); UI.renderWin(); }, { disabled: pend ? null : "" }), btn("적용 (" + pend + "점)", "primary", () => { const a = {}; for (const k of Object.keys(P)) if (P[k]) a[k] = P[k]; if (AU.G.applyAllocation(a)) UI.resetPending(); UI.renderWin(); }, { disabled: pend ? null : "" }));
-    const hint = pool > 0 ? "＋ 버튼으로 미리 배분한 뒤 [적용]을 눌러야 확정·저장됩니다. 창을 닫으면 미적용분은 취소됩니다." : (S.jobChanged ? "남은 포인트가 없습니다. 레벨업(11레벨부터)이나 현실 미션으로 포인트를 얻을 수 있습니다." : "1~9레벨은 능력치가 자동으로 성장합니다. 10레벨 전직 후부터 직접 분배합니다.");
-    b.append(h("div", { class: "statlayout" }, left1, h("div", { class: "statmid" }, rows, h("p", { class: "note", text: hint }), actions), derived));
+    const locked = S.jobChanged && S.freePoints > 0 && !AU.G.gateOpen(), hint = locked ? "레벨 포인트 " + S.freePoints + "점이 잠겨 있습니다. 현실 미션(또는 쉼 미션)을 한 번 완료하면 Lv." + AU.G.gateBand() + " 구간의 포인트를 분배할 수 있습니다. 5레벨마다(10·15·20…) 한 번씩 필요합니다." : pool > 0 ? "＋ 버튼으로 미리 배분한 뒤 [적용]을 눌러야 확정·저장됩니다. 창을 닫으면 미적용분은 취소됩니다." : (S.jobChanged ? "남은 포인트가 없습니다. 레벨업(11레벨부터)이나 현실 미션으로 포인트를 얻을 수 있습니다." : "1~9레벨은 능력치가 자동으로 성장합니다. 10레벨 전직 후부터 직접 분배합니다.");
+    b.append(h("div", { class: "statlayout" }, left1, h("div", { class: "statmid" }, rows, h("p", { class: "note", text: hint }), locked ? btn("현실 미션 보기", "primary", () => { UI.tab.jg = "real"; UI.tab.j = "missions"; UI.open("journal"); }) : null, actions), derived));
   };
 
   R.worldContinent = function (b) {
@@ -702,7 +724,7 @@ window.AU = window.AU || {};
         const acts = { available: [["수락", "primary", "accept"], ["건너뛰기", "", "skip"]], accepted: [["해 봤어요", "primary", "attempt"], ["건너뛰기", "", "skip"]], attempted: [["완료했어요", "primary", "done"], ["일부만 했어요", "", "partial"], ["건너뛰기", "", "skip"]],
           partial: [["완료했어요", "primary", "done"], ["다시 도전", "", "retry"], ["건너뛰기", "", "skip"]], skipped: [["다시 도전", "", "retry"]], done: [] }[r.state] || [];
         grid.append(h("div", { class: "mission st-" + r.state }, h("div", { class: "mh" }, h("span", { class: "tag perma", text: m.perma + " · " + AU.PERMA[m.perma] }), h("span", { class: "tag", text: AU.MISSION_STATES[r.state] }), h("span", { class: "pts", text: r.rewarded ? "지급 완료" : "훈련 포인트 +" + m.points })),
-          h("b", { text: m.title }), h("p", { text: m.desc }), acts.length ? h("div", { class: "macts" }, acts.map(([l, c, a]) => btn(l, c, () => AU.G.setMissionState(m.id, a)))) : null));
+          h("b", { text: m.title }), h("p", { text: m.desc }), acts.length ? h("div", { class: "macts" }, acts.map(([l, c, a]) => btn(l, c, () => (m.guide && a === "attempt" ? UI.guided(m.title, m.guide, () => AU.G.setMissionState(m.id, a)) : AU.G.setMissionState(m.id, a))))) : null));
       }
       b.append(grid);
     } else if (tab === "rest") {
@@ -710,7 +732,7 @@ window.AU = window.AU || {};
       const grid = h("div", { class: "missions" });
       for (const m of AU.REST_MISSIONS) { const ok = AU.G.restMissionAvailable(m.id);
         grid.append(h("div", { class: "mission st-" + (ok ? "available" : "done") }, h("div", { class: "mh" }, h("span", { class: "tag", text: "쉼 · 피로도 −" + m.recover }), h("span", { class: "tag", text: ok ? "오늘 가능" : "오늘 완료" })), h("b", { text: m.title }), h("p", { text: m.desc }),
-          ok ? h("div", { class: "macts" }, btn("해 봤어요", "primary", () => AU.G.doRestMission(m.id))) : null)); }
+          ok ? h("div", { class: "macts" }, btn(m.guide ? "시작하기 (" + Math.round(m.guide.secs / 60 * 10) / 10 + "분)" : "해 봤어요", "primary", () => (m.guide ? UI.guided(m.title, m.guide, () => AU.G.doRestMission(m.id)) : AU.G.doRestMission(m.id)))) : null)); }
       b.append(grid);
     } else if (tab === "record") {
       const cnt = AU.G.permaCounts();

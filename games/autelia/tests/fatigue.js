@@ -35,7 +35,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   note('A8', '쉼 미션: 피로도 −25, 같은 미션은 하루 한 번, 다른 미션은 가능', m1[0] === true && m1[1] === 55 && m1[2] === false && m1[3] === 55 && m1[4] === true, JSON.stringify(m1));
   const stat = await ev(() => JSON.stringify([AU.G.S.trainingPoints, AU.G.S.mindStats]));
   note('A9', '쉼 미션은 훈련 포인트·마음 스탯에 영향 없음', stat === JSON.stringify([0, { P: 0, E: 0, R: 0, M: 0, A: 0 }]), stat);
-  await ev(() => { AU.UI.tab.j = 'rest'; AU.UI.open('journal'); }); await sleep(300);
+  await ev(() => { AU.UI.tab.jg = 'real'; AU.UI.tab.j = 'rest'; AU.UI.open('journal'); }); await sleep(300);
   const restCards = await ev(() => Array.from(document.querySelectorAll('.window .mission')).map((e) => e.querySelector('b').textContent + ':' + (e.querySelector('button') ? '가능' : '완료')));
   await p.screenshot({ path: SH + 'fatigue_rest.png' });
   note('A10', '모험일지 쉼 탭에 4개 미션(완료한 것은 표시)', restCards.length === 4 && restCards[0].endsWith('완료') && restCards[3].endsWith('가능'), restCards.join(' / '));
