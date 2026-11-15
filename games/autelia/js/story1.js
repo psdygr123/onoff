@@ -38,7 +38,7 @@ window.AU = window.AU || {};
 
   /* ---------- NPC ---------- */
   AU.NPCS.barsha = { name: "정보상 바르샤 (임시)", sprite: "barsha", portrait: "pt_barsha", quests: ["q_a2_secret", "q_a3_scout"],
-    idle: ["...오르비스의 그림자를 밟지 않게 조심해라.", "은화가 있어야 입이 열린다. 이 바닥의 법칙이지."] };
+    idle: ["이봐, 촌뜨기 꼬마. 은화 냄새도 안 나는 입으로 거대한 비밀을 캐물어? 여긴 신전 기사단 자선 바자회가 아니야.", "은화 몇 잎이라도 쥐고 오면 그 쇠가 어느 놈 갑옷에서 떨어졌는지 말해 줄 테니, 돈 없으면 다시는 기웃거리지 마라."] };
   AU.NPCS.jepeto = { name: "도편수 제페토 (임시)", sprite: "jepeto", portrait: "pt_jepeto", quests: ["q_a3_scout", "q_a3_jepeto"],
     idle: ["손은 늙었어도 눈은 아직 쓸 만하다네.", "서부로 가는 길은 험하니 단련을 게을리하지 말게."] };
 

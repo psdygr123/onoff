@@ -78,7 +78,12 @@ AU.MAPS = {
     name: "포르투 노바", bg: "harbor", width: 1600, safe: true,
     platforms: [{ x: 0, y: 590, w: 1600 }], ropes: [],
     portals: [{ x: 40, to: "harbor_road", toX: 2330, label: "항구 길" }, { x: 1560, to: "docks", toX: 90, label: "선창 외곽" }],
-    npcs: [{ id: "arche_guide", x: 330 }, { id: "porto_guild", x: 520 }, { id: "porto_general", x: 700 }, { id: "job_npc", x: 900 }, { id: "porto_smith", x: 1060 }, { id: "guide_npc", x: 1220 }, { id: "porto_foreman", x: 1390 }],
+    npcs: [{ id: "porto_dock", x: 330 }, { id: "porto_guild", x: 520 }, { id: "porto_general", x: 700 }, { id: "job_npc", x: 900 }, { id: "porto_smith", x: 1060 }, { id: "guide_npc", x: 1220 }, { id: "porto_foreman", x: 1390 }],
+    // 길드 목공 시험: 부두 끝에 방치된 고기잡이배(해당 퀘스트 진행 중에만 표시)
+    spots: [
+      { id: "boat_a", img: "fence", x: 250, kind: "repair", label: "썩은 뱃바닥", done: "썩은 뱃바닥을 쳐내고 새 판자를 맞춰 넣었습니다." },
+      { id: "boat_b", img: "fence", x: 1500, kind: "repair", label: "쪼개진 뱃전", done: "쪼개진 뱃전에 쇠징을 박아 단단히 고정했습니다." },
+    ],
     spawns: [], start: 160,
     area: { x: 78, y: 40, desc: "중립 항구도시입니다. 선창 길드가 의뢰를 받습니다. (요청서 기준)" }
   },
@@ -179,28 +184,44 @@ AU.WARRIOR_SKILLS = ["strike", "spin", "focus"];
 // kind: kill(처치) / collect(아이템 수집) / talk(대화) / deliver(물건 전달: item→target NPC) / investigate(조사 지점 targets) / repair(목공 수리 지점 targets) / choice(선택: 정답 없는 갈림길, target NPC에게 말 걸기)
 // 선택지에는 정답·오답이 없고 보상 차이도 없습니다. 고른 값은 flags["choice_<id>"]에 기록해 이후 이야기에서 쓸 수 있습니다.
 AU.QUESTS = {
+  q_s1_silver: {
+    title: "빈 주머니 (임시)", type: "main", giver: "porto_dock", minLevel: 1, pre: [],
+    area: "jandari", desc: "잔다리 골목의 정보상 바르샤를 찾아가 쇳조각의 출처를 묻습니다.", objectives: [{ kind: "talk", target: "barsha" }],
+    offer: ["그 쇳조각... 내 눈엔 평범한 쇠가 아니군. 이런 건 잔다리 골목의 정보상 영감이 밝지.", "다만 그 영감은 은화 냄새가 나야 입을 열어. 믿기 어려우면 가서 직접 물어보게. 골목 입구는 이 길 왼쪽 끝일세."],
+    reminder: ["잔다리 골목은 이 길 왼쪽 끝에 있네. 영감은 공방 안쪽에 있어."],
+    done: ["거절당했나? 그럴 줄 알았네. 은화부터 벌어야 하는 게 이 도시의 법이거든.", "손재주 있는 일꾼을 찾는 곳이 있네. 선창 길드 십장을 찾아가 보게. 부두 오른쪽 끝에 있다네."],
+    reward: { exp: 20, silver: 0, items: [] }
+  },
+  q_s1_test: {
+    title: "길드의 시험 (임시)", type: "main", giver: "porto_foreman", minLevel: 1, pre: ["q_s1_silver"],
+    area: "porto", desc: "부두에 방치된 고기잡이배 두 곳을 목공으로 고칩니다.", objectives: [{ kind: "repair", targets: ["boat_a", "boat_b"] }],
+    offer: ["이봐, 신참. 여긴 남의 집 땔감이나 팰 풋내기가 올 곳이 아니야.", "정 일하고 싶다면 손재주부터 보여 보게. 부두 양끝에 쪼개진 고기잡이배가 있네. 고쳐 놓으면 얘기를 들어 주지."],
+    reminder: ["배에 다가가 {interact}를 누르고 있으면 수리하네. 뱃바닥과 뱃전, 두 곳일세."],
+    done: ["...나무 결을 볼 줄 아는 놈이군. 제대로 배운 손이야.", "창고 구석의 이 검을 빌려주지. 값은 보수에서 깎을 걸세. 이제 일을 맡겨도 되겠어."],
+    reward: { exp: 120, silver: 30, items: [["sword_a", 1]] }
+  },
   q_first: {
-    title: "첫 사냥 (임시)", type: "main", giver: "arche_guide", minLevel: 1, pre: [],
-    desc: "숲길의 들여우를 3마리 처치합니다.", objectives: [{ kind: "kill", target: "fox", count: 3 }],
+    title: "해안의 짐승 (임시)", type: "main", giver: "porto_foreman", minLevel: 1, pre: ["q_s1_test"],
+    desc: "숲길에서 내려오는 오염된 들여우를 3마리 처치합니다.", objectives: [{ kind: "kill", target: "fox", count: 3 }],
     area: "forest",
-    offer: ["숲길에는 들여우가 많아요. 몸을 풀 겸 세 마리만 잡아 볼래요?", "항구 길을 따라 왼쪽으로 쭉 가면 숲길이 나와요. 가는 길에도 들여우를 만날 수 있어요.", "공격은 {attack}, 점프는 {jump}입니다. 무리하지 마세요."],
-    reminder: ["공격은 {attack}, 점프는 {jump}, 말 걸기·줍기는 {interact}예요.", "들여우에게 가까이 다가가 공격 키를 눌러 보세요. 화면 왼쪽 아래에도 조작 안내를 띄워 둘게요."],
-    done: ["잘했어요! 이 검을 받아 두세요."],
-    reward: { exp: 80, silver: 30, items: [["sword_a", 1]] }
+    offer: ["요즘 어둠의 경계에서 흘러나온 오염된 짐승들이 항구 쪽으로 내려와 방책과 창고를 갉아먹네.", "먼저 항구 길 너머 숲길의 들여우 세 마리만 쫓아내 주게. 몸 푸는 셈 치고.", "공격은 {attack}, 점프는 {jump}일세. 서툴러도 목수의 눈이 있으니 해낼 걸세."],
+    reminder: ["공격은 {attack}, 점프는 {jump}, 말 걸기·줍기는 {interact}라네.", "항구 길을 따라 왼쪽으로 쭉 가면 숲길일세. 들여우에게 가까이 가 공격 키를 눌러 보게."],
+    done: ["벌써 해냈나. 수고했네. 이건 보수일세."],
+    reward: { exp: 80, silver: 30, items: [] }
   },
   q_forest: {
-    title: "숲길 정리 (임시)", type: "main", giver: "arche_guide", minLevel: 2, pre: ["q_first"],
+    title: "숲길 정리 (임시)", type: "main", giver: "porto_foreman", minLevel: 2, pre: ["q_first"],
     desc: "숲길의 뱀을 5마리 처치합니다.", objectives: [{ kind: "kill", target: "snake", count: 5 }],
     area: "forest",
-    offer: ["이번에는 숲길 안쪽의 뱀입니다.", "포르투 노바에서 항구 길을 따라 왼쪽으로 가면 숲길이 나옵니다. 가는 길에도 뱀이 있으니 조심하세요."],
-    done: ["고생했어요. 작업복이 필요할 거예요."],
+    offer: ["이번에는 숲길 안쪽의 뱀일세. 짐승 소동이 숲에서부터 번지는 모양이야.", "가는 길에도 뱀이 있으니 조심하게."],
+    done: ["고생했네. 작업복이 낡았더군. 이거라도 걸치게."],
     reward: { exp: 300, silver: 60, items: [["cloth_a", 1]] }
   },
   q_guild_talk: {
-    title: "선창 길드 찾아가기 (임시)", type: "sub", giver: "arche_guide", minLevel: 3, pre: ["q_forest"],
-    desc: "포르투 노바의 선창 길드 접수를 찾아 말을 겁니다.", objectives: [{ kind: "talk", target: "porto_guild" }],
-    offer: ["항구 쪽에는 선창 길드가 있어요. 일감을 구하려면 한번 찾아가 보세요."],
-    done: ["길드에 다녀오셨군요. 도움이 되었길 바라요."],
+    title: "선창 길드 장부 (임시)", type: "sub", giver: "porto_foreman", minLevel: 3, pre: ["q_forest"],
+    desc: "포르투 노바의 선창 길드 접수에서 이름을 장부에 올립니다.", objectives: [{ kind: "talk", target: "porto_guild" }],
+    offer: ["이 정도 일했으면 길드 장부에 이름을 올려 두게. 접수에 가서 등록하면 정식 의뢰를 받을 수 있네."],
+    done: ["등록했나? 이제 길드 사람이 됐군."],
     reward: { exp: 150, silver: 20, items: [] }
   },
   q_guild_rats: {
@@ -265,9 +286,11 @@ AU.QUESTS = {
 
 /* ---------- NPC (전부 임시 이름·대사) ---------- */
 AU.NPCS = {
-  arche_guide: { name: "마을 사람 (임시)", sprite: "villager_a", portrait: "pt_villager_a", quests: ["q_first", "q_forest", "q_guild_talk"],
+  porto_dock: { name: "부두 일꾼 (임시)", sprite: "villager_a", portrait: "pt_villager_a", quests: ["q_s1_silver"],
+    idle: ["쇳조각 얘기는 잔다리 골목의 정보상이 밝지. 은화는 챙겨 가게.", "부두는 새벽부터 바쁘다네."] },
+  arche_guide: { name: "마을 사람 (임시)", sprite: "villager_a", portrait: "pt_villager_a", quests: [],
     idle: ["오늘도 평화로운 마을이에요.", "다친 곳은 없나요? 쉬어 가면서 하세요."] },
-  porto_foreman: { name: "선창 십장 (임시)", sprite: "porto_foreman", portrait: "pt_porto_foreman", quests: ["q_a1_fence", "q_a1_parcel", "q_a1_traces"],
+  porto_foreman: { name: "선창 십장 (임시)", sprite: "porto_foreman", portrait: "pt_porto_foreman", quests: ["q_s1_test", "q_first", "q_forest", "q_guild_talk", "q_a1_fence", "q_a1_parcel", "q_a1_traces"],
     idle: ["방파제는 자네 덕에 한시름 놨네.", "바닷바람이 거세니 몸조심하게."] },
   porto_guild: { name: "선창 길드 접수 (임시)", sprite: "villager_b", portrait: "pt_villager_b", quests: ["q_guild_rats", "q_guild_crabs"],
     idle: ["선창 길드입니다. 의뢰가 필요하면 말씀하세요.", "오늘은 부두가 조용하군요."] },

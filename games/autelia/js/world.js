@@ -51,6 +51,30 @@ window.AU = window.AU || {};
     floater(x, y, text, color) { this.floaters.push({ x, y, text, color: color || "#fff", t: 0 }); },
 
     /* ---------- 갱신 ---------- */
+    askDeathNote() {
+      this.deathAsk = true;
+      const S = AU.G.S, C0 = C;
+      const opts = ["여기까지 오느라 수고했어. 잠시 쉬어도 괜찮아.", "다음엔 다르게 해 볼 수 있어. 천천히 해 보자.", "지금은 숨 한 번 고르는 것만으로 충분해."];
+      const st = document.getElementById("stage") || document.body;
+      const box = document.createElement("div"); box.className = "death-note";
+      box.innerHTML = '<div class="dn-card"><h3>잘 해내려고 애썼어요</h3><p>쓰러지는 일은 누구에게나 있어요.<br>지금 나에게 건네고 싶은 말을 하나 골라 보세요.</p></div>';
+      const card = box.firstChild;
+      const done = (txt) => {
+        box.remove();
+        try { const m = S.mind || (S.mind = {}); (m.deathNotes = m.deathNotes || []).push({ t: new Date().toISOString(), text: txt }); if (m.deathNotes.length > 50) m.deathNotes.shift(); } catch (e) {}
+        const p = this.player;
+        p.dead = false; this.deadT = 0; this.deathAsk = false;
+        const dest = S.visited.porto ? "porto" : "arche";
+        p.invuln = 1.5; S.hp = AU.G.d().maxHp;
+        this.enterMap(dest, AU.MAPS[dest].start || 200);
+        const loss = Math.floor((S.exp || 0) * (C0.combat.deathExpLoss || 0)); if (loss > 0) S.exp -= loss;
+        AU.G.save && AU.G.save("mind");
+        AU.G.toast("안전한 곳에서 다시 일어났습니다." + (loss > 0 ? " (경험치 -" + loss + ")" : ""), "info"); AU.Ev.emit("revive");
+      };
+      opts.forEach((t, i) => { const b = document.createElement("button"); b.className = "dn-opt"; b.textContent = t; b.dataset.i = i; b.onclick = () => done(t); card.appendChild(b); });
+      const f = document.createElement("div"); f.className = "dn-foot"; f.textContent = "고른 문장은 모험일지의 '마음 기록'에 남아요."; card.appendChild(f);
+      st.appendChild(box);
+    },
     update(dt) {
       this.time += dt;
       const S = AU.G.S, p = this.player;
@@ -64,13 +88,7 @@ window.AU = window.AU || {};
       // 사망 처리
       if (p.dead) {
         this.deadT += dt;
-        if (this.deadT >= C.combat.respawnDelay) {
-          p.dead = false; this.deadT = 0;
-          const dest = S.visited.porto ? "porto" : "arche";
-          p.invuln = 1.5; S.hp = AU.G.d().maxHp;
-          this.enterMap(dest, AU.MAPS[dest].start || 200);
-          AU.G.toast("안전한 곳에서 다시 일어났습니다.", "info"); AU.Ev.emit("revive");
-        }
+        if (this.deadT >= C.combat.respawnDelay && !this.deathAsk) this.askDeathNote();
       }
       for (const f of this.floaters) f.t += dt; this.floaters = this.floaters.filter((f) => f.t < 0.9);
       this.updateDrops(dt);

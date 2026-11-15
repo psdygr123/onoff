@@ -329,3 +329,9 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
 .slot { color: #fff; } .slot .sk { color: #fff; } .slot .skey { background: rgba(255, 255, 255, .22); } .slot .scost { color: #FFD978; } .slot.empty { opacity: .8; }
 .keyhint { color: #fff; }
 .tracker .tnext .to { color: #fff; font-size: 13.5px; } .tracker .tnext .tt { display: none; } .tracker .td { color: rgba(255, 255, 255, .72); }
+
+.death-note{position:absolute;inset:0;z-index:900;display:flex;align-items:center;justify-content:center;background:rgba(10,14,24,.45);backdrop-filter:blur(4px)}
+.dn-card{width:520px;padding:28px 30px;border-radius:18px;background:rgba(20,28,44,.78);border:1px solid rgba(255,255,255,.18);box-shadow:0 12px 40px rgba(0,0,0,.5);color:#f1ece0;text-align:center}
+.dn-card h3{margin:0 0 10px;font-size:26px}.dn-card p{margin:0 0 18px;font-size:15px;opacity:.85;line-height:1.5}
+.dn-opt{display:block;width:100%;margin:0 0 10px;padding:13px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.07);color:#f1ece0;font-size:16px;cursor:pointer}
+.dn-opt:hover{background:rgba(230,200,120,.25);border-color:#e6c878}.dn-foot{font-size:12px;opacity:.6;margin-top:6px}

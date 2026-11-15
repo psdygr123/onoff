@@ -45,8 +45,8 @@ const note = (id, name, ok, ev) => { ok ? pass++ : fail++; console.log((ok ? 'PA
   const kh = await ev(() => ({ vis: getComputedStyle(document.querySelector('.keyhint')).display, txt: document.querySelector('.keyhint').textContent }));
   note('D1', '초반(Lv.5 미만) 조작 안내가 화면 아래에 상시 표시', kh.vis === 'block' && /공격 Control|공격 Ctrl|공격/.test(kh.txt) && /점프/.test(kh.txt), JSON.stringify(kh));
   const tr0 = await ev(() => document.querySelector('.tracker').innerText);
-  note('D2', '퀘스트가 없을 때 새 의뢰·Lv.10 목표 안내', /다음 목표/.test(tr0) && /새 의뢰: 첫 사냥/.test(tr0) && /Lv\.10까지/.test(tr0), tr0.replace(/\n/g, ' / '));
-  await ev(() => { AU.G.startQuest('q_first'); }); await sleep(400);
+  note('D2', '퀘스트가 없을 때 새 의뢰·Lv.10 목표 안내', /목표/.test(tr0) && /새 의뢰: 빈 주머니/.test(tr0) && /Lv\.10까지/.test(tr0), tr0.replace(/\n/g, ' / '));
+  await ev(() => { const S = AU.G.S; S.quests.q_s1_silver = { state: 'done', prog: [1], spots: {} }; S.quests.q_s1_test = { state: 'done', prog: [2], spots: {} }; AU.G.startQuest('q_first'); }); await sleep(400);
   const tr1 = await ev(() => document.querySelector('.tracker').innerText);
   note('D3', '들여우 퀘스트: 숲길까지 가는 방향(항구 길 포털) 안내', /숲길 방향: ◀ 왼쪽 끝의 '항구 길'/.test(tr1), tr1.replace(/\n/g, ' / '));
   await ev(() => { const S = AU.G.S; S.level = 8; S.quests.q_first = { state: 'done', prog: [3] }; S.quests.q_forest = { state: 'done', prog: [5] }; S.quests.q_guild_talk = { state: 'done', prog: [1] }; S.quests.q_guild_rats = { state: 'done', prog: [8] }; delete S.quests.q_first.state; S.quests.q_first.state = 'done'; AU.G.startQuest('q_guild_crabs'); AU.G.startQuest('q_job'); S.level = 10; AU.G.startQuest('q_job'); S.quests.q_guild_crabs = { state: 'ready', prog: [5] }; });
@@ -58,7 +58,7 @@ const note = (id, name, ok, ev) => { ok ? pass++ : fail++; console.log((ok ? 'PA
   const kh2 = await ev(() => getComputedStyle(document.querySelector('.keyhint')).display);
   note('D5', 'Lv.5 이상이면 조작 안내 숨김', kh2 === 'none', kh2);
   // ===== E. NPC 재방문 시 조작 안내 반복 =====
-  await ev(() => { const S = AU.G.S; S.level = 1; S.quests = { q_first: { state: 'active', prog: [0] } }; AU.World.enterMap('porto', 330, true); AU.World.trans = null; AU.World.player.x = 330; });
+  await ev(() => { const S = AU.G.S; S.level = 1; S.quests = { q_first: { state: 'active', prog: [0] } }; AU.World.enterMap('porto', 1390, true); AU.World.trans = null; AU.World.player.x = 1390; });
   await sleep(300); await p.keyboard.press('Space'); await sleep(200);
   const lines = []; for (let i = 0; i < 4; i++) { const l = await ev(() => document.querySelector('.dline') && document.querySelector('.dline').textContent); if (!l) break; lines.push(l); await p.keyboard.press('Space'); await sleep(150); }
   note('E1', '진행 중 재방문: 공격·점프 키 안내가 다시 나옴(키 이름 치환)', lines.some((l) => /공격은 .*Control.*|공격은 Ctrl|공격은 /.test(l) && !/\{attack\}/.test(l)) && !lines.some((l) => /\{/.test(l)), JSON.stringify(lines));

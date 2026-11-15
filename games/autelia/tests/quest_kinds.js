@@ -12,7 +12,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await ev(() => AU.Prologue.debugComplete('arche')); await sleep(200);
   const key = async (k, ms = 60) => { await p.keyboard.down(k); await sleep(ms); await p.keyboard.up(k); };
   // 준비: 선행 퀘스트 완료, 레벨 6
-  await ev(() => { const G = AU.G; G.S.level = 6; for (const id of ['q_first', 'q_forest', 'q_guild_talk']) G.S.quests[id] = { state: 'done', prog: [], spots: {} }; G.save('t'); });
+  await ev(() => { const G = AU.G; G.S.level = 6; for (const id of ['q_s1_silver', 'q_s1_test', 'q_first', 'q_forest', 'q_guild_talk']) G.S.quests[id] = { state: 'done', prog: [], spots: {} }; G.save('t'); });
   const st = (id) => ev((id) => AU.G.questStatus(id), id);
   note('K0', '십장 퀘스트 수락 가능', (await st('q_a1_fence')) === 'available', await st('q_a1_fence'));
   await ev(() => AU.G.startQuest('q_a1_fence'));
