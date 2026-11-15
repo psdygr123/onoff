@@ -167,7 +167,7 @@ window.AU = window.AU || {};
     },
     questGuide(id) {
       const q = AU.QUESTS[id], rec = AU.G.S.quests[id]; if (!q || !rec) return "";
-      if (rec.state === "ready") { const mp = this.npcMap(q.giver); return mp ? this.dirText(mp, q.giver) : ""; }
+      if (rec.state === "ready") { const tn = q.turnIn || q.giver, mp = this.npcMap(tn); return mp ? this.dirText(mp, tn) : ""; }
       const o = q.objectives.find((x, i) => !AU.G.objectiveDone(q, rec, i)); if (!o) return "";
       if (o.kind === "talk" || o.kind === "deliver" || o.kind === "choice") { const mp = this.npcMap(o.target); return this.dirText(mp, o.target); }
       return q.area ? this.dirText(q.area, null) : "";
@@ -191,7 +191,7 @@ window.AU = window.AU || {};
         this.hud.cache.trk = key; t.innerHTML = ""; this._trkDirs = []; for (const k of Object.keys(this.hud.cache)) if (k.indexOf("trkd") === 0) delete this.hud.cache[k];
         picks.forEach(([id, rec]) => {
           const q = AU.QUESTS[id]; const box = h("div", { class: "tq" }); box.append(h("div", { class: "tt" }, q.title.replace(" (임시)", "")));
-          if (rec.state === "ready") box.append(h("div", { class: "to ok" }, "의뢰인에게 돌아가기: " + AU.NPCS[q.giver].name.replace(" (임시)", "")));
+          if (rec.state === "ready") box.append(h("div", { class: "to ok" }, "보고하러 가기: " + AU.NPCS[q.turnIn || q.giver].name.replace(" (임시)", "")));
           else q.objectives.forEach((o, i) => box.append(h("div", { class: "to" + (AU.G.objectiveDone(q, rec, i) ? " ok" : "") }, this.objText(o, rec, i))));
           const dir = h("div", { class: "td" }); box.append(dir); this._trkDirs.push({ el: dir, id }); t.append(box);
         });
@@ -280,6 +280,10 @@ window.AU = window.AU || {};
       const pc = AU.G.pendingChoice(npcId);                                                        // 선택 퀘스트: 정답 없는 갈림길
       if (pc) return this.say(npc, pc.o.prompt || pc.q.choice.prompt, { choices: pc.q.choice.options.map((op) => ({ label: op.label, key: null, fn: () => { AU.G.applyChoice(pc.qid, pc.i, op); this.say(npc, op.reply, { end: () => { if (AU.QUESTS[pc.qid].giver === npcId && AU.G.questStatus(pc.qid) === "ready") this.say(npc, AU.QUESTS[pc.qid].done, { end: () => AU.G.turnIn(pc.qid) }); } }); } })), noCancel: true });
       let qid = (npc.quests || []).find((id) => AU.G.questStatus(id) === "ready" && (AU.QUESTS[id].turnIn || AU.QUESTS[id].giver) === npcId);
+      if (!qid) { // 의뢰인과 보고할 사람이 다른 퀘스트: 의뢰인이 어디로 가야 하는지 알려 줌
+        const rid = Object.keys(AU.QUESTS).find((id) => AU.G.questStatus(id) === "ready" && AU.QUESTS[id].giver === npcId && AU.QUESTS[id].turnIn && AU.QUESTS[id].turnIn !== npcId);
+        if (rid) { const tn = AU.QUESTS[rid].turnIn, mp = this.npcMap(tn); return this.say(npc, ["일은 끝났나? 그럼 보고는 " + AU.NPCS[tn].name.replace(" (임시)", "") + "에게 하게." + (mp ? " " + this.dirText(mp, tn) : "")]); }
+      }
       if (qid) {
         const q = AU.QUESTS[qid];
         return this.say(npc, q.done, { end: () => { AU.G.turnIn(qid); } });
@@ -573,7 +577,7 @@ window.AU = window.AU || {};
     for (const [id, rec] of Object.entries(S.quests)) {
       if (rec.state === "done") continue; const q = AU.QUESTS[id];
       const mapOfNpc = (nid) => { const f = Object.keys(AU.MAPS).find((m) => !AU.MAPS[m].prologue && (!AU.MAPS[m].hidden || S.visited[m]) && (AU.MAPS[m].npcs || []).some((n) => n.id === nid)); return f && AU.MAPS[f].parent ? AU.MAPS[f].parent : f; };
-      if (rec.state === "ready") { dest.add(mapOfNpc(q.giver)); continue; }
+      if (rec.state === "ready") { dest.add(mapOfNpc(q.turnIn || q.giver)); continue; }
       q.objectives.forEach((o, i) => { if (AU.G.objectiveDone(q, rec, i)) return;
         if (o.kind === "kill") for (const m of Object.keys(AU.MAPS)) { const mp = AU.MAPS[m]; if ((mp.spawns || []).some((s) => s.type === o.target) || (mp.boss && mp.boss.type === o.target)) dest.add(m); }
         if (o.kind === "talk" || o.kind === "deliver" || o.kind === "choice") dest.add(mapOfNpc(o.target));

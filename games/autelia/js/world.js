@@ -481,7 +481,7 @@ window.AU = window.AU || {};
       { const dx = Math.abs(this.player.x - n.x); if (dx > 80) this.nameTag(ctx, d.name, n.x, y + 17); } // 이름표는 상시 표시(주인공과 겹치는 거리에서만 숨김)
       // 퀘스트 표시: 받을 수 있으면 !, 완료 가능하면 ?
       let mark = "";
-      for (const id of d.quests || []) { const s = AU.G.questStatus(id); if (s === "ready" && AU.QUESTS[id].giver === n.id) { mark = "?"; break; } if (s === "available" && !mark) mark = "!"; }
+      for (const id of d.quests || []) { const s = AU.G.questStatus(id); if (s === "ready" && (AU.QUESTS[id].turnIn || AU.QUESTS[id].giver) === n.id) { mark = "?"; break; } if (s === "available" && !mark) mark = "!"; }
       if (d.special === "missionGuide" && AU.G.S.flags.missionsUnlocked && !AU.G.S.flags.guideMet) mark = "!";
       if (mark) { // 둥근 배지: 배경이 복잡해도 눈에 띄게
         const by = y - 200 + Math.sin(this.time * 4) * 3;
