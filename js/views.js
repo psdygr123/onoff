@@ -437,6 +437,30 @@ OnOff.Views = (function () {
     }
   };
 
+  /* ---------- 게임별 연구 수집 정보 안내 (시작 전 안내 2쪽) ----------
+     게임에서 실제로 저장되는 항목만 적습니다. 항목을 추가·삭제하면 이 목록도 함께 고칩니다. [확정 필요] 표시는 연구윤리(IRB) 검토로 정합니다. */
+  const RESEARCH_ITEMS = {
+    autelia: [
+      ["캐릭터 설정", "이름(별명), 성별, 머리·조끼·바지 색"],
+      ["진행 기록", "레벨, 직업, 진행한 장면, 스토리 중 고른 선택, 쓰러졌을 때 고른 자기 수용 문장과 시각"],
+      ["현실 미션 기록", "미션 이름·영역(긍정정서·몰입·관계·의미·성취), 완료·건너뜀 여부(직접 보고), 쉼 미션 사용, 받은 점수, 기록 시각"],
+      ["마음 능력치·피로도", "현실 미션으로 쌓이는 5개 영역 점수와 변화, 피로도 상태"],
+      ["스트레스·웰빙 설문(‘나의 마음 점검’)", "스트레스(PSS)와 웰빙(K-PERMA) 척도의 문항별 응답, 점수, 응답한 날짜와 시각. 하고 싶을 때만 합니다."],
+      ["한 줄 메모(선택)", "점검할 때 직접 적은 메모. 적지 않아도 되며, 적으면 위 설문 기록과 함께 연구 자료가 될 수 있습니다."]
+    ]
+  };
+  const researchPage = (g) => {
+    const items = RESEARCH_ITEMS[g.id]; if (!items) return "";
+    return `<div class="note"><strong>2쪽 · 연구 자료로 수집되는 정보</strong> 아래 정보는 가입할 때 연구 활용에 동의하신 경우에 한해 심리학 연구 자료로 활용될 수 있습니다.</div>
+      <dl class="kv">${items.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("")}</dl>
+      <ul class="checklist">
+        <li>연구 활용은 <b>${RESEARCH_REQUIRED ? "필수" : "선택"}</b>입니다. ${RESEARCH_REQUIRED ? "" : "동의하지 않아도 게임을 그대로 이용할 수 있습니다."}</li>
+        <li>‘나의 마음 점검’ 결과는 내가 변화를 보기 위한 기록이며, 진단이 아니고 게임 진행에 영향을 주지 않습니다.</li>
+        <li>언제든 동의를 철회할 수 있고, 철회한 뒤 수집되는 정보는 연구에 쓰지 않습니다.</li>
+        <li>[확정 필요] 서버 저장 여부·보관 기간·비식별 처리 방법은 연구윤리(IRB) 검토 뒤 이 화면으로 안내합니다. 현재 시제품에서 설문 응답과 메모는 이 기기에만 저장됩니다.</li>
+      </ul>`;
+  };
+
   /* ---------- 게임 시작 전 안내 ---------- */
   const intro = {
     render(ctx) {
@@ -445,19 +469,27 @@ OnOff.Views = (function () {
       return `<div class="wrap page"><div class="intro">
         <div class="art"><img src="${g.cover}" alt="${esc(g.coverAlt || (g.title + " 대표 이미지"))}" width="1000" height="720"></div>
         <div class="panel">
-          <p class="eyebrow">시작 전 안내</p><h1>${esc(g.title)}</h1>
+          <div data-intro-pane="1">
+          <p class="eyebrow">시작 전 안내 · 1/2</p><h1>${esc(g.title)}</h1>
           <div><h3>이런 분을 위해 만들었습니다</h3><p style="color:var(--ink-2);font-size:var(--fs-sm)">${esc(g.intro.who)}</p></div>
           <div><h3>만든 목적</h3><p style="color:var(--ink-2);font-size:var(--fs-sm)">${esc(g.intro.purpose)}</p></div>
           <div><h3>게임 구성</h3><ul class="checklist">${g.intro.parts.map((p) => `<li>${esc(p)}</li>`).join("")}</ul><p style="color:var(--ink-2);font-size:var(--fs-xs);margin-top:8px">${esc(g.intro.partsNote)}</p></div>
           <div class="note"><strong>알아 두세요.</strong> 이 게임은 의료·상담을 대신하지 않습니다. 하다가 마음이 불편해지면 언제든 멈추셔도 됩니다. 마음이 많이 힘들 때는 가까운 전문 상담기관이나 의료기관의 도움을 받아 보세요. 이 게임에서 입력하거나 응답한 내용은 가입 때 연구 활용에 동의하신 경우에 한해 심리학 연구 자료로 활용될 수 있습니다.</div>
           ${OnOff.Device.canPlay(g) ? "" : `<div class="note"><strong>PC 전용 게임입니다.</strong> ${esc(OnOff.PC_ONLY_NOTE)}</div>`}
-          <label class="choice"><input type="checkbox" id="intro-ok"><span>안내를 읽었습니다.</span></label>
-          <div class="form-actions"><button class="btn ghost" type="button" data-action="go" data-to="games">뒤로</button><button class="btn" type="button" id="intro-go" disabled aria-disabled="true" ${OnOff.Device.canPlay(g) ? "" : 'data-blocked="1"'}>${esc(g.startLabel || "모험 시작")}</button></div>
+          ${researchPage(g) ? `<div class="form-actions"><button class="btn ghost" type="button" data-action="go" data-to="games">뒤로</button><button class="btn" type="button" id="intro-next">다음: 연구 수집 정보 안내</button></div></div>
+          <div data-intro-pane="2" hidden><p class="eyebrow">시작 전 안내 · 2/2</p><h1>연구 자료로 수집되는 정보</h1>${researchPage(g)}</div>
+          <div data-intro-pane="2" hidden>` : "<div>"}
+          <label class="choice"><input type="checkbox" id="intro-ok"><span>${researchPage(g) ? "안내(연구 수집 정보 포함)를 읽었습니다." : "안내를 읽었습니다."}</span></label>
+          <div class="form-actions">${researchPage(g) ? '<button class="btn ghost" type="button" id="intro-prev">이전</button>' : '<button class="btn ghost" type="button" data-action="go" data-to="games">뒤로</button>'}<button class="btn" type="button" id="intro-go" disabled aria-disabled="true" ${OnOff.Device.canPlay(g) ? "" : 'data-blocked="1"'}>${esc(g.startLabel || "모험 시작")}</button></div>
         </div></div></div>`;
     },
     mount(root, ctx) {
       const ok = root.querySelector("#intro-ok"), btn = root.querySelector("#intro-go");
       if (!ok) return;
+      const pane = (n) => root.querySelectorAll("[data-intro-pane]").forEach((el) => { el.hidden = el.dataset.introPane !== String(n); });
+      const nx = root.querySelector("#intro-next"), pv = root.querySelector("#intro-prev");
+      if (nx) nx.addEventListener("click", () => { pane(2); window.scrollTo(0, 0); });
+      if (pv) pv.addEventListener("click", () => { pane(1); window.scrollTo(0, 0); });
       const blocked = !!btn.dataset.blocked;
       ok.addEventListener("change", () => { const off = !ok.checked || blocked; btn.disabled = off; btn.setAttribute("aria-disabled", String(off)); });
       btn.addEventListener("click", () => { if (ok.checked && !blocked) go("play-" + ctx.param); });
