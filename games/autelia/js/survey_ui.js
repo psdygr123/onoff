@@ -24,20 +24,40 @@ window.AU = window.AU || {};
     return box;
   };
 
-  function trendSvg(key, hist) {
-    const W = 300, H = 130, L = 26, R = 8, T = 8, B = 20, max = key === "pss" ? 20 : 10;
-    const series = key === "pss" ? [["negSum", "부정적 지각", "#B5543F"], ["posRawSum", "긍정적 지각", "#4F7D6E"]] : [["permaMean15", "PERMA 평균", "#2F5D50"], ["P", "P", "#8DB3A5"], ["E", "E", "#C9A24B"], ["R", "R", "#B5838D"], ["M", "M", "#6C8EAD"], ["A", "A", "#A0A66B"]];
-    const x = (i) => L + (hist.length < 2 ? (W - L - R) / 2 : i * (W - L - R) / (hist.length - 1)), y = (v) => T + (H - T - B) * (1 - v / max);
+  const sel = {}, more = {};                                           // 척도별: 선택한 점 / 보조 선 표시
+  function trendView(key, hist, rerender) {
+    const W = 300, H = 140, L = 26, R = 12, T = 12, B = 22, max = key === "pss" ? 20 : 10;
+    const main = key === "pss" ? ["negSum", "부정적 지각", "#B5543F"] : ["permaMean15", "PERMA 평균", "#2F5D50"];
+    const extra = key === "pss" ? [["posRawSum", "긍정적 지각", "#4F7D6E"]] : [["P", "P 긍정정서", "#8DB3A5"], ["E", "E 몰입", "#C9A24B"], ["R", "R 관계", "#B5838D"], ["M", "M 의미", "#6C8EAD"], ["A", "A 성취", "#A0A66B"]];
+    const i0 = sel[key] != null && sel[key] < hist.length ? sel[key] : hist.length - 1;
+    const x = (i) => L + i * (W - L - R) / (hist.length - 1), y = (v) => T + (H - T - B) * (1 - v / max);
     let g = '<svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="점수 변화 추이 그래프" class="svtrend">';
-    for (const f of [0, 0.5, 1]) g += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(max * f) + '" y2="' + y(max * f) + '" stroke="#d9e0d8"/><text x="' + (L - 4) + '" y="' + (y(max * f) + 4) + '" text-anchor="end" font-size="9" fill="#7a857d">' + (max * f) + "</text>";
-    series.forEach(([k, , col], si) => {
-      const main = si === 0 || key === "pss", pts = hist.map((h, i) => x(i).toFixed(1) + "," + y(h.scores[k]).toFixed(1));
-      g += '<polyline points="' + pts.join(" ") + '" fill="none" stroke="' + col + '" stroke-width="' + (main ? 2.6 : 1.3) + '" stroke-linejoin="round" opacity="' + (main ? 1 : 0.8) + '"/>';
-      if (main) hist.forEach((h, i) => { g += '<circle cx="' + x(i).toFixed(1) + '" cy="' + y(h.scores[k]).toFixed(1) + '" r="3.4" fill="' + col + '" stroke="#fff" stroke-width="1.2"/>'; });
-    });
-    g += '<text x="' + L + '" y="' + (H - 5) + '" font-size="9" fill="#7a857d">' + fmtDate(hist[0].submittedAt) + '</text><text x="' + (W - R) + '" y="' + (H - 5) + '" text-anchor="end" font-size="9" fill="#7a857d">' + fmtDate(hist[hist.length - 1].submittedAt) + "</text></svg>";
-    const leg = h("div", { class: "svleg" }); series.forEach(([, n, col]) => leg.append(h("span", { class: "lg", style: "--c:" + col, text: n })));
-    const w = h("div", { class: "svtwrap" }); const holder = h("div"); holder.innerHTML = g; w.append(holder, leg); return w;
+    for (const f of [0, 0.5, 1]) g += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(max * f) + '" y2="' + y(max * f) + '" stroke="#d9e0d8"/><text x="' + (L - 4) + '" y="' + (y(max * f) + 3) + '" text-anchor="end" font-size="9" fill="#7a857d">' + (max * f) + "</text>";
+    const line = (k, col, w) => '<polyline points="' + hist.map((h, i) => x(i).toFixed(1) + "," + y(h.scores[k]).toFixed(1)).join(" ") + '" fill="none" stroke="' + col + '" stroke-width="' + w + '" stroke-linejoin="round" opacity="' + (w > 2 ? 1 : 0.8) + '"/>';
+    if (more[key]) extra.forEach(([k, , col]) => (g += line(k, col, 1.4)));
+    g += line(main[0], main[2], 2.8);
+    hist.forEach((h, i) => { const on = i === i0; g += '<circle class="svpt" data-i="' + i + '" cx="' + x(i).toFixed(1) + '" cy="' + y(h.scores[main[0]]).toFixed(1) + '" r="' + (on ? 6 : 4.5) + '" fill="' + (on ? "#4F7D6E" : main[2]) + '" stroke="#fff" stroke-width="1.6" style="cursor:pointer"/><circle class="svpt" data-i="' + i + '" cx="' + x(i).toFixed(1) + '" cy="' + y(h.scores[main[0]]).toFixed(1) + '" r="13" fill="transparent" style="cursor:pointer"/>'; });
+    const lab = (i, anc) => '<text x="' + x(i).toFixed(1) + '" y="' + (H - 6) + '" text-anchor="' + anc + '" font-size="9" fill="#7a857d">' + fmtDate(hist[i].submittedAt) + "</text>";
+    g += lab(0, "start") + lab(hist.length - 1, "end") + "</svg>";
+    const w = h("div", { class: "svtwrap" }), holder = h("div"); holder.innerHTML = g;
+    holder.querySelectorAll(".svpt").forEach((el) => el.addEventListener("click", () => { sel[key] = +el.dataset.i; rerender(); }));
+    w.append(holder, h("div", { class: "svleg" }, h("span", { class: "lg", style: "--c:" + main[2], text: main[1] }),
+      btn(more[key] ? "보조 선 숨기기" : key === "pss" ? "긍정적 지각도 보기" : "영역별(P·E·R·M·A)도 보기", "mini", () => { more[key] = !more[key]; rerender(); }, { "data-act": "more" })));
+    if (more[key]) w.append(h("div", { class: "svleg" }, extra.map(([, n, col]) => h("span", { class: "lg", style: "--c:" + col, text: n }))));
+    w.append(detailCard(key, hist, i0, main[0]));
+    return w;
+  }
+
+  function detailCard(key, hist, i, k) {
+    const cur = hist[i], prev = i > 0 ? hist[i - 1] : null, fmt = (v) => (key === "pss" ? String(v) : f1(v));
+    const day = (iso) => AU.dateStr(new Date(iso));
+    let cnt = null;
+    if (prev && AU.G && AU.G.S && AU.G.S.missions) { const a = day(prev.submittedAt), b = day(cur.submittedAt); cnt = AU.G.S.missions.log.filter((e) => e.state === "done" && e.t > a && e.t <= b).length; }
+    const diff = prev ? Math.round((cur.scores[k] - prev.scores[k]) * 10) / 10 : null;
+    const row = h("div", { class: "svdetail", "data-detail": "1" }, h("span", { class: "d", text: fmtDate(cur.submittedAt) }),
+      h("b", { class: "ds", text: fmt(cur.scores[k]) }), diff != null && diff !== 0 ? h("small", { class: "dd", text: (diff < 0 ? "▼" : "▲") + Math.abs(diff) }) : null,
+      h("div", { class: "dm" }, h("b", { text: prev ? "직전 점검 이후 완료한 미션 " + cnt + "개" : "첫 기록" }), cur.memo ? h("i", { text: "“" + cur.memo + "”" }) : h("i", { class: "none", text: "남긴 메모 없음" })));
+    return row;
   }
 
   function listView(d, rerender) {
@@ -50,7 +70,7 @@ window.AU = window.AU || {};
         h("span", { class: "tag", text: n ? "작성 중 (" + n + "/" + s.itemCount + ")" : hist.length ? "최근 " + fmtDate(hist[hist.length - 1].submittedAt) : "" }), h("span", { class: "grow" }),
         btn(n ? "이어서 하기" : hist.length ? "다시 해보기" : "처음 해보기", "mini primary", () => { state.key = key; state.phase = "check"; state.subId = null; state.view = n ? "form" : "intro"; rerender(); }, { "data-act": "start" })));
       if (hist.length) {
-        sec.append(hist.length > 1 ? trendSvg(key, hist) : h("p", { class: "note", text: "한 번 더 기록하면 변화 그래프가 그려집니다." }));
+        sec.append(hist.length > 1 ? trendView(key, hist, rerender) : h("p", { class: "note", text: "한 번 더 기록하면 변화 그래프가 그려집니다. 점을 누르면 그날의 메모와 그 사이 한 미션 수를 볼 수 있습니다." }));
         const lst = h("div", { class: "svhist" });
         hist.slice().reverse().forEach((sub, i) => {
           const c = sub.scores, txt = key === "pss" ? "부정 " + c.negSum + " · 긍정 " + c.posRawSum : "PERMA " + f1(c.permaMean15);
@@ -105,14 +125,15 @@ window.AU = window.AU || {};
 
   function confirmView(rerender) {
     const key = state.key, dr = S.draftFor(key, state.phase), r = S.score(dr.responses, S.scale(key));
+    const memoBox = state.phase === "check" ? h("div", { class: "svmemo" }, h("label", { text: "지금 마음을 한 줄로 남겨 볼까요? (선택)" }), (() => { const t = h("textarea", { maxlength: "200", rows: "2", placeholder: "예: 시험 기간이라 계속 압도되는 느낌", "data-memo": "1" }); t.value = state.memo || ""; t.addEventListener("input", () => { state.memo = t.value; }); return t; })()) : null;
     const msg = r.valid ? "모든 문항에 답했습니다. 제출하면 이 시점의 응답은 수정할 수 없습니다." : "아직 답하지 않은 문항이 있습니다: " + r.missing.join(", ") + "번";
     const go = btn("제출", "primary", () => {
-      const res = S.submit(key, state.phase);
+      const res = S.submit(key, state.phase, state.memo); state.memo = "";
       if (res.ok) { state.view = "result"; AU.G && AU.G.toast && AU.G.toast("설문을 제출했습니다.", "good"); } else if (res.reason === "duplicate" || res.reason === "phase-done") state.view = "result";
       rerender();
     }, { "data-act": "submit" });
     go.disabled = !r.valid;
-    return h("div", null, h("h3", { text: "제출 전 확인" }), h("p", { class: "svmsg", text: msg }),
+    return h("div", null, h("h3", { text: "제출 전 확인" }), h("p", { class: "svmsg", text: msg }), memoBox,
       h("div", { class: "svbtns" }, btn("돌아가서 고치기", "", () => { state.view = "form"; rerender(); }, { "data-act": "back" }), go));
   }
 

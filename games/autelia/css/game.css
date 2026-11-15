@@ -381,3 +381,12 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
 .svleg .lg::before { content: ""; display: inline-block; width: 12px; height: 4px; border-radius: 2px; background: var(--c); margin-right: 5px; vertical-align: middle; }
 .svhist { display: grid; gap: 4px; }
 .svh { display: flex; align-items: center; gap: 10px; padding: 6px 10px; font-size: 13px; border-bottom: 1px solid var(--line-s); }
+.svdetail { display: flex; align-items: center; gap: 10px; margin-top: 8px; padding: 10px 12px; background: #EEF5F1; border: 1px solid #cfe0d7; border-radius: 10px; }
+.svdetail .d { font-size: 12px; color: #6b736d; }
+.svdetail .ds { font-size: 22px; color: #B5543F; }
+.svdetail .dd { font-size: 12px; font-weight: 700; color: #4F7D6E; }
+.svdetail .dm { flex: 1; font-size: 13px; line-height: 1.45; }
+.svdetail .dm b { color: #4F7D6E; display: block; }
+.svdetail .dm i { font-style: normal; color: #4a524c; } .svdetail .dm i.none { color: #98a19a; }
+.svmemo { margin: 10px 0; } .svmemo label { display: block; font-size: 13px; margin-bottom: 4px; }
+.svmemo textarea { width: 100%; box-sizing: border-box; border: 1px solid #cfd8d1; border-radius: 8px; padding: 8px; font: inherit; resize: none; }

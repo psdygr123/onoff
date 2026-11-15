@@ -72,7 +72,7 @@ window.AU = window.AU || {};
     submissionFor(key, phase, d) { if (phase === "check") return null; d = d || this.load(); const id = this.scale(key).id; return d.submissions.find((s) => s.instrumentId === id && s.phase === phase && s.completionStatus === "complete") || null; },
 
     /* ---------- 제출: 중복 제출 방지(같은 draftId는 한 번만, 같은 척도·시점은 한 번만) ---------- */
-    submit(key, phase) {
+    submit(key, phase, memo) {
       const scale = this.scale(key), d = this.load(), dr = d.drafts[this.dk(key, phase)];
       if (!scale || !PHASES.some((p) => p.id === phase)) return { ok: false, reason: "unknown" };
       if (this.submissionFor(key, phase, d)) return { ok: false, reason: "phase-done" };
@@ -84,6 +84,7 @@ window.AU = window.AU || {};
         submissionId: rid("S"), draftId: dr.draftId, participantId: d.participantId, studyId: C.survey.studyId, phase,
         instrumentId: scale.id, instrumentVersion: scale.instrumentVersion, scoringVersion: scale.scoringVersion, sourceHash: scale.source.sourceSha256,
         startedAt: dr.startedAt, submittedAt: new Date().toISOString(), timezone: tz(), consentVersion: null /* 연구 동의 흐름 연결 전 */,
+        memo: phase === "check" && typeof memo === "string" && memo.trim() ? memo.trim().slice(0, 200) : undefined,   // 개인 메모(선택). 연구용 CSV에는 내보내지 않음
         completionStatus: "complete", responsesByItemId: Object.assign({}, dr.responses),
         scores: Object.assign({}, sc.scores, scale.scoring.groups ? {} : { scoredByItemId: sc.scored }),
         scoringStatus: scale.review.scoringReviewStatus, rightsStatus: scale.review.rightsStatus
