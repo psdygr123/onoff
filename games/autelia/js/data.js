@@ -51,6 +51,7 @@ AU.ASSETS = {
   pt_porto_foreman: { path: "assets/portrait/porto_foreman.webp" }
 };
 
+
 /* ---------- 맵 ---------- */
 // 지역 이름은 요청서에 나온 아르케아·포르투 노바만 확정. 나머지 이름은 임시 일반 명칭입니다(TODO).
 AU.MAPS = {
@@ -97,87 +98,6 @@ AU.MAPS = {
     spots: [],
     spawns: [], start: 160,
     area: { x: 78, y: 40, desc: "중립 항구도시입니다. 선창 길드와 부두 창고, 상점이 모여 있습니다." }
-  },
-  general_store: { path: "assets/bg/general_store.webp" },
-  weapon_store: { path: "assets/bg/weapon_store.webp" },
-  guild_hall: { path: "assets/bg/guild_hall.webp" },
-  warehouse: { path: "assets/bg/warehouse.webp" },
-  mon_umbra_base: { path: "assets/monster/umbra_base.webp", optional: true },
-  mon_umbra_walkA: { path: "assets/monster/umbra_walkA.webp", optional: true },
-  mon_umbra_walkB: { path: "assets/monster/umbra_walkB.webp", optional: true },
-  mon_umbra_windup: { path: "assets/monster/umbra_windup.webp", optional: true },
-  mon_umbra_attack: { path: "assets/monster/umbra_attack.webp", optional: true },
-  mon_umbra_hurt: { path: "assets/monster/umbra_hurt.webp", optional: true },
-  mon_umbra_down: { path: "assets/monster/umbra_down.webp", optional: true },
-  ob_rock_s: { path: "assets/object/rock_s.webp", optional: true }, ob_rock_m: { path: "assets/object/rock_m.webp", optional: true }, ob_rock_big: { path: "assets/object/rock_big.webp", optional: true }, ob_rock_tall: { path: "assets/object/rock_tall.webp", optional: true }, ob_rock_low: { path: "assets/object/rock_low.webp", optional: true },
-  ob_fence_broken: { path: "assets/object/fence_broken.webp", optional: true }, ob_fence_fixed: { path: "assets/object/fence_fixed.webp", optional: true },
-  ob_trace_stain: { path: "assets/object/trace_stain.webp", optional: true }, ob_trace_crate: { path: "assets/object/trace_crate.webp", optional: true }, it_guild_parcel: { path: "assets/object/guild_parcel.webp", optional: true },
-  job_warrior: { path: "assets/job/warrior.webp", optional: true }, job_mage: { path: "assets/job/mage.webp", optional: true }, job_archer: { path: "assets/job/archer.webp", optional: true }, job_rogue: { path: "assets/job/rogue.webp", optional: true }, job_pirate: { path: "assets/job/pirate.webp", optional: true },
-  mon_fox:   { path: "assets/monster/fox.webp", optional: true },
-  mon_snake: { path: "assets/monster/snake.webp", optional: true },
-  mon_rat:   { path: "assets/monster/rat.webp", optional: true },
-  mon_crab:  { path: "assets/monster/crab.webp", optional: true },
-  pt_player_male: { path: "assets/portrait/player_male.webp" },
-  pt_player_female: { path: "assets/portrait/player_female.webp" },
-  pt_villager_a: { path: "assets/portrait/villager_a.webp" },
-  pt_villager_b: { path: "assets/portrait/villager_b.webp" },
-  pt_smith:      { path: "assets/portrait/smith.webp" },
-  pt_baker:      { path: "assets/portrait/baker.webp" },
-  pt_porto_general: { path: "assets/portrait/porto_general.webp" },
-  pt_porto_smith: { path: "assets/portrait/porto_smith.webp" },
-  pt_porto_armor: { path: "assets/portrait/porto_armor.webp" },
-  pt_porto_foreman: { path: "assets/portrait/porto_foreman.webp" }
-};
-
-/* ---------- 맵 ---------- */
-// 지역 이름은 요청서에 나온 아르케아·포르투 노바만 확정. 나머지 이름은 임시 일반 명칭입니다(TODO).
-AU.MAPS = {
-  arche: {
-    // 프롤로그 이후 이야기에서 아르케아는 습격으로 파괴된 마을이라 신규 플레이어는 갈 수 없음. 기존(프롤로그 이전) 저장을 위해 데이터는 유지.
-    name: "아르케아 마을", bg: "plaza", width: 2484, safe: true, hidden: true,
-    platforms: [{ x: 0, y: 590, w: 2484 }], ropes: [],
-    portals: [{ x: 2420, to: "forest", toX: 90, label: "숲길" }],
-    npcs: [{ id: "arche_guide", x: 620 }],
-    spawns: [], start: 300,
-    area: { x: 16, y: 64, desc: "주인공이 살던 산골 마을입니다. 모험이 시작되는 곳입니다." }
-  },
-  forest: {
-    name: "숲길", bg: "forest_road", width: 3000, safe: false,
-    // 발판·밧줄 위치는 이전 시제품의 숲길 그림에 맞춘 값을 그대로 사용
-    platforms: [{ x: 0, y: 590, w: 3000 }, { x: 620, y: 542, w: 130, h: 48, img: "ob_rock_s" }, { x: 900, y: 520, w: 190, h: 70, img: "ob_rock_m" },
-                { x: 1350, y: 390, w: 650, h: 200, img: "ob_rock_big" }, { x: 2000, y: 460, w: 80, h: 130, img: "ob_rock_tall" }, { x: 2085, y: 530, w: 120, h: 60, img: "ob_rock_low" }], // h가 있으면 옆이 막힌 단단한 바위·턱(img: 눈에 보이는 바위 그림)
-    ropes: [{ x: 1315, top: 370, bottom: 590 }],
-    portals: [{ x: 2950, to: "harbor_road", toX: 90, label: "항구 길" }],
-    npcs: [],
-    spawns: [
-      { type: "fox", x: 520 }, { type: "fox", x: 880 }, { type: "fox", x: 1250 }, { type: "fox", x: 1600, y: 390, min: 1370, max: 1990 },
-      { type: "fox", x: 1850, y: 390, min: 1370, max: 1990 }, { type: "fox", x: 2200 }, { type: "snake", x: 2450 }, { type: "snake", x: 2750 }
-    ],
-    area: { x: 36, y: 46, desc: "마을과 항구를 잇는 길입니다. 들짐승이 자주 나옵니다." }
-  },
-  harbor_road: {
-    name: "항구 길", bg: "harbor_road", width: 2450, safe: false,
-    platforms: [{ x: 0, y: 590, w: 2450 }], ropes: [],
-    portals: [{ x: 50, to: "forest", toX: 2860, label: "숲길" }, { x: 2400, to: "porto", toX: 90, label: "포르투 노바" }],
-    npcs: [],
-    spawns: [
-      { type: "snake", x: 600 }, { type: "rat", x: 900 }, { type: "rat", x: 1200 }, { type: "rat", x: 1500 },
-      { type: "snake", x: 1750 }, { type: "fox", x: 2000 }, { type: "fox", x: 2250 }
-    ],
-    area: { x: 58, y: 56, desc: "포르투 노바로 이어지는 바닷가 길입니다." }
-  },
-  porto: {
-    name: "포르투 노바", bg: "harbor", width: 1600, safe: true,
-    platforms: [{ x: 0, y: 590, w: 1600 }], ropes: [],
-    portals: [{ x: 40, to: "harbor_road", toX: 2330, label: "항구 길" }, { x: 1560, to: "docks", toX: 90, label: "선창 외곽" }, { x: 700, to: "general_store", toX: 90, label: "해풍 잡화점" }, { x: 1060, to: "weapon_store", toX: 90, label: "철파도 무기점" }],
-    npcs: [{ id: "porto_dock", x: 330 }, { id: "porto_guild", x: 520 }, { id: "job_npc", x: 900 }, { id: "guide_npc", x: 1220 }, { id: "porto_foreman", x: 1390 }],
-    // 길드 목공 시험: 부두 끝에 방치된 고기잡이배(해당 퀘스트 진행 중에만 표시)
-    spots: [
-      { id: "boat_a", img: "fence", x: 250, kind: "repair", label: "썩은 뱃바닥", done: "썩은 뱃바닥을 쳐내고 새 판자를 맞춰 넣었습니다." },
-      { id: "boat_b", img: "fence", x: 1500, kind: "repair", label: "쪼개진 뱃전", done: "쪼개진 뱃전에 쇠징을 박아 단단히 고정했습니다." },
-    ],
-    spawns: [], start: 160,
-    area: { x: 78, y: 40, desc: "중립 항구도시입니다. 선창 길드가 의뢰를 받습니다. (요청서 기준)" }
   },
   general_store: {
     name: "해풍 잡화점", bg: "general_store", width: 1500, safe: true, interior: true, parent: "porto",

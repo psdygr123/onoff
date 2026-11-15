@@ -58,7 +58,7 @@ const note = (id, name, ok, ev) => { ok ? pass++ : fail++; console.log((ok ? 'PA
   const kh2 = await ev(() => getComputedStyle(document.querySelector('.keyhint')).display);
   note('D5', 'Lv.5 이상이면 조작 안내 숨김', kh2 === 'none', kh2);
   // ===== E. NPC 재방문 시 조작 안내 반복 =====
-  await ev(() => { const S = AU.G.S; S.level = 1; S.quests = { q_first: { state: 'active', prog: [0] } }; AU.World.enterMap('porto', 1390, true); AU.World.trans = null; AU.World.player.x = 1390; });
+  await ev(() => { const S = AU.G.S; S.level = 1; S.quests = { q_first: { state: 'active', prog: [0] } }; AU.World.enterMap('guild_hall', 840, true); AU.World.trans = null; AU.World.player.x = 840; });
   await sleep(300); await p.keyboard.press('Space'); await sleep(200);
   const lines = []; for (let i = 0; i < 4; i++) { const l = await ev(() => document.querySelector('.dline') && document.querySelector('.dline').textContent); if (!l) break; lines.push(l); await p.keyboard.press('Space'); await sleep(150); }
   note('E1', '진행 중 재방문: 공격·점프 키 안내가 다시 나옴(키 이름 치환)', lines.some((l) => /공격은 .*Control.*|공격은 Ctrl|공격은 /.test(l) && !/\{attack\}/.test(l)) && !lines.some((l) => /\{/.test(l)), JSON.stringify(lines));
