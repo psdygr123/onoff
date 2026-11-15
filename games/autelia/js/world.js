@@ -244,7 +244,8 @@ window.AU = window.AU || {};
       m.alive = false; m.respawnT = m.d.boss ? -1 : 8; m.hp = 0;
       if (m.d.sprite && AU.Img.has(m.d.sprite)) this.fx.push({ kind: "ghost", img: m.d.sprite, sw: m.d.sw, x: m.x, y: m.y, dir: m.dir, t: 0, dur: 0.55 });
       const S = AU.G.S, mult = C.exp.killMultiplier;
-      const exp = Math.round(m.d.exp * mult), silver = Math.round(rnd(m.d.silver[0], m.d.silver[1]));
+      const gap = S.level - (m.d.lv || S.level), gm = m.d.boss ? 1 : gap <= 0 ? Math.min(1.3, 1 - gap * 0.1) : gap <= 2 ? 1 : gap === 3 ? 0.7 : gap === 4 ? 0.45 : gap === 5 ? 0.25 : 0.1; // 몬스터 레벨 기준: 높은 상대는 보너스, 한참 낮은 상대는 경험치 급감
+      const exp = Math.max(1, Math.round(m.d.exp * mult * gm)), silver = Math.round(rnd(m.d.silver[0], m.d.silver[1]));
       AU.G.gainSilver(silver);
       this.floater(m.x, m.y - m.d.h - 34, "+" + exp + " EXP", "#9FE870");
       this.spawnDrops(m); // 아이템은 바닥에 떨어지고 Space로 직접 주움(은화는 바로 받음)
