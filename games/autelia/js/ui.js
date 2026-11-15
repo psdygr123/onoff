@@ -75,6 +75,7 @@ window.AU = window.AU || {};
       this.hud.menuBtn = btn("메뉴", "menubtn", () => this.toggleMenu(), { title: "메뉴 (Esc)" });
       this.hud.menuBtn.append(h("span", { class: "dot", id: "menudot" }));
       // 우측 하단: 스킬 슬롯
+      this.hud.quick = [["potion", "물약"], ["scroll", "귀환"]].map(([k, n]) => h("div", { class: "slot quick", onclick: () => AU.World.onAction(k) }, h("div", { class: "sk", text: n }), h("div", { class: "skey" }), h("div", { class: "scost" })));
       this.hud.slots = [0, 1, 2].map((i) => h("div", { class: "slot", onclick: () => AU.World.onAction("skill" + (i + 1)) }, h("div", { class: "sk" }), h("div", { class: "sc" }), h("div", { class: "skey" }), h("div", { class: "scost" })));
       this.hud.prompt = h("div", { class: "prompt" });
       this.hud.mapName = h("div", { class: "mapname" });
@@ -83,7 +84,7 @@ window.AU = window.AU || {};
       this.hud.banner = h("div", { class: "banner" });
       this.hud.warn = h("div", { class: "storewarn" });
       this.hud.devBtn = btn("개발", "devbtn", () => this.toggleWin("dev"), { title: "개발 테스트 (F2)" });
-      R.append(this.hud.keyhint, panel, topleft, this.hud.menuBtn, h("div", { class: "slots" }, this.hud.slots), this.hud.prompt, this.hud.mapName, this.hud.toasts, this.hud.save, this.hud.banner, this.hud.warn, this.hud.devBtn);
+      R.append(this.hud.keyhint, panel, topleft, this.hud.menuBtn, h("div", { class: "slots" }, [...this.hud.quick, ...this.hud.slots]), this.hud.prompt, this.hud.mapName, this.hud.toasts, this.hud.save, this.hud.banner, this.hud.warn, this.hud.devBtn);
       this.hud.cache = {};
       this.winEl = h("div", { class: "winwrap hidden" }); this.dlgEl = h("div", { class: "dialog hidden" }); this.modalEl = h("div", { class: "modalwrap hidden" });
       R.append(this.winEl, this.dlgEl, this.modalEl);
@@ -128,6 +129,8 @@ window.AU = window.AU || {};
       const need = AU.expToNext(S.level), atCap = S.level >= AU.levelCap(S);
       this.setStyle(this.hud.ex.firstChild, "ex", "width", (atCap && !S.jobChanged ? 100 : Math.min(100, S.exp / need * 100)).toFixed(1) + "%");
       this.setText(this.hud.ex.lastChild, "ext", atCap && !S.jobChanged ? "EXP 전직 필요" : "EXP " + S.exp + " / " + need + " (" + (S.exp / need * 100).toFixed(1) + "%)");
+      this.hud.quick.forEach((el, i) => { const k = i ? "scroll" : "potion", n = i ? AU.G.count("town_scroll") : Object.keys(S.inv).filter((x) => AU.ITEMS[x] && AU.ITEMS[x].type === "use" && AU.ITEMS[x].heal).reduce((a, x) => a + S.inv[x], 0);
+        this.setText(el.querySelector(".skey"), "qkey" + i, keyOf(k)); this.setText(el.querySelector(".scost"), "qn" + i, "×" + n); el.classList.toggle("empty", n < 1); });
       // 스킬 슬롯
       this.hud.slots.forEach((el, i) => {
         const id = S.skills.slots[i], sk = id && AU.SKILLS[id], cd = id ? (p.cd[id] || 0) : 0;
@@ -419,6 +422,7 @@ window.AU = window.AU || {};
     charm: '<path d="M12 3l3 5-3 8-3-8z"/><path d="M12 16v5" stroke="currentColor" stroke-width="2" fill="none"/>',
     ring: '<circle cx="12" cy="14" r="6" fill="none" stroke="currentColor" stroke-width="3"/><path d="M9 6h6l-3 4z"/>',
     scarf: '<path d="M4 6c5 3 11 3 16 0v5c-5 3-11 3-16 0zM15 12l4 9h-4z"/>',
+    scroll: '<path d="M8 3h9a2 2 0 012 2v11a3 3 0 01-3 3H7a3 3 0 01-3-3v-2h2v2a1 1 0 001 1h7.2a3 3 0 01-.2-1V5H8a2 2 0 00-2 2v1H4V7a4 4 0 014-4z"/><path d="M9 8h6v1.6H9zm0 3.5h6v1.6H9z"/>',
     potion: '<path d="M9 2h6v2h-1v5l4.5 9a2 2 0 01-1.8 3H7.3a2 2 0 01-1.8-3L10 9V4H9z"/>',
     fur: '<path d="M5 15a4 4 0 014-6 4 4 0 017 0 4 4 0 013 6 4 4 0 01-5 3 4 4 0 01-8-1 3 3 0 01-1-2z"/>',
     tail: '<path d="M4 20C4 9 11 4 20 4c0 9-5 16-16 16z"/>',
@@ -437,7 +441,7 @@ window.AU = window.AU || {};
     sheet: '<path d="M5 3h10l4 4v14H5z"/><path d="M8 11h8M8 15h8" stroke="#fff" stroke-width="1.6" opacity=".7"/>',
     box: '<path d="M4 7l8-4 8 4v10l-8 4-8-4z"/>'
   };
-  const ICON_OF = { sword_a: "sword", cloth_a: "tunic", charm_a: "charm", potion: "potion", fur: "fur", fox_tail: "tail", snake_skin: "skin", snake_fang: "fang", rat_tooth: "tooth", crab_claw: "claw", crab_shell: "shell", fox_scarf: "scarf", snake_ring: "ring", crab_vest: "tunic", guild_token: "token", guild_parcel: "parcel", barsha_map: "map", jepeto_blueprint: "sheet", iron_scrap: "scrap", wolf_pelt: "pelt", metal_fragment: "shard", carpenter_bag: "bag" };
+  const ICON_OF = { town_scroll: "scroll", sword_a: "sword", cloth_a: "tunic", charm_a: "charm", potion: "potion", fur: "fur", fox_tail: "tail", snake_skin: "skin", snake_fang: "fang", rat_tooth: "tooth", crab_claw: "claw", crab_shell: "shell", fox_scarf: "scarf", snake_ring: "ring", crab_vest: "tunic", guild_token: "token", guild_parcel: "parcel", barsha_map: "map", jepeto_blueprint: "sheet", iron_scrap: "scrap", wolf_pelt: "pelt", metal_fragment: "shard", carpenter_bag: "bag" };
   const HAS_ART = new Set(["sword_a", "cloth_a", "charm_a", "fox_scarf", "snake_ring", "crab_vest", "fur", "fox_tail", "snake_skin", "snake_fang", "rat_tooth", "crab_claw", "crab_shell", "iron_scrap", "wolf_pelt", "potion", "guild_token", "guild_parcel", "barsha_map", "jepeto_blueprint", "metal_fragment", "carpenter_bag"]);
   UI.itemIcon = function (id, px) {
     const it = AU.ITEMS[id] || {}, size = px || 40, box = h("span", { class: "iicon r-" + (it.rarity || it.type), style: "width:" + size + "px;height:" + size + "px" });

@@ -184,6 +184,7 @@ AU.ITEMS = {
   sword_a: { name: "견습용 검", type: "equip", slot: "weapon", stats: { atk: 4 }, desc: "견습 모험가가 쓰는 기본 검입니다." },
   cloth_a: { name: "견습용 작업복", type: "equip", slot: "armor", stats: { hp: 20 }, desc: "움직이기 편한 작업복입니다." },
   charm_a: { name: "작은 부적", type: "equip", slot: "accessory", stats: { dodge: 1, crit: 1 }, desc: "작은 행운이 깃들었다는 부적입니다." },
+  town_scroll: { name: "마을 귀환 주문서", type: "use", recall: true, buy: 60, desc: "가까운 마을로 즉시 귀환합니다. 마을 안에서는 쓸 수 없습니다." },
   potion:  { name: "작은 회복약", type: "use", heal: 50, buy: 15, desc: "HP를 50 회복합니다." },
   // rarity: common(흔함) / uncommon(드묾) / rare(희귀). sell: 안전한 곳(마을)에서 팔 때 받는 은화. 재료는 팔거나 제작(AU.RECIPES)에 씀
   fur:     { name: "여우 털 뭉치", type: "etc", rarity: "common", sell: 3, desc: "부드러운 털 뭉치입니다. 팔거나 장신구 제작에 씁니다." },
@@ -200,7 +201,7 @@ AU.ITEMS = {
   guild_parcel: { name: "길드 짐 꾸러미", type: "quest", desc: "선창 길드가 전해 달라고 맡긴 작은 꾸러미입니다." }
 };
 // 상점: 잡화상인은 재료를 사고 소비 아이템을 팔며, 무기상인은 장비를 만들어 줌
-AU.SHOP = { general: { buy: ["potion"] } };
+AU.SHOP = { general: { buy: ["potion", "town_scroll"] } };
 AU.RARITY = { common: { label: "흔함", color: "#D9C79A" }, uncommon: { label: "드묾", color: "#7FC8A9" }, rare: { label: "희귀", color: "#F2C14E" } };
 // 제작: 안전한 곳(마을)에서 재료와 은화로 희귀 장비를 직접 만듦(드롭보다 확실하지만 재료가 많이 듦)
 AU.RECIPES = [

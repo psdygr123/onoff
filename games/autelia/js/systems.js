@@ -96,10 +96,22 @@ window.AU = window.AU || {};
     useItem(id) {
       const it = AU.ITEMS[id]; if (!it || it.type !== "use" || this.count(id) < 1) return false;
       const S = this.S, max = this.d().maxHp;
+      if (it.recall) { // 마을 귀환 주문서: 가까운 마을로 이동
+        const W = AU.World, m = W && W.map; if (!m) return false;
+        if (m.safe || m.interior) { this.toast("마을 안에서는 쓸 수 없습니다.", "warn"); return false; }
+        const dest = m.town || "porto"; this.takeItem(id, 1); this.toast(it.name + " 사용 — " + AU.MAPS[dest].name + "(으)로 귀환합니다.", "item");
+        W.enterMap(dest, AU.MAPS[dest].start || 160); this.changed(); return true;
+      }
       if (S.hp >= max) { this.toast("HP가 이미 가득 찼습니다.", "warn"); return false; }
       this.takeItem(id, 1); S.hp = Math.min(max, S.hp + it.heal);
       AU.Ev.emit("floater", { text: "+" + it.heal, color: "#6BCB77", onPlayer: true });
       this.toast(it.name + " 사용", "item"); this.changed(); return true;
+    },
+    quickUse(kind) { // 단축키로 물약·귀환 주문서 사용
+      if (kind === "scroll") { if (this.count("town_scroll") < 1) { this.toast("마을 귀환 주문서가 없습니다.", "warn"); return false; } return this.useItem("town_scroll"); }
+      const ids = Object.keys(this.S.inv).filter((i) => AU.ITEMS[i] && AU.ITEMS[i].type === "use" && AU.ITEMS[i].heal && this.count(i) > 0).sort((a, b) => AU.ITEMS[a].heal - AU.ITEMS[b].heal);
+      if (!ids.length) { this.toast("사용할 수 있는 물약이 없습니다.", "warn"); return false; }
+      return this.useItem(ids[0]);
     },
     equip(id) {
       const it = AU.ITEMS[id], S = this.S; if (!it || it.type !== "equip" || this.count(id) < 1) return false;

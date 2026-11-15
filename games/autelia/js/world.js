@@ -188,6 +188,7 @@ window.AU = window.AU || {};
       if (this.isBlocked()) return;
       const PR = AU.Prologue;
       if (PR && PR.on) { if (id === "interact") { PR.interactNear(); return; } if (id === "attack" || id.startsWith("skill")) return; } // 프롤로그에서는 전투·스킬 없음
+      if (id === "potion" || id === "scroll") { AU.G.quickUse(id); return; }
       const p = this.player; if (id === "interact" || id === "up") this.scan();
       if (id === "jump") {
         if (p.rope) { p.rope = null; p.vy = -C.move.jump * 0.85; p.vx = p.dir * 160; p.onGround = false; return; }

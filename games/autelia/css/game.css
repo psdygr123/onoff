@@ -398,3 +398,4 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
 .tutcard .tchecks{list-style:none;margin:8px 0 0;padding:8px 0 0;border-top:1px solid rgba(255,255,255,.15)}.tutcard .tchecks li{display:flex;gap:8px;font-size:14px;margin:3px 0;color:#e8e2d0}
 .tutcard .tchecks li i{font-style:normal;width:16px;color:#9aa}.tutcard .tchecks li.ok{color:#b6e8a8}.tutcard .tchecks li.ok i{color:#7fe08a}
 .tutcard.done{border-color:#7fe08a}.tutcard.done .ttitle{color:#9fe8a0}
+.slot.quick { position: absolute; bottom: 76px; width: 64px; height: 48px; } .slot.quick:nth-child(1) { left: 100px; } .slot.quick:nth-child(2) { left: 172px; } .slot.quick .scost { right: 6px; bottom: 2px; }

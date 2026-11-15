@@ -61,6 +61,8 @@ AU.ACTIONS = [
   { id: "skill1", label: "스킬 1", code: "Digit1" },
   { id: "skill2", label: "스킬 2", code: "Digit2" },
   { id: "skill3", label: "스킬 3", code: "Digit3" },
+  { id: "potion", label: "물약 빠른 사용", code: "Digit4" },
+  { id: "scroll", label: "귀환 주문서 사용", code: "Digit5" },
   { id: "inventory", label: "인벤토리", code: "KeyI" },
   { id: "equipment", label: "장비창", code: "KeyE" },
   { id: "stats", label: "스탯창", code: "KeyS" },
@@ -72,5 +74,5 @@ AU.ACTIONS = [
   { id: "keysettings", label: "키보드 설정", code: "Backslash" }
 ];
 // 오른쪽 Alt/Ctrl, 숫자패드도 같은 동작으로 인정
-AU.ALIASES = { AltLeft: ["AltRight"], ControlLeft: ["ControlRight"], Digit1: ["Numpad1"], Digit2: ["Numpad2"], Digit3: ["Numpad3"], Backslash: ["IntlYen", "IntlBackslash"] };
+AU.ALIASES = { AltLeft: ["AltRight"], ControlLeft: ["ControlRight"], Digit1: ["Numpad1"], Digit2: ["Numpad2"], Digit3: ["Numpad3"], Digit4: ["Numpad4"], Digit5: ["Numpad5"], Backslash: ["IntlYen", "IntlBackslash"] };
 AU.FIXED_KEYS = { menu: "Escape" };
