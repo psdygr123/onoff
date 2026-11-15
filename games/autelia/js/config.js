@@ -16,7 +16,7 @@ AU.CONFIG = {
     invuln: 1.0,            // 피격 후 무적 시간(초): 연속 피격 방지
     knockback: 260, basePower: 8, baseHp: 60,
     baseCrit: 3, critMult: 1.5,
-    respawnDelay: 1.8, deathExpLoss: 0.05, /* 쓰러지면 현재 레벨 경험치의 10%를 잃음(레벨은 내려가지 않음) */ safeRegenPerSec: 0.08,
+    respawnDelay: 1.8, deathExpLoss: 0.05, /* 쓰러지면 현재 레벨 경험치의 10%를 잃음(레벨은 내려가지 않음) */
     skillGlobalCooldown: 0.35
   },
 

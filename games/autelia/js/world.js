@@ -101,8 +101,7 @@ window.AU = window.AU || {};
       p.invuln = Math.max(0, p.invuln - dt); p.flash = Math.max(0, p.flash - dt); p.atkT = Math.max(0, p.atkT - dt); if (p.sk) { p.sk.t += dt; if (p.sk.t >= p.sk.dur) p.sk = null; }
       p.atkCD = Math.max(0, p.atkCD - dt); p.gcd = Math.max(0, p.gcd - dt);
       for (const k of Object.keys(p.cd)) p.cd[k] = Math.max(0, p.cd[k] - dt);
-      // 안전 지역 자연 회복
-      if (this.map.safe && !p.dead) { const mx = AU.G.d().maxHp; if (S.hp < mx) S.hp = Math.min(mx, S.hp + mx * C.combat.safeRegenPerSec * dt); }
+      // 안전 지역에서도 체력은 저절로 회복되지 않습니다(회복약·휴식 연출 등으로만 회복)
       this.bossCheckT += dt; if (this.bossCheckT > 1) { this.bossCheckT = 0; this.syncBoss(); }
       this.updateCam(dt);
       S.x = p.x;
