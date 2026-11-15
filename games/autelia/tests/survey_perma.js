@@ -10,7 +10,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await p.goto(BASE + '/index.html?survey=1'); await ev(() => localStorage.clear()); await p.goto(BASE + '/index.html?survey=1'); await p.waitForSelector('#btn-start'); await p.click('#btn-start'); await sleep(300);
   if (await p.$('#job-next')) { await p.click('#job-next'); await sleep(200); } if (await p.$('#charsetup')) { await p.fill('#sname', '시험용'); await p.click('#setup-ok'); await sleep(300); }
   await ev(() => { AU.Prologue.debugComplete('arche'); AU.G.S.flags.missionsUnlocked = true; AU.G.discoverMissions(); }); await sleep(200);
-  const openRecord = async () => { await ev(() => { AU.UI.close(); AU.UI.survey.view = 'list'; AU.UI.survey.key = null; AU.UI.survey.phase = null; AU.UI.tab.j = 'record'; AU.UI.open('journal'); }); await sleep(300); };
+  const openRecord = async () => { await ev(() => { AU.UI.close(); AU.UI.survey.view = 'list'; AU.UI.survey.key = null; AU.UI.survey.phase = null; AU.UI.tab.jg = 'real'; AU.UI.tab.j = 'record'; AU.UI.open('journal'); }); await sleep(300); };
   const meta = await ev(() => { const s = AU.SCALES.perma_ko; const g = {}; s.items.forEach((i) => (g[i.subscale] = g[i.subscale] || []).push(i.n)); return { n: s.items.length, g, range: [s.min, s.max], rev: s.items.filter((i) => i.reversed).length, ch: s.choices.length, anch: s.choices.some((c) => c.label), rights: s.review.rightsStatus, first: s.items[0].text, last: s.items[22].text }; });
   note('P1', '문항 23개·0~10(11칸)·역채점 없음·응답 설명 임의 생성 없음', meta.n === 23 && meta.range.join() === '0,10' && meta.rev === 0 && meta.ch === 11 && !meta.anch, JSON.stringify({ n: meta.n, ch: meta.ch, anch: meta.anch }));
   const exp = { P: [3, 13, 22], E: [2, 10, 17], R: [8, 19, 21], M: [7, 9, 20], A: [1, 5, 15], N: [4, 14, 16], H: [6, 12, 18], L: [11], T: [23] };
@@ -31,23 +31,23 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   // 화면
   await openRecord();
   const lst = await ev(() => ({ scales: Array.from(document.querySelectorAll('.svlist')).map((e) => e.dataset.scale).join(), rows: document.querySelectorAll('.svrow').length }));
-  note('P7', '목록에 PSS·PERMA 두 척도, 각각 3시점', lst.scales === 'pss,perma' && lst.rows === 6, JSON.stringify(lst));
-  await p.click('[data-scale="perma"] [data-phase="pre"] [data-act="start"]'); await sleep(120); await p.click('[data-act="begin"]'); await sleep(150);
+  note('P7', '목록에 PSS·PERMA 두 척도, 각각 반복 기록', lst.scales === 'pss,perma' && lst.rows === 2, JSON.stringify(lst));
+  await p.click('[data-scale="perma"] [data-phase="check"] [data-act="start"]'); await sleep(120); await p.click('[data-act="begin"]'); await sleep(150);
   const form = await ev(() => ({ items: document.querySelectorAll('.svitem').length, opts: document.querySelectorAll('.svitem:first-of-type input').length, checked: document.querySelectorAll('.svitem input:checked').length, dis: document.querySelector('[data-act="review"]').disabled, hasInst: !!document.querySelector('.svinst'), hint: /가장 낮은 쪽/.test(document.querySelector('.svbox .note').textContent) }));
   note('P8', '23문항·문항당 0~10 11칸·초기 선택 없음·제출 비활성·가짜 지시문 없음·방향 안내(게임 문구) 표시', form.items === 23 && form.opts === 11 && form.checked === 0 && form.dis && !form.hasInst && form.hint, JSON.stringify(form));
   const same2 = await ev(() => Array.from(document.querySelectorAll('.svitem legend')).map((l) => l.textContent.replace(/^\d+/, '')).join('|') === AU.SCALES.perma_ko.items.map((i) => i.text).join('|'));
   note('P9', '화면 문항 문구 = 데이터 원문', same2 === true, String(same2));
   for (let i = 0; i < 23; i++) await p.click('label[for="sv-perma_' + String(i + 1).padStart(2, '0') + '-' + resp[i] + '"]');
   await p.screenshot({ path: SH + 'perma_form.png' });
-  const dr = await ev(() => ({ n: Object.keys(AU.Survey.load().drafts['perma|pre'].responses).length, zero: AU.Survey.load().drafts['perma|pre'].responses.perma_14 }));
+  const dr = await ev(() => ({ n: Object.keys(AU.Survey.load().drafts['perma|check'].responses).length, zero: AU.Survey.load().drafts['perma|check'].responses.perma_14 }));
   note('P10', '23개 응답 저장(0점 응답 포함)', dr.n === 23 && dr.zero === 0, JSON.stringify(dr));
   await p.click('[data-act="review"]'); await p.click('[data-act="submit"]'); await sleep(200);
-  const res = await ev(() => ({ bars: document.querySelectorAll('.svbar').length, pm: document.querySelector('.sv-pm').textContent, extras: Array.from(document.querySelectorAll('.sv-x')).map((e) => e.textContent).join(' '), sub: AU.Survey.submissionFor('perma', 'pre').scores }));
+  const res = await ev(() => ({ bars: document.querySelectorAll('.svbar').length, pm: document.querySelector('.sv-pm').textContent, extras: Array.from(document.querySelectorAll('.sv-x')).map((e) => e.textContent).join(' '), sub: AU.Survey.history('perma')[0].scores }));
   note('P11', '결과: 5영역 막대·PERMA 평균·참고 4개', res.bars === 5 && /\/ 10/.test(res.pm) && /외로움/.test(res.extras) && near(res.sub.permaMean15, avg(core)), res.pm + ' | ' + res.extras);
   await p.screenshot({ path: SH + 'perma_result.png' });
   // 사후 + 비교
-  await ev(() => { const s = AU.SCALES.perma_ko; s.items.forEach((i, k) => AU.Survey.setAnswer('perma', 'post', i.itemId, [7, 6, 9, 2, 7, 9, 5, 10, 4, 7, 1, 8, 7, 0, 6, 2, 9, 8, 8, 5, 7, 10, 6][k])); AU.Survey.submit('perma', 'post'); });
-  await openRecord(); await p.click('[data-scale="perma"] [data-phase="post"] [data-act="result"]'); await sleep(150);
+  await ev(() => { const s = AU.SCALES.perma_ko; s.items.forEach((i, k) => AU.Survey.setAnswer('perma', 'check', i.itemId, [7, 6, 9, 2, 7, 9, 5, 10, 4, 7, 1, 8, 7, 0, 6, 2, 9, 8, 8, 5, 7, 10, 6][k])); AU.Survey.submit('perma', 'check'); });
+  await openRecord(); await p.click('[data-scale="perma"] .svh [data-act="result"]'); await sleep(150);
   const cmp = await ev(() => ({ prev: document.querySelectorAll('.svbar .prev').length, bd: document.querySelector('.svbar[data-perma="P"] .bd').textContent, txt: document.querySelector('.svbox').textContent }));
   note('P12', '시작 전 대비: 이전 표식 5개, 차이 표시, 판정 문구 없음', cmp.prev === 5 && /이전/.test(cmp.bd) && !/호전|악화/.test(cmp.txt), cmp.bd);
   await p.screenshot({ path: SH + 'perma_compare.png' });

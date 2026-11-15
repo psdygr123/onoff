@@ -375,3 +375,9 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
 
 .slotcard { align-items: center; text-align: center; } .sport { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; background: rgba(255,255,255,.12); border: 2px solid rgba(255,255,255,.35); margin-bottom: 4px; }
 .slotcard.empty { min-height: 128px; }
+.svtwrap { background: var(--paper); border: 1px solid var(--line-s); border-radius: 10px; padding: 8px 10px; }
+.svtrend { width: 100%; max-width: 440px; height: auto; display: block; margin: 0 auto; }
+.svleg { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; margin-top: 4px; }
+.svleg .lg::before { content: ""; display: inline-block; width: 12px; height: 4px; border-radius: 2px; background: var(--c); margin-right: 5px; vertical-align: middle; }
+.svhist { display: grid; gap: 4px; }
+.svh { display: flex; align-items: center; gap: 10px; padding: 6px 10px; font-size: 13px; border-bottom: 1px solid var(--line-s); }

@@ -3,7 +3,7 @@
 window.AU = window.AU || {};
 (function () {
   const UI = AU.UI, h = UI.h, btn = UI.btn, S = AU.Survey;
-  const state = (UI.survey = { key: null, phase: null, view: "list" });   // view: list | intro | form | confirm | result
+  const state = (UI.survey = { key: null, phase: null, view: "list", subId: null });   // view: list | intro | form | confirm | result
   const NAMES = { pss: "스트레스 설문(PSS)", perma: "웰빙 설문(PERMA)" };
   const MINUTES = { pss: "2~3", perma: "5" };
   const fmtDate = (iso) => { try { const d = new Date(iso); return d.getFullYear() + "." + (d.getMonth() + 1) + "." + d.getDate(); } catch (e) { return ""; } };
@@ -24,28 +24,51 @@ window.AU = window.AU || {};
     return box;
   };
 
+  function trendSvg(key, hist) {
+    const W = 300, H = 130, L = 26, R = 8, T = 8, B = 20, max = key === "pss" ? 20 : 10;
+    const series = key === "pss" ? [["negSum", "부정적 지각", "#B5543F"], ["posRawSum", "긍정적 지각", "#4F7D6E"]] : [["permaMean15", "PERMA 평균", "#2F5D50"], ["P", "P", "#8DB3A5"], ["E", "E", "#C9A24B"], ["R", "R", "#B5838D"], ["M", "M", "#6C8EAD"], ["A", "A", "#A0A66B"]];
+    const x = (i) => L + (hist.length < 2 ? (W - L - R) / 2 : i * (W - L - R) / (hist.length - 1)), y = (v) => T + (H - T - B) * (1 - v / max);
+    let g = '<svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="점수 변화 추이 그래프" class="svtrend">';
+    for (const f of [0, 0.5, 1]) g += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y(max * f) + '" y2="' + y(max * f) + '" stroke="#d9e0d8"/><text x="' + (L - 4) + '" y="' + (y(max * f) + 4) + '" text-anchor="end" font-size="9" fill="#7a857d">' + (max * f) + "</text>";
+    series.forEach(([k, , col], si) => {
+      const main = si === 0 || key === "pss", pts = hist.map((h, i) => x(i).toFixed(1) + "," + y(h.scores[k]).toFixed(1));
+      g += '<polyline points="' + pts.join(" ") + '" fill="none" stroke="' + col + '" stroke-width="' + (main ? 2.6 : 1.3) + '" stroke-linejoin="round" opacity="' + (main ? 1 : 0.8) + '"/>';
+      if (main) hist.forEach((h, i) => { g += '<circle cx="' + x(i).toFixed(1) + '" cy="' + y(h.scores[k]).toFixed(1) + '" r="3.4" fill="' + col + '" stroke="#fff" stroke-width="1.2"/>'; });
+    });
+    g += '<text x="' + L + '" y="' + (H - 5) + '" font-size="9" fill="#7a857d">' + fmtDate(hist[0].submittedAt) + '</text><text x="' + (W - R) + '" y="' + (H - 5) + '" text-anchor="end" font-size="9" fill="#7a857d">' + fmtDate(hist[hist.length - 1].submittedAt) + "</text></svg>";
+    const leg = h("div", { class: "svleg" }); series.forEach(([, n, col]) => leg.append(h("span", { class: "lg", style: "--c:" + col, text: n })));
+    const w = h("div", { class: "svtwrap" }); const holder = h("div"); holder.innerHTML = g; w.append(holder, leg); return w;
+  }
+
   function listView(d, rerender) {
-    const v = h("div", null, h("h3", { text: "설문 기록" }),
-      h("p", { class: "note", text: "게임 이용 전후의 나를 돌아보는 설문입니다. 하지 않아도, 중간에 멈춰도 모험에는 아무 영향이 없고 피로도·은화·전투 능력에도 반영되지 않습니다. 위의 ‘마음 능력치’(현실 미션 활동 기록)와는 별개의 기록입니다." }));
+    const v = h("div", null, h("h3", { text: "나의 마음 점검" }),
+      h("p", { class: "note", text: "원할 때마다 척도를 해 보고, 시간이 지나며 내가 어떻게 달라지는지 그래프로 확인하는 개인 기록입니다. 횟수 제한이 없고, 하지 않아도 모험에는 아무 영향이 없으며 피로도·은화·전투 능력에도 반영되지 않습니다. 위의 ‘마음 능력치’(현실 미션 활동 기록)와는 별개의 기록입니다." }));
     for (const key of Object.keys(S.KEYS)) {
-      const s = S.scale(key), rows = h("div", { class: "svlist", "data-scale": key });
-      for (const p of S.PHASES) {
-        const sub = S.submissionFor(key, p.id, d), dr = d.drafts[S.dk(key, p.id)], n = dr ? Object.keys(dr.responses).length : 0;
-        const status = sub ? "제출함 · " + fmtDate(sub.submittedAt) : n ? "작성 중 (" + n + "/" + s.itemCount + ")" : "아직 안 함";
-        rows.append(h("div", { class: "svrow", "data-phase": p.id }, h("b", { text: p.label }), h("span", { class: "tag", text: status }), h("span", { class: "grow" }),
-          sub ? btn("결과 보기", "mini", () => { state.key = key; state.phase = p.id; state.view = "result"; rerender(); }, { "data-act": "result" })
-            : btn(n ? "이어서 하기" : "시작하기", "mini primary", () => { state.key = key; state.phase = p.id; state.view = n ? "form" : "intro"; rerender(); }, { "data-act": "start" })));
+      const s = S.scale(key), hist = S.history(key), dr = d.drafts[S.dk(key, "check")], n = dr ? Object.keys(dr.responses).length : 0;
+      const sec = h("div", { class: "svlist", "data-scale": key }, h("h4", { class: "svh4", text: NAMES[key] + " · " + s.itemCount + "문항" }));
+      sec.append(h("div", { class: "svrow", "data-phase": "check" }, h("b", { text: hist.length ? "지금까지 " + hist.length + "회 기록" : "아직 기록 없음" }),
+        h("span", { class: "tag", text: n ? "작성 중 (" + n + "/" + s.itemCount + ")" : hist.length ? "최근 " + fmtDate(hist[hist.length - 1].submittedAt) : "" }), h("span", { class: "grow" }),
+        btn(n ? "이어서 하기" : hist.length ? "다시 해보기" : "처음 해보기", "mini primary", () => { state.key = key; state.phase = "check"; state.subId = null; state.view = n ? "form" : "intro"; rerender(); }, { "data-act": "start" })));
+      if (hist.length) {
+        sec.append(hist.length > 1 ? trendSvg(key, hist) : h("p", { class: "note", text: "한 번 더 기록하면 변화 그래프가 그려집니다." }));
+        const lst = h("div", { class: "svhist" });
+        hist.slice().reverse().forEach((sub, i) => {
+          const c = sub.scores, txt = key === "pss" ? "부정 " + c.negSum + " · 긍정 " + c.posRawSum : "PERMA " + f1(c.permaMean15);
+          lst.append(h("div", { class: "svh", "data-sub": sub.submissionId }, h("span", { text: fmtDate(sub.submittedAt) }), h("b", { text: txt }), h("span", { class: "grow" }),
+            btn("보기", "mini", () => { state.key = key; state.phase = "check"; state.subId = sub.submissionId; state.view = "result"; rerender(); }, { "data-act": "result" })));
+        });
+        sec.append(lst);
       }
-      v.append(h("h4", { class: "svh4", text: NAMES[key] + " · " + s.itemCount + "문항" }), rows);
+      v.append(sec);
     }
-    v.append(h("p", { class: "note", text: "응답은 이 기기의 저장 공간에만 보관되는 시험 단계입니다. 정식 연구 수집은 연구 동의·승인 절차가 끝난 뒤에 시작합니다." }));
+    v.append(h("p", { class: "note", text: "응답은 이 기기의 저장 공간에만 보관됩니다. 연구용 사전·사후 측정은 게임과 별도로 진행합니다." }));
     return v;
   }
 
   function introView(rerender) {
     const key = state.key, s = S.scale(key), P = S.PHASES.find((p) => p.id === state.phase);
     const what = key === "pss" ? "지난 한 달 동안 느끼고 생각한 것을 묻는 " + s.itemCount + "문항입니다." : "평소의 기분·몰입·관계·의미·성취·건강을 전반적으로 묻는 " + s.itemCount + "문항입니다.";
-    const why = key === "pss" ? "게임을 하기 전후에 스트레스를 어떻게 느끼는지의 변화를 함께 살펴보기 위해서입니다." : "게임을 하기 전후에 웰빙(잘 지내는 정도)이 어떻게 달라지는지 함께 살펴보기 위해서입니다.";
+    const why = key === "pss" ? "시간이 지나며 내가 스트레스를 어떻게 느끼는지의 변화를 그래프로 돌아보기 위해서입니다." : "시간이 지나며 내 웰빙(잘 지내는 정도)이 어떻게 달라지는지 그래프로 돌아보기 위해서입니다.";
     return h("div", null, h("h3", { text: P.label + " · " + s.title }),
       h("div", { class: "svintro" },
         h("p", null, h("b", { text: "무엇을 묻나요  " }), what + " 약 " + MINUTES[key] + "분 걸립니다."),
@@ -94,14 +117,14 @@ window.AU = window.AU || {};
   }
 
   function resultView(d, rerender) {
-    const key = state.key, s = S.scale(key), sub = S.submissionFor(key, state.phase, d), P = S.PHASES.find((p) => p.id === state.phase);
+    const key = state.key, s = S.scale(key), sub = state.phase === "check" ? S.history(key).find((x) => x.submissionId === state.subId) || S.history(key).slice(-1)[0] : S.submissionFor(key, state.phase, d), P = S.PHASES.find((p) => p.id === state.phase);
     const v = h("div", null, h("h3", { text: P.label + " · " + NAMES[key] + " 결과" }));
     if (!sub) v.append(h("p", { class: "empty", text: "제출한 기록이 없습니다." }));
     else if (!AU.CONFIG.survey.showResultToParticipant) v.append(h("p", { class: "svmsg", text: "응답이 저장되었습니다. 참여해 주셔서 고맙습니다." }));
     else {
-      const pre = state.phase !== "pre" ? S.submissionFor(key, "pre", d) : null, cmp = pre ? S.compare(pre, sub) : null;
+      const hh = S.history(key), ix = hh.findIndex((x) => sub && x.submissionId === sub.submissionId), pre = state.phase === "check" ? (ix > 0 ? hh[ix - 1] : null) : state.phase !== "pre" ? S.submissionFor(key, "pre", d) : null, cmp = pre ? S.compare(pre, sub) : null;
       v.append(key === "pss" ? pssResult(sub, cmp) : permaResult(s, sub, pre, cmp));
-      if (state.phase !== "pre" && !cmp) v.append(h("p", { class: "note", text: "비교할 수 있는 ‘시작 전 설문’(같은 문항·채점 버전)이 아직 없습니다." }));
+      if (state.phase !== "pre" && !cmp) v.append(h("p", { class: "note", text: state.phase === "check" ? "이전 기록이 쌓이면 변화를 함께 보여 드립니다." : "비교할 수 있는 ‘시작 전 설문’(같은 문항·채점 버전)이 아직 없습니다." }));
       v.append(h("p", { class: "note", text: "이 점수는 진단이 아니며 ‘정상·위험’ 같은 기준선이 없습니다. 점수가 높거나 낮다고 게임에서 달라지는 것은 없습니다. 힘든 마음이 이어진다면 믿을 수 있는 사람이나 전문가와 이야기해 보세요." }));
     }
     v.append(h("div", { class: "svbtns" }, btn("목록으로", "", () => toList(rerender), { "data-act": "tolist" })));
@@ -113,7 +136,7 @@ window.AU = window.AU || {};
       h("div", { class: "svr" }, h("span", { text: "부정적 지각" }), h("b", { class: "sv-neg", text: c.negSum + " / 20" }), h("em", { text: "통제할 수 없다·압도된다고 느낀 정도" })),
       h("div", { class: "svr" }, h("span", { text: "긍정적 지각" }), h("b", { class: "sv-pos", text: c.posRawSum + " / 20" }), h("em", { text: "대처하고 있다·통제하고 있다고 느낀 정도" })),
       h("div", { class: "svr" }, h("span", { text: "합계(참고용)" }), h("b", { class: "sv-tot", text: c.total + " / 40" }), h("em", { text: "긍정적 지각 문항을 뒤집어 더한 값: ‘부정적 지각’과 ‘긍정적 지각의 부족’이 함께 담겨 있습니다" }))));
-    if (cmp) w.append(h("div", { class: "svcmp" }, h("b", { text: "시작 전 설문과 비교" }), h("span", { text: "부정적 지각 " + signed(cmp.negSum) }), h("span", { text: "긍정적 지각 " + signed(cmp.posRawSum) }), h("span", { text: "합계 " + signed(cmp.total) }),
+    if (cmp) w.append(h("div", { class: "svcmp" }, h("b", { text: "이전 기록과 비교" }), h("span", { text: "부정적 지각 " + signed(cmp.negSum) }), h("span", { text: "긍정적 지각 " + signed(cmp.posRawSum) }), h("span", { text: "합계 " + signed(cmp.total) }),
       h("p", { class: "note", text: "나의 이전 응답과의 차이일 뿐이며, 게임의 효과를 뜻하지 않습니다." })));
     return w;
   }
@@ -131,7 +154,7 @@ window.AU = window.AU || {};
     w.append(bars);
     w.append(h("div", { class: "svextra" }, h("b", { text: "참고 항목" }), ["N", "H", "L", "T"].map((k) => h("span", { class: "sv-x", "data-perma": k, text: L[k] + " " + f1(c[k]) })),
       h("p", { class: "note", text: "부정적 정서·신체적 건강은 PERMA 점수에 포함되지 않는 참고 항목이고, 외로움·종합적 행복감은 한 문항이라 해석에 주의가 필요합니다. 점수는 각 영역 3문항의 평균(0~10)입니다." })));
-    if (cmp) w.append(h("p", { class: "note", text: "표식(세로선)은 시작 전 설문의 점수입니다. 나의 이전 응답과의 차이일 뿐이며, 게임의 효과를 뜻하지 않습니다." }));
+    if (cmp) w.append(h("p", { class: "note", text: "표식(세로선)은 바로 이전 기록의 점수입니다. 나의 이전 응답과의 차이일 뿐이며, 게임의 효과를 뜻하지 않습니다." }));
     return w;
   }
 })();

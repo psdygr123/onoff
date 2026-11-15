@@ -4,9 +4,9 @@
 window.AU = window.AU || {};
 (function () {
   const C = AU.CONFIG;
-  C.survey = Object.assign({ enabled: false, studyId: "autelia-prototype-unassigned", storeKey: "autelia.survey", showResultToParticipant: true }, C.survey || {});
+  C.survey = Object.assign({ enabled: true, studyId: "autelia-prototype-unassigned", storeKey: "autelia.survey", showResultToParticipant: true }, C.survey || {});
   const KEYS = { pss: "pss10_ko", perma: "perma_ko" };      // 척도 키 → AU.SCALES 이름
-  const PHASES = [{ id: "pre", label: "시작 전 설문" }, { id: "post", label: "마친 뒤 설문" }, { id: "followup", label: "추적 설문" }];
+  const PHASES = [{ id: "pre", label: "시작 전 설문" }, { id: "post", label: "마친 뒤 설문" }, { id: "followup", label: "추적 설문" }, { id: "check", label: "나의 마음 점검" }];   // check = 개인용 반복 기록(횟수 제한 없음)
   const rid = (p) => p + "-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8);
   const tz = () => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || null; } catch (e) { return null; } };
   const mean = (arr) => arr.reduce((a, b) => a + b, 0) / arr.length;
@@ -68,7 +68,8 @@ window.AU = window.AU || {};
       const k = this.dk(key, phase), dr = d.drafts[k] || (d.drafts[k] = { draftId: rid("D"), scaleKey: key, phase, startedAt: new Date().toISOString(), responses: {} });
       dr.responses[itemId] = v; dr.updatedAt = new Date().toISOString(); this.save(d); return true;
     },
-    submissionFor(key, phase, d) { d = d || this.load(); const id = this.scale(key).id; return d.submissions.find((s) => s.instrumentId === id && s.phase === phase && s.completionStatus === "complete") || null; },
+    history(key) { const id = this.scale(key).id; return this.load().submissions.filter((s) => s.instrumentId === id && s.phase === "check" && s.completionStatus === "complete").sort((a, b) => a.submittedAt < b.submittedAt ? -1 : 1); },
+    submissionFor(key, phase, d) { if (phase === "check") return null; d = d || this.load(); const id = this.scale(key).id; return d.submissions.find((s) => s.instrumentId === id && s.phase === phase && s.completionStatus === "complete") || null; },
 
     /* ---------- 제출: 중복 제출 방지(같은 draftId는 한 번만, 같은 척도·시점은 한 번만) ---------- */
     submit(key, phase) {
