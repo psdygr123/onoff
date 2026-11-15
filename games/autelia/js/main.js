@@ -41,6 +41,30 @@ window.AU = window.AU || {};
     main.post("progress", { label: AU.jobName(S) + " Lv." + S.level, percent: Math.min(100, Math.round(S.level / 10 * 100)) });
   };
 
+  /* ---------- 캐릭터 슬롯(3칸): 1번 칸은 예전 저장 키를 그대로 씀 ---------- */
+  main.SLOTS = [1, 2, 3];
+  main.slotKey = (n) => n === 1 ? "autelia.save" : "autelia.save." + n;
+  main.activeSlot = () => { const v = AU.Store.get("autelia.active"); return main.SLOTS.includes(v) ? v : 1; };
+  main.setSlot = (n) => { AU.Store.set("autelia.active", n); location.reload(); };
+  main.slotInfo = (n) => {
+    const raw = AU.Store.get(main.slotKey(n)); if (!raw || typeof raw !== "object") return null;
+    let job = "견습 모험가"; try { job = AU.JOBS[(raw.job || "apprentice")].name; } catch (e) {}
+    const pro = raw.prologue && raw.prologue.state !== "COMPLETED" && !raw.prologue.legacy;
+    return { name: (raw.profile && raw.profile.name) || "이름 없음", gender: raw.profile && raw.profile.gender, level: raw.level || 1, job, look: raw.profile && raw.profile.look,  pro, savedAt: raw.savedAt };
+  };
+  main.paintSlot = async function (cv, info) { // 설정한 성별·머리·조끼·바지 색으로 초상화를 그려 넣음(그림이 읽히는 동안 잠깐 기다림)
+    const key = info.gender === "f" ? "pt_player_female" : "pt_player_male";
+    for (let i = 0; i < 50 && !(AU.Img.map[key] && AU.Img.map[key].orig); i++) await new Promise((r) => setTimeout(r, 100));
+    let src = null; try { src = await AU.Tint.paint(key, info.look || {}); } catch (e) { /* 아래에서 원본으로 */ }
+    if (!src) src = AU.Img.get(key); if (!src) return;
+    const w = src.width || src.naturalWidth, h = src.height || src.naturalHeight, sz = Math.min(w, h), x = cv.getContext("2d");
+    x.drawImage(src, (w - sz) / 2, 0, sz, sz, 0, 0, cv.width, cv.height);
+  };
+  main.exitGame = function () {
+    AU.G.save("exit");
+    if (embedded) { AU.main.post("exit"); return; }
+    main.running = false; main.resetting = true; location.reload();
+  };
   main.resetAll = function () {
     main.resetting = true; AU.Store.remove(C.save.key); location.reload();
   };
@@ -51,6 +75,7 @@ window.AU = window.AU || {};
     AU.Img.load();
     await handshake();
     AU.UI.devVisible = /[?&]dev=1/.test(location.search);
+    main.slot = main.activeSlot(); C.save.key = main.slotKey(main.slot);
     const saved = AU.G.load(), state = saved || AU.newState();
     AU.G.init(state);
     if (!AU.MAPS[state.map]) { state.map = "porto"; state.x = AU.MAPS.porto.start; }
@@ -96,8 +121,21 @@ window.AU = window.AU || {};
     box.innerHTML = '<div class="tlogo">아우텔리아</div><div class="tsub">프롤로그 체험 · 시제품 v' + AU.VERSION + '</div>';
     box.append(b1);
     if (hasSave && !inPro) { const bp = document.createElement("button"); bp.type = "button"; bp.className = "btn"; bp.id = "btn-replay"; bp.textContent = "프롤로그 다시 보기"; bp.onclick = () => { t.classList.add("hidden"); main.running = true; window.focus(); P.startReplay(); }; box.append(bp); }
-    if (hasSave) { const b2 = document.createElement("button"); b2.type = "button"; b2.className = "btn"; b2.id = "btn-new"; b2.textContent = "처음부터 시작"; b2.onclick = () => AU.UI.confirm("저장된 기록을 지우고 처음부터 시작할까요?", "지우고 시작", main.resetAll); box.append(b2); }
     if (hasSave) { const bc = document.createElement("button"); bc.type = "button"; bc.className = "btn"; bc.id = "btn-profile"; bc.textContent = "캐릭터 설정 (" + AU.Profile.name() + ")"; bc.onclick = () => openSetup("edit", (name, gender, look) => { AU.Profile.set(name, gender, look); AU.G.save("profile"); buildTitle(hasSave); }); box.append(bc); }
+    const strip = document.createElement("div"); strip.className = "slotstrip";
+    for (const n of main.SLOTS) {
+      const info = main.slotInfo(n), card = document.createElement("div"); card.className = "slotcard" + (n === main.slot ? " on" : "") + (info ? "" : " empty"); card.dataset.slot = n;
+      const open = () => { if (n !== main.slot) main.setSlot(n); };
+      if (info) {
+        const when = info.savedAt ? new Date(info.savedAt).toLocaleDateString("ko-KR", { month: "numeric", day: "numeric" }) + " 저장" : "";
+        card.innerHTML = '<canvas class="sport" width="112" height="112"></canvas><b></b><span></span><em></em>'; card.children[1].textContent = info.name; card.children[2].textContent = info.pro ? "프롤로그 진행 중" : info.job + " Lv." + info.level; card.children[3].textContent = when;
+        main.paintSlot(card.children[0], info);
+        const del = document.createElement("button"); del.type = "button"; del.className = "sdel"; del.textContent = "삭제"; del.title = "이 캐릭터 삭제";
+        del.onclick = (e) => { e.stopPropagation(); AU.UI.confirm("캐릭터 '" + info.name + "'의 기록을 삭제할까요? 되돌릴 수 없습니다.", "삭제", () => { AU.Store.remove(main.slotKey(n)); location.reload(); }); }; card.append(del);
+      } else { card.innerHTML = '<b>＋ 새 캐릭터</b><span>비어 있는 칸</span>'; }
+      card.onclick = open; strip.append(card);
+    }
+    box.insertBefore(strip, b1);
     const tip = document.createElement("p"); tip.className = "note"; tip.textContent = "방향키 이동 · Alt 점프 · Ctrl 공격 · Space 대화 · Esc 메뉴 (키보드 설정에서 변경 가능)";
     box.append(tip); t.append(box); t.classList.remove("hidden");
     b1.focus();

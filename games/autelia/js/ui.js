@@ -371,9 +371,8 @@ window.AU = window.AU || {};
     if (AU.Prologue && AU.Prologue.on) items = items.filter(([, n]) => AU.Prologue.allowWin(n)); // 프롤로그 중에는 필요한 메뉴만
     b.append(h("div", { class: "menugrid" }, items.map(([label, name]) => btn(h("span", null, label, h("em", { text: "[" + keyOf(WIN_KEYS[name]) + "]" })), "menuitem", () => this.open(name)))));
     const row = h("div", { class: "menurow" },
-      btn("이어하기", "primary", () => this.close()), btn("지금 저장", "", () => { AU.G.save("manual"); AU.G.toast("저장했습니다.", "good"); }),
-      btn("처음부터 다시", "danger", () => this.confirm("저장된 기록을 지우고 처음부터 시작할까요? 되돌릴 수 없습니다.", "지우고 시작", () => AU.main.resetAll())));
-    if (AU.main && AU.main.embedded) row.append(btn("온앤오프로 돌아가기", "", () => { AU.G.save("exit"); AU.main.post("exit"); }));
+      btn("게임으로 돌아가기", "primary", () => this.close()),
+      btn("게임 종료하기", "", () => this.confirm("정말로 종료하겠습니까?\n현재까지 게임을 저장합니다.", "저장하고 종료", () => AU.main.exitGame())));
     b.append(row);
     b.append(h("p", { class: "note", text: "저장 위치: 이 브라우저(" + (AU.Store.persistent ? "로컬 저장소" : "임시 메모리: 접속 종료 시 사라짐") + ") · 마지막 저장: " + (S.savedAt ? new Date(S.savedAt).toLocaleTimeString("ko-KR") : "없음") + " · 버전 " + AU.VERSION }));
   };
@@ -403,9 +402,9 @@ window.AU = window.AU || {};
     if (tab === "sell") {
       const ids = Object.keys(S.inv).filter((id) => AU.ITEMS[id].type === "etc" && AU.ITEMS[id].sell > 0);
       if (!ids.length) list.append(h("p", { class: "empty", text: "팔 수 있는 재료가 없습니다. 몬스터가 떨어뜨린 재료를 주워 오세요." }));
-      for (const id of ids) { const it = AU.ITEMS[id], n = S.inv[id]; list.append(h("div", { class: "shoprow" }, h("span", { class: "iname", text: it.name.replace(" (임시)", "") }), h("span", { class: "tag", text: "×" + n }), h("span", { class: "price", text: "개당 " + it.sell }), btn("1개", "mini", () => AU.G.sellItem(id, 1)), n > 1 ? btn("모두 (" + it.sell * n + ")", "mini", () => AU.G.sellItem(id, n)) : null)); }
+      for (const id of ids) { const it = AU.ITEMS[id], n = S.inv[id]; list.append(h("div", { class: "shoprow" }, UI.itemIcon(id, 34), h("span", { class: "iname", text: it.name.replace(" (임시)", "") }), h("span", { class: "tag", text: "×" + n }), h("span", { class: "price", text: "개당 " + it.sell }), btn("1개", "mini", () => AU.G.sellItem(id, 1)), n > 1 ? btn("모두 (" + it.sell * n + ")", "mini", () => AU.G.sellItem(id, n)) : null)); }
     } else {
-      for (const id of AU.SHOP.general.buy) { const it = AU.ITEMS[id]; list.append(h("div", { class: "shoprow" }, h("span", { class: "iname", text: it.name.replace(" (임시)", "") }), h("span", { class: "tag", text: "보유 " + AU.G.count(id) }), h("span", { class: "price", text: "개당 " + it.buy }), btn("1개 사기", "mini", () => AU.G.buyItem(id, 1), { disabled: S.silver >= it.buy ? null : "" }))); }
+      for (const id of AU.SHOP.general.buy) { const it = AU.ITEMS[id]; list.append(h("div", { class: "shoprow" }, UI.itemIcon(id, 34), h("span", { class: "iname", text: it.name.replace(" (임시)", "") }), h("span", { class: "tag", text: "보유 " + AU.G.count(id) }), h("span", { class: "price", text: "개당 " + it.buy }), btn("1개 사기", "mini", () => AU.G.buyItem(id, 1), { disabled: S.silver >= it.buy ? null : "" }))); }
     }
     b.append(list);
   };
@@ -435,9 +434,11 @@ window.AU = window.AU || {};
     box: '<path d="M4 7l8-4 8 4v10l-8 4-8-4z"/>'
   };
   const ICON_OF = { sword_a: "sword", cloth_a: "tunic", charm_a: "charm", potion: "potion", fur: "fur", fox_tail: "tail", snake_skin: "skin", snake_fang: "fang", rat_tooth: "tooth", crab_claw: "claw", crab_shell: "shell", fox_scarf: "scarf", snake_ring: "ring", crab_vest: "tunic", guild_token: "token", guild_parcel: "parcel", barsha_map: "map", jepeto_blueprint: "sheet", iron_scrap: "scrap", wolf_pelt: "pelt", metal_fragment: "shard", carpenter_bag: "bag" };
+  const HAS_ART = new Set(["sword_a", "cloth_a", "charm_a", "fox_scarf", "snake_ring", "crab_vest", "fur", "fox_tail", "snake_skin", "snake_fang", "rat_tooth", "crab_claw", "crab_shell", "iron_scrap", "wolf_pelt", "potion", "guild_token", "guild_parcel", "barsha_map", "jepeto_blueprint", "metal_fragment", "carpenter_bag"]);
   UI.itemIcon = function (id, px) {
     const it = AU.ITEMS[id] || {}, size = px || 40, box = h("span", { class: "iicon r-" + (it.rarity || it.type), style: "width:" + size + "px;height:" + size + "px" });
-    if (it.img) { box.append(h("img", { src: it.img, alt: "", draggable: "false" })); return box; }
+    const art = it.img || (HAS_ART.has(id) ? "assets/item/" + id + ".webp" : null);
+    if (art) { box.append(h("img", { src: art, alt: "", draggable: "false" })); return box; }
     const g = GL[ICON_OF[id]] || (it.type === "equip" ? GL.sword : it.type === "use" ? GL.potion : GL.box);
     box.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">' + g + "</svg>";
     return box;
@@ -476,14 +477,14 @@ window.AU = window.AU || {};
     const slots = h("div", { class: "eqslots" });
     for (const slot of Object.keys(S.equip)) {
       const id = S.equip[slot], it = id && AU.ITEMS[id];
-      slots.append(h("div", { class: "eqslot" }, h("div", { class: "eqlabel", text: AU.SLOT_LABEL[slot] }), h("div", { class: "eqname", text: it ? it.name.replace(" (임시)", "") : "비어 있음" }),
+      slots.append(h("div", { class: "eqslot" }, h("div", { class: "eqlabel", text: AU.SLOT_LABEL[slot] }), it ? UI.itemIcon(id, 40) : null, h("div", { class: "eqname", text: it ? it.name.replace(" (임시)", "") : "비어 있음" }),
         it ? h("div", { class: "stat", text: Object.entries(it.stats).map(([k, v]) => statName(k) + " +" + v).join(" · ") }) : null,
         it ? btn("해제", "", () => AU.G.unequip(slot)) : null));
     }
     const cands = Object.keys(S.inv).filter((id) => AU.ITEMS[id].type === "equip");
     const sel = UI.selected.eq && S.inv[UI.selected.eq] ? UI.selected.eq : cands[0]; UI.selected.eq = sel;
     const list = h("div", { class: "itemgrid small" }); if (!cands.length) list.append(h("p", { class: "empty", text: "가방에 장착할 수 있는 장비가 없습니다." }));
-    cands.forEach((id) => list.append(h("button", { type: "button", class: "item" + (id === sel ? " sel" : ""), onclick: () => { UI.selected.eq = id; UI.renderWin(); } }, h("span", { class: "iname", text: AU.ITEMS[id].name.replace(" (임시)", "") }), h("span", { class: "itype t-equip", text: AU.SLOT_LABEL[AU.ITEMS[id].slot] }))));
+    cands.forEach((id) => list.append(h("button", { type: "button", class: "item" + (id === sel ? " sel" : ""), onclick: () => { UI.selected.eq = id; UI.renderWin(); } }, UI.itemIcon(id, 30), h("span", { class: "iname", text: AU.ITEMS[id].name.replace(" (임시)", "") }), h("span", { class: "itype t-equip", text: AU.SLOT_LABEL[AU.ITEMS[id].slot] }))));
     const pv = h("div", { class: "detail" }, h("h3", { text: "능력치 변화 미리보기" }));
     if (sel) {
       const it = AU.ITEMS[sel], d1 = AU.derive(S, { equip: { [it.slot]: sel } });

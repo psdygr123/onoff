@@ -58,16 +58,12 @@ window.AU = window.AU || {};
         im.onerror = () => res(null); im.src = "assets/mask/" + MASKS[key] + ".png";
       }));
     },
-    /* 그림 1장에 색 적용(완료되면 AU.Img의 그림과 AU.ASSETS 경로를 교체) */
-    async tint(key, look) {
-      const rec = AU.Img && AU.Img.map[key], spec = AU.ASSETS && AU.ASSETS[key];
-      if (!rec || !rec.orig || !spec || !MASKS[key]) return false;
-      const sg = this.sig(look); if (rec.tsig === sg) return true;
-      const ver = (rec.tver = (rec.tver || 0) + 1);
-      if (!spec.origPath) spec.origPath = spec.path;
-      if (this.isDefault(look)) { rec.image = rec.orig; spec.path = spec.origPath; rec.tsig = sg; return true; }
+    /* 색을 입힌 그림을 캔버스로 돌려줌(AU.Img 그림은 건드리지 않음). 제목 화면의 캐릭터 카드처럼 현재 모습과 다른 모습을 그릴 때 씀 */
+    async paint(key, look) {
+      const rec = AU.Img && AU.Img.map[key]; if (!rec || !rec.orig || !MASKS[key]) return null;
+      look = this.clean(look);
       const m = await this.mask(key), o = rec.orig;
-      if (!m || m.w !== o.naturalWidth || m.h !== o.naturalHeight) { this.stats.failed++; return false; } // 크기가 다르면 쓰지 않음
+      if (!m || m.w !== o.naturalWidth || m.h !== o.naturalHeight) return null; // 크기가 다르면 쓰지 않음
       const c = document.createElement("canvas"); c.width = m.w; c.height = m.h; const x = c.getContext("2d"); x.drawImage(o, 0, 0);
       const id = x.getImageData(0, 0, m.w, m.h), d = id.data, N = m.w * m.h;
       for (const p of PARTS) {
@@ -82,6 +78,17 @@ window.AU = window.AU || {};
         }
       }
       x.putImageData(id, 0, 0);
+      return c;
+    },
+    /* 그림 1장에 색 적용(완료되면 AU.Img의 그림과 AU.ASSETS 경로를 교체) */
+    async tint(key, look) {
+      const rec = AU.Img && AU.Img.map[key], spec = AU.ASSETS && AU.ASSETS[key];
+      if (!rec || !rec.orig || !spec || !MASKS[key]) return false;
+      const sg = this.sig(look); if (rec.tsig === sg) return true;
+      const ver = (rec.tver = (rec.tver || 0) + 1);
+      if (!spec.origPath) spec.origPath = spec.path;
+      if (this.isDefault(look)) { rec.image = rec.orig; spec.path = spec.origPath; rec.tsig = sg; return true; }
+      const c = await this.paint(key, look); if (!c) { this.stats.failed++; return false; }
       const blob = await new Promise((r) => c.toBlob(r, "image/png")); if (!blob) { this.stats.failed++; return false; }
       if (ver !== rec.tver) return false; // 그 사이 더 새로운 요청이 있으면 버림
       const url = URL.createObjectURL(blob), im = new Image();

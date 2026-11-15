@@ -365,3 +365,13 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
 
 .maptoggle { position: absolute; left: 10px; top: 10px; z-index: 5; font: inherit; font-size: 13px; font-weight: 600; color: var(--ink); background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 5px 12px; cursor: pointer; } .maptoggle:hover { background: var(--sage-l); }
 .mapbox.continent { background: radial-gradient(ellipse at 50% 55%, #E6DDBF 0 46%, transparent 47%), radial-gradient(ellipse at 50% 85%, #D9E6D0 0 20%, transparent 21%), linear-gradient(#DDE8EE, #CFDDE6); }
+.menubtn { display: none !important; }
+
+.slotstrip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 10px 0 14px; } .slotcard { position: relative; display: flex; flex-direction: column; gap: 2px; padding: 10px 10px 9px; border: 1px solid var(--line); border-radius: 10px; background: rgba(255,255,255,.7); cursor: pointer; text-align: left; } .slotcard:hover { border-color: var(--sage); } .slotcard.on { border-color: var(--sage); background: var(--sage-l); box-shadow: 0 0 0 2px var(--sage) inset; } .slotcard b { font-size: 15px; } .slotcard span { font-size: 12.5px; color: var(--ink2); } .slotcard em { font-style: normal; font-size: 11.5px; color: var(--ink2); } .slotcard.empty { border-style: dashed; justify-content: center; align-items: center; text-align: center; color: var(--ink2); } .sdel { position: absolute; right: 6px; top: 6px; font: inherit; font-size: 11px; color: var(--rose); background: none; border: 0; cursor: pointer; padding: 1px 4px; }
+.modal p { white-space: pre-line; }
+#title .slotcard { background: rgba(255,255,255,.07); border-color: rgba(255,255,255,.22); color: #f3ead6; } #title .slotcard b { color: #fff6df; } #title .slotcard span, #title .slotcard em { color: #cfc6b0; } #title .slotcard:hover { border-color: #8fc2a8; } #title .slotcard.on { background: rgba(110,170,140,.28); border-color: #8fc2a8; box-shadow: none; } #title .slotcard.empty { background: rgba(255,255,255,.03); color: #bdb39b; } #title .slotcard.empty b { color: #d9cfb6; } #title .sdel { color: #f0a29a; }
+
+.iicon:has(img) { background: transparent !important; }
+
+.slotcard { align-items: center; text-align: center; } .sport { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; background: rgba(255,255,255,.12); border: 2px solid rgba(255,255,255,.35); margin-bottom: 4px; }
+.slotcard.empty { min-height: 128px; }
