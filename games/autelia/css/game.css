@@ -56,7 +56,7 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
 .slot .scost { position: absolute; right: 7px; bottom: 3px; font-size: 12px; color: var(--rs); }
 .slot .sc { position: absolute; inset: 0; place-items: center; font-size: 22px; font-weight: 500; color: #fff; background: rgba(30, 22, 15, .6); display: none; }
 .slot.cool .sc { display: grid; } .slot.empty { opacity: .7; } .slot.low .scost { color: var(--rose); }
-.prompt { position: absolute; left: 50%; bottom: 104px; transform: translateX(-50%); background: rgba(30, 24, 18, .8); color: #fff; border-radius: 8px; padding: 7px 18px; font-size: 16px; display: none; white-space: nowrap; letter-spacing: .01em; }
+.prompt { position: absolute; left: 50%; top: 78px; transform: translateX(-50%); background: rgba(30, 24, 18, .8); color: #fff; border-radius: 8px; padding: 7px 18px; font-size: 16px; display: none; white-space: nowrap; letter-spacing: .01em; }
 .mapname { position: absolute; left: 50%; top: 22px; transform: translate(-50%, -14px); font-size: 20px; font-weight: 500; letter-spacing: .08em; color: #fff; text-shadow: 0 2px 8px rgba(0, 0, 0, .6); padding: 6px 30px; opacity: 0; }
 .mapname::before, .mapname::after { content: ""; display: inline-block; width: 36px; height: 1px; background: rgba(255, 255, 255, .7); vertical-align: middle; margin: 0 14px; }
 .mapname.show { animation: mapin 3s ease forwards; } @keyframes mapin { 0% { opacity: 0; transform: translate(-50%, -14px); } 14% { opacity: 1; transform: translate(-50%, 0); } 80% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, 0); } }
