@@ -21,7 +21,7 @@ window.AU = window.AU || {};
     /* ---------- 맵 입장 ---------- */
     enterMap(id, x, silent) {
       const S = AU.G.S, m = AU.MAPS[id]; this.mapId = id; this.map = m;
-      S.map = id; S.x = x; S.visited[id] = true; // 이동 직후 저장해도 새 위치가 기록되도록
+      S.map = id; S.x = x; S.visited[id] = true; if (id === "porto" && AU.UI && AU.UI.openHelpOnce) AU.UI.openHelpOnce(); // 이동 직후 저장해도 새 위치가 기록되도록
       const p = this.player; p.x = x; p.y = GROUND; p.vx = 0; p.vy = 0; p.rope = null; p.onGround = true;
       this.camX = Math.max(0, Math.min(m.width - W, x - W / 2));
       this.monsters = []; this.fx = []; this.floaters = []; this.drops = []; this.nearDrop = null; this.work = null; this.nearSpot = null;

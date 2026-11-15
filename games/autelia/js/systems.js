@@ -50,16 +50,19 @@ window.AU = window.AU || {};
       this.log("Lv." + S.level + " 달성");
       AU.Ev.emit("levelup", { level: S.level });
       this.toast("레벨 업! Lv." + S.level, "good");
+      this.tipOnce("lv", "스킬은 스킬창(" + AU.keyLabel(AU.Input.bindings.skills) + "), 능력치는 스탯창(" + AU.keyLabel(AU.Input.bindings.stats) + ")에서 확인합니다. 키 안내는 " + AU.keyLabel(AU.Input.bindings.help) + " 키.");
       if (S.level > C.levels.autoGrowthUntil) this.toast("스탯 포인트 +" + C.levels.freePointsPerLevel + " (S 키)", "info");
       for (const u of AU.UNLOCKS) if (u.level === S.level) this.toast(u.text, "info");
     },
 
     /* ---------- 재화·아이템 ---------- */
     gainSilver(n) { this.S.silver += n; },
+    tipOnce(id, text) { const F = this.S.flags; if (F["tip_" + id] || (AU.Prologue && AU.Prologue.on)) return; F["tip_" + id] = true; this.toast(text, "info"); },
     count(id) { return this.S.inv[id] || 0; },
     giveItem(id, n = 1, quiet) {
       this.S.inv[id] = (this.S.inv[id] || 0) + n;
       if (!quiet) this.toast("획득: " + AU.ITEMS[id].name + (n > 1 ? " ×" + n : ""), "item");
+      if (!quiet) { const k = AU.Input.bindings; const L = (a) => AU.keyLabel(k[a]); this.tipOnce("inv", "얻은 물건은 인벤토리(" + L("inventory") + ")에서 볼 수 있습니다."); if (AU.ITEMS[id].type === "equip") this.tipOnce("equip", "장비는 인벤토리에서 장착하고, 장비창(" + L("equipment") + ")에서 비교할 수 있습니다."); }
       this.refreshCollectQuests(); this.changed();
     },
     // 상인과 이야기해 상점을 연 동안에만 사고팔기·제작 가능(shop: "general" 잡화 / "smith" 무기)
@@ -148,6 +151,7 @@ window.AU = window.AU || {};
       const q = AU.QUESTS[id];
       if (q.fee) { if (this.S.silver < q.fee) { this.toast("은화가 부족합니다. (필요 " + q.fee + ")", "warn"); return false; } this.S.silver -= q.fee; this.toast("은화 -" + q.fee, "info"); }   // 수락할 때 내는 값(정보료 등)
       this.S.quests[id] = { state: "active", prog: q.objectives.map(() => 0), spots: {} };
+      this.tipOnce("q", "진행 중인 퀘스트는 왼쪽 목표창에 나오고, 자세한 내용은 퀘스트창(" + AU.keyLabel(AU.Input.bindings.quests) + ")에서 봅니다.");
       for (const [it, n] of q.startItems || []) this.giveItem(it, n);   // 전달 퀘스트: 수락할 때 맡는 물건
       this.log("퀘스트 수락: " + q.title); this.toast("퀘스트 수락: " + q.title, "quest");
       this.refreshQuest(id); this.save("quest"); this.changed(); return true;

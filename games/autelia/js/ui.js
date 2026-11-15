@@ -15,8 +15,8 @@ window.AU = window.AU || {};
     return el;
   }
   const btn = (label, cls, fn, extra) => h("button", Object.assign({ type: "button", class: "btn " + (cls || ""), onclick: fn }, extra || {}), label);
-  const WIN_KEYS = { inventory: "inventory", equipment: "equipment", stats: "stats", worldmap: "worldmap", quests: "quests", skills: "skills", journal: "journal", keysettings: "keysettings" };
-  const WIN_TITLE = { inventory: "인벤토리", equipment: "장비", stats: "스탯", worldmap: "월드맵", quests: "퀘스트", skills: "스킬", journal: "모험일지", keysettings: "설정 (소리·키보드)", menu: "메뉴", jobcard: "전직", shop: "상점", dev: "개발 테스트 (임시)" };
+  const WIN_KEYS = { inventory: "inventory", equipment: "equipment", stats: "stats", worldmap: "worldmap", quests: "quests", skills: "skills", journal: "journal", help: "help", keysettings: "keysettings" };
+  const WIN_TITLE = { inventory: "인벤토리", equipment: "장비", stats: "스탯", worldmap: "월드맵", quests: "퀘스트", skills: "스킬", journal: "모험일지", help: "기능 안내", keysettings: "설정 (소리·키보드)", menu: "메뉴", jobcard: "전직", shop: "상점", dev: "개발 테스트 (임시)" };
 
   /* ---------- 키 이름 표시 ---------- */
   AU.keyLabel = function (code) {
@@ -247,6 +247,7 @@ window.AU = window.AU || {};
     },
 
     /* ============ 창 열고 닫기 ============ */
+    openHelpOnce() { const F = AU.G.S.flags; if (F.helpShown || /[?&]dev=1/.test(location.search) || (AU.Prologue && AU.Prologue.on)) return; F.helpShown = true; setTimeout(() => { if (!this.cur && !this.dialog && !(AU.Prologue && AU.Prologue.on)) this.open("help"); }, 900); },
     toggleWin(name) { if (this.dialog) return; if (this.curName === name) this.close(); else this.open(name); },
     toggleMenu() { if (this.dialog) return; if (this.curName === "menu") this.close(); else this.open("menu"); },
     open(name) {
@@ -365,7 +366,7 @@ window.AU = window.AU || {};
 
   R.menu = function (b) {
     const S = AU.G.S;
-    let items = [["인벤토리", "inventory"], ["장비", "equipment"], ["스탯", "stats"], ["월드맵", "worldmap"], ["퀘스트", "quests"], ["스킬", "skills"], ["모험일지", "journal"], ["키보드 설정", "keysettings"]];
+    let items = [["인벤토리", "inventory"], ["장비", "equipment"], ["스탯", "stats"], ["월드맵", "worldmap"], ["퀘스트", "quests"], ["스킬", "skills"], ["모험일지", "journal"], ["기능 안내", "help"], ["키보드 설정", "keysettings"]];
     if (AU.Prologue && AU.Prologue.on) items = items.filter(([, n]) => AU.Prologue.allowWin(n)); // 프롤로그 중에는 필요한 메뉴만
     b.append(h("div", { class: "menugrid" }, items.map(([label, name]) => btn(h("span", null, label, h("em", { text: "[" + keyOf(WIN_KEYS[name]) + "]" })), "menuitem", () => this.open(name)))));
     const row = h("div", { class: "menurow" },
@@ -624,6 +625,17 @@ window.AU = window.AU || {};
       if (!rows.length) b.append(h("p", { class: "empty", text: "아직 기록이 없습니다." }));
       else b.append(h("div", { class: "logs" }, rows.map((e) => { const m = AU.G.mission(e.id); return h("div", { class: "logrow" }, h("span", { text: e.t }), h("span", { class: "tag perma", text: e.perma }), h("b", { text: (m ? m.title : e.id) }), h("span", { class: "tag", text: AU.MISSION_STATES[e.state] }), e.state === "done" ? h("span", { class: "pts", text: e.points ? "+" + e.points + "P" : (e.capped ? "주간 한도" : "") }) : null); })));
     }
+  };
+
+  R.help = function (b) {
+    const K = (a) => keyOf(a), sec = (t, rows) => h("div", { class: "helpsec" }, h("h3", { text: t }), h("ul", null, rows.map(([k, d]) => h("li", null, h("b", { text: k }), h("span", { text: " " + d })))));
+    b.append(h("div", { class: "helpwrap" },
+      h("p", { class: "helpintro", text: "처음 마을에 오면 낯선 화면이 많습니다. 아래를 한 번 읽어 두면 편합니다. 이 안내는 언제든 " + K("help") + " 키나 메뉴에서 다시 볼 수 있습니다." }),
+      sec("기본 조작", [[K("left") + "·" + K("right"), "이동"], [K("jump"), "점프"], [K("attack"), "기본 공격(피로도가 쌓이지 않음)"], [K("interact"), "NPC와 대화, 물건 줍기, 포털 이동 확인"], [K("up") + "/" + K("down"), "밧줄·사다리 오르내리기, 포털 들어가기"], ["1·2·3", "스킬 슬롯(전직 후 사용)"]]),
+      sec("화면 구성", [["왼쪽 위 미니맵", "내 위치(파란 점)와 NPC·몬스터·출구. 누르면 월드맵"], ["목표", "진행 중인 퀘스트와 다음에 할 일. ▾로 접고, 끌어서 옮길 수 있음(더블클릭으로 원위치)"], ["아래 가운데", "레벨, HP(체력), 피로도(스킬을 쓸수록 쌓임), EXP(경험치)"], ["이름표", "발 밑에 이름이 표시됩니다. 몬스터는 머리 위에 레벨과 이름"], ["느낌표 !", "받을 수 있는 퀘스트"], ["물음표 ?", "완료해서 보고할 수 있는 퀘스트"]]),
+      sec("창 열기", [[K("inventory"), "인벤토리: 가진 물건, 사용·장착"], [K("equipment"), "장비창: 장착한 장비와 능력치 비교"], [K("stats"), "스탯창: 능력치 보기, 포인트 분배"], [K("skills"), "스킬창: 스킬 확인·배치, 휴식으로 피로도 줄이기"], [K("quests"), "퀘스트창: 진행 중·완료 퀘스트 자세히"], [K("worldmap"), "월드맵: 갈 수 있는 지역"], [K("journal"), "모험일지: 현실 활동 미션, 마음 기록"], [K("keysettings"), "설정: 소리, 키 바꾸기"], ["Esc", "메뉴 / 열린 창 닫기"]]),
+      sec("알아 두기", [["쓰러지면", "마을에서 일어나며 경험치를 5% 잃습니다. 문장을 하나 골라 마음을 가다듬는 시간이 있습니다."], ["마을(안전 지역)", "싸움이 없고 체력이 천천히 회복됩니다."], ["상점", "상인 NPC와 대화해서 물건을 사고팝니다."], ["레벨 10", "전직 시험을 보기 전까지는 10레벨에서 멈춥니다."]]),
+      h("div", { class: "choices" }, btn("알겠습니다", "primary", () => UI.close()))));
   };
 
   R.jobcard = function (b) {

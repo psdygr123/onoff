@@ -68,6 +68,7 @@ AU.ACTIONS = [
   { id: "quests", label: "퀘스트창", code: "KeyQ" },
   { id: "skills", label: "스킬창", code: "KeyK" },
   { id: "journal", label: "모험일지·현실 미션", code: "KeyJ" },
+  { id: "help", label: "기능 안내", code: "KeyH" },
   { id: "keysettings", label: "키보드 설정", code: "Backslash" }
 ];
 // 오른쪽 Alt/Ctrl, 숫자패드도 같은 동작으로 인정
