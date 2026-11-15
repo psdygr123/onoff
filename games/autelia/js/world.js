@@ -19,7 +19,7 @@ window.AU = window.AU || {};
     isBlocked() { return this.blockedFn() || !!this.trans || this.player.dead || !!(AU.Prologue && AU.Prologue.on && AU.Prologue.locked()); },
 
     /* ---------- 맵 입장 ---------- */
-    enterMap(id, x, silent) {
+    enterMap(id, x, silent) { this.bindClick();
       const S = AU.G.S, m = AU.MAPS[id]; this.mapId = id; this.map = m;
       S.map = id; S.x = x; S.visited[id] = true; if (id === "porto" && AU.UI && AU.UI.openHelpOnce) AU.UI.openHelpOnce(); // 이동 직후 저장해도 새 위치가 기록되도록
       const p = this.player; p.x = x; p.y = GROUND; p.vx = 0; p.vy = 0; p.rope = null; p.onGround = true;
@@ -375,6 +375,7 @@ window.AU = window.AU || {};
       if (map.fgSlice && AU.Img.has(map.bg)) { // 계산대 등 배경 일부를 NPC 앞에 다시 그려 NPC가 뒤에 서 있는 것처럼 보이게 함
         const im = AU.Img.get(map.bg), k = H / im.naturalHeight, f = map.fgSlice; ctx.drawImage(im, f[0], f[1], f[2], f[3], f[0] * k, f[1] * k, f[2] * k, f[3] * k);
       }
+      for (const n of map.npcs || []) this.drawNpcOverlay(ctx, n);
       this.drawSpots(ctx);
       for (const m of this.monsters) if (m.alive) this.drawMonster(ctx, m);
       this.drawDrops(ctx);
@@ -475,10 +476,24 @@ window.AU = window.AU || {};
         ctx.fillStyle = "rgba(30,22,15,.7)"; this.rr(ctx, p.x - bw / 2 - 3, p.y - 176, bw + 6, 16, 8); ctx.fill(); ctx.fillStyle = "#9BE0B4"; this.rr(ctx, p.x - bw / 2, p.y - 173, Math.max(6, bw * k), 10, 5); ctx.fill();
       }
     },
+    bindClick() { // 마우스 클릭으로 NPC와 대화
+      if (this._clickBound) return; const cv = document.getElementById("cv"); if (!cv) return; this._clickBound = true;
+      cv.style.cursor = "default";
+      const hit = (e) => { const r = cv.getBoundingClientRect(), x = (e.clientX - r.left) / r.width * 1280 + Math.round(this.camX), y = (e.clientY - r.top) / r.height * 720;
+        for (const n of (this.map && this.map.npcs) || []) { const ny = n.npcY || GROUND; if (Math.abs(x - n.x) < 55 && y > ny - 190 && y < ny + 30) return n; } return null; };
+      cv.addEventListener("mousemove", (e) => { cv.style.cursor = (!AU.UI.anyOpen() && hit(e)) ? "pointer" : "default"; });
+      cv.addEventListener("click", (e) => {
+        if (AU.UI.anyOpen() || (AU.Prologue && AU.Prologue.on)) return; const n = hit(e); if (!n) return;
+        if (Math.abs(this.player.x - n.x) < 160) AU.UI.talkNpc(n.id); else AU.UI.toast(AU.NPCS[n.id].name + "에게 조금 더 가까이 가세요.", "info");
+      });
+    },
     drawNpc(ctx, n) {
       const d = AU.NPCS[n.id], y = n.npcY || GROUND, face = this.player.x < n.x ? -1 : 1;
       if (!this.sprite(ctx, d.sprite, n.x, y, 150, face, 0)) { ctx.fillStyle = "#C9B8A0"; this.rr(ctx, n.x - 30, y - 130, 60, 130, 20); ctx.fill(); ctx.fillStyle = "#5B4636"; ctx.font = "14px sans-serif"; ctx.textAlign = "center"; ctx.fillText("이미지 없음", n.x, y - 60); }
-      { const dx = Math.abs(this.player.x - n.x); if (dx > 80) this.nameTag(ctx, d.name, n.x, y + 17); } // 이름표는 상시 표시(주인공과 겹치는 거리에서만 숨김)
+    },
+    drawNpcOverlay(ctx, n) { // 이름표·퀘스트 표시: 계산대 등 전경 조각보다 위에 그려 가려지지 않게 함
+      const d = AU.NPCS[n.id], y = n.npcY || GROUND;
+      { const dx = Math.abs(this.player.x - n.x); if (dx > 80) this.nameTag(ctx, d.name, n.x, y + 17); }
       // 퀘스트 표시: 받을 수 있으면 !, 완료 가능하면 ?
       let mark = "";
       for (const id of d.quests || []) { const s = AU.G.questStatus(id); if (s === "ready" && (AU.QUESTS[id].turnIn || AU.QUESTS[id].giver) === n.id) { mark = "?"; break; } if (s === "available" && !mark) mark = "!"; }
