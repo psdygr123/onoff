@@ -491,9 +491,24 @@ window.AU = window.AU || {};
       const d = AU.NPCS[n.id], y = n.npcY || GROUND, face = this.player.x < n.x ? -1 : 1;
       if (!this.sprite(ctx, d.sprite, n.x, y, 150, face, 0)) { ctx.fillStyle = "#C9B8A0"; this.rr(ctx, n.x - 30, y - 130, 60, 130, 20); ctx.fill(); ctx.fillStyle = "#5B4636"; ctx.font = "14px sans-serif"; ctx.textAlign = "center"; ctx.fillText("이미지 없음", n.x, y - 60); }
     },
+    npcRole(id) { // 역할별 구분(글자·색): 상점/전직/안내/의뢰
+      const d = AU.NPCS[id];
+      if (d.shop) return { t: "상점", c: "#C58A1E", bg: "rgba(120,80,10,.78)" };
+      if (id === "job_npc") return { t: "전직", c: "#B04A4A", bg: "rgba(110,36,36,.78)" };
+      if (d.special === "missionGuide") return { t: "안내", c: "#2F8F83", bg: "rgba(20,84,78,.78)" };
+      if ((d.quests || []).length) return { t: "의뢰", c: "#3F6FB5", bg: "rgba(28,56,110,.78)" };
+      return null;
+    },
     drawNpcOverlay(ctx, n) { // 이름표·퀘스트 표시: 계산대 등 전경 조각보다 위에 그려 가려지지 않게 함
       const d = AU.NPCS[n.id], y = n.npcY || GROUND;
-      { const dx = Math.abs(this.player.x - n.x); if (dx > 80) this.nameTag(ctx, d.name, n.x, y + 17); }
+      const role = this.npcRole(n.id), far = Math.abs(this.player.x - n.x) > 80, st = this.npcStyle || "";
+      if (st === "C" && role) { ctx.save(); ctx.globalAlpha = .55; ctx.strokeStyle = role.c; ctx.lineWidth = 4; ctx.beginPath(); ctx.ellipse(n.x, y + 2, 38, 9, 0, 0, 7); ctx.stroke(); ctx.restore(); }
+      if (far) {
+        if (st === "A" && role) this.nameTag(ctx, role.t + " · " + d.name, n.x, y + 17, role.bg);
+        else if (st === "C" && role) this.nameTag(ctx, d.name, n.x, y + 17, role.bg);
+        else this.nameTag(ctx, d.name, n.x, y + 17);
+      }
+      if (st === "B" && role) { const by = y - 172; ctx.font = "700 13px 'Noto Sans KR', sans-serif"; const w = ctx.measureText(role.t).width + 16; ctx.save(); ctx.fillStyle = role.c; ctx.strokeStyle = "#FFFFFF"; ctx.lineWidth = 2; this.rr(ctx, n.x - w / 2, by - 11, w, 22, 6); ctx.fill(); ctx.stroke(); ctx.fillStyle = "#FFFFFF"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(role.t, n.x, by + 1); ctx.restore(); }
       // 퀘스트 표시: 받을 수 있으면 !, 완료 가능하면 ?
       let mark = "";
       for (const id of d.quests || []) { const s = AU.G.questStatus(id); if (s === "ready" && (AU.QUESTS[id].turnIn || AU.QUESTS[id].giver) === n.id) { mark = "?"; break; } if (s === "available" && !mark) mark = "!"; }
