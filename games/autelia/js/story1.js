@@ -26,20 +26,20 @@ window.AU = window.AU || {};
   Object.assign(AU.ITEMS, {
     barsha_map: { name: "바르샤의 양피지 지도", type: "quest", desc: "포르투 노바 북쪽 경계의 중계소 위치가 표시된 구겨진 지도입니다." },
     jepeto_blueprint: { name: "제페토의 도면 부품", type: "story", keep: true, desc: "기름종이에 싼 낡은 철제 도면 부품. 금속의 결을 읽어 약한 곳을 가늠하는 법이 적혀 있다." },
-    iron_scrap: { name: "흑철 부스러기 (임시)", type: "etc", rarity: "common", sell: 9, desc: "갑옷에서 떨어진 은회색 부스러기입니다. 팔 수 있습니다." },
-    wolf_pelt: { name: "오염된 늑대 가죽 (임시)", type: "etc", rarity: "common", sell: 8, desc: "눈이 붉던 늑대의 거친 가죽입니다. 팔 수 있습니다." }
+    iron_scrap: { name: "흑철 부스러기", type: "etc", rarity: "common", sell: 9, desc: "갑옷에서 떨어진 은회색 부스러기입니다. 팔 수 있습니다." },
+    wolf_pelt: { name: "오염된 늑대 가죽", type: "etc", rarity: "common", sell: 8, desc: "눈이 붉던 늑대의 거친 가죽입니다. 팔 수 있습니다." }
   });
 
   /* ---------- 적 ---------- */
   Object.assign(AU.MONSTERS, {
     merc: { name: "블랙 웨이브 용병", lv: 9, hp: 260, atk: 34, speed: 90, chase: 210, w: 60, h: 112, exp: 170, silver: [12, 20], drops: [["iron_scrap", 0.5, 1, 2], ["potion", 0.15]], color: "#4D4D5C", motion: "swing", sprite: "mon_merc", sw: 88 },
-    wolf: { name: "오염된 늑대", lv: 10, hp: 300, atk: 38, speed: 115, chase: 230, w: 88, h: 54, exp: 200, silver: [12, 18], drops: [["wolf_pelt", 0.55, 1, 2], ["potion", 0.12]], color: "#6C6F7A", ear: true, motion: "pounce", sprite: "mon_wolf", sw: 140 }
+    wolf: { name: "오염된 늑대", lv: 10, hp: 300, atk: 38, speed: 115, chase: 230, w: 88, h: 54, exp: 200, silver: [12, 18], drops: [["wolf_pelt", 0.55, 1, 2], ["potion", 0.12]], color: "#6C6F7A", ear: true, motion: "leap", sprite: "mon_wolf", sw: 140 }
   });
 
   /* ---------- NPC ---------- */
-  AU.NPCS.barsha = { name: "정보상 바르샤 (임시)", sprite: "barsha", portrait: "pt_barsha", quests: ["q_a2_secret", "q_a3_scout"],
+  AU.NPCS.barsha = { name: "정보상 바르샤", sprite: "barsha", portrait: "pt_barsha", quests: ["q_a2_secret", "q_a3_scout"],
     idle: ["이봐, 촌뜨기 꼬마. 은화 냄새도 안 나는 입으로 거대한 비밀을 캐물어? 여긴 신전 기사단 자선 바자회가 아니야.", "은화 몇 잎이라도 쥐고 오면 그 쇠가 어느 놈 갑옷에서 떨어졌는지 말해 줄 테니, 돈 없으면 다시는 기웃거리지 마라."] };
-  AU.NPCS.jepeto = { name: "도편수 제페토 (임시)", sprite: "jepeto", portrait: "pt_jepeto", quests: ["q_a3_scout", "q_a3_jepeto"],
+  AU.NPCS.jepeto = { name: "도편수 제페토", sprite: "jepeto", portrait: "pt_jepeto", quests: ["q_a3_scout", "q_a3_jepeto"],
     idle: ["손은 늙었어도 눈은 아직 쓸 만하다네.", "서부로 가는 길은 험하니 단련을 게을리하지 말게."] };
 
   /* ---------- 맵 ---------- */
@@ -84,7 +84,7 @@ window.AU = window.AU || {};
       { id: "lift_rope", img: "fence", kind: "repair", x: 2500, dur: 2, label: "수하물 리프트 밧줄", done: "고정 밧줄을 정으로 끊었습니다. 거대한 도르래가 요란하게 무너져 내리며 추격자들의 길을 막습니다." }
     ],
     spawns: [{ type: "merc", x: 760 }, { type: "merc", x: 1100 }, { type: "merc", x: 1580, y: 440, min: 1490, max: 1710 }, { type: "merc", x: 2000 }, { type: "merc", x: 2420, y: 470, min: 2370, max: 2570 }, { type: "merc", x: 2750 }],
-    area: { x: 78, y: 28, desc: "포르투 노바 북쪽 경계 너머의 기암괴석 지대입니다. 블랙 웨이브 비밀 중계소가 있습니다. (임시 설명)" }
+    area: { x: 78, y: 28, desc: "포르투 노바 북쪽 경계 너머의 기암괴석 지대입니다. 블랙 웨이브 비밀 중계소가 있습니다." }
   };
   AU.MAPS.gorge = {
     name: "협곡 바위틈", bg: "gorge", width: 1500, safe: false,
@@ -97,7 +97,7 @@ window.AU = window.AU || {};
       { id: "grain_b", img: "fence", x: 1080, kind: "repair", label: "옹이 박힌 판자", done: "옹이 둘레의 결을 읽고 약한 곳을 정확히 쳐냈습니다." }
     ],
     spawns: [{ type: "wolf", x: 900 }, { type: "wolf", x: 1180 }, { type: "wolf", x: 1350 }, { type: "wolf", x: 600 }],
-    area: { x: 90, y: 16, desc: "서부로 이어지는 협곡의 바위틈입니다. 오염된 짐승이 출몰합니다. (임시 설명)" }
+    area: { x: 90, y: 16, desc: "서부로 이어지는 협곡의 바위틈입니다. 오염된 짐승이 출몰합니다." }
   };
   AU.AREA_LINKS.push(["porto", "jandari"], ["jandari", "valley"], ["valley", "gorge"]);
   // 포르투 노바 → 잔다리 골목 출입구
@@ -107,7 +107,7 @@ window.AU = window.AU || {};
   // fee: 수락할 때 내는 은화 / feeShort: 은화가 모자랄 때 하는 말 / turnIn: 보고할 NPC(없으면 의뢰인) / reqQuest·reqIn: 포털 열림 조건 / setFlags: 완료 시 기록 / after: 완료 후 안내
   Object.assign(AU.QUESTS, {
     q_a2_secret: {
-      title: "금속의 비밀 (임시)", type: "main", giver: "barsha", minLevel: 7, pre: ["q_a1_traces"], fee: 80,
+      title: "금속의 비밀", type: "main", giver: "barsha", minLevel: 7, pre: ["q_a1_traces"], fee: 80,
       area: "jandari", desc: "잔다리 골목의 정보상 바르샤에게 은화 80잎을 내고 쇳조각의 출처를 듣습니다. 탁자 위 돋보기와 지도를 살펴봅니다.",
       objectives: [{ kind: "investigate", targets: ["barsha_lens", "barsha_map"] }],
       feeShort: ["문 닫았다. 물건 팔 거면 내일 오라 했을 텐데.", "아아, 그 풋내기 목수 놈이군. 은화 냄새도 못 풍기는 거지가 기웃거릴 곳이 아니라고 했을 텐데.", "은화 80잎쯤 쥐고 오면 그 쇠가 어느 놈 갑옷에서 떨어졌는지 말해 주지. 방파제에서 일하면 벌 수 있을 거다."],
@@ -117,7 +117,7 @@ window.AU = window.AU || {};
       reward: { exp: 700, silver: 0, items: [["barsha_map", 1]] }
     },
     q_a3_scout: {
-      title: "검은 골짜기 정찰 (임시)", type: "main", giver: "barsha", turnIn: "jepeto", minLevel: 8, pre: ["q_a2_secret"],
+      title: "검은 골짜기 정찰", type: "main", giver: "barsha", turnIn: "jepeto", minLevel: 8, pre: ["q_a2_secret"],
       area: "valley", desc: "검은 골짜기의 블랙 웨이브 중계소를 정찰합니다. 궤짝과 천막 대화를 조사하고, 쫓아오는 용병 5명을 물리친 뒤 리프트 밧줄을 끊고 협곡으로 빠져나가, 도와준 노인(제페토)에게 보고합니다.",
       objectives: [{ kind: "investigate", targets: ["valley_crates", "relay_tent"] }, { kind: "kill", target: "merc", count: 5 }, { kind: "repair", targets: ["lift_rope"] }],
       offer: ["더 알고 싶으면 북쪽 암석 지대의 중계소를 찾아가든가. 양피지 지도의 점이 그곳이다.", "상단은 심부름꾼일 뿐, 그 위는 나도 모른다. 가까이 가서 직접 보고 와라. 들키면... 칼을 뽑아야 할 거다.", "중계소는 잔다리 골목 북쪽 끝에서 이어진다. 레벨 8 이상을 권한다."],
@@ -128,7 +128,7 @@ window.AU = window.AU || {};
       reward: { exp: 1000, silver: 120, items: [] }
     },
     q_a3_jepeto: {
-      title: "결을 읽는 눈 (임시)", type: "main", giver: "jepeto", minLevel: 9, pre: ["q_a3_scout"],
+      title: "결을 읽는 눈", type: "main", giver: "jepeto", minLevel: 9, pre: ["q_a3_scout"],
       area: "gorge", desc: "협곡에서 제페토에게 금속과 나무의 결을 읽는 법을 배웁니다. 통나무와 판자 두 곳의 결을 읽어 가르고, 오염된 늑대 4마리를 물리쳐 단련합니다.",
       objectives: [{ kind: "repair", targets: ["grain_a", "grain_b"] }, { kind: "kill", target: "wolf", count: 4 }],
       offer: [L(J(), "눈빛이 마음에 드는구먼. 이 중계소 지하에서 몰래 빼낸 도면이다. 내 손은 늙어서 펼치지 못했지만 네 젊은 손이라면 가능할 거다."),

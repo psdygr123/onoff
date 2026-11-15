@@ -552,6 +552,11 @@ window.AU = window.AU || {};
     },
     // 적 그래픽은 임시(캔버스 도형). 정식 그림이 오면 sprite()로 교체
     // 바닥 아이템: 그림이 아직 없어 모양과 색으로 구분(흔함=베이지, 드묾=청록, 희귀=금색+빛기둥). 희귀는 이름이 항상 보임
+    dropArt(id) { // assets/item/<id>.webp 를 처음 쓸 때 불러 둠. 없거나 아직 불러오는 중이면 null(임시 도형으로 표시)
+      const c = this._dropArt || (this._dropArt = {}); let e = c[id];
+      if (!e) { const it = AU.ITEMS[id] || {}, src = it.img || "assets/item/" + id + ".webp", im = new Image(); e = c[id] = { im, ok: false }; im.onload = () => { e.ok = true; }; im.src = src; }
+      return e.ok ? e.im : null;
+    },
     drawDrops(ctx) {
       const p = this.player, placed = []; // 글자가 겹치지 않게 위로 쌓아 올림
       for (const d of this.drops) {
@@ -561,9 +566,16 @@ window.AU = window.AU || {};
         ctx.save();
         if (it.rarity === "rare") { const a = 0.18 + 0.1 * Math.sin(this.time * 4); const g = ctx.createLinearGradient(0, y - 120, 0, y); g.addColorStop(0, "rgba(242,193,78,0)"); g.addColorStop(1, "rgba(242,193,78," + a + ")"); ctx.fillStyle = g; ctx.fillRect(x - 14, y - 120, 28, 120); }
         ctx.fillStyle = "rgba(40,30,20,.25)"; ctx.beginPath(); ctx.ellipse(x, d.gy + 2, 11, 4, 0, 0, 7); ctx.fill();
-        ctx.translate(x, y); ctx.fillStyle = rar.color; ctx.strokeStyle = "#5A4630"; ctx.lineWidth = 2; ctx.beginPath();
+        ctx.translate(x, y); ctx.fillStyle = rar.color; ctx.strokeStyle = "#5A4630"; ctx.lineWidth = 2;
+        const art = this.dropArt(d.id);
+        if (art) { // 정식 아이템 그림: 희귀도 색 원 위에 그림(인벤토리와 같은 그림)
+          ctx.globalAlpha = 0.28; ctx.beginPath(); ctx.arc(0, 0, 19, 0, 7); ctx.fill(); ctx.globalAlpha = 1;
+          const sz = 34; ctx.drawImage(art, -sz / 2, -sz / 2, sz, sz);
+        } else {
+        ctx.beginPath();
         if (it.type === "equip") { ctx.moveTo(0, -12); ctx.lineTo(11, 0); ctx.lineTo(0, 12); ctx.lineTo(-11, 0); } else if (it.type === "use") { ctx.arc(0, 0, 9, 0, 7); } else if (ctx.roundRect) { ctx.roundRect(-9, -8, 18, 16, 5); } else { ctx.rect(-9, -8, 18, 16); }
         ctx.closePath(); ctx.fill(); ctx.stroke();
+        }
         ctx.restore();
         const near = Math.abs(p.x - d.x) < 140 && Math.abs(p.y - d.y) < 160;
         if (near || it.rarity === "rare") {
@@ -575,7 +587,11 @@ window.AU = window.AU || {};
       }
     },
     drawMonster(ctx, m) {
-      const d = m.d, x = m.x, y = m.y, hop = m.state === "lunge" ? -10 : Math.abs(Math.sin(this.time * 6 + x)) * (m.state === "chase" ? 5 : 2);
+      const d = m.d, x = m.x, y = m.y, mo0 = d.motion || "";
+      let hop = m.state === "lunge" ? -10 : Math.abs(Math.sin(this.time * 6 + x)) * (m.state === "chase" ? 5 : 2);
+      if (mo0 === "coil") hop = 0;                                                            // 뱀: 바닥을 미끄러짐(통통 튀지 않음)
+      else if (mo0 === "scurry") hop = m.state === "lunge" ? 0 : Math.abs(Math.sin(this.time * 18 + x)) * 2.5; // 쥐: 잔걸음
+      else if (mo0 === "sidestep") hop = m.state === "lunge" ? 0 : Math.abs(Math.sin(this.time * 5 + x)) * 1.5; // 게: 낮게 옆걸음
       const sp = !!(d.sprite && AU.Img.has(d.sprite)); let th = d.h;
       if (sp && d.poses) { // 여러 동작 그림(보스): 상태에 맞는 그림을 골라 그림. 코드 늘림 없이 그림 자체가 동작
         const P = d.poses, step = Math.floor(this.time / 0.22 + x * 0.01) % 2 === 0 ? "walkA" : "walkB";
@@ -588,15 +604,31 @@ window.AU = window.AU || {};
         const im = AU.Img.get(d.sprite), dw = d.sw, dh = dw * im.naturalHeight / im.naturalWidth; let sx = 1, sy = 1, rot = 0;
         const mo = d.motion || "", tt = this.time, ph = x * 0.013; let ox = 0, up = 0;
         sy += 0.018 * Math.sin(tt * 3 + ph); sx -= 0.01 * Math.sin(tt * 3 + ph); // 숨쉬기
-        if (m.state === "chase") { rot += 0.035 * Math.sin(tt * 13 + ph); sy += 0.025 * Math.sin(tt * 13 + ph + 1); } // 달려드는 흔들림
+        if (m.state === "chase" || m.state === "patrol") {
+          const f = m.state === "chase" ? 1 : 0.5;
+          if (mo === "coil") { sx += 0.09 * f * Math.sin(tt * 9 + ph); rot += 0.07 * f * Math.sin(tt * 7 + ph); }                 // 뱀: 몸을 S자로 꿈틀
+          else if (mo === "scurry") { ox += 3 * f * Math.sin(tt * 34 + ph); rot += 0.025 * Math.sin(tt * 34 + ph); sy -= 0.03 * f; } // 쥐: 잔떨림 잔걸음
+          else if (mo === "sidestep") { ox += 6 * f * Math.sin(tt * 6 + ph); rot += 0.04 * f * Math.sin(tt * 12 + ph); sy -= 0.04; } // 게: 낮게 옆으로 뒤뚱
+          else if (mo === "leap") { up += Math.abs(Math.sin(tt * 5 + ph)) * 9 * f; rot += 0.05 * Math.sin(tt * 10 + ph); }       // 늑대: 크게 성큼성큼
+          else if (mo === "swing") { rot += 0.025 * f * Math.sin(tt * 6 + ph); ox += 2 * Math.sin(tt * 6 + ph); }                 // 용병: 묵직한 걸음
+          else if (m.state === "chase") { rot += 0.035 * Math.sin(tt * 13 + ph); sy += 0.025 * Math.sin(tt * 13 + ph + 1); }     // 기본: 달려드는 흔들림
+        }
         if (m.state === "windup") {
           const k = Math.min(1, m.st / 0.5);
-          if (mo === "pounce") { sy = 1 - 0.22 * k; sx = 1 + 0.14 * k; rot = -0.06 * k; ox = -12 * k; }                 // 낮게 웅크리고 뒤로 물러남
+          if (mo === "coil") { sy = 1 + 0.18 * k; sx = 1 - 0.12 * k; rot = -0.28 * k; ox = -10 * k; }                              // 뱀: 머리를 뒤로 쳐듦
+          else if (mo === "scurry") { sx = 1 + 0.04 * Math.sin(m.st * 60); sy = 1 - 0.1 * k; ox = -5 * k + 2.5 * Math.sin(m.st * 70); } // 쥐: 몸을 떨며 움츠림
+          else if (mo === "sidestep") { sy = 1 + 0.12 * k; sx = 1 + 0.1 * k; rot = -0.08 * k; up = 4 * k; }                          // 게: 집게를 번쩍 들어 올림
+          else if (mo === "leap") { sy = 1 - 0.16 * k; sx = 1 + 0.1 * k; rot = 0.14 * k; ox = -16 * k; up = -2 * k; }               // 늑대: 몸을 깊이 낮추고 으르렁
+          else if (mo === "pounce") { sy = 1 - 0.22 * k; sx = 1 + 0.14 * k; rot = -0.06 * k; ox = -12 * k; }                 // 낮게 웅크리고 뒤로 물러남
           else if (mo === "swing") { sy = 1 + 0.05 * k; sx = 1 - 0.04 * k; rot = -0.3 * k; ox = -6 * k; up = 6 * k; }   // 철퇴를 뒤로 들어 올림
           else { sy = 1 - 0.14 * k; sx = 1 + 0.08 * k; rot = -0.12 * k; }
         } else if (m.state === "lunge") {
           const q = Math.min(1, m.st / 0.28);
-          if (mo === "pounce") { sx = 1.2; sy = 0.84; rot = 0.16; up = Math.sin(q * Math.PI) * 30; ox = 14 * q; }       // 도약해서 덮침
+          if (mo === "coil") { sx = 1.28; sy = 0.82; rot = 0.12 - 0.12 * q; ox = 26 * q; }                                    // 뱀: 쭉 뻗으며 물기
+          else if (mo === "scurry") { sx = 1.3; sy = 0.78; rot = 0.04; ox = 30 * q; }                                           // 쥐: 낮게 돌진해 들이받음
+          else if (mo === "sidestep") { const sn = Math.sin(q * Math.PI * 3); sx = 1.05 + 0.08 * sn; sy = 0.96 - 0.06 * sn; rot = 0.03 * sn; ox = 8 * q; } // 게: 집게를 딱딱 여닫음
+          else if (mo === "leap") { sx = 1.24; sy = 0.82; rot = 0.2; up = Math.sin(q * Math.PI) * 48; ox = 30 * q; }            // 늑대: 높고 멀리 도약
+          else if (mo === "pounce") { sx = 1.2; sy = 0.84; rot = 0.16; up = Math.sin(q * Math.PI) * 30; ox = 14 * q; }       // 도약해서 덮침
           else if (mo === "swing") { sx = 1.06; sy = 0.96; rot = -0.3 + 0.62 * q; ox = 18 * q; }                        // 위에서 아래로 내려침
           else { sx = 1.14; sy = 0.9; rot = 0.1; }
         }

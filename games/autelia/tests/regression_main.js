@@ -108,6 +108,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const capBefore = lv10.lv; await ev(() => AU.G.gainExp(5000, 'dev')); const lvStill = (await S()).lv;
   await goto('porto', 860); await sleep(100);
   await p.keyboard.press('Space'); await sleep(120); await p.keyboard.press('Space'); await sleep(120); await p.keyboard.press('Space'); await sleep(150); // 열기→다음→수락
+  for (let i = 0; i < 4 && (await ev(() => !!AU.UI.dialog)); i++) { await p.keyboard.press('Space'); await sleep(150); } // 대사 줄 수가 바뀌어도 남은 대화창은 닫고 시작
   const qj = await ev(() => AU.G.S.quests.q_job && AU.G.S.quests.q_job.state);
   await goto('docks', 700); await sleep(1300); // 보스 등장 확인
   const bossThere = await ev(() => AU.World.monsters.some((m) => m.type === 'trial_boss' && m.alive));
