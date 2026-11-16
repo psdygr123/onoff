@@ -557,7 +557,8 @@ window.AU = window.AU || {};
     const intro = g.intro ? h("ul", { class: "gintro" }, g.intro.map((t) => h("li", { text: t }))) : null;
     wrap.append(h("div", { class: "panel modal guided" }, h("h3", { text: title }), g.kind === "timer" ? null : circle, phase, clock, intro, g.kind === "steps" ? tip : null, h("div", { class: "choices" }, done, quit)));
     let iv = null;
-    const close = () => { clearInterval(iv); UI.modal = false; wrap.classList.add("hidden"); wrap.innerHTML = ""; };
+    try { if (AU.Sfx) { AU.Sfx.play("timer_start"); if (g.kind === "breath") AU.Sfx.loopFile("breath_wave", true); } } catch (e) { /* 소리 실패는 무시 */ }   // 시작 종소리 + 호흡이면 물결 소리 반복
+    const close = () => { clearInterval(iv); try { if (AU.Sfx) AU.Sfx.loopFile("breath_wave", false); } catch (e) { /* 무시 */ } UI.modal = false; wrap.classList.add("hidden"); wrap.innerHTML = ""; };
     const tick = () => {
       if (wrap.classList.contains("hidden")) { clearInterval(iv); return; }
       const left = Math.max(0, Math.ceil((end - Date.now()) / 1000)), el = g.secs - left;
@@ -565,7 +566,7 @@ window.AU = window.AU || {};
       if (g.kind === "breath") { const t = el % 10, inh = t < 4; phase.textContent = left > 0 ? (inh ? "들이쉬세요… " + (4 - t) : "내쉬세요… " + (10 - t)) : ""; const f = inh ? t / 4 : 1 - (t - 4) / 6; circle.style.transform = "scale(" + (0.55 + 0.45 * f).toFixed(3) + ")"; }
       else if (g.kind === "steps") { const i = Math.min(g.steps.length - 1, Math.floor(el / (g.secs / g.steps.length))); phase.textContent = left > 0 ? (i + 1) + " / " + g.steps.length : ""; tip.textContent = left > 0 ? g.steps[i] : ""; }
       else phase.textContent = "";
-      if (left <= 0) { done.removeAttribute("disabled"); done.classList.add("ready"); clearInterval(iv); }
+      if (left <= 0) { done.removeAttribute("disabled"); done.classList.add("ready"); clearInterval(iv); try { if (AU.Sfx) AU.Sfx.loopFile("breath_wave", false); } catch (e) { /* 무시 */ } }
     };
     iv = setInterval(tick, 250); tick();
   };

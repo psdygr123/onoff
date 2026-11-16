@@ -152,6 +152,15 @@ window.AU = window.AU || {};
   /* 소리마다 크기를 맞춘 보정값(작은 소리는 키우고 큰 소리는 줄임). 시험으로 측정한 최대 크기를 목표 크기에 맞춘 값 */
   const GAIN = {"hammer": 1.66, "plank": 1.24, "door": 1.1, "stone": 0.69, "temple_glow": 1, "boom": 0.69, "collapse": 0.87, "cloth": 0.87, "pick": 2.07, "item": 2.33, "keyitem": 1.16, "slump": 1.12, "fragment": 1.88, "bag": 1.85, "gull": 1.35, "step_dirt": 2.56, "step_wood": 3.93, "step_stone": 3.55, "jump": 1.91, "land": 3.08, "swing": 1.95, "skill": 1.07, "hit": 1.99, "crit": 1.6, "mon_fox": 1.32, "mon_snake": 1.15, "mon_rat": 1.94, "mon_crab": 2.9, "mon_trial_boss": 1.65, "hurt": 1.46, "kill": 2.63, "levelup": 0.8, "jobchange": 0.72, "potion": 1.71, "coin": 1.38, "drop": 5.0, "equip": 2.5, "click": 3.7, "menu_open": 1.54, "menu_close": 1.85, "blip": 3.89, "accept": 1.85, "complete": 1.2, "warn": 2.35, "save": 2.45, "death": 1.45, "revive": 1.04, "mapchange": 0.92, "boss": 0.86, "thud": 1.49, "step": 2.14, "select_a": 3.57, "select_b": 3.12, "select_c": 2.22};
   S.DEFS = D; S.GAIN = GAIN;
+  // 정식 음원(2026-11-16 받음) — 같은 이름의 합성음 대신 파일을 재생. [이름, 설명, 파일, 기본 음량]
+  [["skill_strike", "스킬① 결의의 일격(묵직한 베기)", "skill_strike2", 0.75], ["skill_strike_alt", "스킬① 결의의 일격 — 다른 버전(비교용)", "skill_strike", 0.75],
+   ["skill_spin", "스킬② 소용돌이 베기", "skill_spin", 0.75], ["skill_focus", "스킬③ 마음 다잡기", "skill_focus", 0.6],
+   ["hit_spark", "타격 불꽃(맞힐 때 번쩍)", "hit_spark", 0.4], ["scroll_return", "마을 귀환 주문서(종이 찢김)", "scroll_return", 0.7],
+   ["inn_blanket", "여관 휴식 — 이불 소리", "inn_blanket", 0.6], ["inn_fire", "여관 휴식 — 따뜻한 난로", "inn_fire", 1],
+   ["breath_wave", "호흡 안내음 — 물결 소리(반복용)", "breath_wave", 0.35], ["timer_start", "명상·쉼 타이머 시작(작은 종)", "timer_start", 0.6],
+   ["escort_start", "상인 호위 시작(출발 호각)", "escort_start", 0.7], ["escort_success", "상인 호위 성공(팡파르)", "escort_success", 0.65],
+   ["escort_fail", "상인 호위 실패", "escort_fail", 0.7], ["escort_hit", "상인 호위 장애물 충돌", "escort_hit", 0.7]
+  ].forEach(([n, d, f, g]) => { def(n, d, () => {}); S.files[n] = "assets/audio/sfx/" + f + ".mp3"; GAIN[n] = g; });
   S.CATALOG = Object.keys(D).map((k) => ({ id: k, desc: D[k].desc }));
 
   /* ---------- 재생 ---------- */
@@ -257,7 +266,21 @@ window.AU = window.AU || {};
       const o = { nodes: [], timers: [], g, c }, bus = { out: g, rev: S.bus.rev }; L[name](c, bus, o); S.loops[name] = o; return true;
     } catch (e) { return false; }
   };
-  S.stopAll = function () { Object.keys(S.loops).forEach((n) => S.loop(n, false)); };
+  /* 음원 파일 반복 재생(호흡 안내 물결 소리 등): S.loopFile("breath_wave", true|false). 켤 때 서서히 커지고, 끌 때 서서히 줄어듦 */
+  S.fileLoops = {};
+  S.loopFile = function (name, on) {
+    try {
+      const old = S.fileLoops[name];
+      if (old) { delete S.fileLoops[name]; clearInterval(old.iv); const a = old.a, iv = setInterval(() => { a.volume = Math.max(0, a.volume - 0.04); if (a.volume <= 0) { clearInterval(iv); a.pause(); } }, 60); }
+      if (on === false || !S.files[name]) return on === false;
+      const st = AU.UI && AU.UI.settings; if (st && st.mute) return true;
+      const a = new Audio(S.files[name]); a.loop = true; a.volume = 0; const o = { a, iv: null };
+      const tgt = () => { const s2 = AU.UI && AU.UI.settings, v = s2 && typeof s2.volSfx === "number" && isFinite(s2.volSfx) ? Math.max(0, Math.min(1, s2.volSfx)) : 1; return (s2 && s2.mute) ? 0 : Math.min(1, (GAIN[name] || 0.5) * v); };
+      o.iv = setInterval(() => { const t = tgt(); a.volume = a.volume < t ? Math.min(t, a.volume + 0.03) : t; }, 80);
+      S.fileLoops[name] = o; a.play().catch(() => {}); return true;
+    } catch (e) { return false; }
+  };
+  S.stopAll = function () { Object.keys(S.loops).forEach((n) => S.loop(n, false)); Object.keys(S.fileLoops).forEach((n) => S.loopFile(n, false)); };
   /* 탭이 숨겨지면 소리를 멈췄다가 돌아오면 이어서 재생 */
   document.addEventListener("visibilitychange", () => { try { if (!S.ctx) return; if (document.hidden) S.ctx.suspend(); else S.ctx.resume(); } catch (e) { /* 무시 */ } });
 })();
