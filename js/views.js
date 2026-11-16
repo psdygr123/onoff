@@ -15,16 +15,15 @@ OnOff.Views = (function () {
     const save = user ? S.getSave(g.id) : null;
     let cta;
     if (soon) cta = `<button class="btn ghost sm" type="button" disabled aria-disabled="true">준비 중</button>`;
-    else if (!OnOff.Device.canPlay(g)) cta = `<button class="btn ghost sm" type="button" disabled aria-disabled="true">PC에서 이용</button>`;
-    else cta = `<button class="btn sm" type="button" data-action="open-game" data-id="${g.id}">${save ? "이어하기" : "게임 시작"}</button>`;
+    else cta = `<button class="btn sm" type="button" data-action="go" data-to="intro-${g.id}">${save ? "이어하기 · 설명 보기" : "게임 설명 보기"}</button>`;
     const art = soon
       ? (g.cover ? `<div class="card-art"><img src="${g.cover}" alt="${esc(g.coverAlt || "")}" loading="lazy" width="1000" height="720"><span class="badge soon">${esc(g.statusLabel)}</span></div>` : `<div class="card-art soon">${icons.soon}<span class="badge soon">${esc(g.statusLabel)}</span></div>`)
       : `<div class="card-art"><img src="${g.cover}" alt="${esc(g.coverAlt || (g.title + " 대표 이미지: 노을 진 항구에 정박한 범선"))}" loading="lazy" width="1000" height="720"><span class="badge">${esc(g.statusLabel)}</span></div>`;
-    return `<article class="card">${art}<div class="card-body">
+    return `<article class="card${soon ? "" : " card-link"}"${soon ? "" : ` data-action="go" data-to="intro-${g.id}"`}>${art}<div class="card-body">
       <h3>${esc(g.title)}</h3>
       <div class="card-meta">${esc(g.genre)}${soon ? "" : " · " + (g.metaNote || "플레이 연결 전 (시제품)")}</div>
       <div><p>${esc(g.summary)}</p>${g.audienceNote ? `<p class="card-aud">${esc(g.audienceNote)}</p>` : ""}${!soon && !OnOff.Device.canPlay(g) ? `<p class="card-aud pc-note">${esc(OnOff.PC_ONLY_NOTE)}</p>` : ""}</div>
-      <div class="card-foot">${cta}${!soon ? `<button class="btn ghost sm" type="button" data-action="go" data-to="intro-${g.id}">시작 전 안내</button>` : ""}</div>
+      <div class="card-foot">${cta}</div>
     </div></article>`;
   }
 
@@ -451,7 +450,7 @@ OnOff.Views = (function () {
   };
   const researchPage = (g) => {
     const items = RESEARCH_ITEMS[g.id]; if (!items) return "";
-    return `<div class="note"><strong>2쪽 · 연구 자료로 수집되는 정보</strong> 아래 정보는 가입할 때 연구 활용에 동의하신 경우에 한해 심리학 연구 자료로 활용될 수 있습니다.</div>
+    return `<div class="note"><strong>연구 자료로 수집되는 정보</strong> 아래 정보는 가입할 때 연구 활용에 동의하신 경우에 한해 심리학 연구 자료로 활용될 수 있습니다.</div>
       <dl class="kv">${items.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("")}</dl>
       <ul class="checklist">
         <li>연구 활용은 <b>${RESEARCH_REQUIRED ? "필수" : "선택"}</b>입니다. ${RESEARCH_REQUIRED ? "" : "동의하지 않아도 게임을 그대로 이용할 수 있습니다."}</li>
@@ -461,35 +460,30 @@ OnOff.Views = (function () {
       </ul>`;
   };
 
-  /* ---------- 게임 시작 전 안내 ---------- */
+  /* ---------- 게임 설명 (카드를 누르면 열림: 설명 + 시작 버튼) ---------- */
   const intro = {
     render(ctx) {
       const g = GAMES.find((x) => x.id === ctx.param);
       if (!g || g.status === "soon") return notfound.render();
+      const save = S.user ? S.getSave(g.id) : null, research = researchPage(g), playable = OnOff.Device.canPlay(g);
       return `<div class="wrap page"><div class="intro">
         <div class="art"><img src="${g.cover}" alt="${esc(g.coverAlt || (g.title + " 대표 이미지"))}" width="1000" height="720"></div>
         <div class="panel">
-          <div data-intro-pane="1">
+          <div>
           <h1>${esc(g.title)}</h1>
           <div><h3>이런 분을 위해 만들었습니다</h3><p style="color:var(--ink-2);font-size:var(--fs-sm)">${esc(g.intro.who)}</p></div>
           <div><h3>만든 목적</h3><p style="color:var(--ink-2);font-size:var(--fs-sm)">${esc(g.intro.purpose)}</p></div>
           <div><h3>게임 구성</h3><ul class="checklist">${g.intro.parts.map((p) => `<li>${esc(p)}</li>`).join("")}</ul><p style="color:var(--ink-2);font-size:var(--fs-xs);margin-top:8px">${esc(g.intro.partsNote)}</p></div>
           <div class="note"><strong>알아 두세요.</strong> 이 게임은 의료·상담을 대신하지 않습니다. 하다가 마음이 불편해지면 언제든 멈추셔도 됩니다. 마음이 많이 힘들 때는 가까운 전문 상담기관이나 의료기관의 도움을 받아 보세요. 이 게임에서 입력하거나 응답한 내용은 가입 때 연구 활용에 동의하신 경우에 한해 심리학 연구 자료로 활용될 수 있습니다.</div>
-          ${OnOff.Device.canPlay(g) ? "" : `<div class="note"><strong>PC 전용 게임입니다.</strong> ${esc(OnOff.PC_ONLY_NOTE)}</div>`}
-          ${researchPage(g) ? `<div class="form-actions"><button class="btn ghost" type="button" data-action="go" data-to="games">뒤로</button><button class="btn" type="button" id="intro-next">다음: 연구 수집 정보 안내</button></div></div>
-          <div data-intro-pane="2" hidden><h1>연구 자료로 수집되는 정보</h1>${researchPage(g)}</div>
-          <div data-intro-pane="2" hidden>` : "<div>"}
-          <label class="choice"><input type="checkbox" id="intro-ok"><span>${researchPage(g) ? "안내(연구 수집 정보 포함)를 읽었습니다." : "안내를 읽었습니다."}</span></label>
-          <div class="form-actions">${researchPage(g) ? '<button class="btn ghost" type="button" id="intro-prev">이전</button>' : '<button class="btn ghost" type="button" data-action="go" data-to="games">뒤로</button>'}<button class="btn" type="button" id="intro-go" disabled aria-disabled="true" ${OnOff.Device.canPlay(g) ? "" : 'data-blocked="1"'}>${esc(g.startLabel || "모험 시작")}</button></div>
-        </div></div></div>`;
+          ${playable ? "" : `<div class="note"><strong>PC 전용 게임입니다.</strong> ${esc(OnOff.PC_ONLY_NOTE)}</div>`}
+          ${research ? `<details class="consent-more"><summary>연구 자료로 수집되는 정보 보기</summary>${research}</details>` : ""}
+          <label class="choice"><input type="checkbox" id="intro-ok"><span>${research ? "안내(연구 수집 정보 포함)를 읽었습니다." : "안내를 읽었습니다."}</span></label>
+          <div class="form-actions"><button class="btn ghost" type="button" data-action="go" data-to="games">뒤로</button><button class="btn" type="button" id="intro-go" disabled aria-disabled="true" ${playable ? "" : 'data-blocked="1"'}>${save ? "이어하기" : esc(g.startLabel || "모험 시작")}</button></div>
+        </div></div></div></div>`;
     },
     mount(root, ctx) {
       const ok = root.querySelector("#intro-ok"), btn = root.querySelector("#intro-go");
       if (!ok) return;
-      const pane = (n) => root.querySelectorAll("[data-intro-pane]").forEach((el) => { el.hidden = el.dataset.introPane !== String(n); });
-      const nx = root.querySelector("#intro-next"), pv = root.querySelector("#intro-prev");
-      if (nx) nx.addEventListener("click", () => { pane(2); window.scrollTo(0, 0); });
-      if (pv) pv.addEventListener("click", () => { pane(1); window.scrollTo(0, 0); });
       const blocked = !!btn.dataset.blocked;
       ok.addEventListener("change", () => { const off = !ok.checked || blocked; btn.disabled = off; btn.setAttribute("aria-disabled", String(off)); });
       btn.addEventListener("click", () => { if (ok.checked && !blocked) go("play-" + ctx.param); });

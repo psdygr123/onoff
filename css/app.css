@@ -289,6 +289,7 @@ main { display: block; outline: none; }
 /* 게임 카드: 올리면 떠오름 */
 .card { transition: transform .25s ease, box-shadow .25s ease; }
 .card:hover { transform: translateY(-6px); box-shadow: var(--shadow); }
+.card-link { cursor: pointer; }
 
 /* 게임 소개 탭 */
 .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
