@@ -94,7 +94,7 @@
         c.onclick = () => { if (!L.open) { note.textContent = phase === "line" ? L.name + " 계열은 아직 준비 중입니다." : "추후 공개 예정입니다."; return; } sel = L.id; note.textContent = ""; mark(); };
         row.append(c); els[L.id] = c;
       }
-      const foot = h("div", "sfoot"), back = h("button", "btn", "뒤로"), next = h("button", "btn primary big", phase === "line" ? "다음: 모습·이름 정하기" : "다음"); back.type = next.type = "button"; back.id = "job-back"; next.id = "job-next";
+      const foot = h("div", "sfoot"), back = h("button", "btn", "뒤로"), next = h("button", "btn primary big", "다음"); back.type = next.type = "button"; back.id = "job-back"; next.id = "job-next";
       back.onclick = () => { if (phase === "line") this.openJobStep(root, Object.assign({}, opts, { _lineSel: null }), "group"); else opts.onBack(); };
       next.onclick = () => { if (phase === "group") this.openJobStep(root, Object.assign({}, opts, { _lineSel: opts._lineSel || (opts.initial && opts.initial.line) || "warrior" }), "line"); else this.openLookStep(root, Object.assign({}, opts, { _line: sel })); };
       box.addEventListener("keydown", (e) => { if (e.key === "Escape") { e.preventDefault(); back.onclick(); } });
