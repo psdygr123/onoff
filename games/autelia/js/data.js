@@ -92,9 +92,9 @@ AU.MAPS = {
   porto: {
     name: "포르투 노바", bg: "harbor", width: 2689, safe: true,
     platforms: [{ x: 0, y: 590, w: 2689 }], ropes: [],
-    portals: [{ x: 40, to: "harbor_road", toX: 2330, label: "항구 길" }, { x: 1560, to: "docks", toX: 90, label: "선창 외곽" }, { x: 700, to: "general_store", toX: 90, label: "해풍 잡화점" }, { x: 1060, to: "weapon_store", toX: 90, label: "철파도 무기점" },
+    portals: [{ x: 40, to: "harbor_road", toX: 2330, label: "항구 길" }, { x: 2620, to: "docks", toX: 90, label: "선창 외곽" }, { x: 2430, to: "general_store", toX: 90, label: "해풍 잡화점" }, { x: 370, to: "weapon_store", toX: 90, label: "철파도 무기점" },
               { x: 1736, to: "guild_hall", toX: 110, label: "선창 길드" }, { x: 2080, to: "warehouse", toX: 110, label: "부두 창고" }],
-    npcs: [{ id: "porto_dock", x: 330 }, { id: "job_npc", x: 900 }, { id: "guide_npc", x: 1250 }],
+    npcs: [{ id: "porto_dock", x: 600 }, { id: "job_npc", x: 900 }, { id: "guide_npc", x: 1250 }],
     spots: [],
     spawns: [], start: 160,
     area: { x: 78, y: 40, desc: "중립 항구도시입니다. 선창 길드와 부두 창고, 상점이 모여 있습니다." }
@@ -102,7 +102,7 @@ AU.MAPS = {
   general_store: {
     name: "해풍 잡화점", bg: "general_store", width: 1500, safe: true, interior: true, parent: "porto",
     platforms: [{ x: 0, y: 590, w: 1500 }], ropes: [],
-    portals: [{ x: 70, to: "porto", toX: 700, label: "나가기" }],
+    portals: [{ x: 70, to: "porto", toX: 2430, label: "나가기" }],
     npcs: [{ id: "porto_general", x: 960, npcY: 462 }],
     fgSlice: [665, 421, 660, 180],   // 계산대: 상인보다 앞에 다시 그려 상인이 계산대 뒤에 서 있게 함
     spots: [], spawns: [], start: 200,
@@ -111,7 +111,7 @@ AU.MAPS = {
   weapon_store: {
     name: "철파도 무기점", bg: "weapon_store", width: 1500, safe: true, interior: true, parent: "porto",
     platforms: [{ x: 0, y: 590, w: 1500 }], ropes: [],
-    portals: [{ x: 70, to: "porto", toX: 1060, label: "나가기" }],
+    portals: [{ x: 70, to: "porto", toX: 370, label: "나가기" }],
     npcs: [{ id: "porto_armor", x: 400 }, { id: "porto_smith", x: 940, npcY: 462 }],
     fgSlice: [625, 425, 640, 175],
     spots: [], spawns: [], start: 200,
@@ -148,7 +148,7 @@ AU.MAPS = {
     // thin: 위에 올라설 수 있고 ↓+점프로 내려올 수 있는 얇은 발판(임시 그래픽)
     platforms: [{ x: 0, y: 590, w: 1280 }, { x: 300, y: 480, w: 200, thin: true }, { x: 520, y: 430, w: 220, thin: true }],
     ropes: [{ x: 285, top: 465, bottom: 590 }],
-    portals: [{ x: 40, to: "porto", toX: 1480, label: "포르투 노바" }],
+    portals: [{ x: 40, to: "porto", toX: 2540, label: "포르투 노바" }],
     npcs: [],
     // 조사·수리 지점: 해당 목표가 진행 중일 때만 표시됩니다(kind: repair=목공 수리 / investigate=조사)
     spots: [
