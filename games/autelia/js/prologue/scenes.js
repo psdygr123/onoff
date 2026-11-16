@@ -9,10 +9,20 @@ window.AU = window.AU || {};
 
   /* ---------- 공통 도우미 ---------- */
   function npc(P, id, speaker, sprite, x, h, extra) { const e = Object.assign({ id, x, sprite, h, name: SP[speaker].name, faceP: true }, extra || {}); if (e.idle && e.wander == null && !e.working) e.wander = 46; return P.addEnt(e); }   // 서 있는 주민(idle 시트)은 제자리 근처를 천천히 배회
-  function raider(P, id, x, y, s, dir, min, max) {
-    return P.addEnt({ id, x, y, s, face: dir, min, max, range: 0, layer: "mid",
-      update(e, dt) { if (e.min == null) return; e.x += e.face * 26 * dt; if (e.x > e.max) e.face = -1; if (e.x < e.min) e.face = 1; },
-      draw(ctx, e, P) { ctx.save(); ctx.globalAlpha = e.alpha == null ? (A.has("pc_raider_actions") ? 1 : 0.78) : e.alpha; A.raider(ctx, e.x, e.y, e.s, P.time, e.face); ctx.restore(); } });
+  function raider(P, id, x, y, s, dir, min, max) { // 습격자: 걸음 주기(발이 닿는 박자)에 맞춘 상하 흔들림, 개체마다 속도·쉬는 간격이 달라 군중처럼 어긋남
+    const sp = 22 + Math.random() * 12, ph = Math.random() * 6;
+    return P.addEnt({ id, x, y, s, face: dir, min, max, range: 0, layer: "mid", sp, ph, rest: 2 + Math.random() * 4, pause: 0, step: 0,
+      update(e, dt) {
+        if (e.min == null) return;
+        if (e.pause > 0) { e.pause -= dt; if (e.pause <= 0) e.rest = 3 + Math.random() * 5; return; }
+        e.rest -= dt; if (e.rest <= 0) { e.pause = 0.9 + Math.random() * 1.4; return; }                    // 가끔 멈춰 서서 주변을 살핌
+        const v = e.sp * (0.85 + 0.15 * Math.sin(P.time * 0.7 + e.ph)); e.x += e.face * v * dt; e.step += v * dt;
+        if (e.x > e.max) { e.face = -1; e.pause = 0.6; } if (e.x < e.min) { e.face = 1; e.pause = 0.6; } },
+      draw(ctx, e, P) {
+        const moving = e.pause <= 0, cyc = (e.step / 46) % 1, fr = !moving ? "stand" : cyc < 0.25 ? "walk1" : cyc < 0.5 ? "stand" : cyc < 0.75 ? "walk2" : "stand";
+        const bob = moving ? Math.abs(Math.sin(cyc * Math.PI * 2)) * 3.2 : Math.sin(P.time * 1.6 + e.ph) * 1.1, sway = moving ? Math.sin(cyc * Math.PI * 2) * 0.018 : 0;
+        ctx.save(); ctx.globalAlpha = e.alpha == null ? (A.has("pc_raider_actions") ? 1 : 0.78) : e.alpha; ctx.translate(e.x, e.y - bob); ctx.rotate(sway * e.face); ctx.translate(-e.x, -e.y);
+        if (!A.spr(ctx, "pc_raider_actions", fr, e.x, e.y, e.face, e.s / 0.5)) A.raider(ctx, e.x, e.y, e.s, P.time, e.face); ctx.restore(); } });
   }
   const SHEETS = "abcdefghijklm".split("").filter(() => true); // 주민 동작 시트(a~c 1차, d~m NPC 다양화). 없는 시트는 runner/crowd 에서 건너뜀
   const pickSheet = () => { const ok = SHEETS.filter((c) => A.has("pc_villager_" + c + "_actions")); return ok.length ? ok[(Math.random() * ok.length) | 0] : "a"; };
@@ -143,7 +153,7 @@ window.AU = window.AU || {};
   SC.SCENE_00_MORNING = { name: "아침의 아르케아", async enter(P) {
     const g = P.gen; P.room("pro_road", LAY.road.m.start, (P) => setupMorning(P)); P.amb("birds", true);
     await P.cutscene(async () => { await P.wait(0.9); P.amb("birds", false); await P.introVideo(T.cards); P.amb("birds", true); await P.fade(0, 1.8); await P.caption(T.cap1, 3.4); }, { id: "cs00a", skip: true });
-    if (!live(P, g)) return; P.obj(OBJ.s0_walk); const k = P.keys(); P.hint("좌우 방향키(" + k.move + ")로 걸어 보세요.", 9);
+    if (!live(P, g)) return; P.obj(OBJ.s0_walk); const k = P.keys(); P.hint("좌우 방향키(" + k.move + ")로 걸어 보세요.", 9, true);
   } };
 
   function drawPole(ctx, e, P) { // 깃대와 축제 깃발(e.f: 0 말려 있음 → 1 꼭대기까지 올라감). 정식 그림(깃대·깃발 3종)이 있으면 그것을 쓰고 없으면 코드 도형
@@ -153,9 +163,16 @@ window.AU = window.AU || {};
     else { ctx.strokeStyle = "#5b4126"; ctx.lineWidth = 3; ctx.fillStyle = "#9a6b3a"; ctx.fillRect(x - 4, top, 8, G - top); ctx.strokeRect(x - 4, top, 8, G - top); ctx.fillStyle = "#E3B24A"; ctx.beginPath(); ctx.arc(x, top - 4, 7, 0, 7); ctx.fill(); ctx.stroke(); }
     if (A.has(fk)) {
       const im = AU.Img.get(fk), w = 92, h = w * im.naturalHeight / im.naturalWidth;
-      if (e.f < 0.05) { // 말려서 끈으로 묶은 깃발 뭉치(기둥에 기대어 놓음)
-        ctx.save(); ctx.translate(x + 12, G - 62); ctx.rotate(-0.12); ctx.fillStyle = e.col; ctx.strokeStyle = "#4a3320"; ctx.lineWidth = 2.5; A.rrect(ctx, -6, -34, 14, 70, 6); ctx.fill(); ctx.stroke();
-        ctx.fillStyle = "rgba(255,255,255,.22)"; A.rrect(ctx, -3, -30, 4, 60, 2); ctx.fill(); ctx.strokeStyle = "#8a6a3a"; ctx.lineWidth = 3; for (const yy of [-18, 8]) { ctx.beginPath(); ctx.moveTo(-7, yy); ctx.lineTo(9, yy); ctx.stroke(); } ctx.restore();
+      if (e.f < 0.05) { // 깃대에 기대어 놓은, 둘둘 말아 끈으로 묶은 깃발(천 무늬가 좁게 보이고 끝자락이 늘어짐)
+        ctx.save(); ctx.translate(x + 15, G - 4); ctx.rotate(-0.1);
+        ctx.fillStyle = "rgba(0,0,0,.22)"; ctx.beginPath(); ctx.ellipse(2, 2, 16, 4, 0, 0, 7); ctx.fill();                                   // 바닥 그림자
+        ctx.strokeStyle = "#6b4a2a"; ctx.lineWidth = 4; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, -112); ctx.stroke();    // 깃발에 달린 가는 막대
+        ctx.save(); ctx.beginPath(); A.rrect(ctx, -11, -92, 22, 88, 10); ctx.clip(); ctx.drawImage(im, 0, 0, im.naturalWidth, im.naturalHeight, -11, -92, 22, 88);   // 말린 천(무늬가 좁아짐)
+        const sh = ctx.createLinearGradient(-11, 0, 11, 0); sh.addColorStop(0, "rgba(0,0,0,.45)"); sh.addColorStop(0.35, "rgba(255,255,255,.18)"); sh.addColorStop(1, "rgba(0,0,0,.5)"); ctx.fillStyle = sh; ctx.fillRect(-11, -92, 22, 88); ctx.restore();
+        ctx.strokeStyle = "rgba(60,40,22,.9)"; ctx.lineWidth = 2; A.rrect(ctx, -11, -92, 22, 88, 10); ctx.stroke();
+        ctx.strokeStyle = "#d8b25a"; ctx.lineWidth = 3.2; for (const yy of [-78, -50, -22]) { ctx.beginPath(); ctx.moveTo(-12, yy); ctx.lineTo(12, yy + 2); ctx.stroke(); }   // 묶음 끈
+        ctx.fillStyle = e.col; ctx.beginPath(); ctx.moveTo(-9, -4); ctx.quadraticCurveTo(-2, 14, 12, 6); ctx.lineTo(10, -4); ctx.closePath(); ctx.fill(); ctx.strokeStyle = "rgba(60,40,22,.9)"; ctx.lineWidth = 1.6; ctx.stroke();   // 늘어진 천 끝
+        ctx.restore();
       } else { // 천이 바람에 흔들리도록 세로 띠로 잘라 물결을 줌(깃대 쪽은 고정, 끝으로 갈수록 크게 흔들림)
         const N = 18, sw = im.naturalWidth / N, dw = w / N, t = P.time * 4 + x * 0.013, amp = 5 * Math.min(1, e.f * 1.4);
         for (let k = 0; k < N; k++) { const r = k / (N - 1), dy = Math.sin(t - k * 0.55) * amp * r; ctx.drawImage(im, k * sw, 0, sw + 1, im.naturalHeight, x + 4 + k * dw, fy - h * 0.2 + dy, dw + 0.8, h); }
@@ -275,7 +292,7 @@ window.AU = window.AU || {};
       P.tint = { color: "#c9a79f", a: 0.5 }; P.vig = 0.4; P.setPlatforms(LAY.road.obst);
       flames(P, [{ x: 560, y: G, s: 1.1 }, { x: 760, y: G, s: 0.8 }, { x: 1240, y: G, s: 1.2 }, { x: 1900, y: G, s: 1.0 }, { x: 2130, y: G, s: 0.9 }, { x: 180, y: 300, s: 1.5 }, { x: 300, y: 285, s: 1.8 }, { x: 400, y: 310, s: 1.3 }]);
       fireEmitters(P, LAY.road.w, 150, 560, 1); for (const [i, r] of LAY.road.raiders.entries()) raider(P, "r" + (i + 1), r[0], r[1], 0.5 - i * 0.05, -1, r[2], r[3]); runnerSpawner(P, 2.2);
-      P.trigger({ id: "jumphint", test: (p) => p.x <= 1000, fn: () => P.hint("장애물은 점프(" + P.keys().jump + ")로 넘을 수 있습니다.", 4) });
+      P.trigger({ id: "jumphint", test: (p) => p.x <= 1000, fn: () => P.hint("장애물은 점프(" + P.keys().jump + ")로 넘을 수 있습니다.", 4, true) });
       P.trigger({ id: "s3end", goal: LAY.road.doorX, test: (p) => p.x <= LAY.road.doorX + 60, fn: () => houseDoor() });
     }
   }
@@ -313,7 +330,7 @@ window.AU = window.AU || {};
       flames(P, [{ x: 420, y: G, s: 1.0 }, { x: 760, y: G - 4, s: 0.9 }, { x: 1500, y: G, s: 1.3 }, { x: 1760, y: G, s: 1.1 }, { x: 2100, y: G, s: 1.2 }]);
       fireEmitters(P, L.w, 120, 560, 1.2); raider(P, "r1", 500, 520, 0.55, -1, 380, 640); raider(P, "r2", 800, 524, 0.5, -1, 650, 900); raider(P, "r3", 1030, 520, 0.58, -1, 900, 1180);
       runnerSpawner(P, 1.6);
-      P.trigger({ id: "jumphint", test: (p) => p.x <= 980, fn: () => P.hint("장애물은 점프(" + P.keys().jump + ")로 넘을 수 있습니다.", 4) });
+      P.trigger({ id: "jumphint", test: (p) => p.x <= 980, fn: () => P.hint("장애물은 점프(" + P.keys().jump + ")로 넘을 수 있습니다.", 4, true) });
       P.trigger({ id: "toroad", goal: 70, test: (p) => p.x <= 70, fn: () => go(P, "pro_road", LAY.road.w - 100, (P) => setupRoad(P, "attack", 3)) });
     }
   }
@@ -393,10 +410,6 @@ window.AU = window.AU || {};
     const P = AU.Prologue, g = P.gen, v = P.v;
     await P.cutscene(async () => { // CS-03 아버지의 유언
       P.obj(""); P.amb("raid_far", true); P.face(1);
-      // 습격 간부: 아버지가 마지막으로 맞서는 컷 → 대사 → 지붕이 무너지며 후퇴
-      P.cut = { src: "assets/prologue/cut/strike.webp", a: 0, zoom: 0.012, t0: P.time }; P.sfx("boom");
-      await P.tween(P.cut, { a: 1 }, 0.6); P.shake(8, 0.5); await P.wait(0.9); await P.say(T.officer);
-      P.sfx("collapse"); P.shake(14, 1.2); P.burst("dust", 760, 280, 16); await P.tween(P.cut, { a: 0 }, 0.9); P.cut = null; await P.wait(0.4); P.face(1);
       await P.say([T.will[0]]); await P.walkTo(612, 1.5); await P.say([T.will[1]]); P.pose("kneel"); P.zoomTo(1.25, 1.6, 700, 450); await P.wait(1.0);
       await P.say(T.will.slice(2, 5)); // 아버지 "...왔구나." / 주인공 / 아버지 "아니... 시간이 없다."
       await P.tween(father, { hand: 1 }, 1.3); father.frag = true; await P.wait(0.5);
@@ -409,7 +422,14 @@ window.AU = window.AU || {};
   }
   SC.SCENE_04_FATHER = { name: "아버지의 마지막 유언", async enter(P) {
     const g = P.gen; P.room("pro_house", LAY.house.start, (P) => setupHouse(P)); P.amb("raid_far", true);
-    await P.cutscene(async () => { await P.fade(0, 1.6); }); if (!live(P, g)) return; P.obj(OBJ.s3_dad);
+    // 집에 들어서는 순간 아버지는 아직 서서 습격 간부와 맞서고 있다 → 간부의 일격에 쓰러지고, 간부는 무너지는 지붕을 피해 물러난다(아버지가 누운 채로 갑자기 싸우지 않도록 컷을 먼저)
+    P.cut = { src: "assets/prologue/cut/strike.webp", a: 1, zoom: 0.012, t0: P.time };
+    await P.cutscene(async () => {
+      P.obj(""); P.sfx("boom"); await P.fade(0, 1.2); await P.wait(0.8);
+      await P.say([T.officer[0]]);
+      P.sfx("collapse"); P.shake(12, 0.9); await P.flash("#ffd9a0", 0.35); await P.tween(P.cut, { a: 0 }, 0.7); P.cut = null; await P.wait(0.5);
+      await P.say(T.officer.slice(1)); P.sfx("collapse"); P.shake(14, 1.2); P.burst("dust", 760, 280, 16); await P.wait(0.9);
+    }, { id: "cs03a", skip: true, bars: true }); P.cut = null; if (!live(P, g)) return; P.obj(OBJ.s3_dad);
   } };
 
   /* ============================================================
@@ -425,7 +445,8 @@ window.AU = window.AU || {};
       if (s.kind === "fog") { for (let i = 0; i < 3; i++) { const fx = ((t * 30 + i * 500) % 1800) - 400, g = ctx.createLinearGradient(fx, 0, fx + 700, 0); g.addColorStop(0, "rgba(235,240,245,0)"); g.addColorStop(0.5, "rgba(235,240,245,.55)"); g.addColorStop(1, "rgba(235,240,245,0)"); ctx.fillStyle = g; ctx.fillRect(fx, 200 + i * 90, 700, 220); } }
       else if (s.kind === "rain") { ctx.strokeStyle = "rgba(210,225,240,.5)"; ctx.lineWidth = 1.5; ctx.beginPath(); for (let i = 0; i < 140; i++) { const rx = (i * 97 + t * 420) % (W + 100) - 50, ry = (i * 53 + t * 900) % H; ctx.moveTo(rx, ry); ctx.lineTo(rx - 10, ry + 26); } ctx.stroke(); }
       else { const g = ctx.createRadialGradient(W * 0.5, 330, 10, W * 0.5, 330, 520); g.addColorStop(0, "rgba(255,230,160,.6)"); g.addColorStop(1, "rgba(255,200,120,0)"); ctx.globalCompositeOperation = "lighter"; ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); ctx.globalCompositeOperation = "source-over"; }
-      const px = 260 + local * 120, bob = Math.abs(Math.sin(local * 7)) * 3; if (!A.spr(ctx, "pc_player_" + (AU.PRO_GENDER || "m") + "_locomotion", "walk" + (1 + Math.floor(local * 8) % 4), px, G + 6 - bob, 1)) AU.World.sprite(ctx, "player_male", px, G + 6 - bob, 150, 1, Math.floor(local * 8) % 4); ctx.restore(); }
+      const px = 260 + local * 120, bob = Math.abs(Math.sin(local * 7)) * 3; { const by = G + 6 - bob - 74 + Math.sin(local * 14) * 1.5, br = Math.sin(local * 7) * 0.03; if (!A.bagBack(ctx, px - 20, by, 58, 1, br)) A.bag(ctx, px - 22, by + 4, 0.62, 0.1 + br); }   // 등에 멘 목수 도구 가방
+      if (!A.spr(ctx, "pc_player_" + (AU.PRO_GENDER || "m") + "_locomotion", "walk" + (1 + Math.floor(local * 8) % 4), px, G + 6 - bob, 1)) AU.World.sprite(ctx, "player_male", px, G + 6 - bob, 150, 1, Math.floor(local * 8) % 4); ctx.restore(); }
   }
   SC.SCENE_05_ESCAPE = { name: "잿더미를 뒤로하고", async enter(P) {
     const g = P.gen, k = P.keys();
@@ -441,7 +462,7 @@ window.AU = window.AU || {};
     });
     P.amb("wind", true); P.amb("raid_far", true);
     await P.cutscene(async () => { await P.fade(0, 1.6); }); if (!live(P, g)) return;
-    P.obj(OBJ.s5_escape); P.hint("점프 " + k.jump + " · 이동 " + k.move, 6);
+    P.obj(OBJ.s5_escape); P.hint("점프 " + k.jump + " · 이동 " + k.move, 6, true);
   } };
   async function lookBack() {
     const P = AU.Prologue, v = P.v;

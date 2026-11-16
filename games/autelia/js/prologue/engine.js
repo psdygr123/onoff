@@ -408,6 +408,7 @@ window.AU = window.AU || {};
     },
     poseOf(p) {
       const q = p.pose; if (!q) return null; const t = q.t;
+      if (this.heroArt() && q.name === "lookback") { const k = Math.min(1, t / 1.6), tr = Math.sin(t * 7) * 0.9 * k; return { sx: 1, sy: 1 - 0.035 * k, rot: 0.06 * p.dir * k, dx: tr, art: true }; }   // 고개와 어깨를 떨군 채 가늘게 떨며 마을을 바라봄(슬픔)
       if (this.heroArt()) return q.name === "stagger" ? { sx: 1, sy: 1, rot: 0.1 * p.dir, dx: 0 } : { sx: 1, sy: 1, rot: 0, dx: 0, hammer: q.name === "hammer", art: true };
       if (q.name === "kneel") return { sx: 1.06, sy: 0.78, rot: 0, dx: p.dir * 4 };
       if (q.name === "hammer") return { sx: 1, sy: 1, rot: 0, dx: 0, hammer: true };
