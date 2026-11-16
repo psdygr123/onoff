@@ -511,8 +511,10 @@ OnOff.Views = (function () {
           <div class="note"><strong>알아 두세요.</strong> 이 게임은 의료·상담을 대신하지 않습니다. 하다가 마음이 불편해지면 언제든 멈추셔도 됩니다. 마음이 많이 힘들 때는 가까운 전문 상담기관이나 의료기관의 도움을 받아 보세요. 이 게임에서 입력하거나 응답한 내용은 가입 때 연구 활용에 동의하신 경우에 한해 심리학 연구 자료로 활용될 수 있습니다.</div>
           ${playable ? "" : `<div class="note"><strong>PC 전용 게임입니다.</strong> ${esc(OnOff.PC_ONLY_NOTE)}</div>`}
           ${research ? `<details class="consent-more"><summary>연구 자료로 수집되는 정보 보기</summary>${research}</details>` : ""}
-          ${acked ? "" : `<label class="choice"><input type="checkbox" id="intro-ok"><span>${research ? "안내(연구 수집 정보 포함)를 읽었습니다." : "안내를 읽었습니다."}</span></label>`}
-          <div class="form-actions"><button class="btn ghost" type="button" data-action="go" data-to="games">뒤로</button><button class="btn" type="button" id="intro-go" ${acked && playable ? "" : "disabled aria-disabled=\"true\""} ${playable ? "" : 'data-blocked="1"'}>${save ? "이어하기" : esc(g.startLabel || "모험 시작")}</button></div>
+          <div class="intro-bar">
+            <label class="choice"><input type="checkbox" id="intro-ok"><span>${research ? "안내(연구 수집 정보 포함)를 읽었습니다." : "안내를 읽었습니다."}</span></label>
+            <div class="form-actions"><button class="btn ghost" type="button" data-action="go" data-to="games">뒤로</button><button class="btn" type="button" id="intro-go" disabled aria-disabled="true" ${playable ? "" : 'data-blocked="1"'}>${esc(g.startLabel || "모험 시작")}</button></div>
+          </div>
         </div></div></div></div>`;
     },
     mount(root, ctx) {
