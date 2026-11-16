@@ -295,7 +295,8 @@ window.AU = window.AU || {};
   function setupPlaza(P, variant) {
     const v = P.v, L = LAY.plaza; P.variant = variant;
     if (variant === "peace") {
-      P.tint = { color: "#FF9A58", a: 0.34 }; P.vig = 0.26; v.cheer = 0.12;
+      P.tint = { color: "#F0904F", a: 0.42 }; P.vig = 0.3; v.cheer = 0.12;
+      P.overlayFn = (ctx) => { const g = ctx.createLinearGradient(0, 0, 0, 420); g.addColorStop(0, "rgba(120,70,140,.62)"); g.addColorStop(0.55, "rgba(255,120,70,.42)"); g.addColorStop(1, "rgba(255,170,90,0)"); ctx.save(); ctx.globalCompositeOperation = "multiply"; ctx.fillStyle = g; ctx.fillRect(0, 0, 1280, 420); ctx.restore(); };   // 해 질 녘 하늘(임시: 정식 석양 배경 그림이 오면 교체)
       P.limits = { min: 40, max: L.limit, msg: "먼저 주민과 이야기를 나눠 보세요. (마을길로는 돌아갈 수 없습니다)" };
       // 광장 전용 인물: 마을길에서 만난 주민(나이 든 주민·축제 어린이)과 겹치지 않도록 새 인물을 둠(빵을 나누는 주민은 마을길에서 "광장에서 보자"고 한 인물이라 그대로)
       const sT = standing("g", "villager_a"), sF = standing("l", "villager_b");

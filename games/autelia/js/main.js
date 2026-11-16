@@ -118,7 +118,7 @@ window.AU = window.AU || {};
     const openSetup = (mode, onDone) => AU.Profile.openSetup(t, { mode, initial: AU.Profile.get(), onBack: () => buildTitle(hasSave), onDone });
     b1.onclick = needSetup ? () => openSetup("new", (name, gender, look, line) => { AU.Profile.set(name, gender, look, line); AU.G.save("profile"); start(); }) : start;
     const box = document.createElement("div"); box.className = "panel titlebox";
-    box.innerHTML = '<div class="tlogo">아우텔리아</div><div class="tsub">프롤로그 체험 · 시제품 v' + AU.VERSION + '</div>';
+    box.innerHTML = '<div class="tlogo">아우텔리아</div><div class="tsub">시제품</div>';
     box.append(b1);
     if (hasSave && !inPro) { const bp = document.createElement("button"); bp.type = "button"; bp.className = "btn"; bp.id = "btn-replay"; bp.textContent = "프롤로그 다시 보기"; bp.onclick = () => { t.classList.add("hidden"); main.running = true; window.focus(); P.startReplay(); }; box.append(bp); }
     if (hasSave) { const bc = document.createElement("button"); bc.type = "button"; bc.className = "btn"; bc.id = "btn-profile"; bc.textContent = "캐릭터 설정 (" + AU.Profile.name() + ")"; bc.onclick = () => openSetup("edit", (name, gender, look) => { AU.Profile.set(name, gender, look); AU.G.save("profile"); buildTitle(hasSave); }); box.append(bc); }
