@@ -302,11 +302,21 @@ window.AU = window.AU || {};
     obj(text) { this.objEl.textContent = text || ""; this.objEl.classList.toggle("hidden", !text || !this.on); if (text) { this.objEl.classList.remove("flash"); void this.objEl.offsetWidth; this.objEl.classList.add("flash"); } },
     /* 마을 주민의 느린 배회: 제자리(hx) 기준 ±wander px 안에서 잠깐 걷고 쉬기를 반복. 연출 중이거나 플레이어가 가까이 오면 멈춰 서서 바라봄 */
     wanderEnt(e, dt, p) {
-      if (e.hx == null) { e.hx = e.x; e.wt = 1 + Math.random() * 3; e.tx = e.x; }
+      if (e.hx == null) { // 처음 한 번: 이웃 주민·상호작용 지점과 겹치지 않는 구역(zone)을 정함 — 이웃과의 가운데 지점까지 오가되 최대 ±150px
+        e.hx = e.x; e.wt = 1 + Math.random() * 3; e.tx = e.x; const maxW = e.zoneMax || 150, others = this.ents.filter((q) => q !== e && !q.hidden && (q.wander || q.interact || q.sprite) && Math.abs(q.x - e.x) < 600).map((q) => q.x);
+        const prev = Math.max(-1e9, ...others.filter((x) => x < e.x)), next = Math.min(1e9, ...others.filter((x) => x > e.x));
+        e.zlo = e.x - Math.min(maxW, Math.max(30, (e.x - prev) / 2 - 36)); e.zhi = e.x + Math.min(maxW, Math.max(30, (next - e.x) / 2 - 36)); if (e.zone) { e.zlo = e.zone[0]; e.zhi = e.zone[1]; }
+        e.look = 2 + Math.random() * 5; e.sp = 26 + Math.random() * 8; e.v = 0; }
       const near = Math.abs(p.x - e.x) < 140;
-      if (this.locked() || near || this.skipping) { e.walking = false; if (!near) e.wt = Math.max(e.wt, 0.8); return; }
-      if (e.walking) { const d = e.tx - e.x, st = 20 * dt; if (Math.abs(d) <= st) { e.x = e.tx; e.walking = false; e.wt = 2.5 + Math.random() * 4.5; } else { e.x += Math.sign(d) * st; e.step = (e.step || 0) + st; e.face = Math.sign(d); } }
-      else { e.wt -= dt; if (e.wt <= 0) { const t = e.hx + (Math.random() * 2 - 1) * e.wander; if (Math.abs(t - e.x) > 10) { e.tx = t; e.walking = true; e.face = Math.sign(t - e.x); } else e.wt = 1.5; } }
+      if (this.locked() || near || this.skipping) { e.walking = false; e.v = 0; if (!near) e.wt = Math.max(e.wt, 0.8); return; }
+      if (e.walking) {   // 출발·도착 때 천천히 가속·감속, 걸음 수(step)는 이동 거리에 맞춤
+        const d = e.tx - e.x, ad = Math.abs(d), want = e.sp * Math.min(1, 0.35 + ad / 50);
+        e.v += (want - e.v) * Math.min(1, dt * 4); const st = Math.min(ad, e.v * dt);
+        if (ad <= 1.5) { e.walking = false; e.v = 0; e.wt = 3 + Math.random() * 6; } else { e.x += Math.sign(d) * st; e.step = (e.step || 0) + st; e.face = Math.sign(d); } }
+      else { e.wt -= dt; e.look -= dt;
+        if (e.look <= 0) { e.look = 3 + Math.random() * 6; if (Math.random() < 0.4) e.face = -e.face; }   // 가끔 반대쪽을 한 번 둘러봄
+        if (e.wt <= 0) { const span = e.zhi - e.zlo; let t = e.zlo + Math.random() * span; if (Math.abs(t - e.x) < 70) t = e.x < (e.zlo + e.zhi) / 2 ? Math.min(e.zhi, e.x + 90 + Math.random() * 60) : Math.max(e.zlo, e.x - 90 - Math.random() * 60);
+          if (Math.abs(t - e.x) > 25) { e.tx = t; e.walking = true; e.face = Math.sign(t - e.x); } else e.wt = 1.5; } }
     },
     hint(text, sec, center) { this.hintEl.textContent = text || ""; this.hintEl.classList.toggle("center", !!center); this.hintEl.classList.toggle("show", !!text); clearTimeout(this._ht); if (text && sec) this._ht = setTimeout(() => this.hintEl.classList.remove("show"), sec * 1000); },
     hintOnce(text) { const now = performance.now(); if (now - (this._hl || 0) > 2500) { this._hl = now; this.hint(text, 2.6); } },
@@ -342,7 +352,7 @@ window.AU = window.AU || {};
       if (this.walk) { this.walk.t += dt; const dx = this.walk.x - p.x; if (Math.abs(dx) <= 6 || this.walk.t > 12) { if (this.walk.t > 12) p.x = this.walk.x; p.vx = 0; w.virt = null; const r = this.walk.res; this.walk = null; r(); } else if (w.virt) w.virt.dir = sign(dx); }
       if (this.shk.t > 0) this.shk.t -= dt;
       if (p.pose) p.pose.t += dt;
-      for (const e of this.ents) { if (e.faceP && !e.hidden) e.face = p.x < e.x ? -1 : 1; if (e.wander && !e.hidden) this.wanderEnt(e, dt, p); if (e.update) e.update(e, dt, this); }
+      for (const e of this.ents) { if (e.faceP && !e.hidden && !e.walking && Math.abs(p.x - e.x) < 420) e.face = p.x < e.x ? -1 : 1; if (e.wander && !e.hidden) this.wanderEnt(e, dt, p); if (e.update) e.update(e, dt, this); }
       // 입자·방출기
       const cx = w.camX;
       for (const em of this.emitters) { if (em.off) continue; em.acc += em.rate * dt; while (em.acc >= 1) { em.acc -= 1; const x = em.x0 + Math.random() * (em.x1 - em.x0); if (x < cx - 120 || x > cx + W + 120) continue; this.emit(em.kind, x, em.y0 + Math.random() * (em.y1 - em.y0), em.o); } }
@@ -435,7 +445,9 @@ window.AU = window.AU || {};
       const bob = wd ? (e.walking ? Math.abs(Math.sin(ph)) * 1.7 : Math.sin(this.time * 1.4 + e.x * 0.02) * 0.5) : (e.walking ? Math.abs(Math.sin(this.time * 9 + e.x)) * 4 : 0), y = (e.y || GROUND) - bob;
       if (e.sprite) {
         if (wd) { ctx.save(); ctx.translate(e.x, y); ctx.rotate(e.walking ? Math.sin(ph) * 0.016 * e.face : 0); ctx.scale(1 + (e.walking ? 0 : Math.sin(this.time * 1.4 + e.x * 0.02) * 0.004), 1 + (e.walking ? Math.sin(ph * 2) * 0.006 : Math.sin(this.time * 1.4 + e.x * 0.02) * 0.006)); ctx.translate(-e.x, -y); }
-        if (!w.sprite(ctx, e.sprite, e.x, y, e.h, e.face, e.idle ? (Math.floor(this.time * 0.7 + e.x * 0.013) % 2) : (e.frame || 0))) { ctx.fillStyle = "#C9B8A0"; w.rr(ctx, e.x - 28, y - e.h, 56, e.h, 18); ctx.fill(); }
+        const wk = e.walking && /^pc_villager_(.)_idle$/.exec(e.sprite), act = wk && "pc_villager_" + wk[1] + "_actions";
+        if (act && AU.Img.has(act)) { const m = AU.PRO_ART && AU.PRO_ART.ch && AU.PRO_ART.ch["villager_" + wk[1] + "_actions"]; w.sprite(ctx, act, e.x, y, m ? m.ch * 0.5 : e.h, e.face, 2 + (Math.floor((e.step || 0) / 30) % 2)); }
+        else if (!w.sprite(ctx, e.sprite, e.x, y, e.h, e.face, e.idle ? (Math.floor(this.time * 0.7 + e.x * 0.013) % 2) : (e.frame || 0))) { ctx.fillStyle = "#C9B8A0"; w.rr(ctx, e.x - 28, y - e.h, 56, e.h, 18); ctx.fill(); }
         if (wd) ctx.restore(); }
       if (e.name) w.nameTag(ctx, e.name, e.x, y + 30);
       if (e.mark && !this.locked()) { const by = y - e.h - 44 + Math.sin(this.time * 4) * 4; ctx.fillStyle = "#E8B94E"; ctx.strokeStyle = "#fff"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(e.x - 11, by - 12); ctx.lineTo(e.x + 11, by - 12); ctx.lineTo(e.x, by + 4); ctx.closePath(); ctx.fill(); ctx.stroke(); }
