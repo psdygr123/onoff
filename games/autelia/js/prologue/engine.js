@@ -306,7 +306,7 @@ window.AU = window.AU || {};
         e.hx = e.x; e.wt = 1 + Math.random() * 3; e.tx = e.x; const maxW = e.zoneMax || 150, others = this.ents.filter((q) => q !== e && !q.hidden && (q.wander || q.interact || q.sprite) && Math.abs(q.x - e.x) < 600).map((q) => q.x);
         const prev = Math.max(-1e9, ...others.filter((x) => x < e.x)), next = Math.min(1e9, ...others.filter((x) => x > e.x));
         e.zlo = e.x - Math.min(maxW, Math.max(30, (e.x - prev) / 2 - 36)); e.zhi = e.x + Math.min(maxW, Math.max(30, (next - e.x) / 2 - 36)); if (e.zone) { e.zlo = e.zone[0]; e.zhi = e.zone[1]; }
-        e.look = 2 + Math.random() * 5; e.sp = 26 + Math.random() * 8; e.v = 0; }
+        e.look = 2 + Math.random() * 5; e.sp = 44 + Math.random() * 10; e.v = 0; }
       const near = Math.abs(p.x - e.x) < 140;
       if (this.locked() || near || this.skipping) { e.walking = false; e.v = 0; if (!near) e.wt = Math.max(e.wt, 0.8); return; }
       if (e.walking) {   // 출발·도착 때 천천히 가속·감속, 걸음 수(step)는 이동 거리에 맞춤

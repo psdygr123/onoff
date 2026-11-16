@@ -67,9 +67,9 @@ window.AU = window.AU || {};
     const L = LAY.plaza, c = P.v.cheer == null ? 0.12 : P.v.cheer, xs = [90, 200, 500, 760, 870, 960, 1200, 1300, 1400, 1500, 1580, 1830, 1940, 2050], sh = ["f", "d", "h", "a", "j", "a", "b", "i", "e", "m", "c", "g", "k", "l"].map((k, i) => (A.has("pc_villager_" + k + "_actions") ? k : "abc"[i % 3]));
     xs.forEach((x, i) => { const bob = Math.abs(Math.sin(P.time * (3 + c * 5) + i * 1.7)) * (2 + c * 9), bx = x + (i % 2 ? 6 : -6), face = i % 3 === 0 ? -1 : 1, wk = "pc_villager_" + sh[i] + "_walk";
       // 환호가 한창일 때(c>0.45)가 아니면 가끔 이웃 사이 빈 곳으로 천천히 몇 걸음 걸었다 돌아옴(걷기 시트가 있는 주민만)
-      if (c <= 0.45 && A.has(wk)) { const gap = Math.min(xs[i] - (xs[i - 1] == null ? xs[i] - 200 : xs[i - 1]), (xs[i + 1] == null ? xs[i] + 200 : xs[i + 1]) - xs[i]), dist = Math.max(24, Math.min(80, gap / 2 - 14)), T = 12 + (i * 1.3) % 7, Wk = 3.6, t = P.time + i * 2.3, k = Math.floor(t / T), u = (t % T) / Wk, e = u >= 1 ? 1 : u * u * (3 - 2 * u), sgn = i % 2 ? -1 : 1, out = k % 2 === 0;
+      if (c <= 0.45 && A.has(wk)) { const gap = Math.min(xs[i] - (xs[i - 1] == null ? xs[i] - 200 : xs[i - 1]), (xs[i + 1] == null ? xs[i] + 200 : xs[i + 1]) - xs[i]), dist = Math.max(24, Math.min(80, gap / 2 - 14)), T = 12 + (i * 1.3) % 7, Wk = 2.4, t = P.time + i * 2.3, k = Math.floor(t / T), u = (t % T) / Wk, e = u >= 1 ? 1 : u * u * (3 - 2 * u), sgn = i % 2 ? -1 : 1, out = k % 2 === 0;
         const off = sgn * dist * (out ? e : 1 - e);   // 짝수 번째 주기엔 나갔다가, 홀수 번째엔 제자리로 돌아옴(위치가 끊기지 않음)
-        if (u < 1) { const m = AU.PRO_ART.ch["villager_" + sh[i] + "_actions"], fr = ["walk1", "pass1", "walk2", "pass2"][Math.floor(u * Wk * 2.2) % 4]; A.spr(ctx, wk, fr, bx + off, 566, out ? sgn : -sgn, 0.86); return; }
+        if (u < 1) { const m = AU.PRO_ART.ch["villager_" + sh[i] + "_actions"], fr = ["walk1", "pass1", "walk2", "pass2"][Math.floor(u * Wk * 3.6) % 4]; A.spr(ctx, wk, fr, bx + off, 566, out ? sgn : -sgn, 0.86); return; }
         A.spr(ctx, "pc_villager_" + sh[i] + "_actions", "cheer2", bx + off, 566 - bob, out ? sgn : -sgn, 0.86); return; }
       A.spr(ctx, "pc_villager_" + sh[i] + "_actions", c > 0.45 ? "cheer1" : "cheer2", bx, 566 - bob, face, 0.86); });
   }
