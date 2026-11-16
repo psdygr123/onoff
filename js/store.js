@@ -103,7 +103,7 @@ OnOff.State = (function () {
       const list = (s.records[s.user.id] = s.records[s.user.id] || {});
       const arr = (list[gameId] = list[gameId] || []);
       const clean = {};
-      Object.keys(rec).slice(0, 40).forEach((k) => { const v = rec[k]; clean[String(k).slice(0, 40)] = typeof v === "number" || typeof v === "boolean" ? v : String(v == null ? "" : v).slice(0, 80); });
+      Object.keys(rec).slice(0, 40).forEach((k) => { const v = rec[k]; clean[String(k).slice(0, 40)] = typeof v === "number" || typeof v === "boolean" ? v : String(v == null ? "" : v).slice(0, k === "text" ? 200 : 80); });
       arr.push(clean); if (arr.length > 5000) arr.shift();
     },
     getRecords(gameId) { return s.user && s.records[s.user.id] ? s.records[s.user.id][gameId] || [] : []; },

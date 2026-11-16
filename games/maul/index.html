@@ -11,7 +11,14 @@
   <link rel="stylesheet" href="maul.css">
   <style>
     :root { --moon: #fff4d6; --ink: #e8ecff; --mute: #9aa3c7; }
-    html, body { min-height: 100%; }
+    html, body { height: 100%; }
+    /* 한 화면에 모두 보이도록: 전체 높이를 창에 맞추고, 활동 영역(.scene)이 남는 높이를 채웁니다 */
+    body { overflow-y: auto; }
+    .page-wrap { height: 100dvh; min-height: 500px; }
+    .page-wrap > main { min-height: 0; }
+    .page-wrap > main > section { height: 100%; min-height: 0; }
+    .page-wrap .scene { flex: 1 1 0; min-height: 190px; height: auto !important; }
+    @media (max-height: 720px) { header p, main section > div > p { display: none; } header { padding-top: 10px; padding-bottom: 6px; } main h2 { font-size: 1.15rem; } nav[aria-label] { margin-bottom: 8px; } footer { padding-top: 6px; padding-bottom: 6px; margin-bottom: 0; } }
     body {
       font-family: 'Noto Sans KR', 'Malgun Gothic', 'Apple SD Gothic Neo', system-ui, sans-serif;
       background: #0a0d22; color: var(--ink); overflow-x: hidden; user-select: none; -webkit-user-select: none;
@@ -55,11 +62,11 @@
     canvas { touch-action: none; }
   </style>
 </head>
-<body class="min-h-screen">
+<body>
   <canvas id="sky" aria-hidden="true"></canvas>
   <div class="aurora" aria-hidden="true"></div>
 
-  <div class="page-wrap min-h-screen flex flex-col justify-between items-center">
+  <div class="page-wrap flex flex-col justify-between items-center">
   <!-- 머리말 -->
   <header class="w-full max-w-4xl px-4 pt-5 pb-3 flex flex-wrap justify-between items-center gap-4">
     <div class="flex items-center gap-3">
@@ -91,7 +98,7 @@
     </div>
   </nav>
 
-  <main class="w-full max-w-4xl flex-1 px-4 mb-6 flex flex-col justify-center items-center relative">
+  <main class="w-full max-w-4xl flex-1 px-4 mb-3 flex flex-col justify-center items-center relative">
 
     <!-- 1. 걱정 풍선 -->
     <section id="section1" class="w-full flex flex-col items-center justify-center gap-4">
@@ -100,7 +107,7 @@
         <p class="text-xs leading-relaxed" style="color: var(--mute)">마음을 무겁게 하는 생각이나 걱정을 적어 공중에 띄워보세요.<br>풍선을 터뜨리며 그 고민을 살포시 놓아줍니다.</p>
       </div>
       <form id="bubbleForm" class="w-full max-w-md flex gap-2">
-        <input type="text" id="bubbleInput" maxlength="35" autocomplete="off" placeholder="마음에 남은 어떤 생각이라도 적어보세요..."
+        <input type="text" id="bubbleInput" maxlength="35" autocomplete="off" placeholder="마음에 남은 생각을 적어보세요"
           class="flex-1 bg-slate-950/50 border border-white/15 focus:border-violet-300/80 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 outline-none backdrop-blur-md transition-all select-text">
         <button type="button" id="bubbleAddBtn" class="btn-soft bg-gradient-to-r from-violet-500 to-indigo-500 hover:from-violet-400 hover:to-indigo-400 text-white text-sm font-medium px-4 py-2.5 rounded-xl shadow-lg shadow-violet-900/40 flex items-center gap-1.5">
           <i data-lucide="plus" class="w-4 h-4"></i><span>띄우기</span>
@@ -165,7 +172,7 @@
   </main>
 
   <footer class="w-full max-w-4xl px-4 py-3 mb-2 text-center text-xs z-10 flex justify-center items-center gap-2 border-t border-white/10" style="color: var(--mute)">
-    <span class="flex items-center gap-1.5"><i data-lucide="shield-check" class="w-3.5 h-3.5 text-violet-300"></i> 작성하신 모든 생각은 브라우저 어디에도 저장되지 않고 바로 소멸됩니다.</span>
+    <span class="flex items-center gap-1.5"><i data-lucide="shield-check" class="w-3.5 h-3.5 text-violet-300"></i> 풍선은 터지면 화면에서 사라집니다. 적은 글은 연구 활용에 동의하신 경우 연구 자료가 될 수 있으니, 이름·연락처 같은 개인정보는 적지 마세요.</span>
   </footer>
   </div>
 
@@ -354,7 +361,8 @@
     // 온앤오프 연결용: 플랫폼(iframe)에서는 폼 전송이 막혀 있어, 버튼 클릭/Enter로 직접 풍선을 만듭니다.
     function addWorryBubble() {
       const txt = bubbleInput.value.trim(); if (!txt) { bubbleInput.focus(); return; }
-      audio.init(); markFirst(); ST.bAdd++; ST.bLen.push(txt.length);   // 글 내용은 저장하지 않고 글자 수만 셉니다
+      audio.init(); markFirst(); ST.bAdd++; ST.bLen.push(txt.length);
+      emitRecord({ event: 'worry_text', run: RUN_ID, text: txt, text_len: txt.length, ts: Date.now() });   // 자유 서술 글: 연구 동의 시 수집 대상(안내 화면에 명시)
       const b = new Bubble(txt, true); b.y = bubbleCanvas.clientHeight - b.radius - 10; bubbles.push(b); bubbleInput.value = ''; document.getElementById('bubbleHint').classList.add('opacity-0');
     }
     document.getElementById('bubbleForm').addEventListener('submit', (e) => { e.preventDefault(); addWorryBubble(); });
