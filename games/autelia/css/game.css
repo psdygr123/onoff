@@ -461,4 +461,4 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
 .window .silver { color: #8d6425; } .window .itype.t-story, .window .tag.star { background: #f0dfb4; color: #8d6425; }
 .winwrap, .modalwrap { background: rgba(25, 16, 8, .58); }
 .window .wtitle .close { background: transparent; border-color: transparent; color: #fff8e6; } .window .wtitle .close:hover { background: rgba(255, 248, 230, .2); border-color: transparent; }
-.dlgbox .pt img[src*="monument"] { object-fit: contain; padding: 10px 14px 6px; background: radial-gradient(circle at 50% 40%, #fffaf0, #efe1bf); } /* 기념비 초상: 투명 배경 비석 그림을 원 안에 맞춰 넣음 */
+.dlgbox .pt img[src*="monument"] { object-fit: cover; object-position: 50% 6%; padding: 0; transform: scale(1.12); transform-origin: 50% 22%; background: radial-gradient(circle at 50% 40%, #fffaf0, #efe1bf); } /* 기념비 초상: 햇살 문양이 있는 비석 윗부분을 크게 보여 줌 */
