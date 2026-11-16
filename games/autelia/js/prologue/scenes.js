@@ -295,7 +295,7 @@ window.AU = window.AU || {};
   function setupPlaza(P, variant) {
     const v = P.v, L = LAY.plaza; P.variant = variant;
     if (variant === "peace") {
-      P.tint = { color: "#FFF1DA", a: 0.08 }; P.vig = 0.12; v.cheer = 0.12;
+      P.tint = { color: "#FF9A58", a: 0.34 }; P.vig = 0.26; v.cheer = 0.12;
       P.limits = { min: 40, max: L.limit, msg: "먼저 주민과 이야기를 나눠 보세요. (마을길로는 돌아갈 수 없습니다)" };
       // 광장 전용 인물: 마을길에서 만난 주민(나이 든 주민·축제 어린이)과 겹치지 않도록 새 인물을 둠(빵을 나누는 주민은 마을길에서 "광장에서 보자"고 한 인물이라 그대로)
       const sT = standing("g", "villager_a"), sF = standing("l", "villager_b");
@@ -394,7 +394,7 @@ window.AU = window.AU || {};
       await P.say(T.will.slice(2, 5)); // 아버지 "...왔구나." / 주인공 / 아버지 "아니... 시간이 없다."
       await P.tween(father, { hand: 1 }, 1.3); father.frag = true; await P.wait(0.5);
       P.closeup = { a: 0 }; P.sfx("fragment"); await P.tween(P.closeup, { a: 1 }, 0.9); P.setFlag("metal_fragment_acquired"); P.give("metal_fragment"); father.frag = false; await P.wait(3.0); await P.tween(P.closeup, { a: 0 }, 0.8); P.closeup = null;
-      await P.tween(father, { hand: 0.5 }, 0.6); await P.say(T.will2);
+      await P.say(T.will_brand); await P.tween(father, { hand: 0.5 }, 0.6); await P.say(T.will2);
       P.sfx("slump"); await P.tween(father, { hand: 0, drop: 1 }, 0.8); P.amb("raid_far", false); await P.wait(1.8); await P.say(T.will3);
       P.setFlag("father_final_words_seen"); P.pose(null); P.zoomTo(1, 1.2); await P.wait(0.9); P.amb("raid_far", true);
     }, { id: "cs03", skip: true, bars: true });

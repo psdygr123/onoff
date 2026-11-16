@@ -136,8 +136,7 @@ window.AU = window.AU || {};
       card.onclick = open; strip.append(card);
     }
     box.insertBefore(strip, b1);
-    const tip = document.createElement("p"); tip.className = "note"; tip.textContent = "방향키 이동 · Alt 점프 · Ctrl 공격 · Space 대화 · Esc 메뉴 (키보드 설정에서 변경 가능)";
-    box.append(tip); t.append(box); t.classList.remove("hidden");
+    t.append(box); t.classList.remove("hidden");
     b1.focus();
   }
 
