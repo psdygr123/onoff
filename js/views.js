@@ -420,6 +420,9 @@ OnOff.Views = (function () {
 
           <section class="panel" id="sec-consent" aria-labelledby="h-consent"><h2 id="h-consent">개인정보 및 이용 동의</h2>
             <dl class="kv"><dt>이용약관</dt><dd>동의함 (${esc((u.consents || {}).terms || "-")})</dd><dt>개인정보 수집·이용</dt><dd>동의함 (${esc((u.consents || {}).privacy || "-")})</dd><dt>연구 목적 활용</dt><dd>${(u.consents || {}).research ? `동의함 (${esc(u.consents.research)}). 연구 범위가 정해지면 안내합니다.` : "동의하지 않음"}</dd></dl>
+            <h3 style="margin-top:6px">게임 이용 안내와 연구 수집 정보</h3>
+            <div class="note"><strong>알아 두세요.</strong> 게임은 의료·상담을 대신하지 않습니다. 하다가 마음이 불편해지면 언제든 멈추셔도 되고, 마음이 많이 힘들 때는 가까운 전문 상담기관이나 의료기관의 도움을 받아 보세요. 게임에서 입력하거나 응답한 내용은 가입 때 연구 활용에 동의하신 경우에 한해 심리학 연구 자료로 활용될 수 있습니다.</div>
+            ${GAMES.filter((g) => g.status !== "soon" && RESEARCH_ITEMS[g.id]).map((g) => `<details class="consent-more"><summary>${esc(g.title)} — 연구 자료로 수집되는 정보</summary>${researchPage(g)}</details>`).join("")}
             <div><button class="btn ghost sm" type="button" disabled aria-disabled="true">동의 철회 (추후 제공)</button></div>
           </section>
 
@@ -486,6 +489,17 @@ OnOff.Views = (function () {
       if (!g || g.status === "soon") return notfound.render();
       const save = S.user ? S.getSave(g.id) : null, research = researchPage(g), playable = OnOff.Device.canPlay(g);
       const acked = !!(S.user && (S.hasAck(g.id) || (save && !save.example)));   // 이 게임의 안내를 이미 확인한 사람에게는 다시 묻지 않습니다
+      if (acked) {   // 이미 안내를 확인한 사람: 설명·동의 전문 없이 플레이 버튼만 보여 줍니다(전문은 마이페이지 › 동의 관리)
+        return `<div class="wrap page"><div class="intro">
+        <div class="art"><img src="${g.cover}" alt="${esc(g.coverAlt || (g.title + " 대표 이미지"))}" width="1000" height="720"></div>
+        <div class="panel"><div>
+          <h1>${esc(g.title)}</h1>
+          <p style="color:var(--ink-2);font-size:var(--fs-sm)">${esc(g.summary || "")}</p>
+          ${playable ? "" : `<div class="note"><strong>PC 전용 게임입니다.</strong> ${esc(OnOff.PC_ONLY_NOTE)}</div>`}
+          <div class="form-actions"><button class="btn ghost" type="button" data-action="go" data-to="games">뒤로</button><button class="btn" type="button" id="intro-go" ${playable ? "" : "disabled aria-disabled=\"true\" data-blocked=\"1\""}>게임 플레이하기</button></div>
+          <p style="color:var(--ink-2);font-size:var(--fs-xs)">안내·동의 내용은 <a href="#mypage" id="to-consent">마이페이지 › 동의 관리</a>에서 다시 볼 수 있습니다.</p>
+        </div></div></div></div>`;
+      }
       return `<div class="wrap page"><div class="intro">
         <div class="art"><img src="${g.cover}" alt="${esc(g.coverAlt || (g.title + " 대표 이미지"))}" width="1000" height="720"></div>
         <div class="panel">
@@ -502,7 +516,8 @@ OnOff.Views = (function () {
         </div></div></div></div>`;
     },
     mount(root, ctx) {
-      const ok = root.querySelector("#intro-ok"), btn = root.querySelector("#intro-go");
+      const ok = root.querySelector("#intro-ok"), btn = root.querySelector("#intro-go"), tc = root.querySelector("#to-consent");
+      if (tc) tc.addEventListener("click", () => { setTimeout(() => { const t = document.getElementById("sec-consent"); if (t) t.scrollIntoView({ block: "start" }); }, 200); });
       if (!btn) return;
       const blocked = !!btn.dataset.blocked;
       if (ok) ok.addEventListener("change", () => { const off = !ok.checked || blocked; btn.disabled = off; btn.setAttribute("aria-disabled", String(off)); });
