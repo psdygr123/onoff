@@ -53,7 +53,7 @@ OnOff.Views = (function () {
   const BANNERS = [
     { label: "하루 몇 분이어도", sub: "내 속도로 즐기는 여정", kicker: "내 속도로", title: "<span>하루 몇 분이어도</span><span><em>괜찮아요</em></span>",
       text: "쉬어 가도 괜찮은 여정입니다. 게임마다 진행 기록이 따로 저장되어, 언제든 이어서 할 수 있어요.", img: "img/banner-1.webp", pos: "70% 50%",
-      alt: "해 질 녘 호수가 내려다보이는 언덕 위 나무 벤치와 등불", cta: '<button class="btn" type="button" data-action="start">모험 시작하기</button>' },
+      alt: "이른 아침 안개 낀 숲속 오두막 앞 나무 테이블 위의 찻잔과 펼친 노트", cta: '<button class="btn" type="button" data-action="start">모험 시작하기</button>' },
     { label: "일상 밖의 모험", sub: "일상 속의 성장", kicker: "심리학 전공자들이 만든 성장형 게임", title: "<span>일상 밖의 모험,</span><span><em>일상 속</em>의 성장</span>",
       text: "이야기 속 작은 선택과 경험이 쌓여, 일상의 변화로 이어지는 여정을 함께합니다.", img: "img/banner-2.webp", pos: "70% 50%",
       alt: "창가 책상 위 낡은 지도와 나침반, 창밖으로 보이는 항구 도시", cta: '<button class="btn" type="button" data-action="scroll" data-target="lib">게임 둘러보기</button>' },
