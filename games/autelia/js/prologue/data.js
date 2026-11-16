@@ -70,7 +70,7 @@ window.AU = window.AU || {};
     elder:  { name: "나이 든 주민", portrait: "pt_pro_elder", alt: "pt_villager_a" },
     traveler: { name: "먼 마을에서 온 할머니", portrait: "pt_pro_traveler", alt: "pt_villager_a" },   // 광장 전용 인물(그림 도착 전에는 기존 주민 얼굴로 대체)
     florist:  { name: "꽃 심부름 온 사내아이", portrait: "pt_pro_florist", alt: "pt_villager_b" },
-    stele:  { name: "기념비", portrait: "" },
+    stele:  { name: "기념비", portrait: "po_monument" },
     farmer: { name: "젊은 농부", portrait: "pt_pro_farmer" }, priest: { name: "신관", portrait: "pt_pro_priest" }, musician: { name: "악사", portrait: "pt_pro_musician" }, scribe: { name: "서기", portrait: "pt_pro_scribe" },
     resA:   { name: "주민", portrait: "pt_villager_a" },
     resB:   { name: "주민", portrait: "pt_villager_b" },
