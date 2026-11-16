@@ -79,9 +79,11 @@ window.AU = window.AU || {};
       this.takeItem(id, n); const gain = it.sell * n; this.gainSilver(gain);
       this.toast(it.name.replace(" (임시)", "") + (n > 1 ? " ×" + n : "") + " 판매: 은화 +" + gain, "good"); this.save("sell"); this.changed(); return true;
     },
-    canCraft(rid) { const r = AU.RECIPES.find((x) => x.id === rid); return !!r && r.mats.every(([m, n]) => this.count(m) >= n) && this.S.silver >= r.silver; },
+    knowsRecipe(rid) { return Object.keys(AU.QUESTS).some((id) => { const rec = this.qs(id); return !!rec && rec.state === "done" && ((AU.QUESTS[id].reward || {}).recipes || []).includes(rid); }); },   // 의뢰 보상으로 받은 제작법만 사용 가능
+    canCraft(rid) { const r = AU.RECIPES.find((x) => x.id === rid); return !!r && this.knowsRecipe(rid) && r.mats.every(([m, n]) => this.count(m) >= n) && this.S.silver >= r.silver; },
     craft(rid) {
       const r = AU.RECIPES.find((x) => x.id === rid); if (!r) return false;
+      if (!this.knowsRecipe(rid)) { this.toast("아직 배우지 못한 제작법입니다.", "warn"); return false; }
       if (this.shop !== "smith") { this.toast("무기상인에게 가서 만들 수 있습니다.", "warn"); return false; }
       if (!this.canCraft(rid)) { this.toast("재료나 은화가 부족합니다.", "warn"); return false; }
       for (const [m, n] of r.mats) this.takeItem(m, n);
@@ -256,6 +258,7 @@ window.AU = window.AU || {};
       const r = q.reward;
       if (r.silver) this.gainSilver(r.silver);
       for (const [it, n] of r.items || []) this.giveItem(it, n);
+      for (const rid of r.recipes || []) { const rc = AU.RECIPES.find((x) => x.id === rid); if (rc) this.toast("제작법 획득: " + AU.ITEMS[rc.out].name.replace(" (임시)", "") + " (무기상인에게서 제작)", "good"); }
       this.log("퀘스트 완료: " + q.title); this.toast("퀘스트 완료: " + q.title, "good");
       if (q.setFlags) Object.assign(this.S.flags, q.setFlags);
       for (const t of q.after || []) this.toast(t, "info");

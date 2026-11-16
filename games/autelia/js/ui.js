@@ -388,8 +388,9 @@ window.AU = window.AU || {};
   UI.craftPanel = function (b) {
     const S = AU.G.S, safe = AU.G.shop === "smith";
     b.append(h("p", { class: "note", text: safe ? "재료와 은화로 희귀 장비를 만들 수 있습니다. 몬스터가 아주 드물게 떨어뜨리기도 합니다." : "제작법입니다. 포르투 노바의 무기상인에게 재료를 가져가면 만들어 줍니다." }));
-    const list = h("div", { class: "recipes" });
-    for (const r of AU.RECIPES) {
+    const list = h("div", { class: "recipes" }), known = AU.RECIPES.filter((r) => AU.G.knowsRecipe(r.id));
+    if (!known.length) b.append(h("p", { class: "note", text: "아직 배운 제작법이 없습니다. 의뢰를 완료하면 제작법을 받을 수 있습니다." }));
+    for (const r of known) {
       const out = AU.ITEMS[r.out], ok = AU.G.canCraft(r.id);
       list.append(h("div", { class: "recipe" + (ok ? " ok" : "") }, h("div", { class: "rh" }, h("b", { text: out.name.replace(" (임시)", "") }), h("span", { class: "tag", text: (AU.RARITY[out.rarity] || {}).label || "" }), h("span", { class: "tag", text: AU.SLOT_LABEL[out.slot] })),
         h("div", { class: "stat", text: Object.entries(out.stats).map(([k, v]) => statName(k) + " +" + v).join(" · ") }),
@@ -663,7 +664,7 @@ window.AU = window.AU || {};
     } else det.append(h("p", { class: "empty", text: "퀘스트를 선택하면 자세한 내용이 표시됩니다." }));
     b.append(tabs, h("div", { class: "split q" }, ul, det));
   };
-  const rewardText = (r) => [r.exp ? "경험치 " + r.exp : null, r.silver ? "은화 " + r.silver : null, ...(r.items || []).map(([i, n]) => AU.ITEMS[i].name + " ×" + n)].filter(Boolean).join(" · ") || "없음";
+  const rewardText = (r) => [r.exp ? "경험치 " + r.exp : null, r.silver ? "은화 " + r.silver : null, ...(r.items || []).map(([i, n]) => AU.ITEMS[i].name + " ×" + n), ...(r.recipes || []).map((id) => { const rc = AU.RECIPES.find((x) => x.id === id); return rc ? "제작법: " + AU.ITEMS[rc.out].name.replace(" (임시)", "") : null; })].filter(Boolean).join(" · ") || "없음";
 
   UI.fatigueMeter = function (S, withActions) { // 스킬창·쉼 탭에 쓰는 큰 피로도 표시
     const pc = S.fatigue / S.fatigueMax, full = S.fatigue >= S.fatigueMax - 1e-6, cls = full ? "full" : pc >= 0.8 ? "hot" : pc >= 0.5 ? "mid" : "ok";

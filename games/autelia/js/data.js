@@ -203,7 +203,7 @@ AU.ITEMS = {
 // 상점: 잡화상인은 재료를 사고 소비 아이템을 팔며, 무기상인은 장비를 만들어 줌
 AU.SHOP = { general: { buy: ["potion", "town_scroll"] } };
 AU.RARITY = { common: { label: "흔함", color: "#D9C79A" }, uncommon: { label: "드묾", color: "#7FC8A9" }, rare: { label: "희귀", color: "#F2C14E" } };
-// 제작: 안전한 곳(마을)에서 재료와 은화로 희귀 장비를 직접 만듦(드롭보다 확실하지만 재료가 많이 듦)
+// 제작: 안전한 곳(마을)에서 재료와 은화로 희귀 장비를 직접 만듦(드롭보다 확실하지만 재료가 많이 듦). 제작법은 처음부터 알지 못하고, 의뢰 보상(reward.recipes)으로 받아야 만들 수 있음
 AU.RECIPES = [
   { id: "cr_fox_scarf", out: "fox_scarf", mats: [["fur", 8], ["fox_tail", 3]], silver: 30 },
   { id: "cr_snake_ring", out: "snake_ring", mats: [["snake_skin", 6], ["snake_fang", 4]], silver: 40 },
@@ -288,21 +288,21 @@ AU.QUESTS = {
     desc: "포르투 노바의 선창 길드 접수에서 이름을 장부에 올립니다.", objectives: [{ kind: "talk", target: "porto_guild" }],
     offer: ["이 정도 일했으면 길드 장부에 이름을 올려 두게. 접수에 가서 등록하면 정식 의뢰를 받을 수 있네."],
     done: ["등록했나? 이제 길드 사람이 됐군."],
-    reward: { exp: 150, silver: 20, items: [] }
+    reward: { exp: 150, silver: 20, items: [], recipes: ["cr_fox_scarf"] }
   },
   q_guild_rats: {
     title: "부두 쥐 소탕", type: "sub", giver: "porto_guild", minLevel: 4, pre: ["q_guild_talk"],
     area: "harbor_road", desc: "항구 길의 부두 쥐를 8마리 처치합니다.", objectives: [{ kind: "kill", target: "rat", count: 8 }],
     offer: ["선창 길드의 의뢰입니다. 항구 길의 쥐를 8마리 줄여 주세요."],
     done: ["확인했습니다. 보수와 증표를 드립니다."],
-    reward: { exp: 600, silver: 120, items: [["charm_a", 1], ["guild_token", 1]] }
+    reward: { exp: 600, silver: 120, items: [["charm_a", 1], ["guild_token", 1]], recipes: ["cr_snake_ring"] }
   },
   q_guild_crabs: {
     title: "집게 게 퇴치", type: "sub", giver: "porto_guild", minLevel: 7, pre: ["q_guild_rats"],
     area: "docks", desc: "선창 외곽의 집게 게를 5마리 처치합니다.", objectives: [{ kind: "kill", target: "crab", count: 5 }],
     offer: ["선창 외곽의 집게 게가 짐을 상하게 합니다. 5마리를 부탁합니다."],
     done: ["수고하셨습니다. 이번 보수입니다."],
-    reward: { exp: 1200, silver: 200, items: [] }
+    reward: { exp: 1200, silver: 200, items: [], recipes: ["cr_crab_vest"] }
   },
   q_a1_parcel: {
     title: "길드 짐 전하기", type: "sub", giver: "porto_foreman", minLevel: 5, pre: ["q_guild_talk"],
