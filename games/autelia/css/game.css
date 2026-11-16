@@ -524,3 +524,11 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
 .jcard em { position: absolute; left: 0; right: 0; bottom: 66px; margin: 0; border: 0; background: none; font-size: 12px; letter-spacing: .12em; color: #7a6a48; }
 .jnote { min-height: 22px; margin: 12px 2px 0; }
 @media (max-width: 760px) { .jcard { height: 270px; } .jcard .jart, .jcard .jart.has-img { height: 140px; } .jcard .jart img { max-height: 126px; } .jcard > b { height: 44px; font-size: 16px; } .jcard p { font-size: 11.5px; padding: 2px 8px 0; } .jcard em { bottom: 52px; font-size: 11px; } .jcard.lock .jart::after { font-size: 30px; } }
+
+/* 그림이 카드 윗부분을 가득 채우는 카드(용사: 다섯 용사 일러스트) */
+.jcard .jart.full, .jcard .jart.full.has-img { height: 232px; }
+.jcard .jart.full::before { display: none; }
+.jcard .jart.full img { width: 100%; height: 100%; max-width: none; max-height: none; object-fit: cover; object-position: 50% 30%; filter: none; }
+.jcard .jart.full::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 40px; background: linear-gradient(transparent, rgba(255, 243, 207, .96)); pointer-events: none; }
+.jcard .jart.full + p { margin-top: -2px; position: relative; }
+@media (max-width: 760px) { .jcard .jart.full, .jcard .jart.full.has-img { height: 150px; } }

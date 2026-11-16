@@ -85,7 +85,7 @@
       for (const L of list) {
         const c = h("button", "jcard" + (L.open ? "" : " lock")); c.type = "button"; c.id = (phase === "line" ? "jl-" : "jg-") + L.id; c.dataset.line = L.id; c.setAttribute("role", "radio");
         if (!L.open) c.setAttribute("aria-disabled", "true");
-        const art = h("div", "jart"), key = L.art || "job_" + L.id, spec = AU.ASSETS[key];
+        const art = h("div", "jart" + (L.full ? " full" : "")), key = L.art || "job_" + L.id, spec = AU.ASSETS[key];
         if (spec && L.open) { const im = new Image(); im.alt = ""; im.src = spec.path; im.draggable = false; art.classList.add("has-img"); im.onerror = () => { art.classList.remove("has-img"); art.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + L.icon + "</svg>"; }; art.append(im); }
         else if (spec && phase === "line") { const im = new Image(); im.alt = ""; im.src = spec.path; im.draggable = false; art.classList.add("has-img"); art.append(im); }
         else art.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + L.icon + "</svg>";

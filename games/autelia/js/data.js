@@ -34,7 +34,7 @@ AU.ASSETS = {
   ob_rock_s: { path: "assets/object/rock_s.webp", optional: true }, ob_rock_m: { path: "assets/object/rock_m.webp", optional: true }, ob_rock_big: { path: "assets/object/rock_big.webp", optional: true }, ob_rock_tall: { path: "assets/object/rock_tall.webp", optional: true }, ob_rock_low: { path: "assets/object/rock_low.webp", optional: true },
   ob_fence_broken: { path: "assets/object/fence_broken.webp", optional: true }, ob_fence_fixed: { path: "assets/object/fence_fixed.webp", optional: true },
   ob_trace_stain: { path: "assets/object/trace_stain.webp", optional: true }, ob_trace_crate: { path: "assets/object/trace_crate.webp", optional: true }, it_guild_parcel: { path: "assets/object/guild_parcel.webp", optional: true },
-  job_warrior: { path: "assets/job/warrior.webp", optional: true }, job_mage: { path: "assets/job/mage.webp", optional: true }, job_archer: { path: "assets/job/archer.webp", optional: true }, job_rogue: { path: "assets/job/rogue.webp", optional: true }, job_pirate: { path: "assets/job/pirate.webp", optional: true },
+  job_warrior: { path: "assets/job/warrior.webp", optional: true }, job_hero: { path: "assets/job/hero.webp", optional: true }, job_mage: { path: "assets/job/mage.webp", optional: true }, job_archer: { path: "assets/job/archer.webp", optional: true }, job_rogue: { path: "assets/job/rogue.webp", optional: true }, job_pirate: { path: "assets/job/pirate.webp", optional: true },
   mon_fox:   { path: "assets/monster/fox.webp", optional: true },
   mon_snake: { path: "assets/monster/snake.webp", optional: true },
   mon_rat:   { path: "assets/monster/rat.webp", optional: true },
@@ -226,7 +226,7 @@ AU.JOBS = {
    지금 열려 있는 계열은 전사뿐(open). 나머지 넷은 세계관의 다섯 영웅 직업으로, 화면에 잠긴 채 보여 줌. icon은 그림이 오기 전 임시 도형 */
 /* 직업군(1단계): 지금은 용사만 열려 있고 나머지는 추후 공개 예정. 용사를 고르면 아래 JOB_LINES(전사·마법사…) 선택 창으로 이어짐 */
 AU.JOB_GROUPS = [
-  { id: "hero", name: "용사", open: true, art: "job_warrior", desc: "마음과 몸을 함께 단련하며 모험을 이끌어 가는 첫 번째 길입니다.", icon: '<path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z"/>' },
+  { id: "hero", name: "용사", open: true, art: "job_hero", full: true, desc: "마음과 몸을 함께 단련하며 모험을 이끌어 가는 첫 번째 길입니다.", icon: '<path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z"/>' },
   { id: "soon1", name: "???", open: false, icon: '<text x="12" y="18" text-anchor="middle" font-size="18" fill="currentColor">?</text>' },
   { id: "soon2", name: "???", open: false, icon: '<text x="12" y="18" text-anchor="middle" font-size="18" fill="currentColor">?</text>' }
 ];
