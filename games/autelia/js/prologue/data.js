@@ -24,6 +24,8 @@ window.AU = window.AU || {};
   AR.ch.player_f_work = { frames: 4, names: ["carry", "give", "swing_up", "swing_dn"], separate: {}, cw: 300, ch: 345, standH: 300, foot: 150 };
   AR.ch.player_m_bag = { frames: 7, names: ["stand", "walk1", "walk2", "walk3", "walk4", "jump_up", "jump_down"], separate: {}, cw: 210, ch: 310, standH: 300, foot: 105 };   // 가방을 멘 이동 시트(남)
   AR.ch.player_f_bag = { frames: 7, names: ["stand", "walk1", "walk2", "walk3", "walk4", "jump_up", "jump_down"], separate: {}, cw: 210, ch: 310, standH: 300, foot: 105 };   // 가방을 멘 이동 시트(여)
+  AR.ch.raider_officer = { frames: 3, names: ["ready", "raise", "slash"], separate: {}, cw: 276, ch: 313, standH: 250, foot: 308 };   // 간부의 검 동작(준비·치켜듦·내리침)
+  AR.ch.father_hit = { frames: 3, names: ["guard", "hit", "fall"], separate: {}, cw: 277, ch: 284, standH: 275, foot: 279 };   // 아버지가 막아서고 맞고 무너지는 동작
   for (const [w, ch] of [["axe", 300], ["spear", 306], ["mace", 300]]) AR.ch["raider_" + w] = { frames: 3, names: ["stand", "walk1", "walk2"], separate: {}, cw: 240, ch, standH: 295, foot: ch - 5 };   // 습격자 무기 변형(도끼·창·철퇴). 허리 검을 찬 기본형은 raider_actions
   AR.ch.player_m_combat = { frames: 6, names: ["attack1", "attack2", "strike", "spin", "hurt", "down"], separate: {}, cw: 463, ch: 394, standH: 300, foot: 231 };   // 본편 전투 동작
   AR.ch.player_f_combat = { frames: 6, names: ["attack1", "attack2", "strike", "spin", "hurt", "down"], separate: {}, cw: 453, ch: 389, standH: 300, foot: 226 };
@@ -98,10 +100,10 @@ window.AU = window.AU || {};
     attack: [["resA", "불이야!"], ["resB", "신전이 불타고 있어!"], ["resC", "도망쳐! 무장한 놈들이 들어왔다!"], ["raider", "어둠이 돌아온다! 낙인을 가진 놈을 찾아라!"]],
     hero_dad: [["heroS", "아버지...!"]],
     will: [["hero", "아버지...?"], ["hero", "아버지!"], ["father", "...왔구나."], ["hero", "말하지 마세요. 지금 사람을 불러올게요."], ["father", "아니... 시간이 없다."]],
-    officer: [["officer", "...낙인이군. 천 년을 숨어 산 용사의 피가 정말 여기 있었나."], ["heroS", "당신들이... 아버지를!"], ["officer", "그 손목의 낙인... 네놈도 같은 피로군. 얘들아, 저놈부터 처리해라."]],
-    officer2: [["officer", "...끝이다, 목수의 아들."]],
-    officer2b: [["father", "...내 아들에게... 손대지 마라."]],
-    officer3: [["officer", "...낙인이군. 확인했다. 오늘은 이걸로 충분하다."], ["officer", "물러난다."]],
+    officer: [["officer", "...낙인이군. 천 년을 숨어 산 용사의 피가 정말 여기 있었나."], ["heroS", "당신들이... 아버지를!"], ["officer", "그 손목의 낙인... 네놈도 같은 피로군. 여기서 끝내 주마."]],
+    officer2: [["officer", "...잘 가라, 목수의 아들."]],
+    officer2b: [["father", "...내 아들에게... 손대지 마라!"]],
+    officer3: [["officer", "...쓸데없는 짓을."], ["raider", "대장, 불길이 번집니다!"], ["officer", "...가자. 도망쳐 봐라, 목수의 아들. 낙인이 있는 한 우리는 반드시 다시 만난다."]],
     will_brand: [["father", "이 조각은... 천 년 전, 우리 선조들이 어둠을 봉인할 때 쓰인 봉인석의 조각이다."], ["hero", "봉인...석? 선조라니, 아버지, 그게 무슨..."], ["father", "우리는... 다섯 용사의 피를 이은 후예다. 내 손목에 새겨진 이 검은 고리 낙인이 그 증거다."], ["father", "천 년을 숨어 살았는데... 그들이 끝내 우리를 찾아냈구나. 미안하다... 숨기지 못해서."]],
     will2: [["father", "도망쳐라..."], ["hero", "그런 말 하지 마세요."], ["father", "이 조각을 들고..."], ["father", "빛도 어둠도 닿지 않는 중립 구역으로 가야... 안전해..."], ["hero", "아버지, 제발..."]],
     will3: [["hero", "...아버지?"]],

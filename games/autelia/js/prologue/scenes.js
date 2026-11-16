@@ -23,7 +23,8 @@ window.AU = window.AU || {};
         const moving = e.pause <= 0, cyc = (e.step / 46) % 1, fr = !moving ? "stand" : cyc < 0.25 ? "walk1" : cyc < 0.5 ? "stand" : cyc < 0.75 ? "walk2" : "stand";
         const bob = moving ? Math.abs(Math.sin(cyc * Math.PI * 2)) * 3.2 : Math.sin(P.time * 1.6 + e.ph) * 1.1, sway = moving ? Math.sin(cyc * Math.PI * 2) * 0.018 : 0;
         ctx.save(); ctx.globalAlpha = e.alpha == null ? (A.has("pc_raider_actions") ? 1 : 0.78) : e.alpha; ctx.translate(e.x, e.y - bob); ctx.rotate(sway * e.face + (e.tilt || 0) * e.face); ctx.translate(-e.x, -e.y);
-        if (!A.spr(ctx, "pc_" + (A.has("pc_" + e.wk) ? e.wk : "raider_actions"), fr, e.x, e.y, e.face, e.s / 0.5)) A.raider(ctx, e.x, e.y, e.s, P.time, e.face); ctx.restore(); } });
+        if (e.pose && A.has("pc_raider_officer")) A.spr(ctx, "pc_raider_officer", e.pose, e.x, e.y, e.face, e.s / 0.5);   // 간부의 검 동작(준비·치켜듦·내리침)
+        else if (!A.spr(ctx, "pc_" + (A.has("pc_" + e.wk) ? e.wk : "raider_actions"), fr, e.x, e.y, e.face, e.s / 0.5)) A.raider(ctx, e.x, e.y, e.s, P.time, e.face); ctx.restore(); } });
   }
   const SHEETS = "abcdefghijklm".split("").filter(() => true); // 주민 동작 시트(a~c 1차, d~m NPC 다양화). 없는 시트는 runner/crowd 에서 건너뜀
   const pickSheet = () => { const ok = SHEETS.filter((c) => A.has("pc_villager_" + c + "_actions")); return ok.length ? ok[(Math.random() * ok.length) | 0] : "a"; };
@@ -383,8 +384,11 @@ window.AU = window.AU || {};
     fireEmitters(P, 1280, 180, 520, 1.1);
     const father = P.addEnt({ id: "father", x: LAY.house.father, range: 0, hand: 0, drop: 0, frag: false, layer: "mid",
       draw(ctx, e, P) { const w = AU.World;
-        if (e.stand && A.has("pc_father_work")) { // 희생 장면: 쓰러졌던 아버지가 마지막 힘으로 일어나 달려 나옴(그림은 왼쪽을 봄)
-          const fr = e.run ? (Math.floor(P.time * 6) % 2 ? "walk1" : "walk2") : "hold"; A.spr(ctx, "pc_father_work", fr, e.x, G - (e.run ? Math.abs(Math.sin(P.time * 12)) * 3 : 0), -e.face); return; }
+        if (e.fpose && A.has("pc_father_hit")) { // 희생 장면: 누웠던 아버지가 일어나 막아서고(guard) → 칼에 맞고(hit) → 무너짐(fall). rise 0..1 로 누운 그림과 서로 겹쳐 바뀜
+          const rs = Math.max(0, Math.min(1, e.rise == null ? 1 : e.rise));
+          if (A.has("pc_father_down") && rs < 1) { ctx.save(); ctx.globalAlpha = 1 - rs; A.pic(ctx, "pc_father_down", LAY.house.father, G + 4, 42, -1); ctx.restore(); }
+          ctx.save(); ctx.globalAlpha = rs; const rot = e.fpose === "guard" ? (1 - rs) * -1.25 : 0; ctx.translate(e.x, G); ctx.rotate(rot * (e.face || -1) * -1); ctx.translate(-e.x, -G);
+          A.spr(ctx, "pc_father_hit", e.fpose, e.x + (e.shk || 0), G, e.face === 1 ? 1 : -1); ctx.restore(); return; }
         if (A.has("pc_father_down")) { // 쓰러진 아버지(머리가 왼쪽): 팔이 뻗은 한 장 그림만 사용(팔 조각을 따로 겹치면 손만 잘려 보여서 제거). 손이 앞으로 내민 쪽에 조각을 쥔 표시만 겹침
           A.pic(ctx, "pc_father_down", e.x, G + 4, 42, -1);
           const tipX = e.x - 96, tipY = G - 6;
@@ -422,7 +426,7 @@ window.AU = window.AU || {};
     const P = AU.Prologue, g = P.gen, v = P.v;
     await P.cutscene(async () => { // CS-03 아버지의 유언
       P.obj(""); P.amb("raid_far", true); P.face(1);
-      await P.say([T.will[0]]); await P.walkTo(612, 1.5); await P.say([T.will[1]]); P.pose("kneel"); P.zoomTo(1.25, 1.6, 700, 450); await P.wait(1.0);
+      await P.say([T.will[0]]); await P.walkTo(Math.max(612, AU.World.player.x), 1.2); await P.say([T.will[1]]); P.pose("kneel"); P.zoomTo(1.25, 1.6, 700, 450); await P.wait(1.0);
       await P.say(T.will.slice(2, 5)); // 아버지 "...왔구나." / 주인공 / 아버지 "아니... 시간이 없다."
       await P.tween(father, { hand: 1 }, 1.3); father.frag = true; await P.wait(0.5);
       P.closeup = { a: 0 }; P.sfx("fragment"); await P.tween(P.closeup, { a: 1 }, 0.9); P.setFlag("metal_fragment_acquired"); P.give("metal_fragment"); father.frag = false; await P.wait(3.0); await P.tween(P.closeup, { a: 0 }, 0.8); P.closeup = null;
@@ -434,70 +438,37 @@ window.AU = window.AU || {};
     }, { id: "cs03", skip: true, bars: true });
     if (!live(P, g)) return; bag.hidden = false; P.obj(OBJ.s4_bag); P.limits = { min: 120, max: null, msg: "도구 가방을 챙겨야 합니다." };
   }
-  /* 집 안 난투: 주인공이 망치로 부하 둘과 맞선다. 공격 키로 망치를 휘두르고(앞쪽 가까운 적에게 적중), 부하는 다가와 몸을 숙였다가 내려친다.
-     체력 표시·패배 없음(맞으면 비틀릴 뿐) — 부하 둘을 쓰러뜨리거나 18초가 지나면 끝나고 간부가 나선다. */
-  function startBrawl(P, foes, limitX) {
-    const p = AU.World.player, v = P.v, F = P.fight = { on: true, t: 0, cd: 0, sw: 0, hitDone: false, kb: 0, inv: 0, hits: 0 };
-    for (const e of foes) { e.hp = 3; e.stun = 0; e.cool = 0.6 + Math.random() * 0.9; e.wind = 0; e.kb = 0; e.down = false; e.tilt = 0; e.pause = 0; e.min = null; }
-    F.done = new Promise((res) => { F.resolve = res; });
-    const fall = async (e) => { e.alpha = 1; P.sfx("thud"); await P.tween(e, { tilt: -1.35 }, 0.45, (k) => k * k); await P.wait(0.25); await P.tween(e, { alpha: 0 }, 0.6); e.hidden = true; };
-    const hit = () => { for (const e of foes) { if (e.down) continue; const d = e.x - p.x; if (Math.sign(d || p.dir) === p.dir && Math.abs(d) < 115) { e.hp--; e.stun = 0.35; e.wind = 0; e.tilt = 0; e.kb = p.dir * 260; P.sfx("thud"); P.shake(4, 0.14); P.burst("dust", e.x, G - 70, 6); if (e.hp <= 0) { e.down = true; e.stun = 0; fall(e); } } } };
-    const strike = (e) => { e.tilt = 0; e.cool = 1.3 + Math.random() * 0.7; if (Math.abs(p.x - e.x) < 105 && F.inv <= 0) { F.inv = 0.8; F.hits++; p.flash = 0.3; F.kb = (p.x < e.x ? -1 : 1) * 240; P.sfx("thud"); P.shake(5, 0.18); } };
-    F.onAttack = () => { if (!F.on || F.cd > 0 || P.locked()) return; F.cd = 0.55; F.sw = 0.3; F.hitDone = false; P.pose("hammer"); v.swing = 0; P.sfx("hammer"); };
-    const finish = () => { if (!F.on) return; F.on = false; P.pose(null); v.swing = 0; F.resolve(); };
-    P.addEnt({ id: "brawl", x: 0, range: 0, draw() {}, update(_, dt) {
-      if (!F.on) return; F.t += dt; F.cd = Math.max(0, F.cd - dt); F.inv = Math.max(0, F.inv - dt);
-      if (F.sw > 0) { F.sw -= dt; v.swing = F.sw < 0.15 ? 1 : 0; if (F.sw < 0.15 && !F.hitDone) { F.hitDone = true; hit(); } if (F.sw <= 0) { P.pose(null); v.swing = 0; } }
-      if (F.kb) { p.x = Math.max(120, Math.min(limitX, p.x + F.kb * dt)); F.kb *= Math.pow(0.02, dt); if (Math.abs(F.kb) < 5) F.kb = 0; }
-      let alive = 0;
-      for (const e of foes) {
-        if (e.down) continue; alive++;
-        if (e.stun > 0) { e.stun -= dt; e.x += e.kb * dt; e.kb *= Math.pow(0.02, dt); e.tilt = -0.14 * Math.min(1, e.stun / 0.2); e.pause = 1; continue; }
-        const d = p.x - e.x, ad = Math.abs(d); e.face = d < 0 ? -1 : 1;
-        if (e.wind > 0) { e.wind -= dt; e.tilt = 0.24 * (1 - Math.max(0, e.wind) / 0.45); if (e.wind <= 0) strike(e); continue; }
-        if (ad > 80) { const sp = 150; e.x += e.face * sp * dt; e.step += sp * dt; e.pause = 0; } else { e.pause = 1; e.cool -= dt; if (e.cool <= 0) e.wind = 0.45; }
-      }
-      if (alive === 0 || F.t > 18) finish(); } });
-    P.hint("망치로 맞서세요! 공격: " + AU.keyLabel(AU.Input.bindings.attack), 7, true);
-    return F;
-  }
   SC.SCENE_04_FATHER = { name: "아버지의 마지막 유언", async enter(P) {
-    const g = P.gen; P.room("pro_house", LAY.house.start, (P) => setupHouse(P)); P.amb("raid_far", true); P.v.brawl = true;
-    // 집에 들어서는 순간 아버지는 아직 서서 습격 간부와 맞서고 있다 → 간부의 일격에 쓰러진다(컷) → 간부가 낙인을 알아보고 부하들을 보낸다 → 주인공이 망치로 맞선다(난투) → 간부가 직접 나서 제압 → 무너지는 지붕을 피해 물러난다
+    const g = P.gen; P.room("pro_house", LAY.house.start, (P) => setupHouse(P)); P.amb("raid_far", true); P.v.brawl = true;   // brawl: 연출이 끝나기 전에는 유언 장면(find 트리거)이 시작되지 않게 막는 표시
+    // 집에 들어서는 순간 아버지는 이미 간부 앞에서 쓰러져 있다(컷) → 간부가 검을 뽑아 주인공을 내려치려 한다 → 아버지가 일어나 대신 맞는다 → 간부 일행 퇴각 → 유언
     P.cut = { src: "assets/prologue/cut/strike.webp", a: 1, zoom: 0.012, t0: P.time };
-    { const fx = LAY.house.father; // 간부(낙인을 알아본 우두머리)와 부하 둘: 아버지 곁에 서 있다가 명령이 떨어지면 부하가 달려든다
-      for (const [id, dx, sc] of [["off", 170, 0.66], ["rg1", 290, 0.54], ["rg2", 380, 0.52]]) { const e = raider(P, id, fx + dx, G, sc, -1, null, null); e.update = (q, dt) => { if (q.fleeing || q.go) { q.x += q.face * q.sp * dt; q.step += q.sp * dt; } }; e.pause = 1; } }
+    const fx = LAY.house.father, wait = (ms) => P.wait(ms);
+    for (const [id, dx, sc, wk] of [["off", 170, 0.66, null], ["rg1", 290, 0.54, "raider_axe"], ["rg2", 380, 0.52, "raider_spear"]]) {
+      const e = raider(P, id, fx + dx, G, sc, -1, null, null); if (wk) e.wk = wk; if (id === "off") e.pose = "ready"; e.pause = 1;
+      e.update = (q, dt) => { if (q.go) { q.x += q.face * q.sp * dt; q.step += q.sp * dt; q.pause = 0; } else q.pause = 1; }; }
+    const ent = (id) => P.ents.find((q) => q.id === id);
+    const walkTo = async (e, x, sp) => { e.sp = sp; e.face = x < e.x ? -1 : 1; e.go = true; let guard = 0; while (Math.abs(e.x - x) > 6 && guard++ < 400) await P.wait(0.05); e.go = false; };
     await P.cutscene(async () => {
       P.obj(""); P.sfx("boom"); await P.fade(0, 1.2); await P.wait(0.8);
       await P.say([T.officer[0]]);
       P.sfx("collapse"); P.shake(12, 0.9); await P.flash("#ffd9a0", 0.35); await P.tween(P.cut, { a: 0 }, 0.7); P.cut = null; await P.wait(0.5);
-      await P.say(T.officer.slice(1));   // 주인공의 외침 → 간부의 명령
+      await P.say(T.officer.slice(1, 2));   // 주인공의 외침
+      const p = AU.World.player, off = ent("off"), r1 = ent("rg1"), r2 = ent("rg2"), fa = ent("father");
+      await P.say(T.officer.slice(2));      // 간부의 선언
+      await P.walkTo(660, 2.0); P.pose("kneel"); await P.wait(0.5);   // 주인공은 아버지 곁으로 달려가 주저앉음
+      walkTo(r1, fx + 165, 70); walkTo(r2, fx + 260, 70);            // 부하들이 무기를 든 채 한 걸음씩 다가옴
+      await walkTo(off, fx + 115, 80); off.pose = "raise"; P.sfx("hammer"); await P.wait(0.5); await P.say(T.officer2);   // 간부가 검을 치켜듦
+      // 아버지가 마지막 힘으로 일어나 주인공 앞을 막아섬
+      fa.fpose = "guard"; fa.face = 1; fa.rise = 0; P.sfx("slump"); await P.tween(fa, { rise: 1, x: fx - 30 }, 0.7, (k) => k * (2 - k)); await P.say(T.officer2b);
+      // 내리치는 순간 — 아버지가 대신 맞음
+      off.pose = "slash"; await P.tween(off, { x: off.x - 16 }, 0.1, (k) => k); fa.fpose = "hit"; P.sfx("thud"); P.shake(14, 0.5); await P.flash("#ffd9a0", 0.28); P.burst("dust", fa.x, G - 70, 8); await P.wait(0.45);
+      fa.fpose = "fall"; P.sfx("slump"); await P.wait(0.5);
+      await P.tween(fa, { rise: 0, x: fx }, 0.5, (k) => k); fa.fpose = null; fa.rise = null; await P.wait(0.5);   // 쓰러져 누운 자리(유언 장면 위치)로
+      off.pose = "ready"; await P.say(T.officer3);
+      // 간부 일행이 오른쪽으로 물러남
+      off.face = 1; r1.face = 1; r2.face = 1; off.sp = r1.sp = r2.sp = 75; off.go = r1.go = r2.go = true; await P.wait(2.2); P.ents = P.ents.filter((q) => q.id !== "off" && q.id !== "rg1" && q.id !== "rg2"); await P.wait(0.4);
     }, { id: "cs03a", skip: true, bars: true }); P.cut = null; if (!live(P, g)) return;
-    // 난투: 부하 둘이 달려든다(주인공은 왼쪽 구역에서만 움직임)
-    P.limits = { min: 120, max: 440, msg: "" }; P.obj("망치로 습격자를 물리치세요.");
-    const foes = ["rg1", "rg2"].map((id) => P.ents.find((q) => q.id === id)).filter(Boolean); P.face(1);
-    await P.wait(0.5); startBrawl(P, foes, 440); await P.fight.done; if (!live(P, g)) return;
-    await P.cutscene(async () => {
-      P.obj(""); const off = P.ents.find((q) => q.id === "off"), p = AU.World.player;
-      if (off) { off.face = -1; off.pause = 0; off.sp = 140; off.go = true; let guard = 0; while (Math.abs(off.x - p.x) > 95 && guard++ < 200) await P.wait(0.05); off.go = false; off.pause = 1; await P.wait(0.25); }
-      P.sfx("thud"); P.shake(10, 0.5); await P.flash("#ffd9a0", 0.25); P.pose("stagger"); await P.tween(p, { x: Math.max(130, p.x - 60) }, 0.3, (k) => k * (2 - k)); P.pose("kneel"); await P.wait(0.5);   // 간부의 일격에 무릎을 꿇음
-      // 간부가 무릎 꿇은 주인공 앞에서 검을 치켜든다 → 쓰러져 있던 아버지가 마지막 힘으로 일어나 사이로 뛰어들어 대신 맞는다
-      if (off) { off.tilt = -0.32; P.sfx("hammer"); } await P.say(T.officer2);
-      const fa = P.ents.find((q) => q.id === "father"), tx = Math.min(off ? off.x - 55 : p.x + 55, p.x + 70);
-      if (fa) { fa.face = 1; fa.stand = true; fa.run = true; P.sfx("slump"); await P.tween(fa, { x: tx }, 1.1, (k) => k * (2 - k)); fa.run = false; await P.say(T.officer2b);
-        if (off) { off.tilt = 0.3; await P.wait(0.12); off.tilt = 0; }
-        P.sfx("thud"); P.shake(12, 0.5); await P.flash("#ffd9a0", 0.3); P.burst("dust", tx, G - 70, 8); await P.wait(0.5);
-        // 쓰러지는 아버지(낙인이 한 번 일렁임): 붉은 불꽃 대신 검은 고리가 번쩍이는 연출은 코드 이펙트로 대체 — 손목 위치에 어두운 맥동
-        P.flash("#201018", 0.25); await P.wait(0.3);
-        await P.say(T.officer3); }
-      await P.fade(1, 0.7); P.pose(null);
-      // 장면 정리: 간부 일행 퇴장, 아버지는 원래 쓰러진 자리(유언 장면 위치)에 누움, 주인공은 방 왼쪽에서 일어남
-      for (const id of ["off", "rg1", "rg2"]) { const e = P.ents.find((q) => q.id === id); if (e) e.hidden = true; }
-      if (fa) { fa.stand = false; fa.run = false; fa.x = LAY.house.father; } p.x = 330; p.dir = 1; P.sfx("collapse"); P.burst("dust", 760, 280, 12); P.shake(8, 0.8);
-      await P.wait(0.4); await P.fade(0, 0.9); await P.wait(0.5);
-      P.ents = P.ents.filter((q) => q.id !== "off" && q.id !== "rg1" && q.id !== "rg2");
-    }, { id: "cs03b", skip: true, bars: true }); P.cut = null; P.fight = null; if (!live(P, g)) return;
-    P.v.brawl = false; P.limits = { min: 120, max: null, msg: "아버지를 먼저 찾아야 합니다." }; P.obj(OBJ.s3_dad);
+    P.v.brawl = false; P.limits = { min: 120, max: null, msg: "아버지를 먼저 찾아야 합니다." }; P.obj(OBJ.s3_dad);   // 이후 조작이 풀리면 곧바로 유언 장면(find 트리거)으로 이어짐
   } };
 
   /* ============================================================
