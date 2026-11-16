@@ -165,7 +165,7 @@ window.AU = window.AU || {};
       this.frozen = true; this.holdFade = true; Au.stopAll(); this.showEnd();
     },
     showEnd() {
-      const el = this.endEl; el.innerHTML = '<div class="eb"><div class="e1">PROLOGUE COMPLETE</div><div class="e2">빛의 축제, 그리고 잿더미</div><div class="e3">이어서</div><div class="e4">제1장 — 포르투 노바</div></div>';
+      const el = this.endEl; el.innerHTML = '<div class="eb"><div class="e1">PROLOGUE COMPLETE</div><div class="e2">빛의 축제, 그리고 무너진 신전</div><div class="e3">이어서</div><div class="e4">제1장 — 포르투 노바</div></div>';
       const b = document.createElement("button"); b.type = "button"; b.className = "btn primary big"; b.id = "btn-main"; b.textContent = this.replay ? "프롤로그 다시 보기를 마치기" : "본편 시작"; b.onclick = () => this.completeToMain(); el.querySelector(".eb").append(b);
       el.classList.remove("hidden"); el.classList.add("show"); setTimeout(() => b.focus(), 50);
     },

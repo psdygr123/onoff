@@ -354,7 +354,12 @@ window.AU = window.AU || {};
      ============================================================ */
   SC.SCENE_03_ATTACK = { name: "검은 화염", async enter(P) {
     const g = P.gen; P.room("pro_plaza", LAY.plaza.w - 180, (P) => setupPlaza(P, "attack")); P.fadeS.color = "#fff"; P.fadeS.a = 1; P.setFlag("attack_triggered"); P.face(1);
-    await P.cutscene(async () => { // CS-02 축제 습격
+    const orderOk = await new Promise((res) => { const i = new Image(); i.onload = () => res(true); i.onerror = () => res(false); i.src = "assets/prologue/cut/order.webp"; });
+    await P.cutscene(async () => { // CS-02 축제 습격 — 먼저 간부가 신전 습격을 명령하는 컷(그림이 있을 때)
+      if (orderOk) {
+        P.cut = { src: "assets/prologue/cut/order.webp", a: 1, zoom: 0.012, t0: P.time }; P.fadeS.color = "#000"; P.fadeS.a = 1; P.amb("raid_far", true);
+        await P.fade(0, 1.2); await P.say(T.order); P.sfx("boom"); await P.flash("#fff", 0.5); P.cut = null; P.fadeS.color = "#fff"; P.fadeS.a = 1;
+      }
       await P.wait(0.5); P.amb("raid", true); P.sfx("boom"); P.shake(12, 1.4); P.fade(0, 1.6);
       await P.zoomTo(1.22, 2.0, 640, 300); runner(P, 1100, -1, 230); runner(P, 1240, -1, 200); runner(P, 980, 1, 210);
       await P.wait(1.0); P.sfx("collapse"); P.shake(8, 0.8); P.burst("dust", 1050, 300, 12); await P.say(T.attack);
@@ -438,7 +443,7 @@ window.AU = window.AU || {};
   } };
 
   /* ============================================================
-     SCENE 05 — 잿더미를 뒤로하고 (탈출로 → 사흘 후 암전 전환)
+     SCENE 05 — 무너진 신전을 뒤로하고 (탈출로 → 사흘 후 암전 전환)
      ============================================================ */
   function montage(ctx, P, t) { // 시간 경과: 새벽 안개 숲길 → 비 내리는 산길 → 해 뜨는 서쪽 언덕 (임시: 기존 배경 그림을 잘라 씀)
     const dur = 3.6, n = 3, idx = Math.min(n - 1, Math.floor(t / dur)), local = t - idx * dur, a = Math.min(1, local / 0.7) * Math.min(1, (dur - local) / 0.7 + 0.0001);
@@ -453,7 +458,7 @@ window.AU = window.AU || {};
       const px = 260 + local * 120, bob = Math.abs(Math.sin(local * 7)) * 3; { const by = G + 6 - bob - 74 + Math.sin(local * 14) * 1.5, br = Math.sin(local * 7) * 0.03; if (!A.bagBack(ctx, px - 20, by, 58, 1, br)) A.bag(ctx, px - 22, by + 4, 0.62, 0.1 + br); }   // 등에 멘 목수 도구 가방
       if (!A.spr(ctx, "pc_player_" + (AU.PRO_GENDER || "m") + "_locomotion", "walk" + (1 + Math.floor(local * 8) % 4), px, G + 6 - bob, 1)) AU.World.sprite(ctx, "player_male", px, G + 6 - bob, 150, 1, Math.floor(local * 8) % 4); ctx.restore(); }
   }
-  SC.SCENE_05_ESCAPE = { name: "잿더미를 뒤로하고", async enter(P) {
+  SC.SCENE_05_ESCAPE = { name: "무너진 신전을 뒤로하고", async enter(P) {
     const g = P.gen, k = P.keys();
     P.room("pro_escape", LAY.escape.start, (P) => {
       P.variant = "night"; P.tint = { color: "#8c9cc8", a: 0.22 }; P.vig = 0.38;

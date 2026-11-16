@@ -301,7 +301,7 @@ window.AU = window.AU || {};
       if (act) return this.say(npc, ["아직 진행 중이에요. (" + AU.QUESTS[act].title.replace(" (임시)", "") + ")"].concat(AU.QUESTS[act].reminder || []));
       if (npc.shop) {
         const gen = npc.shop === "general", lines = [npc.idle[Math.floor(Math.random() * npc.idle.length)]];
-        return this.say(npc, lines, { choices: [{ label: gen ? "사고 팔기" : "장비 만들기", key: "interact", fn: () => { AU.G.openShop(npc.shop); UI.tab.shop = gen ? "sell" : "craft"; this.open("shop"); } }, { label: "그만두기", key: "menu", fn: () => {} }] });
+        return this.say(npc, lines, { choices: [{ label: gen ? "사고 팔기" : npc.shop === "weapon" ? "장비 사기" : "장비 만들기", key: "interact", fn: () => { AU.G.openShop(npc.shop); UI.tab.shop = gen ? "sell" : npc.shop === "weapon" ? "buy" : "craft"; this.open("shop"); } }, { label: "그만두기", key: "menu", fn: () => {} }] });
       }
       if (npc.special === "missionGuide") {
         if (S.flags.missionsUnlocked && !S.flags.guideMet) {
@@ -399,20 +399,20 @@ window.AU = window.AU || {};
     }
     b.append(list);
   };
-  // 상점 창: 잡화상인(사고팔기) / 무기상인(제작)
+  // 상점 창: 잡화상인(사고팔기) / 무기상인(기본 장비 사기) / 대장장이(제작)
   R.shop = function (b) {
     const S = AU.G.S, kind = AU.G.shop;
     if (!kind) { b.append(h("p", { class: "empty", text: "상인에게 말을 걸어 주세요." })); return; }
     if (kind === "smith") { UI.craftPanel(b); b.append(h("div", { class: "silver", text: "은화 " + S.silver })); return; }
-    const tab = UI.tab.shop || "sell";
-    b.append(h("div", { class: "tabs" }, [["sell", "팔기"], ["buy", "사기"]].map(([k, l]) => btn(l, tab === k ? "on" : "", () => { UI.tab.shop = k; UI.renderWin(); }))), h("div", { class: "silver", text: "은화 " + S.silver }));
+    const weapon = kind === "weapon", tab = weapon ? "buy" : UI.tab.shop || "sell";
+    b.append(h("div", { class: "tabs" }, weapon ? [] : [["sell", "팔기"], ["buy", "사기"]].map(([k, l]) => btn(l, tab === k ? "on" : "", () => { UI.tab.shop = k; UI.renderWin(); }))), h("div", { class: "silver", text: "은화 " + S.silver }));
     const list = h("div", { class: "shoplist" });
     if (tab === "sell") {
       const ids = Object.keys(S.inv).filter((id) => AU.ITEMS[id].type === "etc" && AU.ITEMS[id].sell > 0);
       if (!ids.length) list.append(h("p", { class: "empty", text: "팔 수 있는 재료가 없습니다. 몬스터가 떨어뜨린 재료를 주워 오세요." }));
       for (const id of ids) { const it = AU.ITEMS[id], n = S.inv[id]; list.append(h("div", { class: "shoprow" }, UI.itemIcon(id, 34), h("span", { class: "iname", text: it.name.replace(" (임시)", "") }), h("span", { class: "tag", text: "×" + n }), h("span", { class: "price", text: "개당 " + it.sell }), btn("1개", "mini", () => AU.G.sellItem(id, 1)), n > 1 ? btn("모두 (" + it.sell * n + ")", "mini", () => AU.G.sellItem(id, n)) : null)); }
     } else {
-      for (const id of AU.SHOP.general.buy) { const it = AU.ITEMS[id]; list.append(h("div", { class: "shoprow" }, UI.itemIcon(id, 34), h("span", { class: "iname", text: it.name.replace(" (임시)", "") }), h("span", { class: "tag", text: "보유 " + AU.G.count(id) }), h("span", { class: "price", text: "개당 " + it.buy }), btn("1개 사기", "mini", () => AU.G.buyItem(id, 1), { disabled: S.silver >= it.buy ? null : "" }))); }
+      for (const id of AU.SHOP[kind].buy) { const it = AU.ITEMS[id]; list.append(h("div", { class: "shoprow" }, UI.itemIcon(id, 34), h("span", { class: "iname", text: it.name.replace(" (임시)", "") }), h("span", { class: "tag", text: "보유 " + AU.G.count(id) }), h("span", { class: "price", text: "개당 " + it.buy }), btn("1개 사기", "mini", () => AU.G.buyItem(id, 1), { disabled: S.silver >= it.buy ? null : "" }))); }
     }
     b.append(list);
   };

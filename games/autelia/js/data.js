@@ -115,7 +115,7 @@ AU.MAPS = {
     npcs: [{ id: "porto_armor", x: 400 }, { id: "porto_smith", x: 940, npcY: 462 }],
     fgSlice: [625, 425, 640, 175],
     spots: [], spawns: [], start: 200,
-    area: { x: 82, y: 36, desc: "포르투 노바의 무기점입니다. 장비를 제작하고 방어구 상인과 이야기할 수 있습니다." }
+    area: { x: 82, y: 36, desc: "포르투 노바의 무기점입니다. 기본 무기와 방어구를 살 수 있습니다. (장비 제작은 2막부터 마을마다 있는 대장간에서)" }
   },
   guild_hall: {
     name: "선창 길드", bg: "guild_hall", width: 1280, safe: true, interior: true, parent: "porto",
@@ -181,9 +181,9 @@ AU.MONSTERS = {
 
 /* ---------- 아이템 ---------- */
 AU.ITEMS = {
-  sword_a: { name: "견습용 검", type: "equip", slot: "weapon", stats: { atk: 4 }, desc: "견습 모험가가 쓰는 기본 검입니다." },
-  cloth_a: { name: "견습용 작업복", type: "equip", slot: "armor", stats: { hp: 20 }, desc: "움직이기 편한 작업복입니다." },
-  charm_a: { name: "작은 부적", type: "equip", slot: "accessory", stats: { dodge: 1, crit: 1 }, desc: "작은 행운이 깃들었다는 부적입니다." },
+  sword_a: { name: "견습용 검", type: "equip", slot: "weapon", buy: 60, stats: { atk: 4 }, desc: "견습 모험가가 쓰는 기본 검입니다." },
+  cloth_a: { name: "견습용 작업복", type: "equip", slot: "armor", buy: 50, stats: { hp: 20 }, desc: "움직이기 편한 작업복입니다." },
+  charm_a: { name: "작은 부적", type: "equip", slot: "accessory", buy: 80, stats: { dodge: 1, crit: 1 }, desc: "작은 행운이 깃들었다는 부적입니다." },
   town_scroll: { name: "마을 귀환 주문서", type: "use", recall: true, buy: 60, desc: "가까운 마을로 즉시 귀환합니다. 마을 안에서는 쓸 수 없습니다." },
   potion:  { name: "작은 회복약", type: "use", heal: 50, buy: 15, desc: "HP를 50 회복합니다." },
   // 드롭 확률 원칙: 좋은 아이템일수록 확률이 낮다 — 흔함 50~55% · 포션 8~15% · 드묾 16~20% · 희귀(장비) 1.5%. 은화는 몬스터마다 silverRate 확률(50~65%)로 바닥에 떨어짐
@@ -205,8 +205,8 @@ AU.ITEMS = {
   guild_token: { name: "선창 길드 증표", type: "quest", desc: "선창 길드의 의뢰를 받았다는 표시입니다." },
   guild_parcel: { name: "길드 짐 꾸러미", type: "quest", desc: "선창 길드가 전해 달라고 맡긴 작은 꾸러미입니다." }
 };
-// 상점: 잡화상인은 재료를 사고 소비 아이템을 팔며, 무기상인은 장비를 만들어 줌
-AU.SHOP = { general: { buy: ["potion", "town_scroll"] } };
+// 상점: 잡화상인은 재료를 사고 소비 아이템을 팔며, 무기상인은 기본 장비를 팔고, 장비 제작은 2막부터 마을마다 있는 대장간의 대장장이가 함
+AU.SHOP = { general: { buy: ["potion", "town_scroll"] }, weapon: { buy: ["sword_a", "cloth_a", "charm_a"] } };
 AU.RARITY = { common: { label: "흔함", color: "#D9C79A" }, uncommon: { label: "드묾", color: "#7FC8A9" }, rare: { label: "희귀", color: "#F2C14E" } };
 // 제작: 안전한 곳(마을)에서 재료와 은화로 희귀 장비를 직접 만듦(드롭보다 확실하지만 재료가 많이 듦). 제작법은 처음부터 알지 못하고, 의뢰 보상으로 받는 '제작서' 아이템을 사용해야 배움(필요 재료·수량이 그때부터 보임). 제작은 무기상인에게서 재료와 은화를 내고 함
 AU.RECIPES = [
@@ -362,8 +362,11 @@ AU.NPCS = {
     idle: ["방어구는 몸에 맞는 게 제일이에요. 천천히 구경하세요.", "무기점 주인이 망치를 잡으면 저는 갑옷을 손봅니다."] },
   porto_general: { name: "페넬로페", sprite: "porto_general", portrait: "pt_porto_general", shop: "general",
     idle: ["어서 오세요. 모험에서 주워 온 재료, 제가 사들입니다.", "회복약도 있어요. 필요하면 말씀하세요."] },
-  porto_smith: { name: "데메트리오스", sprite: "porto_smith", portrait: "pt_porto_smith", shop: "smith",
-    idle: ["재료와 은화만 있으면 쓸 만한 장비를 만들어 드리죠.", "희귀한 재료는 늘 환영이오."] },
+  porto_smith: { name: "데메트리오스", sprite: "porto_smith", portrait: "pt_porto_smith", shop: "weapon",
+    idle: ["쓸 만한 무기와 방어구라면 여기 다 있소.", "튼튼한 장비가 모험의 반이오."] },
+  // 대장장이: 2막부터 마을마다 대장간에 있다(아직 맵에는 배치하지 않음). 제작서로 배운 제작법의 장비를 재료·은화를 받고 만들어 준다.
+  forge_smith: { name: "대장장이", sprite: "porto_smith", portrait: "pt_porto_smith", shop: "smith",
+    idle: ["제작법을 아는 장비라면 재료와 은화로 만들어 드리죠.", "희귀한 재료는 늘 환영이오."] },
   guide_npc: { name: "알렉시오스", sprite: "baker", portrait: "pt_baker", special: "missionGuide",
     idle: ["모험은 잘 되어 가나요?"] }
 };

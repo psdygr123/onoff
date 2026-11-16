@@ -64,11 +64,12 @@ window.AU = window.AU || {};
       if (AU.Guide) { AU.Guide.trigger("item"); if (AU.ITEMS[id].type === "equip") AU.Guide.trigger("equip"); }
       this.refreshCollectQuests(); this.changed();
     },
-    // 상인과 이야기해 상점을 연 동안에만 사고팔기·제작 가능(shop: "general" 잡화 / "smith" 무기)
+    // 상인과 이야기해 상점을 연 동안에만 사고팔기·제작 가능(shop: "general" 잡화 / "weapon" 무기점 / "smith" 대장간)
     shop: null,
     openShop(kind) { this.shop = kind; },
     buyItem(id, n = 1) {
-      const it = AU.ITEMS[id]; if (this.shop !== "general" || !it || !(it.buy > 0) || !AU.SHOP.general.buy.includes(id)) return false;
+      const it = AU.ITEMS[id]; const list = this.shop && AU.SHOP[this.shop]; if (!list || !it || !(it.buy > 0) || !list.buy.includes(id)) return false;
+      if (it.type === "equip" && this.count(id) > 0) { this.toast("이미 가지고 있는 장비입니다.", "warn"); return false; }
       const cost = it.buy * n; if (this.S.silver < cost) { this.toast("은화가 부족합니다.", "warn"); return false; }
       this.S.silver -= cost; this.giveItem(id, n, true); this.toast(it.name.replace(" (임시)", "") + (n > 1 ? " ×" + n : "") + " 구매: 은화 -" + cost, "good"); this.save("buy"); this.changed(); return true;
     },
@@ -84,7 +85,7 @@ window.AU = window.AU || {};
     craft(rid) {
       const r = AU.RECIPES.find((x) => x.id === rid); if (!r) return false;
       if (!this.knowsRecipe(rid)) { this.toast("아직 배우지 못한 제작법입니다.", "warn"); return false; }
-      if (this.shop !== "smith") { this.toast("무기상인에게 가서 만들 수 있습니다.", "warn"); return false; }
+      if (this.shop !== "smith") { this.toast("대장간의 대장장이에게 가서 만들 수 있습니다. (2막부터 마을마다 대장간이 있습니다)", "warn"); return false; }
       if (!this.canCraft(rid)) { this.toast("재료나 은화가 부족합니다.", "warn"); return false; }
       for (const [m, n] of r.mats) this.takeItem(m, n);
       this.S.silver -= r.silver; this.giveItem(r.out, 1, true);
