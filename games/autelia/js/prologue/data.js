@@ -30,6 +30,7 @@ window.AU = window.AU || {};
   AR.ch.player_m_combat = { frames: 6, names: ["attack1", "attack2", "strike", "spin", "hurt", "down"], separate: {}, cw: 463, ch: 394, standH: 300, foot: 231 };   // 본편 전투 동작
   AR.ch.player_f_combat = { frames: 6, names: ["attack1", "attack2", "strike", "spin", "hurt", "down"], separate: {}, cw: 453, ch: 389, standH: 300, foot: 226 };
   AR.ch.father_work = { frames: 4, names: ["reach", "hold", "walk1", "walk2"], separate: {}, cw: 300, ch: 330, standH: 300, foot: 150 };
+  for (const [k, cw] of [["b", 188]]) AR.ch["villager_" + k + "_walk"] = { frames: 4, names: ["walk1", "pass1", "walk2", "pass2"], separate: {}, cw, ch: 303, standH: 302, foot: 301 };   // 마을 주민 걷기 시트(걷기 4칸)
   for (const [f, m] of Object.entries(AR.ch || {})) {
     AU.ASSETS["pc_" + f] = { path: "assets/prologue/ch/" + f + ".webp", frames: m.frames, optional: true };
     for (const n of Object.keys(m.separate || {})) AU.ASSETS["pc_" + f.split("_")[0] + "_" + n] = { path: "assets/prologue/ch/" + f.split("_")[0] + "_" + n + ".webp", optional: true };
