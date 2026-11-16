@@ -383,6 +383,8 @@ window.AU = window.AU || {};
     fireEmitters(P, 1280, 180, 520, 1.1);
     const father = P.addEnt({ id: "father", x: LAY.house.father, range: 0, hand: 0, drop: 0, frag: false, layer: "mid",
       draw(ctx, e, P) { const w = AU.World;
+        if (e.stand && A.has("pc_father_work")) { // 희생 장면: 쓰러졌던 아버지가 마지막 힘으로 일어나 달려 나옴(그림은 왼쪽을 봄)
+          const fr = e.run ? (Math.floor(P.time * 6) % 2 ? "walk1" : "walk2") : "hold"; A.spr(ctx, "pc_father_work", fr, e.x, G - (e.run ? Math.abs(Math.sin(P.time * 12)) * 3 : 0), -e.face); return; }
         if (A.has("pc_father_down")) { // 쓰러진 아버지(머리가 왼쪽): 팔이 뻗은 한 장 그림만 사용(팔 조각을 따로 겹치면 손만 잘려 보여서 제거). 손이 앞으로 내민 쪽에 조각을 쥔 표시만 겹침
           A.pic(ctx, "pc_father_down", e.x, G + 4, 42, -1);
           const tipX = e.x - 96, tipY = G - 6;
@@ -479,10 +481,21 @@ window.AU = window.AU || {};
       P.obj(""); const off = P.ents.find((q) => q.id === "off"), p = AU.World.player;
       if (off) { off.face = -1; off.pause = 0; off.sp = 140; off.go = true; let guard = 0; while (Math.abs(off.x - p.x) > 95 && guard++ < 200) await P.wait(0.05); off.go = false; off.pause = 1; await P.wait(0.25); }
       P.sfx("thud"); P.shake(10, 0.5); await P.flash("#ffd9a0", 0.25); P.pose("stagger"); await P.tween(p, { x: Math.max(130, p.x - 60) }, 0.3, (k) => k * (2 - k)); P.pose("kneel"); await P.wait(0.5);   // 간부의 일격에 무릎을 꿇음
-      await P.say(T.officer2); P.sfx("collapse"); P.shake(14, 1.2); P.burst("dust", 760, 280, 16); await P.wait(0.5); await P.say(T.officer3);
-      // 간부와 살아남은 부하들이 무너지는 지붕을 피해 오른쪽 문으로 물러난다(걸음 주기를 맞춰 걷게)
-      for (const id of ["off", "rg1", "rg2"]) { const e = P.ents.find((q) => q.id === id); if (e && !e.hidden) { e.face = 1; e.pause = 0; e.min = null; e.sp = 70; e.go = false; e.fleeing = true; e.tilt = 0; } }
-      P.pose(null); await P.wait(1.6); P.ents = P.ents.filter((q) => !q.fleeing && q.id !== "rg1" && q.id !== "rg2"); await P.wait(0.4);
+      // 간부가 무릎 꿇은 주인공 앞에서 검을 치켜든다 → 쓰러져 있던 아버지가 마지막 힘으로 일어나 사이로 뛰어들어 대신 맞는다
+      if (off) { off.tilt = -0.32; P.sfx("hammer"); } await P.say(T.officer2);
+      const fa = P.ents.find((q) => q.id === "father"), tx = Math.min(off ? off.x - 55 : p.x + 55, p.x + 70);
+      if (fa) { fa.face = 1; fa.stand = true; fa.run = true; P.sfx("slump"); await P.tween(fa, { x: tx }, 1.1, (k) => k * (2 - k)); fa.run = false; await P.say(T.officer2b);
+        if (off) { off.tilt = 0.3; await P.wait(0.12); off.tilt = 0; }
+        P.sfx("thud"); P.shake(12, 0.5); await P.flash("#ffd9a0", 0.3); P.burst("dust", tx, G - 70, 8); await P.wait(0.5);
+        // 쓰러지는 아버지(낙인이 한 번 일렁임): 붉은 불꽃 대신 검은 고리가 번쩍이는 연출은 코드 이펙트로 대체 — 손목 위치에 어두운 맥동
+        P.flash("#201018", 0.25); await P.wait(0.3);
+        await P.say(T.officer3); }
+      await P.fade(1, 0.7); P.pose(null);
+      // 장면 정리: 간부 일행 퇴장, 아버지는 원래 쓰러진 자리(유언 장면 위치)에 누움, 주인공은 방 왼쪽에서 일어남
+      for (const id of ["off", "rg1", "rg2"]) { const e = P.ents.find((q) => q.id === id); if (e) e.hidden = true; }
+      if (fa) { fa.stand = false; fa.run = false; fa.x = LAY.house.father; } p.x = 330; p.dir = 1; P.sfx("collapse"); P.burst("dust", 760, 280, 12); P.shake(8, 0.8);
+      await P.wait(0.4); await P.fade(0, 0.9); await P.wait(0.5);
+      P.ents = P.ents.filter((q) => q.id !== "off" && q.id !== "rg1" && q.id !== "rg2");
     }, { id: "cs03b", skip: true, bars: true }); P.cut = null; P.fight = null; if (!live(P, g)) return;
     P.v.brawl = false; P.limits = { min: 120, max: null, msg: "아버지를 먼저 찾아야 합니다." }; P.obj(OBJ.s3_dad);
   } };
