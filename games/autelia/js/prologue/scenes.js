@@ -419,7 +419,9 @@ window.AU = window.AU || {};
       await P.say(T.will.slice(2, 5)); // 아버지 "...왔구나." / 주인공 / 아버지 "아니... 시간이 없다."
       await P.tween(father, { hand: 1 }, 1.3); father.frag = true; await P.wait(0.5);
       P.closeup = { a: 0 }; P.sfx("fragment"); await P.tween(P.closeup, { a: 1 }, 0.9); P.setFlag("metal_fragment_acquired"); P.give("metal_fragment"); father.frag = false; await P.wait(3.0); await P.tween(P.closeup, { a: 0 }, 0.8); P.closeup = null;
-      await P.say(T.will_brand); await P.tween(father, { hand: 0.5 }, 0.6); await P.say(T.will2);
+      await P.say(T.will_brand.slice(0, 2));
+      P.cut = { src: "assets/prologue/cut/brand_father.webp", a: 0, zoom: 0.01, t0: P.time }; await P.tween(P.cut, { a: 1 }, 0.9);   // 아버지 손목의 검은 고리 낙인(클로즈업)
+      await P.say(T.will_brand.slice(2)); await P.tween(P.cut, { a: 0 }, 0.7); P.cut = null; await P.tween(father, { hand: 0.5 }, 0.6); await P.say(T.will2);
       P.sfx("slump"); await P.tween(father, { hand: 0, drop: 1 }, 0.8); P.amb("raid_far", false); await P.wait(1.8); await P.say(T.will3);
       P.setFlag("father_final_words_seen"); P.pose(null); P.zoomTo(1, 1.2); await P.wait(0.9); P.amb("raid_far", true);
     }, { id: "cs03", skip: true, bars: true });
@@ -501,7 +503,8 @@ window.AU = window.AU || {};
       await P.wait(1.4); P.sfx("gull"); await P.wait(1.2); P.sfx("gull"); P.tween(P.v, { reveal: 1 }, 4.0); P.camPan(LAY.hill.w - 640, 4.5); await P.fade(0, 3.4);
       await P.wait(0.6); await P.caption(T.cap6, 4.2); await P.camPan(560, 1.8);
       P.v.bag = true; P.pose("shrug"); await P.wait(1.4); P.pose(null); await P.wait(0.5);
-      await P.say(T.brand_hero); await P.wait(0.4);   // 주인공도 낙인을 가졌다는 복선(손목 안쪽의 희미한 결)
+      P.cut = { src: "assets/prologue/cut/brand_hero_" + (AU.PRO_GENDER === "f" ? "f" : "m") + ".webp", a: 0, zoom: 0.01, t0: P.time }; await P.tween(P.cut, { a: 1 }, 1.0);   // 주인공 손목의 희미한 검은 고리(남·여)
+      await P.say(T.brand_hero); await P.tween(P.cut, { a: 0 }, 0.8); P.cut = null; await P.wait(0.4);   // 주인공도 낙인을 가졌다는 복선(손목 안쪽의 희미한 결)
       await P.say(T.last); await P.wait(1.4);
     }, { id: "cs05", skip: true, bars: true });
     if (live(P, g)) { P.frozen = true; await P.fade(1, 1.6); if (live(P, g)) P.finish(); }
