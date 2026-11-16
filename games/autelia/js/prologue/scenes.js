@@ -393,16 +393,10 @@ window.AU = window.AU || {};
     const P = AU.Prologue, g = P.gen, v = P.v;
     await P.cutscene(async () => { // CS-03 아버지의 유언
       P.obj(""); P.amb("raid_far", true); P.face(1);
-      // 습격 간부: 아버지를 쓰러뜨린 직후의 대치(임시 실루엣. 정식 간부 그림이 오면 교체하고, 내려치는 순간 컷을 앞에 추가)
-      const off = P.addEnt({ id: "officer", x: 760, range: 0, a: 0, layer: "mid", draw(ctx, e, P) { if (e.a <= 0.01) return; ctx.save(); ctx.globalAlpha = e.a; const x = e.x, y = G - 4;
-        ctx.fillStyle = "#0b0910"; ctx.beginPath(); ctx.moveTo(x - 38, y - 214); ctx.lineTo(x + 34, y - 214); ctx.lineTo(x + 62, y); ctx.lineTo(x - 70, y); ctx.closePath(); ctx.fill();   // 망토
-        ctx.fillStyle = "#16131c"; ctx.fillRect(x - 24, y - 200, 48, 120); ctx.beginPath(); ctx.arc(x, y - 222, 20, 0, 7); ctx.fill();                                            // 몸통·투구
-        ctx.fillRect(x - 22, y - 82, 18, 82); ctx.fillRect(x + 4, y - 82, 18, 82);                                                                                                      // 다리
-        ctx.strokeStyle = "#2a2733"; ctx.lineWidth = 7; ctx.beginPath(); ctx.moveTo(x - 30, y - 150); ctx.lineTo(x - 78, y - 12); ctx.stroke();                                     // 내린 장검
-        const g = ctx.createRadialGradient(x, y - 80, 10, x, y - 80, 170); g.addColorStop(0, "rgba(20,10,30,.55)"); g.addColorStop(1, "rgba(20,10,30,0)"); ctx.fillStyle = g; ctx.fillRect(x - 180, y - 260, 360, 270);  // 검은 안개
-        ctx.restore(); } });
-      await P.tween(off, { a: 1 }, 0.7); P.sfx("boom"); await P.wait(0.5); await P.say(T.officer);
-      P.sfx("collapse"); P.shake(14, 1.2); P.burst("dust", 760, 280, 16); await P.tween(off, { a: 0 }, 0.9); off.hidden = true; await P.wait(0.4); P.face(1);
+      // 습격 간부: 아버지가 마지막으로 맞서는 컷 → 대사 → 지붕이 무너지며 후퇴
+      P.cut = { src: "assets/prologue/cut/strike.webp", a: 0, zoom: 0.012, t0: P.time }; P.sfx("boom");
+      await P.tween(P.cut, { a: 1 }, 0.6); P.shake(8, 0.5); await P.wait(0.9); await P.say(T.officer);
+      P.sfx("collapse"); P.shake(14, 1.2); P.burst("dust", 760, 280, 16); await P.tween(P.cut, { a: 0 }, 0.9); P.cut = null; await P.wait(0.4); P.face(1);
       await P.say([T.will[0]]); await P.walkTo(612, 1.5); await P.say([T.will[1]]); P.pose("kneel"); P.zoomTo(1.25, 1.6, 700, 450); await P.wait(1.0);
       await P.say(T.will.slice(2, 5)); // 아버지 "...왔구나." / 주인공 / 아버지 "아니... 시간이 없다."
       await P.tween(father, { hand: 1 }, 1.3); father.frag = true; await P.wait(0.5);

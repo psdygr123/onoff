@@ -71,7 +71,7 @@ window.AU = window.AU || {};
     cs: null, skipping: false, frozen: false, holdFade: false,
     ents: [], triggers: [], emitters: [], parts: [], tweens: [], timers: [], rejects: new Set(), v: {}, limits: null,
     cam: { mode: "follow", x: 0 }, zoom: { z: 1, x: W / 2, y: H / 2 }, shk: { amp: 0, t: 0, dur: 1 }, flashS: { a: 0, color: "#fff" }, fadeS: { a: 0, color: "#000" }, barsS: { a: 0 },
-    tint: null, vig: 0.35, overlayFn: null, closeup: null, shotFn: null, nearEnt: null, walk: null, dialogOpen: false, variant: "peace",
+    tint: null, vig: 0.35, overlayFn: null, closeup: null, cut: null, shotFn: null, nearEnt: null, walk: null, dialogOpen: false, variant: "peace",
 
     /* ================= 상태 접근 ================= */
     st() { return this.replay ? this.rs : AU.G.S.prologue; },
@@ -124,7 +124,7 @@ window.AU = window.AU || {};
 
     /* ================= 장면 진행 ================= */
     resetMapRuntime() {
-      this.ents = []; this.triggers = []; this.emitters = []; this.parts = []; this.v = {}; this.limits = null; this.tint = null; this.overlayFn = null; this.closeup = null; this.shotFn = null; this.nearEnt = null; this.variant = "peace";
+      this.ents = []; this.triggers = []; this.emitters = []; this.parts = []; this.v = {}; this.limits = null; this.tint = null; this.overlayFn = null; this.closeup = null; this.cut = null; this.shotFn = null; this.nearEnt = null; this.variant = "peace";
       this.cam = { mode: "follow", x: 0 }; this.zoom = { z: 1, x: W / 2, y: H / 2 }; this.shk = { amp: 0, t: 0, dur: 1 }; this.flashS = { a: 0, color: "#fff" }; this.barsS = { a: 0 }; this.vig = 0.35;
       this.hint(""); this.capEl.classList.remove("show"); this.recallEl.classList.remove("show");
       const w = AU.World; if (w) { w.virt = null; if (w.player) { w.player.pose = null; } }
@@ -463,6 +463,10 @@ window.AU = window.AU || {};
       if (this.overlayFn) this.overlayFn(ctx, this);
       if (this.vig > 0) { const g = ctx.createRadialGradient(W / 2, H / 2, H * 0.45, W / 2, H / 2, H * 1.0); g.addColorStop(0, "rgba(0,0,0,0)"); g.addColorStop(1, "rgba(10,5,5," + this.vig + ")"); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); }
       this.drawGuide(ctx);
+      if (this.cut && this.cut.a > 0.01) { // 전체 화면 컷 그림(P.cut = {src, a})
+        const c = this.cut; if (!c.img) { c.img = new Image(); c.img.src = c.src; }
+        if (c.img.complete && c.img.naturalWidth) { ctx.save(); ctx.globalAlpha = c.a; const z = 1 + (c.zoom || 0) * (this.time - (c.t0 || this.time)); ctx.translate(W / 2, H / 2); ctx.scale(z, z); ctx.drawImage(c.img, -W / 2, -H / 2, W, H); ctx.restore(); }
+      }
       if (this.closeup && this.closeup.a > 0.01) {
         const c = this.closeup; ctx.save(); ctx.globalAlpha = c.a; ctx.fillStyle = "rgba(8,5,6,.82)"; ctx.fillRect(0, 0, W, H);
         const g = ctx.createRadialGradient(W / 2, 320, 20, W / 2, 320, 360); g.addColorStop(0, "rgba(160,50,40,.35)"); g.addColorStop(1, "rgba(160,50,40,0)"); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
