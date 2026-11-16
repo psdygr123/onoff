@@ -245,18 +245,20 @@ window.AU = window.AU || {};
       if (m.d.sprite && AU.Img.has(m.d.sprite)) this.fx.push({ kind: "ghost", img: (m.d.poses && m.d.poses.down) || m.d.sprite, sw: m.d.sw, refW: m.d.refW, still: !!m.d.poses, x: m.x, y: m.y, dir: m.dir, t: 0, dur: 0.55 });
       const S = AU.G.S, mult = C.exp.killMultiplier;
       const gap = S.level - (m.d.lv || S.level), gm = m.d.boss ? 1 : gap <= 0 ? Math.min(1.3, 1 - gap * 0.1) : gap <= 2 ? 1 : gap === 3 ? 0.7 : gap === 4 ? 0.45 : gap === 5 ? 0.25 : 0.1; // 몬스터 레벨 기준: 높은 상대는 보너스, 한참 낮은 상대는 경험치 급감
-      const exp = Math.max(1, Math.round(m.d.exp * mult * gm)), silver = Math.round(rnd(m.d.silver[0], m.d.silver[1]));
-      AU.G.gainSilver(silver);
+      const exp = Math.max(1, Math.round(m.d.exp * mult * gm));
       this.floater(m.x, m.y - m.d.h - 34, "+" + exp + " EXP", "#9FE870");
-      this.spawnDrops(m); // 아이템은 바닥에 떨어지고 Space로 직접 주움(은화는 바로 받음)
+      this.spawnDrops(m); // 아이템·은화 모두 바닥에 떨어지고 직접 주움(은화는 확률로 떨어짐)
       AU.G.onKill(m.type);
       AU.G.gainExp(exp, m.d.name);
-      AU.G.toast(m.d.name + " 처치: 경험치 +" + exp + ", 은화 +" + silver, "kill");
+      AU.G.toast(m.d.name + " 처치: 경험치 +" + exp, "kill");
     },
     /* ---------- 드롭: 떨어진 아이템을 직접 줍기 ---------- */
     // 드롭 표 한 줄: [아이템, 확률, 최소 개수(기본 1), 최대 개수(기본 최소와 같음)]
     spawnDrops(m) {
       let k = 0;
+      const sv = m.d.silver; if (sv && Math.random() < (m.d.silverRate == null ? 0.5 : m.d.silverRate)) { // 은화: 몬스터마다 정해진 확률(silverRate)로 떨어짐
+        const n = Math.max(1, Math.round(rnd(sv[0], sv[1]))); this.drops.push({ id: "silver_coin", n, x: m.x - 8, y: m.y - m.d.h * 0.5, vx: -(40 + Math.random() * 50), vy: -(280 + Math.random() * 80), gy: m.y, age: 0, onGround: false }); k++;
+      }
       for (const row of m.d.drops || []) {
         const [id, rate, lo = 1, hi = lo] = row; if (!AU.ITEMS[id] || Math.random() >= rate) continue;
         const n = Math.round(lo + Math.random() * (hi - lo)); const dir = (k % 2 ? -1 : 1) * (0.7 + 0.5 * Math.floor(k / 2) + Math.random() * 0.4); k++;
@@ -277,6 +279,7 @@ window.AU = window.AU || {};
     pickupNear() {
       const d = this.nearDrop; if (!d || !this.drops.includes(d)) return false;
       this.drops = this.drops.filter((x) => x !== d); this.nearDrop = null;
+      if (d.id === "silver_coin") { AU.G.gainSilver(d.n); AU.Ev.emit && 0; this.floater(d.x, d.y - 40, "은화 +" + d.n, "#E8E4D8"); return true; }
       AU.G.giveItem(d.id, d.n); this.floater(d.x, d.y - 40, "+" + AU.ITEMS[d.id].name.replace(" (임시)", "") + (d.n > 1 ? " ×" + d.n : ""), (AU.RARITY[AU.ITEMS[d.id].rarity] || {}).color || "#fff");
       return true;
     },
@@ -602,6 +605,11 @@ window.AU = window.AU || {};
         if (art) { // 정식 아이템 그림: 희귀도 색 원 위에 그림(인벤토리와 같은 그림)
           ctx.globalAlpha = 0.28; ctx.beginPath(); ctx.arc(0, 0, 19, 0, 7); ctx.fill(); ctx.globalAlpha = 1;
           const sz = 34; ctx.drawImage(art, -sz / 2, -sz / 2, sz, sz);
+        } else if (d.id === "silver_coin") { // 은화: 은빛 동전(액수가 크면 2~3개가 겹쳐 보임). 정식 그림은 assets/item/silver_coin.webp 로 오면 위쪽 분기가 자동으로 대신함
+          const cnt = Math.min(3, 1 + Math.floor(d.n / 6));
+          for (let i = 0; i < cnt; i++) { const cx = (i - (cnt - 1) / 2) * 11, cy = -i * 3 + (i % 2) * 2, sx = 0.55 + 0.45 * Math.abs(Math.cos(this.time * 2.2 + d.x * 0.05 + i)); ctx.save(); ctx.translate(cx, cy); ctx.scale(sx, 1);
+            const g = ctx.createRadialGradient(-3, -3, 1, 0, 0, 11); g.addColorStop(0, "#FFFFFF"); g.addColorStop(0.6, "#D5D9DE"); g.addColorStop(1, "#9AA3AD"); ctx.fillStyle = g; ctx.strokeStyle = "#6C7580"; ctx.lineWidth = 1.8; ctx.beginPath(); ctx.arc(0, 0, 9.5, 0, 7); ctx.fill(); ctx.stroke();
+            ctx.strokeStyle = "rgba(255,255,255,.7)"; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(0, 0, 6, 0.3, 4.2); ctx.stroke(); ctx.restore(); }
         } else {
         ctx.beginPath();
         if (it.type === "equip") { ctx.moveTo(0, -12); ctx.lineTo(11, 0); ctx.lineTo(0, 12); ctx.lineTo(-11, 0); } else if (it.type === "use") { ctx.arc(0, 0, 9, 0, 7); } else if (ctx.roundRect) { ctx.roundRect(-9, -8, 18, 16, 5); } else { ctx.rect(-9, -8, 18, 16); }

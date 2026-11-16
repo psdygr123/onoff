@@ -424,11 +424,16 @@ window.AU = window.AU || {};
     const g = P.gen; P.room("pro_house", LAY.house.start, (P) => setupHouse(P)); P.amb("raid_far", true);
     // 집에 들어서는 순간 아버지는 아직 서서 습격 간부와 맞서고 있다 → 간부의 일격에 쓰러지고, 간부는 무너지는 지붕을 피해 물러난다(아버지가 누운 채로 갑자기 싸우지 않도록 컷을 먼저)
     P.cut = { src: "assets/prologue/cut/strike.webp", a: 1, zoom: 0.012, t0: P.time };
+    { const fx = LAY.house.father; // 간부(낙인을 알아본 우두머리)와 부하 둘: 아버지 곁에 서 있다가 대화가 끝나면 걸어서 물러난다
+      for (const [id, dx, sc] of [["off", 170, 0.66], ["rg1", 290, 0.54], ["rg2", 380, 0.52]]) { const e = raider(P, id, fx + dx, G, sc, -1, null, null); e.update = (q, dt) => { if (q.fleeing) { q.x += q.face * q.sp * dt; q.step += q.sp * dt; } }; e.pause = 1; } }
     await P.cutscene(async () => {
       P.obj(""); P.sfx("boom"); await P.fade(0, 1.2); await P.wait(0.8);
       await P.say([T.officer[0]]);
       P.sfx("collapse"); P.shake(12, 0.9); await P.flash("#ffd9a0", 0.35); await P.tween(P.cut, { a: 0 }, 0.7); P.cut = null; await P.wait(0.5);
-      await P.say(T.officer.slice(1)); P.sfx("collapse"); P.shake(14, 1.2); P.burst("dust", 760, 280, 16); await P.wait(0.9);
+      await P.say(T.officer.slice(1)); P.sfx("collapse"); P.shake(14, 1.2); P.burst("dust", 760, 280, 16); await P.wait(0.5);
+      // 간부와 부하들이 무너지는 지붕을 피해 오른쪽 문으로 물러난다(걸음 주기를 맞춰 걷게)
+      for (const [id, dx] of [["off", 0], ["rg1", 120], ["rg2", 210]]) { const e = P.ents.find((q) => q.id === id); if (e) { e.face = 1; e.pause = 0; e.min = null; e.sp = 70; e.fleeing = true; } }
+      await P.wait(1.6); P.ents = P.ents.filter((q) => !q.fleeing); await P.wait(0.4);
     }, { id: "cs03a", skip: true, bars: true }); P.cut = null; if (!live(P, g)) return; P.obj(OBJ.s3_dad);
   } };
 

@@ -305,7 +305,7 @@ window.AU = window.AU || {};
       if (e.hx == null) { e.hx = e.x; e.wt = 1 + Math.random() * 3; e.tx = e.x; }
       const near = Math.abs(p.x - e.x) < 140;
       if (this.locked() || near || this.skipping) { e.walking = false; if (!near) e.wt = Math.max(e.wt, 0.8); return; }
-      if (e.walking) { const d = e.tx - e.x, st = 20 * dt; if (Math.abs(d) <= st) { e.x = e.tx; e.walking = false; e.wt = 2.5 + Math.random() * 4.5; } else { e.x += Math.sign(d) * st; e.face = Math.sign(d); } }
+      if (e.walking) { const d = e.tx - e.x, st = 20 * dt; if (Math.abs(d) <= st) { e.x = e.tx; e.walking = false; e.wt = 2.5 + Math.random() * 4.5; } else { e.x += Math.sign(d) * st; e.step = (e.step || 0) + st; e.face = Math.sign(d); } }
       else { e.wt -= dt; if (e.wt <= 0) { const t = e.hx + (Math.random() * 2 - 1) * e.wander; if (Math.abs(t - e.x) > 10) { e.tx = t; e.walking = true; e.face = Math.sign(t - e.x); } else e.wt = 1.5; } }
     },
     hint(text, sec, center) { this.hintEl.textContent = text || ""; this.hintEl.classList.toggle("center", !!center); this.hintEl.classList.toggle("show", !!text); clearTimeout(this._ht); if (text && sec) this._ht = setTimeout(() => this.hintEl.classList.remove("show"), sec * 1000); },
@@ -431,8 +431,12 @@ window.AU = window.AU || {};
     },
     drawEnt(ctx, e) {
       if (e.hidden) return; if (e.draw) { e.draw(ctx, e, this); return; }
-      const w = AU.World, bob = e.walking ? Math.abs(Math.sin(this.time * 9 + e.x)) * 4 : 0, y = (e.y || GROUND) - bob;
-      if (e.sprite) { if (!w.sprite(ctx, e.sprite, e.x, y, e.h, e.face, e.idle ? (Math.floor(this.time * 0.7 + e.x * 0.013) % 2) : (e.frame || 0))) { ctx.fillStyle = "#C9B8A0"; w.rr(ctx, e.x - 28, y - e.h, 56, e.h, 18); ctx.fill(); } }
+      const w = AU.World, wd = e.wander && e.sprite, ph = (e.step || 0) / 26 * Math.PI;   // 배회 중에는 걸음 거리에 맞춰 천천히 위아래·좌우로 흔들림(통통 튀지 않게)
+      const bob = wd ? (e.walking ? Math.abs(Math.sin(ph)) * 1.7 : Math.sin(this.time * 1.4 + e.x * 0.02) * 0.5) : (e.walking ? Math.abs(Math.sin(this.time * 9 + e.x)) * 4 : 0), y = (e.y || GROUND) - bob;
+      if (e.sprite) {
+        if (wd) { ctx.save(); ctx.translate(e.x, y); ctx.rotate(e.walking ? Math.sin(ph) * 0.016 * e.face : 0); ctx.scale(1 + (e.walking ? 0 : Math.sin(this.time * 1.4 + e.x * 0.02) * 0.004), 1 + (e.walking ? Math.sin(ph * 2) * 0.006 : Math.sin(this.time * 1.4 + e.x * 0.02) * 0.006)); ctx.translate(-e.x, -y); }
+        if (!w.sprite(ctx, e.sprite, e.x, y, e.h, e.face, e.idle ? (Math.floor(this.time * 0.7 + e.x * 0.013) % 2) : (e.frame || 0))) { ctx.fillStyle = "#C9B8A0"; w.rr(ctx, e.x - 28, y - e.h, 56, e.h, 18); ctx.fill(); }
+        if (wd) ctx.restore(); }
       if (e.name) w.nameTag(ctx, e.name, e.x, y + 30);
       if (e.mark && !this.locked()) { const by = y - e.h - 44 + Math.sin(this.time * 4) * 4; ctx.fillStyle = "#E8B94E"; ctx.strokeStyle = "#fff"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(e.x - 11, by - 12); ctx.lineTo(e.x + 11, by - 12); ctx.lineTo(e.x, by + 4); ctx.closePath(); ctx.fill(); ctx.stroke(); }
     },

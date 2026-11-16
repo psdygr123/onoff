@@ -17,10 +17,12 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   // 여우 한 마리를 플레이어 앞에 세우고, 드롭 확률을 100%로 만들어 처치
   const r = await ev(() => {
     const W = AU.World, m = W.spawn('fox', W.player.x + 40, W.player.y, 100, 600, 'tst');
-    m.d = Object.assign({}, m.d, { drops: [['fur', 1, 2, 2], ['fox_tail', 1]] });
+    m.d = Object.assign({}, m.d, { silverRate: 0, drops: [['fur', 1, 2, 2], ['fox_tail', 1]] });
     const before = Object.assign({}, AU.G.S.inv); W.killMonster(m);
     return { before, after: Object.assign({}, AU.G.S.inv), drops: W.drops.map((d) => d.id + '×' + d.n) };
   });
+  const sv = await ev(() => { const W = AU.World, m = W.spawn('fox', W.player.x + 40, W.player.y, 100, 600, 'tst2'); m.d = Object.assign({}, m.d, { silver: [5, 5], silverRate: 1, drops: [] }); const s0 = AU.G.S.silver; W.killMonster(m); const drop = W.drops.find((d) => d.id === 'silver_coin'); const gained = AU.G.S.silver - s0; W.nearDrop = drop; if (drop) { drop.onGround = true; drop.vy = 0; drop.y = drop.gy; } W.pickupNear(); const m2 = W.spawn('fox', W.player.x + 40, W.player.y, 100, 600, 'tst3'); m2.d = Object.assign({}, m2.d, { silverRate: 0, drops: [] }); const n0 = W.drops.length; W.killMonster(m2); const none = W.drops.length === n0; W.drops = W.drops.filter((d) => d.id !== 'silver_coin'); return { gained, n: drop && drop.n, after: AU.G.S.silver - s0, none }; });
+  note('D1s', '은화는 확률로 바닥에 떨어지고(처치 즉시 지급 안 됨) 주워야 받음, 확률 0이면 안 떨어짐', sv.gained === 0 && sv.n === 5 && sv.after === 5 && sv.none, JSON.stringify(sv));
   note('D1', '처치하면 바닥에 아이템이 떨어짐(가방은 그대로)', r.drops.length === 2 && JSON.stringify(r.before) === JSON.stringify(r.after), JSON.stringify(r));
   await sleep(1500);
   const land = await ev(() => AU.World.drops.every((d) => d.onGround));

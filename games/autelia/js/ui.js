@@ -639,7 +639,8 @@ window.AU = window.AU || {};
     const info = h("div", { class: "detail" }, h("h3", { text: seen ? m.name : "아직 발견하지 못한 지역" }),
       h("div", { class: "tags" }, h("span", { class: "tag", text: sel === cur ? "현재 위치" : seen ? "방문함" : "미발견" }), dest.has(sel) ? h("span", { class: "tag star", text: "★ 퀘스트 목적지" }) : null, seen ? h("span", { class: "tag", text: m.safe ? "안전 지역" : "전투 지역" }) : null),
       h("p", { text: seen ? m.area.desc : "이 지역은 아직 가 보지 않았습니다. 길을 따라 이동하면 발견됩니다." }),
-      seen && mons.length ? h("p", { class: "note", text: "출현: " + mons.map((x) => x.name + " Lv." + x.lv).join(", ") }) : null);
+      seen && mons.length ? h("p", { class: "note", text: "출현: " + mons.map((x) => x.name + " Lv." + x.lv).join(", ") }) : null,
+      ...(seen ? mons.map((x) => h("p", { class: "note", text: x.name + " 처치 시 드롭: " + [...(x.silver ? ["은화 " + Math.round((x.silverRate == null ? 0.5 : x.silverRate) * 100) + "%"] : []), ...(x.drops || []).map(([id, rate]) => (AU.ITEMS[id] ? AU.ITEMS[id].name.replace(" (임시)", "") : id) + " " + (rate * 100).toFixed(rate * 100 % 1 ? 1 : 0) + "%")].join(" · ") })) : []));
     b.append(h("div", { class: "split map" }, map, info), h("p", { class: "note", text: "● 현재 위치 · ○ 방문한 지역 · ? 미발견 · ★ 진행 중인 퀘스트 목적지" }));
   };
 
