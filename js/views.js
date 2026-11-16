@@ -84,7 +84,7 @@ OnOff.Views = (function () {
           </div>
           <div class="banner-list" role="group" aria-label="배너 목록">${list}</div>
         </section>
-        <p class="banner-foot">당신의 성장과 행복 그리고 정신건강에 도움을 제공하는 심리서비스</p>
+        <p class="banner-foot">성장과 행복, 마음 건강을 응원하는 심리 서비스</p>
       </div>
       <section class="section tint reveal" id="lib" aria-labelledby="lib-title"><div class="wrap">
         <div class="section-head"><p class="eyebrow">추천 게임</p><h2 id="lib-title">지금 만날 수 있는 게임</h2><p>하나의 계정으로 게임을 고르고, 게임마다 따로 저장됩니다.</p></div>
@@ -98,7 +98,7 @@ OnOff.Views = (function () {
           <button class="tab" type="button" role="tab" id="tab-2" aria-selected="false" aria-controls="tp-2" data-tab="2" tabindex="-1">이런 분께</button>
         </div>
         <div class="panel tabpanels">
-          <div class="tabpanel on" role="tabpanel" id="tp-0" aria-labelledby="tab-0"><p class="lead">${esc(g0.summary)}</p><p class="lead">${esc(it.purpose ? "이 게임이 바라는 것: " + it.purpose + "." : "")}</p></div>
+          <div class="tabpanel on" role="tabpanel" id="tp-0" aria-labelledby="tab-0"><p class="lead">${esc(g0.summary)}</p><p class="lead">${esc(it.purpose ? "만든 목적: " + it.purpose + "." : "")}</p></div>
           <div class="tabpanel" role="tabpanel" id="tp-1" aria-labelledby="tab-1" hidden><ul class="checklist">${it.parts.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>${it.partsNote ? `<p class="hero-foot">${esc(it.partsNote)}</p>` : ""}</div>
           <div class="tabpanel" role="tabpanel" id="tp-2" aria-labelledby="tab-2" hidden><p class="lead">${esc(it.who)}</p><p class="lead">${esc(g0.audienceNote)}</p></div>
         </div>
@@ -116,7 +116,7 @@ OnOff.Views = (function () {
         <div class="copy">
           <p class="eyebrow">서비스 소개</p>
           <h2 id="about-title">게임 속 경험이 일상에 닿기를</h2>
-          <p class="lead">온앤오프는 정신건강에 관심을 가진 성인을 위해 기획했습니다. 이용하시는 분들의 행복을 기원하고, 성장을 함께 꿈꾸는 마음으로 만들었습니다.</p><p class="lead">현실에서 잠시 벗어나 쉬어 가는 곳에 머물지 않고, 게임에서 쌓은 경험이 현실의 하루에도 좋은 영향을 주기를 바랍니다.</p>
+          <p class="lead">온앤오프는 성장하고 싶은 분, 이야기가 있는 게임을 좋아하는 분, 자신의 마음을 돌아보고 싶은 분을 위해 기획했습니다. 이용하시는 분들의 행복과 성장을 바라는 마음으로 만들었습니다.</p><p class="lead">잠시 현실을 잊고 쉬어 가는 데서 그치지 않고, 게임에서 쌓은 경험이 내 하루에도 닿기를 바랍니다.</p>
           <ul class="checklist">
             <li>심리학 이론을 바탕으로, 심리학을 전공한 사람들이 직접 만듭니다.</li>
             <li>효과가 입증되었다고 말하지 않고, 할 수 있는 만큼만 약속합니다.</li>
@@ -168,7 +168,7 @@ OnOff.Views = (function () {
         <div class="section-head"><p class="eyebrow">게임 라이브러리</p><h1 style="font-family:var(--font-display);font-size:var(--fs-2xl)">게임 둘러보기</h1>
         <p>${S.user ? "이용 중인 게임은 ‘이어하기’로 표시됩니다." : "게임을 시작하려면 로그인이 필요합니다."}</p></div>
         <div class="cards">${GAMES.map(gameCard).join("")}</div>
-        <p class="note" style="margin-top:28px">출시 예정 카드는 자리만 마련해 둔 것이며, 장르와 일정은 정해진 것이 없습니다.</p>
+        <p class="note" style="margin-top:28px">출시 예정 카드는 자리만 마련해 둔 것으로, 장르와 일정은 아직 정해지지 않았습니다.</p>
       </div>`;
     }
   };
@@ -178,8 +178,8 @@ OnOff.Views = (function () {
     render() {
       return `<div class="wrap page"><div class="page-narrow" style="max-width:720px;display:grid;gap:28px">
         <div class="section-head" style="margin:0"><p class="eyebrow">서비스 소개</p><h1 style="font-family:var(--font-display);font-size:var(--fs-2xl)">일상 밖의 모험, 일상 속의 성장</h1></div>
-        <p class="lead" style="max-width:none">온앤오프는 심리학 전공자들이 만든 성장형 게임 플랫폼입니다. 정신건강에 관심을 가진 성인이 하나의 계정으로 여러 게임을 즐기며, 행복과 성장에 한 걸음 가까워지기를 바랍니다.</p>
-        <div class="panel"><h2>미리 알려 드립니다</h2><ul class="checklist"><li>치료를 기반으로 한 서비스는 아니며, 의료·상담을 대신하지 않습니다.</li><li>효과가 입증되었다고 말하지 않습니다.</li><li>${RESEARCH_REQUIRED ? "이용 중 수집되는 정보는 심리학 연구 자료로 활용되며, 가입할 때 이에 대한 동의를 받습니다. 연구 범위는 아직 정해지지 않았고, 정해지면 안내합니다." : "수집되는 정보의 심리학 연구 활용은 가입할 때 선택 동의로 받으며, 동의하지 않아도 이용에 제한이 없습니다. 연구 범위는 아직 정해지지 않았고, 정해지면 안내합니다."}</li></ul></div>
+        <p class="lead" style="max-width:none">온앤오프는 심리학 전공자들이 만든 성장형 게임 플랫폼입니다. 하나의 계정으로 여러 게임을 즐기며, 행복과 성장에 한 걸음 더 가까워지시기를 바랍니다.</p>
+        <div class="panel"><h2>미리 알려 드립니다</h2><ul class="checklist"><li>치료를 목적으로 한 서비스가 아니며, 의료·상담을 대신하지 않습니다.</li><li>효과가 입증되었다고 말하지 않습니다.</li><li>${RESEARCH_REQUIRED ? "이용 중 수집되는 정보는 심리학 연구 자료로 활용되며, 가입할 때 이에 대한 동의를 받습니다. 연구 범위는 아직 정해지지 않았고, 정해지면 안내합니다." : "수집되는 정보의 심리학 연구 활용은 가입할 때 선택 동의로 받으며, 동의하지 않아도 이용에 제한이 없습니다. 연구 범위는 아직 정해지지 않았고, 정해지면 안내합니다."}</li></ul></div>
         <div class="panel"><h2>계정과 저장 데이터</h2><p>하나의 계정으로 여러 게임을 이용합니다. 게임별 캐릭터와 진행 기록은 서로 독립적으로 저장되도록 설계했습니다.</p></div>
         <div><button class="btn" type="button" data-action="go" data-to="games">게임 둘러보기</button></div>
       </div></div>`;
