@@ -389,7 +389,7 @@ window.AU = window.AU || {};
     const S = AU.G.S, safe = AU.G.shop === "smith";
     b.append(h("p", { class: "note", text: safe ? "재료와 은화로 희귀 장비를 만들 수 있습니다. 몬스터가 아주 드물게 떨어뜨리기도 합니다." : "제작법입니다. 포르투 노바의 무기상인에게 재료를 가져가면 만들어 줍니다." }));
     const list = h("div", { class: "recipes" }), known = AU.RECIPES.filter((r) => AU.G.knowsRecipe(r.id));
-    if (!known.length) b.append(h("p", { class: "note", text: "아직 배운 제작법이 없습니다. 의뢰를 완료하면 제작법을 받을 수 있습니다." }));
+    if (!known.length) b.append(h("p", { class: "note", text: "아직 배운 제작법이 없습니다. 의뢰 보상으로 받는 ‘제작서’를 인벤토리에서 사용하면 제작법을 배웁니다." }));
     for (const r of known) {
       const out = AU.ITEMS[r.out], ok = AU.G.canCraft(r.id);
       list.append(h("div", { class: "recipe" + (ok ? " ok" : "") }, h("div", { class: "rh" }, h("b", { text: out.name.replace(" (임시)", "") }), h("span", { class: "tag", text: (AU.RARITY[out.rarity] || {}).label || "" }), h("span", { class: "tag", text: AU.SLOT_LABEL[out.slot] })),
@@ -664,7 +664,7 @@ window.AU = window.AU || {};
     } else det.append(h("p", { class: "empty", text: "퀘스트를 선택하면 자세한 내용이 표시됩니다." }));
     b.append(tabs, h("div", { class: "split q" }, ul, det));
   };
-  const rewardText = (r) => [r.exp ? "경험치 " + r.exp : null, r.silver ? "은화 " + r.silver : null, ...(r.items || []).map(([i, n]) => AU.ITEMS[i].name + " ×" + n), ...(r.recipes || []).map((id) => { const rc = AU.RECIPES.find((x) => x.id === id); return rc ? "제작법: " + AU.ITEMS[rc.out].name.replace(" (임시)", "") : null; })].filter(Boolean).join(" · ") || "없음";
+  const rewardText = (r) => [r.exp ? "경험치 " + r.exp : null, r.silver ? "은화 " + r.silver : null, ...(r.items || []).map(([i, n]) => AU.ITEMS[i].name + " ×" + n)].filter(Boolean).join(" · ") || "없음";
 
   UI.fatigueMeter = function (S, withActions) { // 스킬창·쉼 탭에 쓰는 큰 피로도 표시
     const pc = S.fatigue / S.fatigueMax, full = S.fatigue >= S.fatigueMax - 1e-6, cls = full ? "full" : pc >= 0.8 ? "hot" : pc >= 0.5 ? "mid" : "ok";
@@ -696,14 +696,15 @@ window.AU = window.AU || {};
   const PRO_STEPS = [["stele_read", "마을길 끝의 기념비를 읽었다"], ["banners_done", "축제 깃발을 깃대에 달았다"], ["temple_work_complete", "신전 건축 현장에서 아버지를 도왔다"], ["festival_interaction_complete", "축제 광장에서 주민들과 이야기를 나눴다"], ["father_final_conversation_complete", "아버지와 마지막 이야기를 나눴다"], ["metal_fragment_acquired", "의문의 금속 조각을 손에 넣었다"], ["carpenter_bag_acquired", "목수 도구 가방을 챙겼다"], ["arkea_escape_complete", "아르케아를 탈출했다"], ["porto_nova_reached", "포르투 노바에 도착했다"]];
   R.journal = function (b) {
     const S = AU.G.S, un = S.flags.missionsUnlocked;
-    const grp = !un ? "game" : (UI.tab.jg || "game");
-    if (un) b.append(h("div", { class: "jgroup" }, [["game", "모험 이야기"], ["real", "현실 활동"]].map(([k, l]) => h("button", { type: "button", class: "jg " + k + (grp === k ? " on" : ""), onclick: () => { UI.tab.jg = k; UI.renderWin(); } }, l))));
+    const grp = UI.tab.jg || "game";   // 현실 활동은 Lv.10 전직 전에도 탭이 보이고(잠금), 내용은 미리 볼 수 있지만 기능은 쓸 수 없음
+    b.append(h("div", { class: "jgroup" }, [["game", "모험 이야기"], ["real", un ? "현실 활동" : "🔒 현실 활동"]].map(([k, l]) => h("button", { type: "button", class: "jg " + k + (grp === k ? " on" : ""), onclick: () => { UI.tab.jg = k; UI.renderWin(); } }, l))));
     let tab;
     if (grp === "game") {
       tab = ["pro", "a1", "log"].includes(UI.tab.j) ? UI.tab.j : "a1";
       b.append(h("div", { class: "tabs" }, [["pro", "프롤로그"], ["a1", "1막 · 항구도시"], ["log", "전체 기록"]].map(([k, l]) => btn(l, tab === k ? "on" : "", () => { UI.tab.j = k; UI.renderWin(); }))));
     } else {
       tab = ["missions", "rest", "record"].includes(UI.tab.j) ? UI.tab.j : "missions";
+      if (!un) b.append(h("div", { class: "lockbox lockband" }, h("b", { text: "🔒 Lv.10 전직 후에 열립니다" }), h("p", { text: "지금은 어떤 활동이 있는지 미리 볼 수 있지만, 수락·기록 같은 기능은 사용할 수 없습니다." })));
       b.append(h("div", { class: "realband", text: "게임 속 이야기와는 별개인 현실 활동입니다. 하지 않아도 모험은 계속되고, 직접 해 보고 기록하는 방식입니다." }),
         h("div", { class: "tabs" }, [["missions", "현실 미션"], ["rest", "쉼"], ["record", "마음 기록"]].map(([k, l]) => btn(l, tab === k ? "on" : "", () => { UI.tab.j = k; UI.renderWin(); }))));
     }
@@ -723,6 +724,7 @@ window.AU = window.AU || {};
     } else if (tab === "log") {
       b.append(logBox(logOf(null)));
     } else if (tab === "missions") {
+      if (!un) { b.append(h("div", { class: "missions preview" }, AU.MISSIONS.map((m) => h("div", { class: "mission st-locked" }, h("div", { class: "mh" }, h("span", { class: "tag perma", text: m.perma + " · " + AU.PERMA[m.perma] }), h("span", { class: "tag", text: "🔒 잠김" }), h("span", { class: "pts", text: "훈련 포인트 +" + m.points })), h("b", { text: m.title }), h("p", { text: m.desc }))))); return; }
       if (!S.flags.guideMet) { b.append(h("div", { class: "lockbox" }, h("h3", { text: "새로운 이야기를 기다리고 있어요" }), h("p", { text: "포르투 노바의 알렉시오스과 이야기를 나누면 이곳에 내용이 나타납니다." }))); return; }
       const M = S.missions;
       b.append(h("div", { class: "msummary" }, h("span", { text: "훈련 포인트 보유 " }), h("b", { text: S.trainingPoints }), h("span", { text: "  ·  이번 주 획득 " }), h("b", { text: M.weekPoints + " / " + C.missions.weeklyPointCap }), h("span", { class: "note", text: "" })),
@@ -736,6 +738,8 @@ window.AU = window.AU || {};
           h("b", { text: m.title }), h("p", { text: m.desc }), acts.length ? h("div", { class: "macts" }, acts.map(([l, c, a]) => btn(l, c, () => (m.guide && a === "attempt" ? UI.guided(m.title, m.guide, () => AU.G.setMissionState(m.id, a)) : AU.G.setMissionState(m.id, a))))) : null));
       }
       b.append(grid);
+    } else if (tab === "rest" && !un) {
+      b.append(h("p", { class: "note", text: "쉼 미션은 피로도를 줄여 주는 선택 활동입니다. 전직 후부터 할 수 있습니다." }), h("div", { class: "missions preview" }, AU.REST_MISSIONS.map((m) => h("div", { class: "mission st-locked" }, h("div", { class: "mh" }, h("span", { class: "tag", text: "쉼 · 피로도 −" + m.recover }), h("span", { class: "tag", text: "🔒 잠김" })), h("b", { text: m.title }), h("p", { text: m.desc })))));
     } else if (tab === "rest") {
       b.append(h("p", { class: "note", text: "쉼 미션은 선택입니다. 하지 않아도 모험은 계속할 수 있고, 하면 피로도가 줄어듭니다. 같은 미션은 하루에 한 번입니다. 직접 해 보고 ‘해 봤어요’를 눌러 주세요." }), UI.fatigueMeter(S, false));
       const grid = h("div", { class: "missions" });

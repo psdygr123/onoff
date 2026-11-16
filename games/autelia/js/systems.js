@@ -79,7 +79,7 @@ window.AU = window.AU || {};
       this.takeItem(id, n); const gain = it.sell * n; this.gainSilver(gain);
       this.toast(it.name.replace(" (임시)", "") + (n > 1 ? " ×" + n : "") + " 판매: 은화 +" + gain, "good"); this.save("sell"); this.changed(); return true;
     },
-    knowsRecipe(rid) { return Object.keys(AU.QUESTS).some((id) => { const rec = this.qs(id); return !!rec && rec.state === "done" && ((AU.QUESTS[id].reward || {}).recipes || []).includes(rid); }); },   // 의뢰 보상으로 받은 제작법만 사용 가능
+    knowsRecipe(rid) { return (this.S.recipes || []).includes(rid); },   // 제작서 아이템을 사용해 배운 제작법만 사용 가능
     canCraft(rid) { const r = AU.RECIPES.find((x) => x.id === rid); return !!r && this.knowsRecipe(rid) && r.mats.every(([m, n]) => this.count(m) >= n) && this.S.silver >= r.silver; },
     craft(rid) {
       const r = AU.RECIPES.find((x) => x.id === rid); if (!r) return false;
@@ -98,6 +98,13 @@ window.AU = window.AU || {};
     useItem(id) {
       const it = AU.ITEMS[id]; if (!it || it.type !== "use" || this.count(id) < 1) return false;
       const S = this.S, max = this.d().maxHp;
+      if (it.recipe) { // 제작서: 읽으면 제작법을 배우고, 그때부터 필요한 재료와 수량이 제작법 탭에 보임
+        const r = AU.RECIPES.find((x) => x.id === it.recipe); if (!r) return false;
+        if (this.knowsRecipe(r.id)) { this.toast("이미 배운 제작법입니다.", "warn"); return false; }
+        this.takeItem(id, 1); (S.recipes = S.recipes || []).push(r.id);
+        this.toast("제작법을 배웠습니다: " + AU.ITEMS[r.out].name.replace(" (임시)", "") + " — 재료: " + r.mats.map(([m, n]) => AU.ITEMS[m].name.replace(" (임시)", "") + " ×" + n).join(", ") + ", 은화 " + r.silver, "good");
+        this.log("제작법 습득: " + AU.ITEMS[r.out].name); this.save("recipe"); this.changed(); return true;
+      }
       if (it.recall) { // 마을 귀환 주문서: 가까운 마을로 이동
         const W = AU.World, m = W && W.map; if (!m) return false;
         if (m.safe || m.interior) { this.toast("마을 안에서는 쓸 수 없습니다.", "warn"); return false; }
@@ -258,7 +265,6 @@ window.AU = window.AU || {};
       const r = q.reward;
       if (r.silver) this.gainSilver(r.silver);
       for (const [it, n] of r.items || []) this.giveItem(it, n);
-      for (const rid of r.recipes || []) { const rc = AU.RECIPES.find((x) => x.id === rid); if (rc) this.toast("제작법 획득: " + AU.ITEMS[rc.out].name.replace(" (임시)", "") + " (무기상인에게서 제작)", "good"); }
       this.log("퀘스트 완료: " + q.title); this.toast("퀘스트 완료: " + q.title, "good");
       if (q.setFlags) Object.assign(this.S.flags, q.setFlags);
       for (const t of q.after || []) this.toast(t, "info");

@@ -423,3 +423,4 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
 .fmeter.mid .fbar i { background: linear-gradient(90deg, #E8B04A, #E09A2E); } .fmeter.mid .fstate { background: #fbeed3; color: #9a5f0a; }
 .fmeter.hot .fbar i { background: linear-gradient(90deg, #E8783E, #D8472F); } .fmeter.hot .fstate, .fmeter.full .fstate { background: #fadcd3; color: #a5321c; } .fmeter.full .fbar i { background: #C0392B; }
 .fmeter .fact { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 12px; } .fmeter .fhint { font-size: 14px; color: #6b5a44; margin-right: auto; }
+.mission.st-locked { background: #f1ece3; border-style: dashed; opacity: .85; } .mission.st-locked b { color: var(--ink2); } .lockband { padding: 14px 18px; margin: 8px 0 4px; text-align: left; } .lockband p { margin: 4px 0 0; font-size: 14px; color: var(--ink2); } .jg.real:not(.on) { opacity: .8; }
