@@ -23,7 +23,9 @@ window.AU = window.AU || {};
         const moving = e.pause <= 0, cyc = (e.step / 46) % 1, fr = !moving ? "stand" : cyc < 0.25 ? "walk1" : cyc < 0.5 ? "stand" : cyc < 0.75 ? "walk2" : "stand";
         const bob = moving ? Math.abs(Math.sin(cyc * Math.PI * 2)) * 3.2 : Math.sin(P.time * 1.6 + e.ph) * 1.1, sway = moving ? Math.sin(cyc * Math.PI * 2) * 0.018 : 0;
         ctx.save(); ctx.globalAlpha = e.alpha == null ? (A.has("pc_raider_actions") ? 1 : 0.78) : e.alpha; ctx.translate(e.x, e.y - bob); ctx.rotate(sway * e.face + (e.tilt || 0) * e.face); ctx.translate(-e.x, -e.y);
-        if (e.pose && A.has("pc_raider_officer")) A.spr(ctx, "pc_raider_officer", e.pose, e.x, e.y, e.face, e.s / 0.5);   // 간부의 검 동작(준비·치켜듦·내리침)
+        const wsh = moving && (e.id === "off" ? (!e.pose || e.pose === "ready") && "pc_raider_officer_walk" : "pc_" + e.wk + "_walk"), WF = ["walk1", "pass1", "walk2", "pass2"];   // 4프레임 걷기 시트가 있으면 사용(간부는 검 동작 자세가 아닐 때만)
+        if (wsh && A.has(wsh)) A.spr(ctx, wsh, WF[Math.floor(e.step / 18) % 4], e.x, e.y, e.face, e.s / 0.5);
+        else if (e.pose && A.has("pc_raider_officer")) A.spr(ctx, "pc_raider_officer", e.pose, e.x, e.y, e.face, e.s / 0.5);   // 간부의 검 동작(준비·치켜듦·내리침)
         else if (!A.spr(ctx, "pc_" + (A.has("pc_" + e.wk) ? e.wk : "raider_actions"), fr, e.x, e.y, e.face, e.s / 0.5)) A.raider(ctx, e.x, e.y, e.s, P.time, e.face); ctx.restore(); } });
   }
   const SHEETS = "abcdefghijklm".split("").filter(() => true); // 주민 동작 시트(a~c 1차, d~m NPC 다양화). 없는 시트는 runner/crowd 에서 건너뜀

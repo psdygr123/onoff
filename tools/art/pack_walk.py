@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """걷기 시트 패커: ChatGPT가 만든 가로 4칸 마젠타 시트 → 투명 webp(villager_<k>_walk.webp).
-사용(games/autelia 에서): python3 ../../tools/art/pack_walk.py <입력.png> <k>
+사용(games/autelia 에서): python3 ../../tools/art/pack_walk.py <입력.png> <k> [H] [출력이름]
 마젠타 제거(+가장자리 번짐 제거), 4칸 분리, 기존 대기 그림과 같은 키(303)로 맞춤, 머리 x·발 바닥선을 칸마다 고정."""
 import sys, numpy as np
 from PIL import Image
-src, k = sys.argv[1], sys.argv[2]; H = int(sys.argv[3]) if len(sys.argv) > 3 else 303   # H: 서 있을 때 인물 키(대기·환호 시트의 ch와 같게)
+src, k = sys.argv[1], sys.argv[2]; OUT = sys.argv[4] if len(sys.argv) > 4 else f'villager_{k}_walk'   # 4번째 인자: 출력 파일명(예: raider_officer_walk)
+H = int(sys.argv[3]) if len(sys.argv) > 3 else 303   # H: 서 있을 때 인물 키(대기·환호 시트의 ch와 같게)
 im = np.array(Image.open(src).convert('RGB')).astype(float)
 r, g, b = im[..., 0], im[..., 1], im[..., 2]
 mag = np.clip((np.minimum(r, b) - g - 40) / 90.0, 0, 1)
@@ -29,5 +30,5 @@ sheet = Image.new('RGBA', (W * n, H), (0, 0, 0, 0))
 for i, (c, hx, y1) in enumerate(crops):
     ox = int(round(W / 2 - hx)); oy = H - c.height - 1 - int(round((base - y1) * s))
     sheet.alpha_composite(c, (i * W + max(0, ox), max(0, oy)))
-sheet.save(f'assets/prologue/ch/villager_{k}_walk.webp', quality=92, method=6)
+sheet.save(f'assets/prologue/ch/{OUT}.webp', quality=92, method=6)
 open('/tmp/walk_meta.txt', 'a').write(f'{k} {W} {H}\n'); print('frame', W, 'x', H, 'scale', round(s, 3), 'bbox', fr)
