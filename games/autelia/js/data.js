@@ -226,7 +226,7 @@ AU.JOBS = {
    지금 열려 있는 계열은 전사뿐(open). 나머지 넷은 세계관의 다섯 영웅 직업으로, 화면에 잠긴 채 보여 줌. icon은 그림이 오기 전 임시 도형 */
 /* 직업군(1단계): 지금은 용사만 열려 있고 나머지는 추후 공개 예정. 용사를 고르면 아래 JOB_LINES(전사·마법사…) 선택 창으로 이어짐 */
 AU.JOB_GROUPS = [
-  { id: "hero", name: "용사", open: true, art: "job_warrior", icon: '<path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z"/>' },
+  { id: "hero", name: "용사", open: true, art: "job_warrior", desc: "마음과 몸을 함께 단련하며 모험을 이끌어 가는 첫 번째 길입니다.", icon: '<path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z"/>' },
   { id: "soon1", name: "???", open: false, icon: '<text x="12" y="18" text-anchor="middle" font-size="18" fill="currentColor">?</text>' },
   { id: "soon2", name: "???", open: false, icon: '<text x="12" y="18" text-anchor="middle" font-size="18" fill="currentColor">?</text>' }
 ];

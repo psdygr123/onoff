@@ -486,7 +486,6 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
 #stage.pro .btn.devbtn { right: 322px; }
 
 /* ----- 캐릭터 만들기·설정 화면: 게임 창과 같은 양피지·황동 테마 (노을 항구 배경) ----- */
-#title:has(.setupbox) { background: linear-gradient(rgba(24, 15, 8, .50), rgba(24, 15, 8, .78)), radial-gradient(ellipse at 50% 40%, rgba(232, 160, 80, .22), transparent 62%), url("../assets/bg/harbor.webp") 30% 50% / cover no-repeat, #130d08; }
 .setupbox.panel { background: linear-gradient(180deg, #f8f0da, #efe1bf); border: 2px solid #a8793a; border-radius: 8px; box-shadow: 0 0 0 5px #f8f0da, 0 0 0 6.5px #a8793a, 0 22px 50px rgba(20, 12, 5, .6); color: #4a3210; position: relative; }
 .setupbox.panel::before { content: ""; position: absolute; inset: 7px; border: 1px solid rgba(168, 121, 58, .35); border-radius: 5px; pointer-events: none; }
 .setupbox .stitle { color: #5a3d12; text-shadow: 0 1px 0 rgba(255, 248, 230, .8); } .setupbox .stitle::after { content: ""; display: block; width: 74px; height: 3px; margin-top: 8px; border-radius: 2px; background: linear-gradient(90deg, #b98b45, rgba(185, 139, 69, 0)); }
@@ -505,3 +504,23 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
 .setupbox .btn { background: #fff8e6; border: 1px solid #a8793a; color: #6e4c18; border-radius: 5px; } .setupbox .btn:hover { background: #f0dfb4; border-color: #8d6425; }
 .setupbox .btn.primary { background: linear-gradient(#b98b45, #8d6425); border-color: #6e4c18; color: #fff8e6; text-shadow: 0 1px 1px rgba(0, 0, 0, .3); } .setupbox .btn.primary:hover { background: linear-gradient(#c4964f, #99702b); }
 .setupbox .btn:focus-visible, .jcard:focus-visible, .scard:focus-visible { outline: 2px solid #e8b94e; outline-offset: 2px; }
+
+/* 직업 선택 카드: 큰 그림 + 설명 + 하단 이름띠. 잠긴 칸은 줄무늬 슬롯 */
+.jcards { gap: 18px; }
+.jcard { height: 348px; padding: 0; overflow: hidden; border-radius: 12px; justify-content: flex-start; }
+.jcard .jart, .jcard .jart.has-img { width: 100%; height: 218px; margin: 0; display: flex; align-items: center; justify-content: center; position: relative; flex: none; }
+.jcard .jart::before { content: ""; position: absolute; left: 20%; bottom: 8px; width: 60%; height: 14px; background: radial-gradient(ellipse at center, rgba(70, 45, 15, .28), transparent 70%); }
+.jcard .jart img { max-width: 86%; max-height: 196px; position: relative; }
+.jcard p { margin: 0; padding: 4px 14px 0; font-size: 13px; line-height: 1.6; color: #6b4f25; word-break: keep-all; text-align: center; flex: 1; }
+.jcard > b { position: absolute; left: 0; right: 0; bottom: 0; height: 56px; margin: 0; display: flex; align-items: center; justify-content: center; font-size: 21px; letter-spacing: .08em; background: linear-gradient(#b98b45, #8d6425); color: #fff8e6; border-top: 2px solid #6e4c18; text-shadow: 0 1px 1px rgba(0, 0, 0, .35); }
+.jcard.sel { box-shadow: 0 0 0 3px #e8b94e, 0 0 24px rgba(232, 185, 78, .6), inset 0 0 0 3px rgba(255, 248, 230, .8); }
+.jcard .chk { left: 10px; right: auto; top: 10px; width: 26px; height: 26px; line-height: 24px; text-align: center; z-index: 2; }
+.jcard .lk { display: none; }
+.jcard.lock { cursor: default; border: 2px solid #b3a07a; box-shadow: none; background: repeating-linear-gradient(45deg, #e6dbc0, #e6dbc0 10px, #dfd2b1 10px, #dfd2b1 20px); }
+.jcard.lock .jart img, .jcard.lock .jart svg { display: none; }
+.jcard.lock .jart::before { display: none; }
+.jcard.lock .jart::after { content: "🔒"; font-size: 42px; opacity: .5; filter: grayscale(1); }
+.jcard.lock > b { background: linear-gradient(#a99a76, #8f8160); border-top-color: #6f6347; color: #f3ecd8; }
+.jcard em { position: absolute; left: 0; right: 0; bottom: 66px; margin: 0; border: 0; background: none; font-size: 12px; letter-spacing: .12em; color: #7a6a48; }
+.jnote { min-height: 22px; margin: 12px 2px 0; }
+@media (max-width: 760px) { .jcard { height: 270px; } .jcard .jart, .jcard .jart.has-img { height: 140px; } .jcard .jart img { max-height: 126px; } .jcard > b { height: 44px; font-size: 16px; } .jcard p { font-size: 11.5px; padding: 2px 8px 0; } .jcard em { bottom: 52px; font-size: 11px; } .jcard.lock .jart::after { font-size: 30px; } }
