@@ -445,8 +445,9 @@ window.AU = window.AU || {};
       const bob = wd ? (e.walking ? Math.abs(Math.sin(ph)) * 1.7 : Math.sin(this.time * 1.4 + e.x * 0.02) * 0.5) : (e.walking ? Math.abs(Math.sin(this.time * 9 + e.x)) * 4 : 0), y = (e.y || GROUND) - bob;
       if (e.sprite) {
         if (wd) { ctx.save(); ctx.translate(e.x, y); ctx.rotate(e.walking ? Math.sin(ph) * 0.016 * e.face : 0); ctx.scale(1 + (e.walking ? 0 : Math.sin(this.time * 1.4 + e.x * 0.02) * 0.004), 1 + (e.walking ? Math.sin(ph * 2) * 0.006 : Math.sin(this.time * 1.4 + e.x * 0.02) * 0.006)); ctx.translate(-e.x, -y); }
-        const wk = e.walking && /^pc_villager_(.)_idle$/.exec(e.sprite), act = wk && "pc_villager_" + wk[1] + "_actions";
-        if (act && AU.Img.has(act)) { const m = AU.PRO_ART && AU.PRO_ART.ch && AU.PRO_ART.ch["villager_" + wk[1] + "_actions"]; w.sprite(ctx, act, e.x, y, m ? m.ch * 0.5 : e.h, e.face, 2 + (Math.floor((e.step || 0) / 30) % 2)); }
+        // 걷기 전용 시트(pc_villager_<k>_walk)가 있으면 그 그림을, 없으면 대기 그림을 쓴다(달리기·환호 그림은 표정이 달라 쓰지 않음)
+        const wk = e.walking && /^pc_villager_(.)_idle$/.exec(e.sprite), wsh = wk && "pc_villager_" + wk[1] + "_walk";
+        if (wsh && AU.Img.has(wsh)) w.sprite(ctx, wsh, e.x, y, e.h, e.face, Math.floor((e.step || 0) / 14) % 4);
         else if (!w.sprite(ctx, e.sprite, e.x, y, e.h, e.face, e.idle ? (Math.floor(this.time * 0.7 + e.x * 0.013) % 2) : (e.frame || 0))) { ctx.fillStyle = "#C9B8A0"; w.rr(ctx, e.x - 28, y - e.h, 56, e.h, 18); ctx.fill(); }
         if (wd) ctx.restore(); }
       if (e.name) w.nameTag(ctx, e.name, e.x, y + 30);
