@@ -68,11 +68,11 @@ const R = []; const ok = (n, c, d) => { R.push([n, !!c]); console.log((c ? 'PASS
   await p.click('#btn-profile'); await sleep(200); ok('P08c 설정을 열면 현재 값이 채워짐', (await p.inputValue('#sname')) === '하늘' && (await p.getAttribute('#sg-f', 'aria-checked')) === 'true');
   await p.fill('#sname', '바다'); await p.click('#sg-m'); await p.click('#setup-ok'); await sleep(300);
   ok('P08d 저장하면 제목 화면 복귀 + 값 반영', (await p.textContent('#btn-profile')).includes('바다') && (await ev(() => AU.Profile.gender())) === 'm' && (await ev(() => AU.PRO_GENDER)) === 'm');
-  // P09 본편 주인공 그림(여성형 선택 시 옛 player_female 시트)
+  // P09 본편 주인공 그림(여성형 선택 시 프롤로그와 같은 pc_player_f 시트)
   await p.click('#btn-profile'); await sleep(200); await p.click('#sg-f'); await p.fill('#sname', '바다'); await p.click('#setup-ok'); await sleep(200);
   await p.click('#btn-start'); await sleep(400); await ev(() => AU.Prologue.debugComplete('arche')); await sleep(300);
   const keys = await ev(async () => { const w = AU.World, o = w.sprite, seen = new Set(); w.sprite = function (c, k) { seen.add(k); return o.apply(this, arguments); }; await new Promise((r) => setTimeout(r, 400)); w.sprite = o; return [...seen]; });
-  ok('P09a 본편에서 여성형 주인공 시트 사용', keys.includes('player_female') && !keys.includes('player_male'), keys.join(','));
+  ok('P09a 본편에서 여성형 주인공 시트 사용(프롤로그와 같은 정식 그림)', keys.includes('pc_player_f_actions') && !keys.some((k) => k.startsWith('pc_player_m_') || k === 'player_male'), keys.join(','));
   await T.shot('profile_f_main');
   // P10 기존(프로필 없는) 저장: 설정 화면 없이 기본값
   await ev(() => { AU.main.running = false; }); await p.evaluate(() => { const k = Object.keys(localStorage).find((x) => /autelia\.save/.test(x)); const o = JSON.parse(localStorage.getItem(k)); delete o.profile; localStorage.setItem(k, JSON.stringify(o)); });

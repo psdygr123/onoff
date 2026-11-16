@@ -300,7 +300,7 @@ window.AU = window.AU || {};
     pose(name) { AU.World.player.pose = name ? { name, t: 0 } : null; },
     sfx(n) { Au.play(n); }, amb(n, on) { Au.loop(n, on !== false); },
     obj(text) { this.objEl.textContent = text || ""; this.objEl.classList.toggle("hidden", !text || !this.on); if (text) { this.objEl.classList.remove("flash"); void this.objEl.offsetWidth; this.objEl.classList.add("flash"); } },
-    hint(text, sec) { this.hintEl.textContent = text || ""; this.hintEl.classList.toggle("show", !!text); clearTimeout(this._ht); if (text && sec) this._ht = setTimeout(() => this.hintEl.classList.remove("show"), sec * 1000); },
+    hint(text, sec, center) { this.hintEl.textContent = text || ""; this.hintEl.classList.toggle("center", !!center); this.hintEl.classList.toggle("show", !!text); clearTimeout(this._ht); if (text && sec) this._ht = setTimeout(() => this.hintEl.classList.remove("show"), sec * 1000); },
     hintOnce(text) { const now = performance.now(); if (now - (this._hl || 0) > 2500) { this._hl = now; this.hint(text, 2.6); } },
     keys() { const K = AU.keyLabel, b = AU.Input.bindings; return { move: K(b.left) + "·" + K(b.right), jump: K(b.jump), act: K(b.interact) }; },
 
@@ -354,7 +354,7 @@ window.AU = window.AU || {};
       let best = 1e9;
       for (const e of this.ents) { if (e.hidden || !e.interact || e.interact.off) continue; const d = Math.abs(p.x - e.x); if (d < (e.range || 100) && d < best) { best = d; this.nearEnt = e; } }
       world.prompt = this.nearEnt ? "Space " + this.nearEnt.interact.label : "";
-      if (this.nearEnt && !this.replay) { const F = AU.G.S.flags; if (!F.tipAct) { F.tipAct = true; this.hint("가까이 가면 " + AU.keyLabel(AU.Input.bindings.interact) + " 키로 말을 걸거나 살펴볼 수 있습니다.", 6); } }
+      if (this.nearEnt && !this.replay) { const F = AU.G.S.flags; if (!F.tipAct) { F.tipAct = true; this.hint("가까이 가면 " + AU.keyLabel(AU.Input.bindings.interact) + " 키로 말을 걸거나 살펴볼 수 있습니다.", 6, true); } }
     },
     /* 목표 방향 안내: 표시(mark)가 켜진 개체 또는 goal(x)이 있는 출구 트리거 중 가장 가까운 곳의 방향을 화면 가장자리 화살표로 알려 줌 */
     guideTarget() {

@@ -167,6 +167,7 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
 .objective::before { content: "목표"; display: block; font-size: 11px; letter-spacing: .16em; color: var(--gold-d); font-weight: 700; margin-bottom: 2px; }
 .objective.flash { animation: objflash 1.6s ease; } @keyframes objflash { 0% { transform: translateX(-14px); opacity: 0; } 15% { opacity: 1; transform: none; } 40% { box-shadow: 0 0 0 5px rgba(232, 185, 78, .55), var(--shadow); } 100% { box-shadow: var(--shadow); } }
 .prohint { position: absolute; left: 50%; top: 76px; transform: translateX(-50%); background: rgba(30, 24, 18, .8); color: #fff; padding: 8px 22px; border-radius: 8px; font-size: 16px; opacity: 0; transition: opacity .35s; white-space: nowrap; }
+.prohint.center { top: 42%; padding: 12px 30px; font-size: 18px; }
 .prohint.show { opacity: 1; }
 .procap { position: absolute; left: 0; right: 0; top: 13%; text-align: center; color: #fff; padding: 34px 0 64px; background: linear-gradient(to bottom, rgba(0,0,0,0), rgba(10,8,6,.62) 28%, rgba(10,8,6,.62) 72%, rgba(0,0,0,0)); text-shadow: 0 2px 16px rgba(0, 0, 0, .85), 0 0 3px rgba(0, 0, 0, .6); opacity: 0; transition: opacity .7s; }
 .procap.show { opacity: 1; } .procap .l0 { font-size: 42px; font-weight: 300; letter-spacing: .18em; padding-left: .18em; } .procap .l1 { font-size: 26px; font-weight: 300; letter-spacing: .14em; margin-top: 16px; opacity: 0; padding-left: .14em; }
