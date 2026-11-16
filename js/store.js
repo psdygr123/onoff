@@ -113,6 +113,9 @@ OnOff.State = (function () {
       const q = (v) => { v = v == null ? "" : String(v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
       return "\ufeff" + [cols.join(",")].concat(rows.map((r) => cols.map((c) => q(r[c])).join(","))).join("\r\n");
     },
+    /* 게임 안내(연구 수집 정보 포함)를 읽었다고 확인한 기록. 사용자·게임별로 이 브라우저에 남겨 다시 묻지 않습니다(동의 철회·내용 변경 때는 지우면 다시 묻습니다). */
+    hasAck(gameId) { if (!s.user) return false; try { return localStorage.getItem("onoff-ack:" + s.user.id + ":" + gameId) === "1"; } catch (e) { return !!(s.ack && s.ack[s.user.id + ":" + gameId]); } },
+    setAck(gameId) { if (!s.user) return; s.ack = s.ack || {}; s.ack[s.user.id + ":" + gameId] = 1; try { localStorage.setItem("onoff-ack:" + s.user.id + ":" + gameId, "1"); } catch (e) { /* 무시 */ } },
     saveKey(gameId) { return s.user ? s.user.id + ":" + gameId : null; }
   };
 })();

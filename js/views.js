@@ -478,6 +478,7 @@ OnOff.Views = (function () {
       const g = GAMES.find((x) => x.id === ctx.param);
       if (!g || g.status === "soon") return notfound.render();
       const save = S.user ? S.getSave(g.id) : null, research = researchPage(g), playable = OnOff.Device.canPlay(g);
+      const acked = !!(S.user && S.hasAck(g.id));   // 이 게임의 안내를 이미 확인한 사람에게는 다시 묻지 않습니다
       return `<div class="wrap page"><div class="intro">
         <div class="art"><img src="${g.cover}" alt="${esc(g.coverAlt || (g.title + " 대표 이미지"))}" width="1000" height="720"></div>
         <div class="panel">
@@ -489,16 +490,20 @@ OnOff.Views = (function () {
           <div class="note"><strong>알아 두세요.</strong> 이 게임은 의료·상담을 대신하지 않습니다. 하다가 마음이 불편해지면 언제든 멈추셔도 됩니다. 마음이 많이 힘들 때는 가까운 전문 상담기관이나 의료기관의 도움을 받아 보세요. 이 게임에서 입력하거나 응답한 내용은 가입 때 연구 활용에 동의하신 경우에 한해 심리학 연구 자료로 활용될 수 있습니다.</div>
           ${playable ? "" : `<div class="note"><strong>PC 전용 게임입니다.</strong> ${esc(OnOff.PC_ONLY_NOTE)}</div>`}
           ${research ? `<details class="consent-more"><summary>연구 자료로 수집되는 정보 보기</summary>${research}</details>` : ""}
-          <label class="choice"><input type="checkbox" id="intro-ok"><span>${research ? "안내(연구 수집 정보 포함)를 읽었습니다." : "안내를 읽었습니다."}</span></label>
-          <div class="form-actions"><button class="btn ghost" type="button" data-action="go" data-to="games">뒤로</button><button class="btn" type="button" id="intro-go" disabled aria-disabled="true" ${playable ? "" : 'data-blocked="1"'}>${save ? "이어하기" : esc(g.startLabel || "모험 시작")}</button></div>
+          ${acked ? "" : `<label class="choice"><input type="checkbox" id="intro-ok"><span>${research ? "안내(연구 수집 정보 포함)를 읽었습니다." : "안내를 읽었습니다."}</span></label>`}
+          <div class="form-actions"><button class="btn ghost" type="button" data-action="go" data-to="games">뒤로</button><button class="btn" type="button" id="intro-go" ${acked && playable ? "" : "disabled aria-disabled=\"true\""} ${playable ? "" : 'data-blocked="1"'}>${save ? "이어하기" : esc(g.startLabel || "모험 시작")}</button></div>
         </div></div></div></div>`;
     },
     mount(root, ctx) {
       const ok = root.querySelector("#intro-ok"), btn = root.querySelector("#intro-go");
-      if (!ok) return;
+      if (!btn) return;
       const blocked = !!btn.dataset.blocked;
-      ok.addEventListener("change", () => { const off = !ok.checked || blocked; btn.disabled = off; btn.setAttribute("aria-disabled", String(off)); });
-      btn.addEventListener("click", () => { if (ok.checked && !blocked) go("play-" + ctx.param); });
+      if (ok) ok.addEventListener("change", () => { const off = !ok.checked || blocked; btn.disabled = off; btn.setAttribute("aria-disabled", String(off)); });
+      btn.addEventListener("click", () => {
+        if (blocked || btn.disabled) return;
+        if (ok) { if (!ok.checked) return; S.setAck(ctx.param); }   // 처음 한 번 확인하면 이후에는 묻지 않습니다
+        go("play-" + ctx.param);
+      });
     }
   };
 

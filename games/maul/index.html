@@ -4,166 +4,144 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>마율 (Mind & Calm) - 마음 힐링 정원</title>
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
-  <!-- Google Fonts for soft, calm aesthetic -->
+  <!-- 글꼴은 있으면 쓰고, 없으면(네트워크가 막힌 곳) 기기 기본 글꼴로 대신 보입니다. 스타일(maul.css)과 아이콘은 이 폴더 안에 들어 있어 외부 서버 없이 동작합니다. -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@300;400;500&display=swap" rel="stylesheet">
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@0.469.0"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="maul.css">
   <style>
+    :root { --moon: #fff4d6; --ink: #e8ecff; --mute: #9aa3c7; }
+    html, body { min-height: 100%; }
     body {
-      font-family: 'Noto Sans KR', sans-serif;
-      background: linear-gradient(135deg, #101428 0%, #171d38 50%, #1e1933 100%);
-      color: #e2e8f0;
-      overflow-x: hidden;
-      user-select: none;
+      font-family: 'Noto Sans KR', 'Malgun Gothic', 'Apple SD Gothic Neo', system-ui, sans-serif;
+      background: #0a0d22; color: var(--ink); overflow-x: hidden; user-select: none; -webkit-user-select: none;
     }
-    .serif-title {
-      font-family: 'Gowun Batang', serif;
-    }
-    /* Glow animations */
-    @keyframes pulseGlow {
-      0%, 100% { filter: drop-shadow(0 0 15px rgba(167, 139, 250, 0.4)); }
-      50% { filter: drop-shadow(0 0 30px rgba(167, 139, 250, 0.8)); }
-    }
-    .glow-effect {
-      animation: pulseGlow 4s infinite ease-in-out;
-    }
-    /* Glassmorphism containers */
-    .glass-card {
-      background: rgba(255, 255, 255, 0.05);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-    }
-    /* Custom scrollbars */
-    ::-webkit-scrollbar {
-      width: 6px;
-    }
-    ::-webkit-scrollbar-track {
-      background: rgba(15, 23, 42, 0.6);
-    }
-    ::-webkit-scrollbar-thumb {
-      background: rgba(148, 163, 184, 0.3);
-      border-radius: 3px;
-    }
-    canvas {
-      touch-action: none;
-    }
+    .serif-title { font-family: 'Gowun Batang', 'Noto Serif KR', 'Nanum Myeongjo', serif; }
+    /* 밤하늘 배경: 별 캔버스 + 천천히 움직이는 오로라 */
+    #sky { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+    .aurora { position: fixed; inset: -20% -10% auto -10%; height: 70%; z-index: 0; pointer-events: none; filter: blur(70px); opacity: .55;
+      background: radial-gradient(ellipse 40% 55% at 20% 40%, rgba(94, 234, 212, .38), transparent 70%),
+                  radial-gradient(ellipse 45% 50% at 62% 30%, rgba(139, 92, 246, .42), transparent 70%),
+                  radial-gradient(ellipse 35% 45% at 88% 50%, rgba(244, 114, 182, .26), transparent 70%);
+      animation: drift 26s ease-in-out infinite alternate; }
+    @keyframes drift { from { transform: translateX(-3%) scale(1); } to { transform: translateX(3%) scale(1.08); } }
+    .page-wrap { position: relative; z-index: 1; }
+    /* 유리 카드 */
+    .glass-card { background: linear-gradient(160deg, rgba(255,255,255,.09), rgba(255,255,255,.03)); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255,255,255,.12); box-shadow: 0 10px 40px rgba(2, 4, 24, .45), inset 0 1px 0 rgba(255,255,255,.12); }
+    .scene { position: relative; border-radius: 28px; overflow: hidden; border: 1px solid rgba(180, 190, 255, .18);
+      box-shadow: 0 24px 60px rgba(2, 4, 24, .55), 0 0 0 6px rgba(255,255,255,.025), inset 0 0 60px rgba(120, 100, 255, .08); }
+    .brand-mark { background: radial-gradient(circle at 30% 30%, #fff6d8, #f0c987 55%, #c98a3d); box-shadow: 0 0 22px rgba(255, 220, 140, .55); }
+    .tab-btn { position: relative; color: var(--mute); transition: all .3s; }
+    .tab-btn:hover { color: #fff; background: rgba(255,255,255,.06); }
+    .tab-btn.on { color: #fff; background: linear-gradient(135deg, rgba(124, 92, 255, .55), rgba(56, 189, 248, .28)); box-shadow: 0 6px 20px rgba(100, 80, 255, .35), inset 0 1px 0 rgba(255,255,255,.25); }
+    .chip { background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12); border-radius: 999px; padding: 4px 12px; font-size: 12px; color: #d6dcff; }
+    .btn-soft { transition: transform .15s, box-shadow .2s, background .2s; }
+    .btn-soft:hover { transform: translateY(-1px); } .btn-soft:active { transform: translateY(1px); }
+    input#bubbleInput:focus { box-shadow: 0 0 0 3px rgba(167, 139, 250, .28); }
+    /* 호흡 구슬: 단계마다 크기·색이 부드럽게 바뀝니다 */
+    .orb-wrap { isolation: isolate; position: relative; width: 190px; height: 190px; display: grid; place-items: center; }
+    .orb-ring { position: absolute; inset: 0; border-radius: 50%; border: 1.5px solid rgba(110, 231, 183, .35); opacity: 0; }
+    .orb-wrap.run .orb-ring { animation: ringOut 4.6s ease-out infinite; } .orb-wrap.run .orb-ring:nth-child(2) { animation-delay: 1.5s; } .orb-wrap.run .orb-ring:nth-child(3) { animation-delay: 3s; }
+    @keyframes ringOut { 0% { transform: scale(.7); opacity: .65; } 100% { transform: scale(1.55); opacity: 0; } }
+    #breathCircle { will-change: transform; position: relative; width: 150px; height: 150px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 12px;
+      background: radial-gradient(circle at 35% 30%, rgba(255,255,255,.35), rgba(110, 231, 183, .22) 45%, rgba(20, 90, 100, .35) 100%);
+      border: 1.5px solid rgba(167, 243, 208, .55); box-shadow: 0 0 40px rgba(110, 231, 183, .35), inset 0 0 30px rgba(255,255,255,.12); transition: transform 1s ease, background 1s, box-shadow 1s; }
+    #breathCircle.inhale { transform: scale(1.3); transition: transform 4s ease-in-out, background 1s; box-shadow: 0 0 60px rgba(110, 231, 183, .6), inset 0 0 30px rgba(255,255,255,.18); }
+    #breathCircle.hold { transform: scale(1.3); background: radial-gradient(circle at 35% 30%, rgba(255,255,255,.35), rgba(125, 211, 252, .26) 45%, rgba(20, 70, 110, .4) 100%); border-color: rgba(186, 230, 253, .7); box-shadow: 0 0 60px rgba(125, 211, 252, .55), inset 0 0 30px rgba(255,255,255,.18); }
+    #breathCircle.exhale { transform: scale(.92); transition: transform 8s ease-in-out, background 1s; background: radial-gradient(circle at 35% 30%, rgba(255,255,255,.28), rgba(167, 139, 250, .26) 45%, rgba(50, 30, 110, .4) 100%); border-color: rgba(196, 181, 253, .6); box-shadow: 0 0 40px rgba(167, 139, 250, .45), inset 0 0 30px rgba(255,255,255,.1); }
+    .count-pop { animation: countPop .5s ease; } @keyframes countPop { 40% { transform: scale(1.35); } }
+    @media (prefers-reduced-motion: reduce) { .aurora, .orb-wrap.run .orb-ring { animation: none; } }
+    canvas { touch-action: none; }
   </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between items-center text-slate-200 selection:bg-purple-500 selection:text-white">
+<body class="min-h-screen">
+  <canvas id="sky" aria-hidden="true"></canvas>
+  <div class="aurora" aria-hidden="true"></div>
 
-  <!-- Header Navigation -->
-  <header class="w-full max-w-4xl px-4 py-4 flex flex-wrap justify-between items-center gap-4 z-20">
+  <div class="page-wrap min-h-screen flex flex-col justify-between items-center">
+  <!-- 머리말 -->
+  <header class="w-full max-w-4xl px-4 pt-5 pb-3 flex flex-wrap justify-between items-center gap-4">
     <div class="flex items-center gap-3">
-      <div class="p-2.5 rounded-2xl bg-purple-950/60 border border-purple-500/30 text-purple-300 shadow-lg shadow-purple-900/20">
-        <i data-lucide="sparkles" class="w-6 h-6"></i>
-      </div>
+      <div class="brand-mark p-2.5 rounded-2xl text-amber-950"><i data-lucide="sparkles" class="w-6 h-6"></i></div>
       <div>
-        <h1 class="serif-title text-2xl font-bold tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-purple-200 via-pink-200 to-indigo-200">
-          마율 <span class="text-xs text-purple-300 font-sans tracking-normal opacity-80 font-normal">Mind & Calm</span>
+        <h1 class="serif-title text-3xl font-bold tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-amber-100 via-pink-100 to-indigo-200 leading-tight">
+          마율 <span class="text-xs text-indigo-200 font-sans tracking-normal opacity-80 font-normal">Mind &amp; Calm</span>
         </h1>
-        <p class="text-xs text-slate-400">지친 하루의 마음을 편안하게 지우고 채우는 공간</p>
+        <p class="text-xs" style="color: var(--mute)">지친 하루의 마음을 편안하게 지우고 채우는 공간</p>
       </div>
     </div>
-
-    <!-- Sound & Ambient Audio Toggle Buttons -->
-    <div class="flex items-center gap-2 glass-card px-3 py-1.5 rounded-full">
-      <button id="soundToggleBtn" class="flex items-center gap-1.5 text-xs text-slate-300 hover:text-white transition-colors px-2 py-1 rounded-md hover:bg-white/10" title="음향 효과 켜기/끄기">
-        <i id="soundIcon" data-lucide="volume-2" class="w-4 h-4 text-purple-300"></i>
-        <span id="soundLabel" class="hidden sm:inline">소리 켬</span>
+    <div class="flex items-center gap-1 glass-card px-2 py-1.5 rounded-full">
+      <button id="soundToggleBtn" class="btn-soft flex items-center gap-1.5 text-xs text-slate-200 hover:text-white px-3 py-1.5 rounded-full hover:bg-white/10" title="음향 효과 켜기/끄기" aria-pressed="true">
+        <i id="soundIcon" data-lucide="volume-2" class="w-4 h-4 text-amber-200"></i><span id="soundLabel" class="hidden sm:inline">소리 켬</span>
       </button>
-      <div class="w-px h-4 bg-slate-700"></div>
-      <button id="ambientToggleBtn" class="flex items-center gap-1.5 text-xs text-slate-300 hover:text-white transition-colors px-2 py-1 rounded-md hover:bg-white/10" title="배경 음악 켜기/끄기">
-        <i id="ambientIcon" data-lucide="music" class="w-4 h-4 text-pink-300"></i>
-        <span id="ambientLabel" class="hidden sm:inline">배경음 켜기</span>
+      <div class="w-px h-4 bg-white/15"></div>
+      <button id="ambientToggleBtn" class="btn-soft flex items-center gap-1.5 text-xs text-slate-200 hover:text-white px-3 py-1.5 rounded-full hover:bg-white/10" title="배경 음악 켜기/끄기" aria-pressed="false">
+        <i id="ambientIcon" data-lucide="music" class="w-4 h-4 text-pink-300"></i><span id="ambientLabel" class="hidden sm:inline">배경음 켜기</span>
       </button>
     </div>
   </header>
 
-  <!-- Navigation Tabs -->
-  <nav class="w-full max-w-xl px-4 mb-4 z-20">
-    <div class="glass-card p-1.5 rounded-2xl flex justify-between gap-1 text-sm font-medium">
-      <button id="tab1Btn" class="tab-btn flex-1 py-2.5 px-3 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 bg-purple-600/40 text-purple-100 shadow-sm border border-purple-400/30">
-        <i data-lucide="wind" class="w-4 h-4"></i>
-        <span>걱정 풍선</span>
-      </button>
-      <button id="tab2Btn" class="tab-btn flex-1 py-2.5 px-3 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 text-slate-400 hover:text-slate-200 hover:bg-white/5">
-        <i data-lucide="flower-2" class="w-4 h-4"></i>
-        <span>호흡 정원</span>
-      </button>
-      <button id="tab3Btn" class="tab-btn flex-1 py-2.5 px-3 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 text-slate-400 hover:text-slate-200 hover:bg-white/5">
-        <i data-lucide="waves" class="w-4 h-4"></i>
-        <span>젠 물결</span>
-      </button>
+  <!-- 탭 -->
+  <nav class="w-full max-w-xl px-4 mb-4" aria-label="마율 활동 선택">
+    <div class="glass-card p-1.5 rounded-2xl flex justify-between gap-1 text-sm font-medium" role="tablist">
+      <button id="tab1Btn" class="tab-btn on flex-1 py-2.5 px-3 rounded-xl flex items-center justify-center gap-2" role="tab" aria-selected="true"><i data-lucide="wind" class="w-4 h-4"></i><span>걱정 풍선</span></button>
+      <button id="tab2Btn" class="tab-btn flex-1 py-2.5 px-3 rounded-xl flex items-center justify-center gap-2" role="tab" aria-selected="false"><i data-lucide="flower-2" class="w-4 h-4"></i><span>호흡 정원</span></button>
+      <button id="tab3Btn" class="tab-btn flex-1 py-2.5 px-3 rounded-xl flex items-center justify-center gap-2" role="tab" aria-selected="false"><i data-lucide="waves" class="w-4 h-4"></i><span>젠 물결</span></button>
     </div>
   </nav>
 
-  <!-- Main View Container -->
-  <main class="w-full max-w-4xl flex-1 px-4 mb-6 flex flex-col justify-center items-center relative z-10">
+  <main class="w-full max-w-4xl flex-1 px-4 mb-6 flex flex-col justify-center items-center relative">
 
-    <!-- Section 1: Worry Bubble Popper -->
-    <section id="section1" class="w-full flex flex-col items-center justify-center gap-4 transition-all duration-500">
+    <!-- 1. 걱정 풍선 -->
+    <section id="section1" class="w-full flex flex-col items-center justify-center gap-4">
       <div class="text-center max-w-md px-2">
-        <h2 class="serif-title text-xl text-purple-100 mb-1">걱정 풍선 터뜨리기</h2>
-        <p class="text-xs text-slate-400">마음을 무겁게 하는 생각이나 걱정을 적어 공중에 띄워보세요.<br>풍선을 터뜨리며 그 고민을 살포시 놓아줍니다.</p>
+        <h2 class="serif-title text-2xl text-indigo-50 mb-1">걱정 풍선 터뜨리기</h2>
+        <p class="text-xs leading-relaxed" style="color: var(--mute)">마음을 무겁게 하는 생각이나 걱정을 적어 공중에 띄워보세요.<br>풍선을 터뜨리며 그 고민을 살포시 놓아줍니다.</p>
       </div>
-
-      <!-- Input Bar -->
       <form id="bubbleForm" class="w-full max-w-md flex gap-2">
-        <input type="text" id="bubbleInput" maxlength="35" placeholder="마음에 남은 어떤 생각이라도 적어보세요..." 
-          class="flex-1 bg-slate-900/60 border border-slate-700/60 focus:border-purple-400/80 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 outline-none backdrop-blur-md transition-all shadow-inner">
-        <button type="button" id="bubbleAddBtn" class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-sm font-medium px-4 py-2.5 rounded-xl shadow-lg shadow-purple-900/30 transition-all flex items-center gap-1 shrink-0">
-          <i data-lucide="plus" class="w-4 h-4"></i>
-          <span>띄우기</span>
+        <input type="text" id="bubbleInput" maxlength="35" autocomplete="off" placeholder="마음에 남은 어떤 생각이라도 적어보세요..."
+          class="flex-1 bg-slate-950/50 border border-white/15 focus:border-violet-300/80 rounded-xl px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 outline-none backdrop-blur-md transition-all select-text">
+        <button type="button" id="bubbleAddBtn" class="btn-soft bg-gradient-to-r from-violet-500 to-indigo-500 hover:from-violet-400 hover:to-indigo-400 text-white text-sm font-medium px-4 py-2.5 rounded-xl shadow-lg shadow-violet-900/40 flex items-center gap-1.5">
+          <i data-lucide="plus" class="w-4 h-4"></i><span>띄우기</span>
         </button>
       </form>
-
-      <!-- Canvas Box -->
-      <div class="w-full h-[450px] sm:h-[500px] glass-card rounded-3xl relative overflow-hidden flex justify-center items-center">
+      <div class="scene w-full h-[450px] sm:h-[500px] flex justify-center items-center">
         <canvas id="bubbleCanvas" class="w-full h-full cursor-pointer"></canvas>
-        <div id="bubbleHint" class="absolute pointer-events-none text-slate-500/70 text-xs flex flex-col items-center gap-2">
-          <i data-lucide="mouse-pointer-click" class="w-5 h-5 animate-bounce"></i>
-          <span>풍선을 눌러 마음에서 내보내세요</span>
+        <div class="absolute top-3 left-3 chip flex items-center gap-1.5"><i data-lucide="wind" class="w-3.5 h-3.5 text-violet-200"></i>놓아준 걱정 <b id="releasedCount" class="text-white">0</b>개</div>
+        <div id="bubbleHint" class="absolute pointer-events-none text-indigo-100/70 text-xs flex flex-col items-center gap-2 transition-opacity duration-700" style="bottom: 18px">
+          <i data-lucide="mouse-pointer-click" class="w-5 h-5 animate-bounce"></i><span>풍선을 눌러 마음에서 내보내세요</span>
         </div>
       </div>
     </section>
 
-    <!-- Section 2: Breath & Flower Garden -->
-    <section id="section2" class="w-full flex flex-col items-center justify-center gap-4 hidden transition-all duration-500">
+    <!-- 2. 호흡 정원 -->
+    <section id="section2" class="w-full flex flex-col items-center justify-center gap-4 hidden">
       <div class="text-center max-w-md px-2">
-        <h2 class="serif-title text-xl text-emerald-100 mb-1">호흡 & 마음 정원</h2>
-        <p class="text-xs text-slate-400">안정감을 주는 4-7-8 호흡 가이드를 따라 숨을 쉬어보세요.<br>깊은 호흡이 쌓일수록 평온한 빛의 꽃나무가 자라납니다.</p>
+        <h2 class="serif-title text-2xl text-emerald-50 mb-1">호흡 &amp; 마음 정원</h2>
+        <p class="text-xs leading-relaxed" style="color: var(--mute)">안정감을 주는 4-7-8 호흡 가이드를 따라 숨을 쉬어보세요.<br>깊은 호흡이 쌓일수록 평온한 빛의 꽃나무가 자라납니다.</p>
       </div>
-
-      <!-- Breath Controls & Visualizer -->
-      <div class="w-full h-[450px] sm:h-[500px] glass-card rounded-3xl relative overflow-hidden flex flex-col items-center justify-between p-6">
+      <div class="scene w-full h-[450px] sm:h-[500px] flex flex-col items-center justify-between p-6">
         <canvas id="gardenCanvas" class="absolute inset-0 w-full h-full pointer-events-none"></canvas>
-        
-        <!-- Breathing Status Indicator Overlay -->
-        <div class="relative z-10 flex flex-col items-center mt-4">
-          <div id="breathCircle" class="w-36 h-36 sm:w-44 sm:h-44 rounded-full border-2 border-emerald-400/30 bg-emerald-500/10 flex flex-col items-center justify-center transition-all duration-[1000ms] backdrop-blur-sm shadow-2xl shadow-emerald-950/50">
-            <span id="breathPhaseText" class="serif-title text-xl sm:text-2xl text-emerald-100 font-bold mb-1">시작 준비</span>
-            <span id="breathTimerText" class="text-xs text-emerald-300 font-mono">버튼을 눌러 호흡 시작</span>
+        <div class="relative z-10 flex flex-col items-center mt-1">
+          <div id="orbWrap" class="orb-wrap">
+            <span class="orb-ring"></span><span class="orb-ring"></span><span class="orb-ring"></span>
+            <div id="breathCircle">
+              <span id="breathPhaseText" class="serif-title text-xl sm:text-2xl text-white font-bold mb-1 drop-shadow">시작 준비</span>
+              <span id="breathTimerText" class="text-[11px] text-emerald-100/90 leading-snug">버튼을 눌러 호흡 시작</span>
+            </div>
           </div>
         </div>
-
-        <!-- Breathing Stats & Buttons -->
-        <div class="relative z-10 w-full max-w-sm flex flex-col items-center gap-3 mb-2">
-          <div class="flex justify-between items-center w-full px-4 py-2 rounded-xl bg-slate-900/40 border border-white/5 text-xs text-slate-300">
-            <span class="flex items-center gap-1.5"><i data-lucide="heart" class="w-3.5 h-3.5 text-emerald-400"></i>완료한 호흡</span>
-            <span id="breathCount" class="font-bold text-emerald-300 font-mono text-sm">0회</span>
+        <div class="relative z-10 w-full max-w-sm flex flex-col items-center gap-3 mb-1">
+          <div class="flex justify-between items-center w-full px-4 py-2 rounded-xl bg-slate-950/45 border border-white/10 text-xs text-slate-200 backdrop-blur-md">
+            <span class="flex items-center gap-1.5"><i data-lucide="heart" class="w-3.5 h-3.5 text-pink-300"></i>완료한 호흡</span>
+            <span id="breathCount" class="font-bold text-emerald-200 text-sm">0회</span>
           </div>
           <div class="flex gap-2 w-full">
-            <button id="startBreathBtn" class="flex-1 bg-emerald-600/80 hover:bg-emerald-500 text-white text-xs sm:text-sm font-medium py-2.5 px-4 rounded-xl shadow-lg shadow-emerald-900/30 transition-all flex items-center justify-center gap-1.5">
-              <i data-lucide="play" class="w-4 h-4"></i>
-              <span>호흡 안내 시작</span>
+            <button id="startBreathBtn" class="btn-soft flex-1 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white text-xs sm:text-sm font-medium py-2.5 px-4 rounded-xl shadow-lg shadow-emerald-900/40 flex items-center justify-center gap-2">
+              <i data-lucide="play" class="w-4 h-4"></i><span>호흡 안내 시작</span>
             </button>
-            <button id="resetGardenBtn" class="bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white text-xs px-3 py-2.5 rounded-xl border border-slate-700/50 transition-all" title="정원 다시 키우기">
+            <button id="resetGardenBtn" class="btn-soft bg-white/10 hover:bg-white/20 text-slate-200 hover:text-white text-xs px-3 py-2.5 rounded-xl border border-white/15" title="정원 다시 키우기" aria-label="정원 다시 키우기">
               <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
             </button>
           </div>
@@ -171,847 +149,342 @@
       </div>
     </section>
 
-    <!-- Section 3: Zen Ripple & Affirmations -->
-    <section id="section3" class="w-full flex flex-col items-center justify-center gap-4 hidden transition-all duration-500">
+    <!-- 3. 젠 물결 -->
+    <section id="section3" class="w-full flex flex-col items-center justify-center gap-4 hidden">
       <div class="text-center max-w-md px-2">
-        <h2 class="serif-title text-xl text-sky-100 mb-1">젠 물결 & 따뜻한 확언</h2>
-        <p class="text-xs text-slate-400">고요한 수면 위를 살포시 터치해 물결을 만들어보세요.<br>아름다운 맑은 소리와 함께 마음을 다독이는 문장이 피어납니다.</p>
+        <h2 class="serif-title text-2xl text-sky-50 mb-1">젠 물결 &amp; 따뜻한 확언</h2>
+        <p class="text-xs leading-relaxed" style="color: var(--mute)">고요한 수면 위를 살포시 터치해 물결을 만들어보세요.<br>아름다운 맑은 소리와 함께 마음을 다독이는 문장이 피어납니다.</p>
       </div>
-
-      <div class="w-full h-[450px] sm:h-[500px] glass-card rounded-3xl relative overflow-hidden flex justify-center items-center">
+      <div class="scene w-full h-[450px] sm:h-[500px] flex justify-center items-center">
         <canvas id="zenCanvas" class="w-full h-full cursor-pointer"></canvas>
-        <div id="zenHint" class="absolute pointer-events-none text-slate-400/60 text-xs flex flex-col items-center gap-2">
-          <i data-lucide="hand" class="w-5 h-5 animate-pulse"></i>
-          <span>화면 어디든 터치해 소리와 문장을 깨워보세요</span>
+        <div id="zenHint" class="absolute pointer-events-none text-sky-100/70 text-xs flex flex-col items-center gap-2 transition-opacity duration-700">
+          <i data-lucide="hand" class="w-5 h-5 animate-pulse"></i><span>화면 어디든 터치해 소리와 문장을 깨워보세요</span>
         </div>
       </div>
     </section>
-
   </main>
 
-  <!-- Footer Tip -->
-  <footer class="w-full max-w-4xl px-4 py-3 mb-2 text-center text-xs text-slate-500 z-10 flex flex-col sm:flex-row justify-between items-center gap-2 border-t border-slate-800/60">
-    <span class="flex items-center gap-1.5"><i data-lucide="shield-check" class="w-3.5 h-3.5 text-purple-400"></i> 작성하신 모든 생각은 브라우저 어디에도 저장되지 않고 바로 소멸됩니다.</span>
+  <footer class="w-full max-w-4xl px-4 py-3 mb-2 text-center text-xs z-10 flex justify-center items-center gap-2 border-t border-white/10" style="color: var(--mute)">
+    <span class="flex items-center gap-1.5"><i data-lucide="shield-check" class="w-3.5 h-3.5 text-violet-300"></i> 작성하신 모든 생각은 브라우저 어디에도 저장되지 않고 바로 소멸됩니다.</span>
   </footer>
+  </div>
 
-  <!-- Web Audio & Game Logic -->
   <script>
-    // --- Initialize Lucide Icons ---
-    (window.lucide && lucide.createIcons());
+    // ================= 아이콘(외부 서버 없이 내장) =================
+    window.__ICONS__ = {"sparkles": "<path d=\"M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z\" /> <path d=\"M20 3v4\" /> <path d=\"M22 5h-4\" /> <path d=\"M4 17v2\" /> <path d=\"M5 18H3\" />", "volume-2": "<path d=\"M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z\" /> <path d=\"M16 9a5 5 0 0 1 0 6\" /> <path d=\"M19.364 18.364a9 9 0 0 0 0-12.728\" />", "volume-x": "<path d=\"M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z\" /> <line x1=\"22\" x2=\"16\" y1=\"9\" y2=\"15\" /> <line x1=\"16\" x2=\"22\" y1=\"9\" y2=\"15\" />", "music": "<path d=\"M9 18V5l12-2v13\" /> <circle cx=\"6\" cy=\"18\" r=\"3\" /> <circle cx=\"18\" cy=\"16\" r=\"3\" />", "wind": "<path d=\"M12.8 19.6A2 2 0 1 0 14 16H2\" /> <path d=\"M17.5 8a2.5 2.5 0 1 1 2 4H2\" /> <path d=\"M9.8 4.4A2 2 0 1 1 11 8H2\" />", "flower-2": "<path d=\"M12 5a3 3 0 1 1 3 3m-3-3a3 3 0 1 0-3 3m3-3v1M9 8a3 3 0 1 0 3 3M9 8h1m5 0a3 3 0 1 1-3 3m3-3h-1m-2 3v-1\" /> <circle cx=\"12\" cy=\"8\" r=\"2\" /> <path d=\"M12 10v12\" /> <path d=\"M12 22c4.2 0 7-1.667 7-5-4.2 0-7 1.667-7 5Z\" /> <path d=\"M12 22c-4.2 0-7-1.667-7-5 4.2 0 7 1.667 7 5Z\" />", "waves": "<path d=\"M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1\" /> <path d=\"M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1\" /> <path d=\"M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1\" />", "plus": "<path d=\"M5 12h14\" /> <path d=\"M12 5v14\" />", "mouse-pointer-click": "<path d=\"M14 4.1 12 6\" /> <path d=\"m5.1 8-2.9-.8\" /> <path d=\"m6 12-1.9 2\" /> <path d=\"M7.2 2.2 8 5.1\" /> <path d=\"M9.037 9.69a.498.498 0 0 1 .653-.653l11 4.5a.5.5 0 0 1-.074.949l-4.349 1.041a1 1 0 0 0-.74.739l-1.04 4.35a.5.5 0 0 1-.95.074z\" />", "heart": "<path d=\"M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z\" />", "play": "<polygon points=\"6 3 20 12 6 21 6 3\" />", "square": "<rect width=\"18\" height=\"18\" x=\"3\" y=\"3\" rx=\"2\" />", "rotate-ccw": "<path d=\"M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8\" /> <path d=\"M3 3v5h5\" />", "hand": "<path d=\"M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2\" /> <path d=\"M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2\" /> <path d=\"M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8\" /> <path d=\"M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15\" />", "shield-check": "<path d=\"M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z\" /> <path d=\"m9 12 2 2 4-4\" />"};
+    const ICON_SVG = window.__ICONS__ || {};
+    function renderIcons() {
+      document.querySelectorAll('i[data-lucide]').forEach(el => {
+        const body = ICON_SVG[el.getAttribute('data-lucide')]; if (!body) return;
+        const s = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        s.setAttribute('viewBox', '0 0 24 24'); s.setAttribute('fill', 'none'); s.setAttribute('stroke', 'currentColor');
+        s.setAttribute('stroke-width', '2'); s.setAttribute('stroke-linecap', 'round'); s.setAttribute('stroke-linejoin', 'round');
+        s.setAttribute('aria-hidden', 'true'); s.setAttribute('class', el.getAttribute('class') || ''); if (el.id) s.id = el.id;
+        s.setAttribute('data-lucide', el.getAttribute('data-lucide')); s.innerHTML = body; el.replaceWith(s);
+      });
+    }
+    function setIcon(id, name) { const el = document.getElementById(id); if (el) { el.setAttribute('data-lucide', name); const i = document.createElement('i'); i.id = id; i.setAttribute('data-lucide', name); i.setAttribute('class', el.getAttribute('class') || ''); el.replaceWith(i); renderIcons(); } }
+    renderIcons();
 
-    // --- Audio Synthesis (Web Audio API) ---
+    // ================= 필수 지표(연구용 행동 로그) =================
+    // ※ 걱정 풍선에 적은 글의 "내용"은 어디에도 기록하지 않습니다. 글자 수와 시간 같은 숫자만 남깁니다.
+    const RUN_ID = Math.random().toString(36).slice(2, 10);
+    const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const TAB_NAMES = ['bubble', 'breath', 'zen'];
+    let curTab = 0, tabSwitches = 0, hiddenCount = 0, usedTouch = false, usedMouse = false, totalMs = 0;
+    const V = { acc: 0, since: performance.now(), enter: performance.now() };   // 이 탭을 본 시간(탭이 가려진 동안은 제외)
+    let ST = null;
+    const newStats = () => ({ first: null, bAdd: 0, bLen: [], bPop: 0, bLat: [], brStart: 0, brCycles: 0, brAbort: 0, brMs: 0, brAbortPhase: '', zTaps: 0, zGaps: [], zLast: 0, hidden: 0 });
+    ST = newStats();
+    const markFirst = () => { if (ST.first === null) ST.first = Math.round(performance.now() - V.enter); };
+    const mean = (a, d) => a.length ? Math.round(a.reduce((x, y) => x + y, 0) / a.length * (d || 1)) / (d || 1) : '';
+    function dwellNow() { return V.acc + (V.since ? performance.now() - V.since : 0); }
+    function emitRecord(p) { try { if (window.parent !== window) parent.postMessage({ source: 'onoff-game', type: 'record', payload: p }, '*'); } catch (e) { /* 무시 */ } }
+    function flushTab(reason) {
+      const dwell = Math.round(dwellNow()), name = TAB_NAMES[curTab];
+      const acted = ST.first !== null;
+      if (dwell < 1500 && !acted) { V.acc = 0; V.since = V.since ? performance.now() : null; V.enter = performance.now(); ST = newStats(); return; }
+      totalMs += dwell;
+      const rec = { event: 'tab_visit', run: RUN_ID, tab: name, reason: reason, dwell_ms: dwell, first_action_ms: ST.first === null ? '' : ST.first };
+      if (name === 'bubble') Object.assign(rec, { bubbles_added: ST.bAdd, text_len_mean: mean(ST.bLen, 10), bubbles_popped: ST.bPop, pop_latency_mean_ms: mean(ST.bLat) });
+      if (name === 'breath') Object.assign(rec, { breath_started: ST.brStart, breath_cycles: ST.brCycles, breath_aborts: ST.brAbort, breath_abort_phase: ST.brAbortPhase, breath_ms: Math.round(ST.brMs + (isBreathing ? performance.now() - brSince : 0)) });
+      if (name === 'zen') Object.assign(rec, { zen_taps: ST.zTaps, zen_taps_per_min: dwell ? Math.round(ST.zTaps / (dwell / 60000) * 10) / 10 : 0, zen_tap_gap_mean_ms: mean(ST.zGaps) });
+      Object.assign(rec, { tab_switches: tabSwitches, total_playtime_ms: Math.round(totalMs), input: usedTouch && usedMouse ? 'both' : usedTouch ? 'touch' : 'mouse',
+        viewport: window.innerWidth + 'x' + window.innerHeight, sound_on: audio.soundEnabled ? 1 : 0, ambient_on: audio.ambientEnabled ? 1 : 0, tab_hidden: ST.hidden, ts: new Date().toISOString() });
+      emitRecord(rec);
+      if (isBreathing) { ST.brMs = 0; brSince = performance.now(); } else { ST.brMs = 0; }
+      V.acc = 0; V.since = document.hidden ? null : performance.now(); V.enter = performance.now(); ST = newStats();
+    }
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) { hiddenCount++; ST.hidden++; V.acc = dwellNow(); V.since = null; flushTab('hidden'); }
+      else { V.since = performance.now(); V.enter = performance.now(); }
+    });
+    window.addEventListener('pagehide', () => flushTab('exit'));
+    window.addEventListener('pointerdown', (e) => { if (e.pointerType === 'touch') usedTouch = true; else usedMouse = true; }, true);
+
+    // ================= 소리 합성 (Web Audio) =================
     class AudioManager {
-      constructor() {
-        this.ctx = null;
-        this.soundEnabled = true;
-        this.ambientEnabled = false;
-        this.ambientOsc = null;
-        this.ambientGain = null;
-        this.ambientInterval = null;
+      constructor() { this.ctx = null; this.soundEnabled = true; this.ambientEnabled = false; this.ambientInterval = null; }
+      init() { if (!this.ctx) { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); } if (this.ctx.state === 'suspended') this.ctx.resume(); }
+      tone(type, f0, f1, t, peak, atk, rel, stop) {
+        const now = this.ctx.currentTime, osc = this.ctx.createOscillator(), gain = this.ctx.createGain();
+        osc.type = type; osc.frequency.setValueAtTime(f0, now); if (f1) osc.frequency.exponentialRampToValueAtTime(f1, now + t);
+        gain.gain.setValueAtTime(0.001, now); gain.gain.linearRampToValueAtTime(peak, now + atk); gain.gain.exponentialRampToValueAtTime(0.0001, now + rel);
+        osc.connect(gain); gain.connect(this.ctx.destination); osc.start(now); osc.stop(now + stop);
       }
-
-      init() {
-        if (!this.ctx) {
-          const AudioContext = window.AudioContext || window.webkitAudioContext;
-          this.ctx = new AudioContext();
-        }
-        if (this.ctx.state === 'suspended') {
-          this.ctx.resume();
-        }
-      }
-
-      // Play soft bubble pop tone
-      playPopSound() {
-        if (!this.soundEnabled) return;
-        this.init();
-        
-        const now = this.ctx.currentTime;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-
-        // Frequency drop for classic bubble pop
-        const startFreq = 300 + Math.random() * 200;
-        const endFreq = 600 + Math.random() * 200;
-
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(startFreq, now);
-        osc.frequency.exponentialRampToValueAtTime(endFreq, now + 0.08);
-
-        gain.gain.setValueAtTime(0.3, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
-
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-
-        osc.start(now);
-        osc.stop(now + 0.1);
-      }
-
-      // Play harmonic bell note (Pentatonic Scale for soothing sound)
-      playZenNote() {
-        if (!this.soundEnabled) return;
-        this.init();
-
-        const notes = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25]; // C5 Pentatonic
-        const freq = notes[Math.floor(Math.random() * notes.length)];
-        const now = this.ctx.currentTime;
-
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(freq, now);
-
-        // Soft attack & long exponential release
-        gain.gain.setValueAtTime(0.001, now);
-        gain.gain.linearRampToValueAtTime(0.25, now + 0.05);
-        gain.gain.exponentialRampToValueAtTime(0.0001, now + 2.5);
-
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-
-        osc.start(now);
-        osc.stop(now + 2.6);
-      }
-
-      // Breathing chime tone
-      playChime(freq = 440) {
-        if (!this.soundEnabled) return;
-        this.init();
-
-        const now = this.ctx.currentTime;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(freq, now);
-
-        gain.gain.setValueAtTime(0.001, now);
-        gain.gain.linearRampToValueAtTime(0.15, now + 0.3);
-        gain.gain.exponentialRampToValueAtTime(0.0001, now + 2.0);
-
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-
-        osc.start(now);
-        osc.stop(now + 2.1);
-      }
-
-      // Toggle Background Drone/Ambient Sound
-      toggleAmbient() {
-        this.init();
-        this.ambientEnabled = !this.ambientEnabled;
-
-        if (this.ambientEnabled) {
-          this.startAmbient();
-        } else {
-          this.stopAmbient();
-        }
-        return this.ambientEnabled;
-      }
-
+      playPopSound() { if (!this.soundEnabled) return; this.init(); this.tone('sine', 300 + Math.random() * 200, 600 + Math.random() * 200, 0.08, 0.3, 0.004, 0.1, 0.12); }
+      playZenNote() { if (!this.soundEnabled) return; this.init(); const n = [261.63, 293.66, 329.63, 392.0, 440.0, 523.25, 587.33, 659.25]; this.tone('sine', n[Math.floor(Math.random() * n.length)], 0, 0, 0.25, 0.05, 2.5, 2.6); }
+      playChime(freq = 440) { if (!this.soundEnabled) return; this.init(); this.tone('triangle', freq, 0, 0, 0.15, 0.3, 2.0, 2.1); }
+      toggleAmbient() { this.init(); this.ambientEnabled = !this.ambientEnabled; if (this.ambientEnabled) this.startAmbient(); else this.stopAmbient(); return this.ambientEnabled; }
       startAmbient() {
         if (this.ambientInterval) clearInterval(this.ambientInterval);
-        
-        // Periodic gentle pad sound
-        const playPadNote = () => {
+        const pad = () => {
           if (!this.ambientEnabled) return;
-          const chords = [
-            [130.81, 196.00, 246.94, 329.63], // C maj9 soft
-            [146.83, 220.00, 261.63, 349.23], // Dm7
-            [110.00, 164.81, 246.94, 329.63]  // Am7
-          ];
-          const chord = chords[Math.floor(Math.random() * chords.length)];
-          
-          chord.forEach(freq => {
-            const now = this.ctx.currentTime;
-            const osc = this.ctx.createOscillator();
-            const gain = this.ctx.createGain();
-
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(freq, now);
-
-            gain.gain.setValueAtTime(0.001, now);
-            gain.gain.linearRampToValueAtTime(0.02, now + 3);
-            gain.gain.exponentialRampToValueAtTime(0.0001, now + 7);
-
-            osc.connect(gain);
-            gain.connect(this.ctx.destination);
-
-            osc.start(now);
-            osc.stop(now + 7.5);
-          });
+          const chords = [[130.81, 196.0, 246.94, 329.63], [146.83, 220.0, 261.63, 349.23], [110.0, 164.81, 246.94, 329.63]];
+          chords[Math.floor(Math.random() * chords.length)].forEach(f => this.tone('sine', f, 0, 0, 0.02, 3, 7, 7.5));
         };
-
-        playPadNote();
-        this.ambientInterval = setInterval(playPadNote, 6000);
+        pad(); this.ambientInterval = setInterval(pad, 6000);
       }
-
-      stopAmbient() {
-        if (this.ambientInterval) {
-          clearInterval(this.ambientInterval);
-          this.ambientInterval = null;
-        }
-      }
+      stopAmbient() { if (this.ambientInterval) { clearInterval(this.ambientInterval); this.ambientInterval = null; } }
     }
-
     const audio = new AudioManager();
 
-    // Sound UI Handlers
-    const soundToggleBtn = document.getElementById('soundToggleBtn');
-    const soundIcon = document.getElementById('soundIcon');
-    const soundLabel = document.getElementById('soundLabel');
-
+    const soundToggleBtn = document.getElementById('soundToggleBtn'), soundLabel = document.getElementById('soundLabel');
     soundToggleBtn.addEventListener('click', () => {
       audio.soundEnabled = !audio.soundEnabled;
-      if (audio.soundEnabled) {
-        soundIcon.setAttribute('data-lucide', 'volume-2');
-        soundIcon.classList.remove('text-slate-500');
-        soundIcon.classList.add('text-purple-300');
-        soundLabel.textContent = '소리 켬';
-      } else {
-        soundIcon.setAttribute('data-lucide', 'volume-x');
-        soundIcon.classList.remove('text-purple-300');
-        soundIcon.classList.add('text-slate-500');
-        soundLabel.textContent = '소리 끔';
-      }
-      (window.lucide && lucide.createIcons());
+      setIcon('soundIcon', audio.soundEnabled ? 'volume-2' : 'volume-x');
+      document.getElementById('soundIcon').classList.toggle('text-slate-500', !audio.soundEnabled);
+      soundLabel.textContent = audio.soundEnabled ? '소리 켬' : '소리 끔'; soundToggleBtn.setAttribute('aria-pressed', String(audio.soundEnabled));
     });
-
     const ambientToggleBtn = document.getElementById('ambientToggleBtn');
-    const ambientIcon = document.getElementById('ambientIcon');
-    const ambientLabel = document.getElementById('ambientLabel');
-
     ambientToggleBtn.addEventListener('click', () => {
-      const isPlaying = audio.toggleAmbient();
-      if (isPlaying) {
-        ambientIcon.classList.add('text-pink-400', 'animate-spin');
-        ambientLabel.textContent = '배경음 켬';
-      } else {
-        ambientIcon.classList.remove('text-pink-400', 'animate-spin');
-        ambientLabel.textContent = '배경음 끔';
-      }
+      const on = audio.toggleAmbient();
+      document.getElementById('ambientIcon').classList.toggle('animate-spin', on);
+      document.getElementById('ambientLabel').textContent = on ? '배경음 켬' : '배경음 끔'; ambientToggleBtn.setAttribute('aria-pressed', String(on));
     });
 
-    // --- Tab Navigation Setup ---
-    const tabBtns = [document.getElementById('tab1Btn'), document.getElementById('tab2Btn'), document.getElementById('tab3Btn')];
-    const sections = [document.getElementById('section1'), document.getElementById('section2'), document.getElementById('section3')];
-
-    function switchTab(targetIndex) {
-      tabBtns.forEach((btn, idx) => {
-        if (idx === targetIndex) {
-          btn.className = "tab-btn flex-1 py-2.5 px-3 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 bg-purple-600/40 text-purple-100 shadow-sm border border-purple-400/30";
-          sections[idx].classList.remove('hidden');
-        } else {
-          btn.className = "tab-btn flex-1 py-2.5 px-3 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 text-slate-400 hover:text-slate-200 hover:bg-white/5";
-          sections[idx].classList.add('hidden');
-        }
-      });
-      // Resize canvases upon tab switch
+    // ================= 탭 =================
+    const tabBtns = [1, 2, 3].map(n => document.getElementById('tab' + n + 'Btn'));
+    const sections = [1, 2, 3].map(n => document.getElementById('section' + n));
+    function switchTab(target) {
+      if (target === curTab) return;
+      flushTab('switch'); tabSwitches++; curTab = target;
+      tabBtns.forEach((b, i) => { b.classList.toggle('on', i === target); b.setAttribute('aria-selected', String(i === target)); sections[i].classList.toggle('hidden', i !== target); });
       resizeCanvases();
     }
+    tabBtns.forEach((b, i) => b.addEventListener('click', () => switchTab(i)));
 
-    tabBtns.forEach((btn, idx) => {
-      btn.addEventListener('click', () => switchTab(idx));
-    });
-
-    // --- Canvas Resizing Utility ---
     function setupCanvas(canvas) {
-      const dpr = window.devicePixelRatio || 1;
-      const rect = canvas.getBoundingClientRect();
-      canvas.width = rect.width * dpr;
-      canvas.height = rect.height * dpr;
-      const ctx = canvas.getContext('2d');
-      ctx.scale(dpr, dpr);
-      return ctx;
+      const dpr = window.devicePixelRatio || 1, rect = canvas.getBoundingClientRect();
+      if (rect.width === 0) return canvas.getContext('2d');
+      canvas.width = rect.width * dpr; canvas.height = rect.height * dpr;
+      const c = canvas.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0); return c;
+    }
+    const rnd = (a, b) => a + Math.random() * (b - a);
+
+    // ================= 밤하늘 배경 =================
+    const sky = document.getElementById('sky'); let skyCtx = null, stars = [], shoot = null;
+    function initSky() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2); sky.width = innerWidth * dpr; sky.height = innerHeight * dpr;
+      skyCtx = sky.getContext('2d'); skyCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      stars = Array.from({ length: Math.round(innerWidth * innerHeight / 7000) }, () => ({ x: Math.random() * innerWidth, y: Math.random() * innerHeight, r: Math.random() * 1.3 + .3, p: Math.random() * 6.28, s: Math.random() * 1.2 + .4 }));
+    }
+    function drawSky(t) {
+      const g = skyCtx, w = innerWidth, h = innerHeight;
+      const bg = g.createLinearGradient(0, 0, 0, h); bg.addColorStop(0, '#0b0f2c'); bg.addColorStop(.55, '#151a45'); bg.addColorStop(1, '#241a4a'); g.fillStyle = bg; g.fillRect(0, 0, w, h);
+      const mx = w * .82, my = h * .16, mg = g.createRadialGradient(mx, my, 6, mx, my, 150);
+      mg.addColorStop(0, 'rgba(255,244,214,.95)'); mg.addColorStop(.12, 'rgba(255,240,200,.55)'); mg.addColorStop(1, 'rgba(255,240,200,0)'); g.fillStyle = mg; g.beginPath(); g.arc(mx, my, 150, 0, 6.28); g.fill();
+      g.fillStyle = '#fff4d6'; g.beginPath(); g.arc(mx, my, 20, 0, 6.28); g.fill();
+      stars.forEach(s => { const a = reduce ? .6 : .35 + .5 * Math.sin(t / 1000 * s.s + s.p); g.fillStyle = `rgba(235,240,255,${Math.max(.08, a)})`; g.beginPath(); g.arc(s.x, s.y, s.r, 0, 6.28); g.fill(); });
+      if (!reduce) {
+        if (!shoot && Math.random() < .0016) shoot = { x: Math.random() * w * .7, y: Math.random() * h * .3, l: 0 };
+        if (shoot) { shoot.l += 7; shoot.x += 7; shoot.y += 3.2; const a = Math.max(0, 1 - shoot.l / 120); g.strokeStyle = `rgba(255,255,255,${a})`; g.lineWidth = 1.4; g.beginPath(); g.moveTo(shoot.x, shoot.y); g.lineTo(shoot.x - 46, shoot.y - 21); g.stroke(); if (shoot.l > 120) shoot = null; }
+      }
     }
 
-    // ==========================================
-    // SECTION 1: Worry Bubble Popper System
-    // ==========================================
+    // ================= 1. 걱정 풍선 =================
     const bubbleCanvas = document.getElementById('bubbleCanvas');
-    let bCtx = null;
-    const bubbles = [];
-    const bubbleParticles = [];
-
-    const defaultThoughts = [
-      "미래에 대한 막연한 불안", "잘해야 한다는 중압감", "타인의 시선과 평가",
-      "오늘의 실수와 자책", "마음 속 서운함", "끝없는 걱정과 잡념"
-    ];
+    let bCtx = null; const bubbles = [], bubbleParticles = [], rings = []; let released = 0;
+    const defaultThoughts = ['미래에 대한 막연한 불안', '잘해야 한다는 중압감', '타인의 시선과 평가', '오늘의 실수와 자책', '마음 속 서운함', '끝없는 걱정과 잡념'];
+    const bokeh = Array.from({ length: 16 }, () => ({ x: Math.random(), y: Math.random(), r: rnd(14, 46), s: rnd(.02, .06), h: rnd(230, 320), p: Math.random() * 6.28 }));
 
     class Bubble {
-      constructor(text, x, y) {
-        this.text = text;
-        this.x = x || Math.random() * (bubbleCanvas.clientWidth - 120) + 60;
-        this.y = y || bubbleCanvas.clientHeight + 60;
-        this.radius = Math.min(Math.max(text.length * 5.5 + 24, 45), 75);
-        this.vx = (Math.random() - 0.5) * 0.6;
-        this.vy = - (Math.random() * 0.7 + 0.6);
-        this.alpha = 0.85;
-        this.hue = Math.floor(Math.random() * 60) + 240; // Soft purples/blues
-        this.pulse = Math.random() * Math.PI * 2;
+      constructor(text, user) {
+        this.text = text; this.user = !!user; this.born = performance.now();
+        this.radius = Math.min(Math.max(text.length * 5.5 + 26, 48), 78);
+        this.x = this.radius + 6 + Math.random() * Math.max(10, bubbleCanvas.clientWidth - this.radius * 2 - 12); this.y = bubbleCanvas.clientHeight + 60;
+        this.vx = (Math.random() - .5) * .6; this.vy = -(Math.random() * .6 + .5); this.hue = Math.floor(Math.random() * 70) + 235; this.pulse = Math.random() * 6.28;
       }
-
-      update() {
-        this.x += this.vx;
-        this.y += this.vy;
-        this.pulse += 0.03;
-
-        // Soft bounce on canvas borders
-        if (this.x - this.radius < 0 || this.x + this.radius > bubbleCanvas.clientWidth) {
-          this.vx *= -1;
-        }
-      }
-
-      draw(ctx) {
-        ctx.save();
-        ctx.translate(this.x, this.y);
-
-        const currentRadius = this.radius + Math.sin(this.pulse) * 2;
-
-        // Gradient bubble fill
-        const grad = ctx.createRadialGradient(
-          -currentRadius * 0.3, -currentRadius * 0.3, currentRadius * 0.1,
-          0, 0, currentRadius
-        );
-        grad.addColorStop(0, `hsla(${this.hue}, 80%, 85%, 0.4)`);
-        grad.addColorStop(0.7, `hsla(${this.hue}, 70%, 65%, 0.15)`);
-        grad.addColorStop(1, `hsla(${this.hue}, 90%, 75%, 0.5)`);
-
-        ctx.beginPath();
-        ctx.arc(0, 0, currentRadius, 0, Math.PI * 2);
-        ctx.fillStyle = grad;
-        ctx.fill();
-
-        // Highlight sheen
-        ctx.beginPath();
-        ctx.arc(-currentRadius * 0.35, -currentRadius * 0.35, currentRadius * 0.25, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
-        ctx.fill();
-
-        // Bubble border
-        ctx.strokeStyle = `hsla(${this.hue}, 80%, 80%, 0.4)`;
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-
-        // Inner Text
-        ctx.fillStyle = 'rgba(241, 245, 249, 0.95)';
-        ctx.font = '13px "Noto Sans KR", sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        
-        // Wrap text if needed
-        const maxW = currentRadius * 1.6;
-        if (ctx.measureText(this.text).width > maxW) {
-          const mid = Math.floor(this.text.length / 2);
-          ctx.fillText(this.text.substring(0, mid), 0, -7);
-          ctx.fillText(this.text.substring(mid), 0, 9);
-        } else {
-          ctx.fillText(this.text, 0, 1);
-        }
-
-        ctx.restore();
+      update() { this.x += this.vx; this.y += this.vy; this.pulse += .03; if (this.x - this.radius < 0 || this.x + this.radius > bubbleCanvas.clientWidth) this.vx *= -1; }
+      draw(c) {
+        const r = this.radius + Math.sin(this.pulse) * 2; c.save(); c.translate(this.x, this.y);
+        const fill = c.createRadialGradient(-r * .3, -r * .35, r * .08, 0, 0, r);
+        fill.addColorStop(0, `hsla(${this.hue},85%,92%,.40)`); fill.addColorStop(.65, `hsla(${this.hue},75%,70%,.13)`); fill.addColorStop(1, `hsla(${this.hue + 40},90%,78%,.42)`);
+        c.beginPath(); c.arc(0, 0, r, 0, 6.28); c.fillStyle = fill; c.fill();
+        const rim = c.createLinearGradient(-r, -r, r, r); rim.addColorStop(0, 'rgba(255,200,240,.75)'); rim.addColorStop(.5, 'rgba(160,200,255,.25)'); rim.addColorStop(1, 'rgba(150,255,230,.7)');
+        c.lineWidth = 2; c.strokeStyle = rim; c.stroke();
+        c.beginPath(); c.arc(0, 0, r - 4, Math.PI * 1.08, Math.PI * 1.45); c.strokeStyle = 'rgba(255,255,255,.7)'; c.lineWidth = 3; c.lineCap = 'round'; c.stroke();
+        c.beginPath(); c.arc(r * .42, r * .46, r * .14, Math.PI * .1, Math.PI * .5); c.strokeStyle = 'rgba(255,255,255,.35)'; c.lineWidth = 2; c.stroke();
+        c.fillStyle = 'rgba(245,247,255,.97)'; c.font = '13px "Noto Sans KR", sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.shadowColor = 'rgba(20,10,70,.6)'; c.shadowBlur = 4;
+        const maxW = r * 1.6;
+        if (c.measureText(this.text).width > maxW) { const m = Math.floor(this.text.length / 2); c.fillText(this.text.substring(0, m), 0, -8); c.fillText(this.text.substring(m), 0, 9); } else c.fillText(this.text, 0, 1);
+        c.restore();
       }
     }
-
     class Particle {
-      constructor(x, y, hue) {
-        this.x = x;
-        this.y = y;
-        this.radius = Math.random() * 3.5 + 1.5;
-        const angle = Math.random() * Math.PI * 2;
-        const speed = Math.random() * 4 + 1;
-        this.vx = Math.cos(angle) * speed;
-        this.vy = Math.sin(angle) * speed;
-        this.alpha = 1;
-        this.hue = hue || 270;
-        this.decay = Math.random() * 0.02 + 0.015;
-      }
-
-      update() {
-        this.x += this.vx;
-        this.y += this.vy;
-        this.vx *= 0.96;
-        this.vy *= 0.96;
-        this.alpha -= this.decay;
-      }
-
-      draw(ctx) {
-        ctx.save();
-        ctx.globalAlpha = Math.max(0, this.alpha);
-        ctx.fillStyle = `hsla(${this.hue}, 90%, 80%, ${this.alpha})`;
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
+      constructor(x, y, hue) { this.x = x; this.y = y; this.r = Math.random() * 3.2 + 1.2; const a = Math.random() * 6.28, s = Math.random() * 4 + 1; this.vx = Math.cos(a) * s; this.vy = Math.sin(a) * s - .4; this.alpha = 1; this.hue = hue || 270; this.decay = Math.random() * .018 + .013; this.star = Math.random() < .35; }
+      update() { this.x += this.vx; this.y += this.vy; this.vx *= .96; this.vy = this.vy * .96 + .03; this.alpha -= this.decay; }
+      draw(c) {
+        c.save(); c.globalAlpha = Math.max(0, this.alpha); c.fillStyle = `hsl(${this.hue},95%,82%)`; c.shadowColor = `hsl(${this.hue},95%,75%)`; c.shadowBlur = 8;
+        if (this.star) { c.translate(this.x, this.y); c.beginPath(); for (let i = 0; i < 4; i++) { c.rotate(Math.PI / 2); c.lineTo(0, this.r * 2.4); c.lineTo(this.r * .5, this.r * .5); } c.fill(); }
+        else { c.beginPath(); c.arc(this.x, this.y, this.r, 0, 6.28); c.fill(); }
+        c.restore();
       }
     }
-
-    function initBubbles() {
-      bCtx = setupCanvas(bubbleCanvas);
-      bubbles.length = 0;
-      defaultThoughts.forEach((txt, i) => {
-        setTimeout(() => {
-          bubbles.push(new Bubble(txt));
-        }, i * 600);
-      });
-    }
-
-    function popBubble(index) {
-      const b = bubbles[index];
-      audio.playPopSound();
-
-      // Create burst particles
-      for (let i = 0; i < 28; i++) {
-        bubbleParticles.push(new Particle(b.x, b.y, b.hue));
-      }
-
-      bubbles.splice(index, 1);
+    function initBubbles() { bCtx = setupCanvas(bubbleCanvas); bubbles.length = 0; defaultThoughts.forEach((t, i) => setTimeout(() => bubbles.push(new Bubble(t, false)), i * 600)); }
+    function popBubble(i) {
+      const b = bubbles[i]; audio.playPopSound(); markFirst(); ST.bPop++; ST.bLat.push(Math.round(performance.now() - b.born));
+      for (let k = 0; k < 30; k++) bubbleParticles.push(new Particle(b.x, b.y, b.hue));
+      rings.push({ x: b.x, y: b.y, r: b.radius, a: .7, hue: b.hue });
+      bubbles.splice(i, 1); released++; const el = document.getElementById('releasedCount'); el.textContent = released; el.classList.remove('count-pop'); void el.offsetWidth; el.classList.add('count-pop');
       document.getElementById('bubbleHint').classList.add('opacity-0');
-
-      // Auto replenish if too empty
-      if (bubbles.length < 3) {
-        setTimeout(() => {
-          const randomText = defaultThoughts[Math.floor(Math.random() * defaultThoughts.length)];
-          bubbles.push(new Bubble(randomText));
-        }, 2000);
-      }
+      if (bubbles.length < 3) setTimeout(() => bubbles.push(new Bubble(defaultThoughts[Math.floor(Math.random() * defaultThoughts.length)], false)), 2000);
     }
-
-    // Add Bubble Form Handling
-    const bubbleForm = document.getElementById('bubbleForm');
     const bubbleInput = document.getElementById('bubbleInput');
-
-    // 온앤오프 연결용 수정: 플랫폼(iframe)에서는 폼 전송이 막혀 있어 "띄우기"가 동작하지 않았습니다.
-    // 폼 전송(submit)에 기대지 않고 버튼 클릭/Enter 키로 직접 풍선을 만듭니다.
+    // 온앤오프 연결용: 플랫폼(iframe)에서는 폼 전송이 막혀 있어, 버튼 클릭/Enter로 직접 풍선을 만듭니다.
     function addWorryBubble() {
-      const txt = bubbleInput.value.trim();
-      if (!txt) { bubbleInput.focus(); return; }
-      audio.init();
-      const b = new Bubble(txt);
-      b.y = bubbleCanvas.clientHeight - b.radius - 10; // 바로 보이도록 화면 아래쪽에서 시작
-      bubbles.push(b);
-      bubbleInput.value = '';
-      document.getElementById('bubbleHint').classList.add('opacity-0');
+      const txt = bubbleInput.value.trim(); if (!txt) { bubbleInput.focus(); return; }
+      audio.init(); markFirst(); ST.bAdd++; ST.bLen.push(txt.length);   // 글 내용은 저장하지 않고 글자 수만 셉니다
+      const b = new Bubble(txt, true); b.y = bubbleCanvas.clientHeight - b.radius - 10; bubbles.push(b); bubbleInput.value = ''; document.getElementById('bubbleHint').classList.add('opacity-0');
     }
-    bubbleForm.addEventListener('submit', (e) => { e.preventDefault(); addWorryBubble(); });
+    document.getElementById('bubbleForm').addEventListener('submit', (e) => { e.preventDefault(); addWorryBubble(); });
     document.getElementById('bubbleAddBtn').addEventListener('click', addWorryBubble);
-    bubbleInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); addWorryBubble(); } // 한글 입력 중 Enter(조합 확정)는 제외
-    });
-
-    // Bubble Canvas Click/Tap Listener
+    bubbleInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); addWorryBubble(); } });
     bubbleCanvas.addEventListener('pointerdown', (e) => {
-      const rect = bubbleCanvas.getBoundingClientRect();
-      const clickX = e.clientX - rect.left;
-      const clickY = e.clientY - rect.top;
-
-      for (let i = bubbles.length - 1; i >= 0; i--) {
-        const b = bubbles[i];
-        const dist = Math.hypot(b.x - clickX, b.y - clickY);
-        if (dist <= b.radius + 10) {
-          popBubble(i);
-          break;
-        }
-      }
+      const rc = bubbleCanvas.getBoundingClientRect(), x = e.clientX - rc.left, y = e.clientY - rc.top;
+      for (let i = bubbles.length - 1; i >= 0; i--) { if (Math.hypot(bubbles[i].x - x, bubbles[i].y - y) <= bubbles[i].radius + 10) { popBubble(i); break; } }
     });
-
-    function renderBubbleCanvas() {
-      if (!bCtx) return;
-      bCtx.clearRect(0, 0, bubbleCanvas.clientWidth, bubbleCanvas.clientHeight);
-
-      // Render & update bubbles
-      for (let i = bubbles.length - 1; i >= 0; i--) {
-        const b = bubbles[i];
-        b.update();
-        b.draw(bCtx);
-
-        // Respawn if drifted off top screen
-        if (b.y < -b.radius - 20) {
-          b.y = bubbleCanvas.clientHeight + b.radius + 10;
-          b.x = Math.random() * (bubbleCanvas.clientWidth - 100) + 50;
-        }
-      }
-
-      // Render particles
-      for (let i = bubbleParticles.length - 1; i >= 0; i--) {
-        const p = bubbleParticles[i];
-        p.update();
-        p.draw(bCtx);
-        if (p.alpha <= 0) {
-          bubbleParticles.splice(i, 1);
-        }
-      }
+    function renderBubbleCanvas(t) {
+      if (!bCtx || sections[0].classList.contains('hidden')) return;
+      const w = bubbleCanvas.clientWidth, h = bubbleCanvas.clientHeight, c = bCtx;
+      const bg = c.createLinearGradient(0, 0, 0, h); bg.addColorStop(0, 'rgba(28,24,80,.92)'); bg.addColorStop(.6, 'rgba(46,32,104,.88)'); bg.addColorStop(1, 'rgba(74,40,120,.9)'); c.clearRect(0, 0, w, h); c.fillStyle = bg; c.fillRect(0, 0, w, h);
+      const glow = c.createRadialGradient(w / 2, h, 10, w / 2, h, h * .9); glow.addColorStop(0, 'rgba(244,160,220,.30)'); glow.addColorStop(1, 'rgba(244,160,220,0)'); c.fillStyle = glow; c.fillRect(0, 0, w, h);
+      bokeh.forEach(k => { const x = (k.x * w + Math.sin(t / 4000 + k.p) * 18), y = ((k.y - t / 1000 * k.s * .1) % 1 + 1) % 1 * h; const g = c.createRadialGradient(x, y, 0, x, y, k.r); g.addColorStop(0, `hsla(${k.h},80%,80%,.18)`); g.addColorStop(1, `hsla(${k.h},80%,80%,0)`); c.fillStyle = g; c.beginPath(); c.arc(x, y, k.r, 0, 6.28); c.fill(); });
+      for (let i = bubbles.length - 1; i >= 0; i--) { const b = bubbles[i]; b.update(); b.draw(c); if (b.y < -b.radius - 20) { b.y = h + b.radius + 10; b.x = Math.random() * (w - 100) + 50; } }
+      for (let i = rings.length - 1; i >= 0; i--) { const r = rings[i]; r.r += 2.6; r.a -= .026; c.strokeStyle = `hsla(${r.hue},90%,85%,${Math.max(0, r.a)})`; c.lineWidth = 2; c.beginPath(); c.arc(r.x, r.y, r.r, 0, 6.28); c.stroke(); if (r.a <= 0) rings.splice(i, 1); }
+      for (let i = bubbleParticles.length - 1; i >= 0; i--) { const p = bubbleParticles[i]; p.update(); p.draw(c); if (p.alpha <= 0) bubbleParticles.splice(i, 1); }
     }
 
-    // ==========================================
-    // SECTION 2: Breathe & Growth Garden System
-    // ==========================================
+    // ================= 2. 호흡 정원 =================
     const gardenCanvas = document.getElementById('gardenCanvas');
-    let gCtx = null;
-    let breathCount = 0;
-    let isBreathing = false;
-    let breathStep = 0; // 0: Idle, 1: Inhale (4s), 2: Hold (7s), 3: Exhale (8s)
-    let breathProgress = 0;
-    let breathTimerId = null;
+    let gCtx = null, breathCount = 0, isBreathing = false, breathStep = 0, breathTimerId = null, brSince = 0;
+    const breathCircle = document.getElementById('breathCircle'), orbWrap = document.getElementById('orbWrap'), breathPhaseText = document.getElementById('breathPhaseText'), breathTimerText = document.getElementById('breathTimerText');
+    const breathCountDisplay = document.getElementById('breathCount'), startBreathBtn = document.getElementById('startBreathBtn'), resetGardenBtn = document.getElementById('resetGardenBtn');
+    let treeBranches = [], gardenFlowers = [], petals = [], flies = [];
 
-    const breathCircle = document.getElementById('breathCircle');
-    const breathPhaseText = document.getElementById('breathPhaseText');
-    const breathTimerText = document.getElementById('breathTimerText');
-    const breathCountDisplay = document.getElementById('breathCount');
-    const startBreathBtn = document.getElementById('startBreathBtn');
-    const resetGardenBtn = document.getElementById('resetGardenBtn');
-
-    // Tree / Flower Data Structure
-    let treeBranches = [];
-    let gardenFlowers = [];
-
-    function initGarden() {
-      gCtx = setupCanvas(gardenCanvas);
-      treeBranches = [];
-      gardenFlowers = [];
-      // Initial Trunk
-      growTreeTrunk();
-    }
-
-    function growTreeTrunk() {
-      const w = gardenCanvas.clientWidth;
-      const h = gardenCanvas.clientHeight;
-      treeBranches.push({
-        x1: w / 2, y1: h,
-        x2: w / 2, y2: h - 90,
-        width: 10,
-        color: '#334155',
-        level: 0
-      });
-    }
-
+    function initGarden() { gCtx = setupCanvas(gardenCanvas); treeBranches = []; gardenFlowers = []; petals = []; flies = Array.from({ length: 10 }, () => ({ x: Math.random(), y: Math.random() * .6 + .3, p: Math.random() * 6.28, s: rnd(.3, .8) })); growTrunk(); }
+    function growTrunk() { const w = gardenCanvas.clientWidth, h = gardenCanvas.clientHeight; treeBranches.push({ x1: w / 2, y1: h - 40, x2: w / 2 + 4, y2: h - 140, width: 12, color: '#4a3a5e', bend: 10 }); }
     function addGardenGrowth() {
-      const w = gardenCanvas.clientWidth;
-      const h = gardenCanvas.clientHeight;
-
-      // Add branches & flowers progressively with breath count
-      const numGrowth = 2 + Math.floor(Math.random() * 2);
-      for (let i = 0; i < numGrowth; i++) {
-        const angle = (Math.random() - 0.5) * Math.PI * 0.7 - Math.PI / 2;
-        const length = Math.random() * 40 + 30;
-        const startX = w / 2 + (Math.random() - 0.5) * (breathCount * 12);
-        const startY = h - 90 - Math.min(breathCount * 15, h * 0.5);
-
-        const endX = startX + Math.cos(angle) * length;
-        const endY = startY + Math.sin(angle) * length;
-
-        treeBranches.push({
-          x1: startX, y1: startY,
-          x2: endX, y2: endY,
-          width: Math.max(1, 6 - breathCount * 0.3),
-          color: `hsl(${150 + Math.random() * 40}, 30%, ${40 + Math.random() * 20}%)`,
-          level: breathCount
-        });
-
-        // Add glowing flower/leaf at tip
-        gardenFlowers.push({
-          x: endX,
-          y: endY,
-          radius: 0,
-          targetRadius: Math.random() * 7 + 4,
-          color: `hsl(${280 + Math.random() * 80}, 80%, 75%)`,
-          glow: `hsl(${280 + Math.random() * 80}, 90%, 85%)`
-        });
+      const w = gardenCanvas.clientWidth, h = gardenCanvas.clientHeight, n = 2 + Math.floor(Math.random() * 2);
+      for (let i = 0; i < n; i++) {
+        const angle = (Math.random() - .5) * Math.PI * .8 - Math.PI / 2, len = Math.random() * 40 + 34;
+        const sx = w / 2 + (Math.random() - .5) * Math.min(breathCount * 22, w * .62), sy = h - 140 - Math.min(breathCount * 9, 70);
+        const ex = sx + Math.cos(angle) * len, ey = sy + Math.sin(angle) * len;
+        treeBranches.push({ x1: sx, y1: sy, x2: ex, y2: ey, width: Math.max(1.4, 6.5 - breathCount * .3), color: `hsl(${265 + Math.random() * 30},22%,${42 + Math.random() * 12}%)`, bend: rnd(-12, 12) });
+        const hue = 290 + Math.random() * 70; gardenFlowers.push({ x: ex, y: ey, radius: 0, target: Math.random() * 6 + 5, hue, rot: Math.random() * 6.28, born: performance.now() });
       }
+      for (let i = 0; i < 8; i++) petals.push({ x: w / 2 + rnd(-90, 90), y: rnd(40, h * .5), vx: rnd(-.3, .3), vy: rnd(.3, .7), r: rnd(2, 4), a: 1, hue: 300 + Math.random() * 50, rot: Math.random() * 6.28 });
     }
-
+    function setBreathClass(c) { breathCircle.classList.remove('inhale', 'hold', 'exhale'); if (c) breathCircle.classList.add(c); }
     function startBreathingSession() {
-      if (isBreathing) {
-        stopBreathingSession();
-        return;
-      }
-
-      audio.init();
-      isBreathing = true;
-      startBreathBtn.innerHTML = `<i data-lucide="square" class="w-4 h-4"></i><span>호흡 멈추기</span>`;
-      (window.lucide && lucide.createIcons());
-      runBreathCycle();
+      if (isBreathing) { stopBreathingSession(true); return; }
+      audio.init(); markFirst(); ST.brStart++; isBreathing = true; brSince = performance.now(); orbWrap.classList.add('run');
+      startBreathBtn.innerHTML = '<i data-lucide="square" class="w-4 h-4"></i><span>호흡 멈추기</span>'; renderIcons(); runBreathCycle();
     }
-
-    function stopBreathingSession() {
-      isBreathing = false;
-      clearTimeout(breathTimerId);
-      breathPhaseText.textContent = "시작 준비";
-      breathTimerText.textContent = "버튼을 눌러 호흡 시작";
-      breathCircle.style.transform = "scale(1)";
-      breathCircle.className = "w-36 h-36 sm:w-44 sm:h-44 rounded-full border-2 border-emerald-400/30 bg-emerald-500/10 flex flex-col items-center justify-center transition-all duration-700 backdrop-blur-sm shadow-2xl shadow-emerald-950/50";
-      startBreathBtn.innerHTML = `<i data-lucide="play" class="w-4 h-4"></i><span>호흡 안내 시작</span>`;
-      (window.lucide && lucide.createIcons());
+    function stopBreathingSession(byUser) {
+      if (isBreathing) { ST.brMs += performance.now() - brSince; if (byUser && breathStep > 0) { ST.brAbort++; ST.brAbortPhase = ['', 'in', 'hold', 'out'][breathStep]; } }
+      isBreathing = false; clearTimeout(breathTimerId); breathStep = 0; orbWrap.classList.remove('run'); setBreathClass(null);
+      breathPhaseText.textContent = '시작 준비'; breathTimerText.textContent = '버튼을 눌러 호흡 시작';
+      startBreathBtn.innerHTML = '<i data-lucide="play" class="w-4 h-4"></i><span>호흡 안내 시작</span>'; renderIcons();
     }
-
+    function phase(step, label, cls, freq, secs, msg, next) {
+      if (!isBreathing) return; breathStep = step; breathPhaseText.textContent = label; audio.playChime(freq); setBreathClass(cls);
+      let c = secs; breathTimerText.textContent = msg(c);
+      const iv = setInterval(() => { c--; if (!isBreathing) { clearInterval(iv); return; } if (c > 0) breathTimerText.textContent = msg(c); else { clearInterval(iv); next(); } }, 1000);
+    }
     function runBreathCycle() {
-      if (!isBreathing) return;
-
-      // 1. Inhale Phase (4 sec)
-      breathStep = 1;
-      breathPhaseText.textContent = "숨 들이쉬기";
-      audio.playChime(329.63); // E4 tone
-      breathCircle.className = "w-36 h-36 sm:w-44 sm:h-44 rounded-full border-2 border-emerald-300 bg-emerald-500/30 flex flex-col items-center justify-center transition-all duration-[4000ms] backdrop-blur-md shadow-2xl shadow-emerald-500/40 scale-125";
-      
-      let countdown = 4;
-      breathTimerText.textContent = `${countdown}초 동안 가볍게 마십니다`;
-      
-      const inhaleInterval = setInterval(() => {
-        countdown--;
-        if (countdown > 0) {
-          breathTimerText.textContent = `${countdown}초 동안 가볍게 마십니다`;
-        } else {
-          clearInterval(inhaleInterval);
-          if (!isBreathing) return;
-
-          // 2. Hold Phase (7 sec)
-          breathStep = 2;
-          breathPhaseText.textContent = "숨 멈추기";
-          audio.playChime(392.00); // G4 tone
-          breathCircle.className = "w-36 h-36 sm:w-44 sm:h-44 rounded-full border-2 border-teal-300 bg-teal-500/30 flex flex-col items-center justify-center transition-all duration-[7000ms] backdrop-blur-md shadow-2xl shadow-teal-500/40 scale-125";
-          
-          let holdCount = 7;
-          breathTimerText.textContent = `${holdCount}초 동안 편안히 편안함을 유지합니다`;
-
-          const holdInterval = setInterval(() => {
-            holdCount--;
-            if (holdCount > 0) {
-              breathTimerText.textContent = `${holdCount}초 동안 편안함을 유지합니다`;
-            } else {
-              clearInterval(holdInterval);
-              if (!isBreathing) return;
-
-              // 3. Exhale Phase (8 sec)
-              breathStep = 3;
-              breathPhaseText.textContent = "숨 내쉬기";
-              audio.playChime(261.63); // C4 tone
-              breathCircle.className = "w-36 h-36 sm:w-44 sm:h-44 rounded-full border-2 border-indigo-400/30 bg-purple-500/10 flex flex-col items-center justify-center transition-all duration-[8000ms] backdrop-blur-sm shadow-2xl scale-90";
-              
-              let exhaleCount = 8;
-              breathTimerText.textContent = `${exhaleCount}초 동안 천천히 내뱉습니다`;
-
-              const exhaleInterval = setInterval(() => {
-                exhaleCount--;
-                if (exhaleCount > 0) {
-                  breathTimerText.textContent = `${exhaleCount}초 동안 천천히 내뱉습니다`;
-                } else {
-                  clearInterval(exhaleInterval);
-                  if (!isBreathing) return;
-
-                  // Cycle Completed
-                  breathCount++;
-                  breathCountDisplay.textContent = `${breathCount}회`;
-                  addGardenGrowth();
-
-                  // Repeat Cycle
-                  breathTimerId = setTimeout(runBreathCycle, 500);
-                }
-              }, 1000);
-            }
-          }, 1000);
-        }
-      }, 1000);
+      phase(1, '숨 들이쉬기', 'inhale', 329.63, 4, c => `${c}초 · 가볍게 들이쉬어요`, () =>
+        phase(2, '숨 멈추기', 'hold', 392.0, 7, c => `${c}초 · 편안히 멈춰요`, () =>
+          phase(3, '숨 내쉬기', 'exhale', 261.63, 8, c => `${c}초 · 천천히 내쉬어요`, () => {
+            breathCount++; ST.brCycles++; breathStep = 0; breathCountDisplay.textContent = breathCount + '회'; breathCountDisplay.classList.remove('count-pop'); void breathCountDisplay.offsetWidth; breathCountDisplay.classList.add('count-pop');
+            addGardenGrowth(); breathTimerId = setTimeout(runBreathCycle, 500);
+          })));
     }
-
     startBreathBtn.addEventListener('click', startBreathingSession);
-    resetGardenBtn.addEventListener('click', () => {
-      breathCount = 0;
-      breathCountDisplay.textContent = "0회";
-      initGarden();
-    });
+    resetGardenBtn.addEventListener('click', () => { breathCount = 0; breathCountDisplay.textContent = '0회'; initGarden(); });
 
-    function renderGardenCanvas() {
-      if (!gCtx) return;
-      gCtx.clearRect(0, 0, gardenCanvas.clientWidth, gardenCanvas.clientHeight);
-
-      // Draw Tree Branches
-      treeBranches.forEach(b => {
-        gCtx.beginPath();
-        gCtx.moveTo(b.x1, b.y1);
-        gCtx.lineTo(b.x2, b.y2);
-        gCtx.strokeStyle = b.color;
-        gCtx.lineWidth = b.width;
-        gCtx.lineCap = 'round';
-        gCtx.stroke();
-      });
-
-      // Draw Glowing Flowers
-      gardenFlowers.forEach(f => {
-        if (f.radius < f.targetRadius) {
-          f.radius += 0.05;
-        }
-        gCtx.save();
-        gCtx.beginPath();
-        gCtx.arc(f.x, f.y, Math.max(0.1, f.radius), 0, Math.PI * 2);
-        gCtx.fillStyle = f.color;
-        gCtx.shadowColor = f.glow;
-        gCtx.shadowBlur = 12;
-        gCtx.fill();
-        gCtx.restore();
-      });
+    function drawBlossom(c, f, t) {
+      const s = Math.max(.1, f.radius), sway = Math.sin(t / 1400 + f.x) * .15;
+      c.save(); c.translate(f.x, f.y); c.rotate(f.rot + sway); c.shadowColor = `hsl(${f.hue},95%,80%)`; c.shadowBlur = 14;
+      for (let i = 0; i < 5; i++) { c.rotate(6.28 / 5); c.beginPath(); c.ellipse(0, -s * .7, s * .45, s * .8, 0, 0, 6.28); c.fillStyle = `hsla(${f.hue},85%,${78 + (i % 2) * 6}%,.92)`; c.fill(); }
+      c.beginPath(); c.arc(0, 0, s * .32, 0, 6.28); c.fillStyle = '#fff2b8'; c.fill(); c.restore();
+    }
+    function renderGardenCanvas(t) {
+      if (!gCtx || sections[1].classList.contains('hidden')) return;
+      const w = gardenCanvas.clientWidth, h = gardenCanvas.clientHeight, c = gCtx; c.clearRect(0, 0, w, h);
+      const bg = c.createLinearGradient(0, 0, 0, h); bg.addColorStop(0, 'rgba(14,30,52,.92)'); bg.addColorStop(.6, 'rgba(18,52,70,.9)'); bg.addColorStop(1, 'rgba(14,60,66,.95)'); c.fillStyle = bg; c.fillRect(0, 0, w, h);
+      // 숨 쉴 때 나무 뒤 빛이 같이 커졌다 줄어듭니다
+      const pulse = breathStep === 1 ? 1.25 : breathStep === 2 ? 1.25 : 1; const aura = c.createRadialGradient(w / 2, h * .55, 10, w / 2, h * .55, h * .62 * pulse);
+      aura.addColorStop(0, `rgba(110,231,183,${.12 + Math.min(breathCount, 10) * .012})`); aura.addColorStop(1, 'rgba(110,231,183,0)'); c.fillStyle = aura; c.fillRect(0, 0, w, h);
+      // 언덕
+      c.fillStyle = 'rgba(10,36,52,.95)'; c.beginPath(); c.moveTo(0, h); c.lineTo(0, h - 54); c.quadraticCurveTo(w * .25, h - 92, w * .5, h - 56); c.quadraticCurveTo(w * .78, h - 24, w, h - 66); c.lineTo(w, h); c.fill();
+      c.fillStyle = 'rgba(8,28,42,1)'; c.beginPath(); c.moveTo(0, h); c.lineTo(0, h - 30); c.quadraticCurveTo(w * .3, h - 52, w * .55, h - 32); c.quadraticCurveTo(w * .8, h - 14, w, h - 36); c.lineTo(w, h); c.fill();
+      // 나무
+      treeBranches.forEach(b => { const mx = (b.x1 + b.x2) / 2 + b.bend, my = (b.y1 + b.y2) / 2; c.beginPath(); c.moveTo(b.x1, b.y1); c.quadraticCurveTo(mx, my, b.x2, b.y2); c.strokeStyle = b.color; c.lineWidth = b.width; c.lineCap = 'round'; c.stroke(); });
+      gardenFlowers.forEach(f => { if (f.radius < f.target) f.radius += .08; drawBlossom(c, f, t); });
+      // 반딧불(호흡이 쌓일수록 늘어남)
+      flies.slice(0, 3 + Math.min(breathCount, 7)).forEach(f => { const x = (f.x + Math.sin(t / 2000 * f.s + f.p) * .05) * w, y = (f.y + Math.cos(t / 1700 * f.s + f.p) * .04) * h; const a = .4 + .5 * Math.sin(t / 600 + f.p); c.fillStyle = `rgba(255,248,170,${a})`; c.shadowColor = '#fff6a0'; c.shadowBlur = 12; c.beginPath(); c.arc(x, y, 2, 0, 6.28); c.fill(); c.shadowBlur = 0; });
+      // 떨어지는 꽃잎
+      for (let i = petals.length - 1; i >= 0; i--) { const p = petals[i]; p.x += p.vx + Math.sin(t / 700 + i) * .3; p.y += p.vy; p.a -= .004; p.rot += .03; c.save(); c.translate(p.x, p.y); c.rotate(p.rot); c.fillStyle = `hsla(${p.hue},85%,82%,${Math.max(0, p.a)})`; c.beginPath(); c.ellipse(0, 0, p.r, p.r * .55, 0, 0, 6.28); c.fill(); c.restore(); if (p.a <= 0 || p.y > h) petals.splice(i, 1); }
     }
 
-    // ==========================================
-    // SECTION 3: Zen Water Ripple & Affirmation System
-    // ==========================================
-    const zenCanvas = document.getElementById('zenCanvas');
-    let zCtx = null;
-    const ripples = [];
-    const floatingAffirmations = [];
-
-    const affirmations = [
-      "지금 이대로도 당신은 충분히 훌륭합니다",
-      "오늘 하루도 정말 애쓰셨습니다",
-      "지나간 일에 너무 마음 쓰지 말아요",
-      "당신에게는 시련을 이겨낼 힘이 있습니다",
-      "천천히 가도 괜찮습니다",
-      "당신의 마음은 점점 더 평온해집니다",
-      "스스로에게 따뜻한 친절을 베풀어주세요",
-      "숨을 깊게 쉬고, 걱정을 흘려보내세요",
-      "모든 불확실함 속에서도 희망은 핍니다",
-      "당신은 사랑받고 보호받는 존재입니다"
-    ];
-
-    class Ripple {
-      constructor(x, y) {
-        this.x = x;
-        this.y = y;
-        this.radius = 5;
-        this.maxRadius = Math.random() * 80 + 70;
-        this.alpha = 0.9;
-        this.color = `hsl(${190 + Math.random() * 50}, 80%, 75%)`;
-      }
-
-      update() {
-        this.radius += 1.8;
-        this.alpha -= 0.012;
-      }
-
-      draw(ctx) {
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-        ctx.strokeStyle = this.color;
-        ctx.globalAlpha = Math.max(0, this.alpha);
-        ctx.lineWidth = 1.8;
-        ctx.stroke();
-        ctx.restore();
-      }
-    }
-
-    class FloatingAffirmation {
-      constructor(text, x, y) {
-        this.text = text;
-        this.x = x;
-        this.y = y;
-        this.vy = -0.4;
-        this.alpha = 0.01;
-        this.state = 'fade-in'; // fade-in, float, fade-out
-        this.life = 0;
-      }
-
-      update() {
-        this.y += this.vy;
-        this.life++;
-
-        if (this.state === 'fade-in') {
-          this.alpha += 0.02;
-          if (this.alpha >= 0.95) this.state = 'float';
-        } else if (this.state === 'float') {
-          if (this.life > 220) this.state = 'fade-out';
-        } else if (this.state === 'fade-out') {
-          this.alpha -= 0.015;
-        }
-      }
-
-      draw(ctx) {
-        ctx.save();
-        ctx.font = '15px "Gowun Batang", serif';
-        ctx.textAlign = 'center';
-        ctx.fillStyle = `rgba(224, 242, 254, ${Math.max(0, this.alpha)})`;
-        ctx.shadowColor = 'rgba(56, 189, 248, 0.6)';
-        ctx.shadowBlur = 10;
-        ctx.fillText(this.text, this.x, this.y);
-        ctx.restore();
-      }
-    }
-
-    function initZenCanvas() {
-      zCtx = setupCanvas(zenCanvas);
-    }
-
+    // ================= 3. 젠 물결 =================
+    const zenCanvas = document.getElementById('zenCanvas'); let zCtx = null; const ripples = [], floating = [];
+    const affirmations = ['지금 이대로도 당신은 충분히 훌륭합니다', '오늘 하루도 정말 애쓰셨습니다', '지나간 일에 너무 마음 쓰지 말아요', '당신에게는 시련을 이겨낼 힘이 있습니다', '천천히 가도 괜찮습니다', '당신의 마음은 점점 더 평온해집니다', '스스로에게 따뜻한 친절을 베풀어주세요', '숨을 깊게 쉬고, 걱정을 흘려보내세요', '모든 불확실함 속에서도 희망은 핍니다', '당신은 사랑받고 보호받는 존재입니다'];
+    class Ripple { constructor(x, y, d) { this.x = x; this.y = y; this.r = 4 - (d || 0) * 14; this.max = Math.random() * 90 + 90; this.a = .85; this.h = 190 + Math.random() * 50; } update() { this.r += 1.5; this.a -= .01; } draw(c) { if (this.r < 1) return; c.save(); c.globalAlpha = Math.max(0, this.a); c.strokeStyle = `hsl(${this.h},85%,80%)`; c.shadowColor = `hsl(${this.h},90%,70%)`; c.shadowBlur = 10; c.lineWidth = 1.6; c.beginPath(); c.ellipse(this.x, this.y, this.r, this.r * .42, 0, 0, 6.28); c.stroke(); c.restore(); } }
+    class Floating { constructor(text, x, y) { this.text = text; this.x = x; this.y = y; this.vy = -.38; this.a = .01; this.state = 'in'; this.life = 0; } update() { this.y += this.vy; this.life++; if (this.state === 'in') { this.a += .02; if (this.a >= .95) this.state = 'float'; } else if (this.state === 'float') { if (this.life > 220) this.state = 'out'; } else this.a -= .015; }
+      draw(c, w) { c.save(); c.font = '16px "Gowun Batang", serif'; c.textAlign = 'center'; c.fillStyle = `rgba(232,246,255,${Math.max(0, this.a)})`; c.shadowColor = 'rgba(56,189,248,.8)'; c.shadowBlur = 12; const x = Math.min(Math.max(this.x, 110), w - 110); c.fillText(this.text, x, this.y); c.restore(); } }
+    function initZenCanvas() { zCtx = setupCanvas(zenCanvas); }
     zenCanvas.addEventListener('pointerdown', (e) => {
-      audio.init();
-      const rect = zenCanvas.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-
-      // Play Zen Tone & Create Ripple
-      audio.playZenNote();
-      ripples.push(new Ripple(x, y));
-      ripples.push(new Ripple(x, y));
-
-      // Spawn Affirmation Text
-      const text = affirmations[Math.floor(Math.random() * affirmations.length)];
-      floatingAffirmations.push(new FloatingAffirmation(text, x, y - 20));
-
-      document.getElementById('zenHint').classList.add('opacity-0');
+      audio.init(); markFirst(); const now = performance.now(); ST.zTaps++; if (ST.zLast) ST.zGaps.push(Math.round(now - ST.zLast)); ST.zLast = now;
+      const rc = zenCanvas.getBoundingClientRect(), x = e.clientX - rc.left, y = e.clientY - rc.top;
+      audio.playZenNote(); ripples.push(new Ripple(x, y, 0), new Ripple(x, y, 1), new Ripple(x, y, 2));
+      floating.push(new Floating(affirmations[Math.floor(Math.random() * affirmations.length)], x, y - 20)); document.getElementById('zenHint').classList.add('opacity-0');
     });
-
-    function renderZenCanvas() {
-      if (!zCtx) return;
-      zCtx.clearRect(0, 0, zenCanvas.clientWidth, zenCanvas.clientHeight);
-
-      // Render Ripples
-      for (let i = ripples.length - 1; i >= 0; i--) {
-        const r = ripples[i];
-        r.update();
-        r.draw(zCtx);
-        if (r.alpha <= 0 || r.radius >= r.maxRadius) {
-          ripples.splice(i, 1);
-        }
-      }
-
-      // Render Affirmations
-      for (let i = floatingAffirmations.length - 1; i >= 0; i--) {
-        const fa = floatingAffirmations[i];
-        fa.update();
-        fa.draw(zCtx);
-        if (fa.alpha <= 0 && fa.state === 'fade-out') {
-          floatingAffirmations.splice(i, 1);
-        }
-      }
+    function renderZenCanvas(t) {
+      if (!zCtx || sections[2].classList.contains('hidden')) return;
+      const w = zenCanvas.clientWidth, h = zenCanvas.clientHeight, c = zCtx; c.clearRect(0, 0, w, h);
+      const bg = c.createLinearGradient(0, 0, 0, h); bg.addColorStop(0, 'rgba(12,28,60,.95)'); bg.addColorStop(.5, 'rgba(14,48,86,.92)'); bg.addColorStop(1, 'rgba(10,36,70,.96)'); c.fillStyle = bg; c.fillRect(0, 0, w, h);
+      // 달빛이 수면에 비친 길
+      const mx = w * .5; const col = c.createLinearGradient(0, 0, 0, h); col.addColorStop(0, 'rgba(255,240,200,.22)'); col.addColorStop(1, 'rgba(255,240,200,0)');
+      c.fillStyle = col; c.beginPath(); c.moveTo(mx - 26, 0); c.lineTo(mx + 26, 0); c.lineTo(mx + 120, h); c.lineTo(mx - 120, h); c.fill();
+      for (let i = 0; i < 16; i++) { const y = (i + 1) * h / 17, ww = 30 + i * 6 + Math.sin(t / 900 + i) * 10; c.strokeStyle = `rgba(255,246,214,${.06 + .05 * Math.sin(t / 700 + i * 1.3)})`; c.lineWidth = 1.5; c.beginPath(); c.moveTo(mx - ww, y); c.lineTo(mx + ww, y); c.stroke(); }
+      const moon = c.createRadialGradient(mx, 46, 4, mx, 46, 80); moon.addColorStop(0, 'rgba(255,244,214,.9)'); moon.addColorStop(.25, 'rgba(255,240,200,.35)'); moon.addColorStop(1, 'rgba(255,240,200,0)'); c.fillStyle = moon; c.beginPath(); c.arc(mx, 46, 80, 0, 6.28); c.fill();
+      if (!reduce && Math.random() < .004) { ripples.push(new Ripple(Math.random() * w, h * (.3 + Math.random() * .6), 0)); }   // 가만히 있어도 가끔 물결이 퍼집니다
+      for (let i = ripples.length - 1; i >= 0; i--) { const r = ripples[i]; r.update(); r.draw(c); if (r.a <= 0 || r.r >= r.max) ripples.splice(i, 1); }
+      for (let i = floating.length - 1; i >= 0; i--) { const f = floating[i]; f.update(); f.draw(c, w); if (f.a <= 0 && f.state === 'out') floating.splice(i, 1); }
     }
 
-    // ==========================================
-    // Master Resize & Animation Loop
-    // ==========================================
-    function resizeCanvases() {
-      setupCanvas(bubbleCanvas);
-      setupCanvas(gardenCanvas);
-      setupCanvas(zenCanvas);
-    }
-
+    // ================= 크기 변경·메인 루프 =================
+    function resizeCanvases() { bCtx = setupCanvas(bubbleCanvas); gCtx = setupCanvas(gardenCanvas); zCtx = setupCanvas(zenCanvas); if (skyCtx) initSky(); }
     window.addEventListener('resize', resizeCanvases);
-
-    window.onload = function() {
-      initBubbles();
-      initGarden();
-      initZenCanvas();
-
-      // Start unified requestAnimationFrame render loop
-      function mainLoop() {
-        renderBubbleCanvas();
-        renderGardenCanvas();
-        renderZenCanvas();
-        requestAnimationFrame(mainLoop);
-      }
-      mainLoop();
+    window.onload = function () {
+      initSky(); initBubbles(); initGarden(); initZenCanvas();
+      (function loop(t) { drawSky(t); renderBubbleCanvas(t); renderGardenCanvas(t); renderZenCanvas(t); requestAnimationFrame(loop); })(0);
     };
-  
+
     // --- 온앤오프 플랫폼 연결: 플랫폼 안(iframe)에서 열렸을 때만 준비 신호를 보냅니다(단독으로 열어도 그대로 동작). ---
-    try { if (window.parent !== window) parent.postMessage({ source: "onoff-game", type: "ready" }, "*"); } catch (e) { /* 무시 */ }
+    try { if (window.parent !== window) parent.postMessage({ source: 'onoff-game', type: 'ready' }, '*'); } catch (e) { /* 무시 */ }
   </script>
 </body>
 </html>
