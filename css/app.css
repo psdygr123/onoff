@@ -188,6 +188,17 @@ main { display: block; outline: none; }
 .intro { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(20px, 4vw, 48px); align-items: start; }
 .intro .art { border-radius: var(--r-lg); overflow: hidden; aspect-ratio: 4 / 3; box-shadow: var(--shadow); }
 .intro .art img { width: 100%; height: 100%; object-fit: cover; }
+/* 시작 전 안내: 소제목·문단·목록 사이를 넉넉히 띄워 읽기 편하게 */
+.intro .panel > div { display: grid; gap: 26px; align-content: start; }
+.intro .panel > div[hidden] { display: none; }
+.intro .panel > div > div { display: grid; gap: 10px; }
+.intro .panel h1 { margin-bottom: 4px; }
+.intro .panel h3 { font-size: var(--fs-md); letter-spacing: -0.005em; }
+.intro .panel p { line-height: 1.85; letter-spacing: 0.005em; word-break: keep-all; }
+.intro .panel .checklist { gap: 14px; }
+.intro .panel .checklist li { line-height: 1.75; font-size: var(--fs-sm); }
+.intro .panel .note { padding: 18px 22px; line-height: 1.9; word-break: keep-all; }
+.intro .panel .form-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; margin-top: 6px; }
 .play-bar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 16px; }
 .play-bar h1 { font-family: var(--font-display); font-size: var(--fs-xl); }
 .stage { position: relative; aspect-ratio: 16 / 9; width: 100%; background: var(--bg-2); border: 1px dashed var(--bronze); border-radius: var(--r-lg); overflow: hidden; display: grid; place-items: center; }

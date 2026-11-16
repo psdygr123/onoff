@@ -470,14 +470,14 @@ OnOff.Views = (function () {
         <div class="art"><img src="${g.cover}" alt="${esc(g.coverAlt || (g.title + " 대표 이미지"))}" width="1000" height="720"></div>
         <div class="panel">
           <div data-intro-pane="1">
-          <p class="eyebrow">시작 전 안내 · 1/2</p><h1>${esc(g.title)}</h1>
+          <h1>${esc(g.title)}</h1>
           <div><h3>이런 분을 위해 만들었습니다</h3><p style="color:var(--ink-2);font-size:var(--fs-sm)">${esc(g.intro.who)}</p></div>
           <div><h3>만든 목적</h3><p style="color:var(--ink-2);font-size:var(--fs-sm)">${esc(g.intro.purpose)}</p></div>
           <div><h3>게임 구성</h3><ul class="checklist">${g.intro.parts.map((p) => `<li>${esc(p)}</li>`).join("")}</ul><p style="color:var(--ink-2);font-size:var(--fs-xs);margin-top:8px">${esc(g.intro.partsNote)}</p></div>
           <div class="note"><strong>알아 두세요.</strong> 이 게임은 의료·상담을 대신하지 않습니다. 하다가 마음이 불편해지면 언제든 멈추셔도 됩니다. 마음이 많이 힘들 때는 가까운 전문 상담기관이나 의료기관의 도움을 받아 보세요. 이 게임에서 입력하거나 응답한 내용은 가입 때 연구 활용에 동의하신 경우에 한해 심리학 연구 자료로 활용될 수 있습니다.</div>
           ${OnOff.Device.canPlay(g) ? "" : `<div class="note"><strong>PC 전용 게임입니다.</strong> ${esc(OnOff.PC_ONLY_NOTE)}</div>`}
           ${researchPage(g) ? `<div class="form-actions"><button class="btn ghost" type="button" data-action="go" data-to="games">뒤로</button><button class="btn" type="button" id="intro-next">다음: 연구 수집 정보 안내</button></div></div>
-          <div data-intro-pane="2" hidden><p class="eyebrow">시작 전 안내 · 2/2</p><h1>연구 자료로 수집되는 정보</h1>${researchPage(g)}</div>
+          <div data-intro-pane="2" hidden><h1>연구 자료로 수집되는 정보</h1>${researchPage(g)}</div>
           <div data-intro-pane="2" hidden>` : "<div>"}
           <label class="choice"><input type="checkbox" id="intro-ok"><span>${researchPage(g) ? "안내(연구 수집 정보 포함)를 읽었습니다." : "안내를 읽었습니다."}</span></label>
           <div class="form-actions">${researchPage(g) ? '<button class="btn ghost" type="button" id="intro-prev">이전</button>' : '<button class="btn ghost" type="button" data-action="go" data-to="games">뒤로</button>'}<button class="btn" type="button" id="intro-go" disabled aria-disabled="true" ${OnOff.Device.canPlay(g) ? "" : 'data-blocked="1"'}>${esc(g.startLabel || "모험 시작")}</button></div>
