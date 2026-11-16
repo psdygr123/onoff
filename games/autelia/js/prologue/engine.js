@@ -101,7 +101,7 @@ window.AU = window.AU || {};
         return false;
       });
     },
-    syncMute() { this.muteEl.textContent = AU.UI.settings.mute ? "소리 꺼짐" : "소리 켜짐"; },
+    syncMute() { const m = !!AU.UI.settings.mute; this.muteEl.textContent = m ? "소리 꺼짐" : "소리 켜짐"; this.muteEl.classList.toggle("off", m); },
     // 저장 데이터가 비정상이어도 게임이 멈추지 않도록 보정
     normalize() {
       const S = AU.G.S; let p = S.prologue;

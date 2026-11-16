@@ -462,3 +462,25 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
 .winwrap, .modalwrap { background: rgba(25, 16, 8, .58); }
 .window .wtitle .close { background: transparent; border-color: transparent; color: #fff8e6; } .window .wtitle .close:hover { background: rgba(255, 248, 230, .2); border-color: transparent; }
 .dlgbox .pt img[src*="monument"] { object-fit: cover; object-position: 50% 6%; padding: 0; transform: scale(1.12); transform-origin: 50% 22%; background: radial-gradient(circle at 50% 40%, #fffaf0, #efe1bf); } /* 기념비 초상: 햇살 문양이 있는 비석 윗부분을 크게 보여 줌 */
+
+/* ----- 오른쪽 위 버튼 묶음(메뉴·소리·건너뛰기·개발): 양피지·황동 테마로 통일 + 위치 정리 (11-17) ----- */
+.btn.menubtn, .btn.mutebtn, .btn.skipbtn, .btn.introskip, .btn.devbtn {
+  position: absolute; top: 20px; z-index: 3; display: inline-flex; align-items: center; gap: 7px; height: 36px; padding: 0 15px 0 11px; box-sizing: border-box;
+  font-size: 14px; font-weight: 700; letter-spacing: .06em; color: #6e4c18; white-space: nowrap; pointer-events: auto !important; cursor: pointer;
+  background: linear-gradient(180deg, #faf3de, #eddcb4); border: 1.5px solid #a8793a; border-radius: 6px; opacity: 1;
+  box-shadow: 0 0 0 2.5px rgba(248, 240, 218, .96), 0 0 0 4px #a8793a, 0 5px 12px rgba(35, 25, 15, .42), inset 0 1px 0 rgba(255, 255, 255, .7);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, .55); transition: background .15s, color .15s, transform .08s, box-shadow .15s;
+}
+.btn.menubtn:hover, .btn.mutebtn:hover, .btn.skipbtn:hover, .btn.introskip:hover, .btn.devbtn:hover { background: linear-gradient(180deg, #fff8e6, #f3e4bd); color: #4a3210; transform: translateY(-1px); }
+.btn.menubtn:active, .btn.mutebtn:active, .btn.skipbtn:active, .btn.introskip:active, .btn.devbtn:active { transform: translateY(1px); background: linear-gradient(180deg, #eddcb4, #e6d2a4); }
+.btn.menubtn:focus-visible, .btn.mutebtn:focus-visible, .btn.skipbtn:focus-visible, .btn.introskip:focus-visible { outline: 2px solid #fff8e6; outline-offset: 5px; }
+.btn.menubtn::before, .btn.mutebtn::before, .btn.skipbtn::before, .btn.introskip::before { content: ""; width: 17px; height: 17px; flex: none; background: currentColor; opacity: .85; -webkit-mask: var(--ic) center / contain no-repeat; mask: var(--ic) center / contain no-repeat; }
+.btn.menubtn { right: 22px; --ic: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 6h18v2.4H3zM3 10.8h18v2.4H3zM3 15.6h18V18H3z'/%3E%3C/svg%3E"); }
+.btn.mutebtn { right: 22px; --ic: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 9.5h4l5-4.2v13.4l-5-4.2H3z'/%3E%3Cpath d='M15 8.6a5 5 0 0 1 0 6.8M17.6 5.8a9 9 0 0 1 0 12.4' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E"); }
+.btn.mutebtn.off { color: #8a6a3a; --ic: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 9.5h4l5-4.2v13.4l-5-4.2H3z'/%3E%3Cpath d='M15.5 9.5l5 5M20.5 9.5l-5 5' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E"); }
+.btn.skipbtn, .btn.introskip { --ic: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4 5.5l8 6.5-8 6.5zM12.5 5.5l8 6.5-8 6.5z'/%3E%3C/svg%3E"); }
+.btn.skipbtn { right: 144px; } .btn.introskip { right: 22px; }
+.btn.skipbtn em, .btn.introskip em { font-style: normal; font-size: 10.5px; font-weight: 700; letter-spacing: .02em; color: #8a6a3a; margin-left: 2px; padding: 1px 6px; background: #fff8e6; border: 1px solid #c8a468; border-radius: 3px; box-shadow: 0 1px 0 #c8a468; text-shadow: none; }
+.btn.menubtn .dot { right: -9px; top: -9px; border-color: #f8f0da; }
+.btn.devbtn { right: 118px; top: 24px; height: 28px; padding: 0 11px; font-size: 12px; letter-spacing: .04em; opacity: .9; box-shadow: 0 0 0 2px rgba(248, 240, 218, .9), 0 0 0 3px #a8793a, 0 3px 8px rgba(35, 25, 15, .35); }
+#stage.pro .btn.devbtn { right: 322px; }
