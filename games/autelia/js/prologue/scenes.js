@@ -8,7 +8,7 @@ window.AU = window.AU || {};
   const SC = AU.PRO_SCENES = {};
 
   /* ---------- 공통 도우미 ---------- */
-  function npc(P, id, speaker, sprite, x, h, extra) { return P.addEnt(Object.assign({ id, x, sprite, h, name: SP[speaker].name, faceP: true }, extra || {})); }
+  function npc(P, id, speaker, sprite, x, h, extra) { const e = Object.assign({ id, x, sprite, h, name: SP[speaker].name, faceP: true }, extra || {}); if (e.idle && e.wander == null && !e.working) e.wander = 46; return P.addEnt(e); }   // 서 있는 주민(idle 시트)은 제자리 근처를 천천히 배회
   function raider(P, id, x, y, s, dir, min, max) {
     return P.addEnt({ id, x, y, s, face: dir, min, max, range: 0, layer: "mid",
       update(e, dt) { if (e.min == null) return; e.x += e.face * 26 * dt; if (e.x > e.max) e.face = -1; if (e.x < e.min) e.face = 1; },

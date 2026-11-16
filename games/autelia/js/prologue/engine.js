@@ -300,6 +300,14 @@ window.AU = window.AU || {};
     pose(name) { AU.World.player.pose = name ? { name, t: 0 } : null; },
     sfx(n) { Au.play(n); }, amb(n, on) { Au.loop(n, on !== false); },
     obj(text) { this.objEl.textContent = text || ""; this.objEl.classList.toggle("hidden", !text || !this.on); if (text) { this.objEl.classList.remove("flash"); void this.objEl.offsetWidth; this.objEl.classList.add("flash"); } },
+    /* 마을 주민의 느린 배회: 제자리(hx) 기준 ±wander px 안에서 잠깐 걷고 쉬기를 반복. 연출 중이거나 플레이어가 가까이 오면 멈춰 서서 바라봄 */
+    wanderEnt(e, dt, p) {
+      if (e.hx == null) { e.hx = e.x; e.wt = 1 + Math.random() * 3; e.tx = e.x; }
+      const near = Math.abs(p.x - e.x) < 140;
+      if (this.locked() || near || this.skipping) { e.walking = false; if (!near) e.wt = Math.max(e.wt, 0.8); return; }
+      if (e.walking) { const d = e.tx - e.x, st = 20 * dt; if (Math.abs(d) <= st) { e.x = e.tx; e.walking = false; e.wt = 2.5 + Math.random() * 4.5; } else { e.x += Math.sign(d) * st; e.face = Math.sign(d); } }
+      else { e.wt -= dt; if (e.wt <= 0) { const t = e.hx + (Math.random() * 2 - 1) * e.wander; if (Math.abs(t - e.x) > 10) { e.tx = t; e.walking = true; e.face = Math.sign(t - e.x); } else e.wt = 1.5; } }
+    },
     hint(text, sec, center) { this.hintEl.textContent = text || ""; this.hintEl.classList.toggle("center", !!center); this.hintEl.classList.toggle("show", !!text); clearTimeout(this._ht); if (text && sec) this._ht = setTimeout(() => this.hintEl.classList.remove("show"), sec * 1000); },
     hintOnce(text) { const now = performance.now(); if (now - (this._hl || 0) > 2500) { this._hl = now; this.hint(text, 2.6); } },
     keys() { const K = AU.keyLabel, b = AU.Input.bindings; return { move: K(b.left) + "·" + K(b.right), jump: K(b.jump), act: K(b.interact) }; },
@@ -334,7 +342,7 @@ window.AU = window.AU || {};
       if (this.walk) { this.walk.t += dt; const dx = this.walk.x - p.x; if (Math.abs(dx) <= 6 || this.walk.t > 12) { if (this.walk.t > 12) p.x = this.walk.x; p.vx = 0; w.virt = null; const r = this.walk.res; this.walk = null; r(); } else if (w.virt) w.virt.dir = sign(dx); }
       if (this.shk.t > 0) this.shk.t -= dt;
       if (p.pose) p.pose.t += dt;
-      for (const e of this.ents) { if (e.faceP && !e.hidden) e.face = p.x < e.x ? -1 : 1; if (e.update) e.update(e, dt, this); }
+      for (const e of this.ents) { if (e.faceP && !e.hidden) e.face = p.x < e.x ? -1 : 1; if (e.wander && !e.hidden) this.wanderEnt(e, dt, p); if (e.update) e.update(e, dt, this); }
       // 입자·방출기
       const cx = w.camX;
       for (const em of this.emitters) { if (em.off) continue; em.acc += em.rate * dt; while (em.acc >= 1) { em.acc -= 1; const x = em.x0 + Math.random() * (em.x1 - em.x0); if (x < cx - 120 || x > cx + W + 120) continue; this.emit(em.kind, x, em.y0 + Math.random() * (em.y1 - em.y0), em.o); } }
