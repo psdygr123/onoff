@@ -167,8 +167,9 @@ window.AU = window.AU || {};
     }
     ctx.restore(); if (e.mark) arrowMark(ctx, P, x, top - 36);
   }
+  function duskSky(ctx) { const g = ctx.createLinearGradient(0, 0, 0, 420); g.addColorStop(0, "rgba(120,70,140,.62)"); g.addColorStop(0.55, "rgba(255,120,70,.42)"); g.addColorStop(1, "rgba(255,170,90,0)"); ctx.save(); ctx.globalCompositeOperation = "multiply"; ctx.fillStyle = g; ctx.fillRect(0, 0, 1280, 420); ctx.restore(); }
   function setupBanners(P) {
-    const R = LAY.road, B = R.b; P.variant = "peace"; P.tint = { color: "#FFC98A", a: 0.2 }; P.vig = 0.24;
+    const R = LAY.road, B = R.b; P.variant = "peace"; P.tint = { color: "#F0904F", a: 0.38 }; P.vig = 0.28; P.overlayFn = duskSky;   // 축제 광장과 같은 해 질 녘 색조(임시: 정식 석양 배경 그림이 오면 교체)
     const st = { talk: false, done: 0 }; P.limits = { max: B.elder + 150, msg: "먼저 마을 사람에게 말을 걸어 보세요." };
     const sE = standing("c", "smith"), sB = standing("b", "baker"), sM = standing("f", "smith"), sS = standing("k", "smith");
     const elder = npc(P, "elder", "elder", sE.sprite, B.elder, sE.h, Object.assign({}, sE.extra, { range: 110, mark: true }));
@@ -296,7 +297,7 @@ window.AU = window.AU || {};
     const v = P.v, L = LAY.plaza; P.variant = variant;
     if (variant === "peace") {
       P.tint = { color: "#F0904F", a: 0.42 }; P.vig = 0.3; v.cheer = 0.12;
-      P.overlayFn = (ctx) => { const g = ctx.createLinearGradient(0, 0, 0, 420); g.addColorStop(0, "rgba(120,70,140,.62)"); g.addColorStop(0.55, "rgba(255,120,70,.42)"); g.addColorStop(1, "rgba(255,170,90,0)"); ctx.save(); ctx.globalCompositeOperation = "multiply"; ctx.fillStyle = g; ctx.fillRect(0, 0, 1280, 420); ctx.restore(); };   // 해 질 녘 하늘(임시: 정식 석양 배경 그림이 오면 교체)
+      P.overlayFn = duskSky;   // 해 질 녘 하늘(임시: 정식 석양 배경 그림이 오면 교체)
       P.limits = { min: 40, max: L.limit, msg: "먼저 주민과 이야기를 나눠 보세요. (마을길로는 돌아갈 수 없습니다)" };
       // 광장 전용 인물: 마을길에서 만난 주민(나이 든 주민·축제 어린이)과 겹치지 않도록 새 인물을 둠(빵을 나누는 주민은 마을길에서 "광장에서 보자"고 한 인물이라 그대로)
       const sT = standing("g", "villager_a"), sF = standing("l", "villager_b");
@@ -464,6 +465,7 @@ window.AU = window.AU || {};
       await P.wait(1.4); P.sfx("gull"); await P.wait(1.2); P.sfx("gull"); P.tween(P.v, { reveal: 1 }, 4.0); P.camPan(LAY.hill.w - 640, 4.5); await P.fade(0, 3.4);
       await P.wait(0.6); await P.caption(T.cap6, 4.2); await P.camPan(560, 1.8);
       P.v.bag = true; P.pose("shrug"); await P.wait(1.4); P.pose(null); await P.wait(0.5);
+      await P.say(T.brand_hero); await P.wait(0.4);   // 주인공도 낙인을 가졌다는 복선(손목 안쪽의 희미한 결)
       await P.say(T.last); await P.wait(1.4);
     }, { id: "cs05", skip: true, bars: true });
     if (live(P, g)) { P.frozen = true; await P.fade(1, 1.6); if (live(P, g)) P.finish(); }
