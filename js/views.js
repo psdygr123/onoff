@@ -51,15 +51,21 @@ OnOff.Views = (function () {
   let io = null;
   // 홈 배너: 게임이 아니라 서비스·이용 방식을 소개합니다. 문구는 기존 홈·서비스 소개 화면의 내용을 그대로 씁니다.
   const BANNERS = [
-    { label: "일상 밖의 모험", sub: "온앤오프 소개", kicker: "심리학 전공자들이 만든 성장형 게임", title: "<span>일상 밖의 모험,</span><span><em>일상 속</em>의 성장</span>",
-      text: "이야기 속 작은 선택과 경험이 쌓여, 일상의 변화로 이어지는 여정을 함께합니다.", img: "img/banner-1.webp", pos: "72% 50%",
-      alt: "비가 갠 창가에 켜진 램프와 찻잔, 화분이 놓인 아늑한 풍경", cta: '<button class="btn" type="button" data-action="scroll" data-target="lib">게임 둘러보기</button>' },
-    { label: "직접 만듭니다", sub: "심리학 전공자들", kicker: "온앤오프의 약속", title: "<span>심리학 전공자들이</span><span>직접 만듭니다</span>",
-      text: "심리학 이론을 바탕으로 기획하고, 효과가 입증되었다고 말하지 않으며 할 수 있는 만큼만 약속합니다.", img: "img/banner-2.webp", pos: "72% 55%",
-      alt: "창가 책상 위에 켜진 스탠드, 펼친 노트와 연필, 찻잔, 화분, 실타래", cta: '<button class="btn" type="button" data-action="go" data-to="about">서비스 소개 보기</button>' },
-    { label: "하루 몇 분이어도", sub: "쉬어 가도 괜찮은 여정", kicker: "내 속도로", title: "<span>하루 몇 분이어도</span><span>괜찮아요</span>",
-      text: "게임마다 진행 기록이 따로 저장되어, 언제든 이어서 할 수 있습니다.", img: "img/banner-3.webp", pos: "78% 55%",
-      alt: "햇살 드는 나무 아래 벤치와 김 나는 찻잔, 담요, 잔잔한 호수", cta: '<button class="btn" type="button" data-action="start">모험 시작하기</button>' }
+    { label: "하루 몇 분이어도", sub: "내 속도로 즐기는 여정", kicker: "내 속도로", title: "<span>하루 몇 분이어도</span><span><em>괜찮아요</em></span>",
+      text: "쉬어 가도 괜찮은 여정입니다. 게임마다 진행 기록이 따로 저장되어, 언제든 이어서 할 수 있어요.", img: "img/banner-1.webp", pos: "70% 50%",
+      alt: "해 질 녘 호수가 내려다보이는 언덕 위 나무 벤치와 등불", cta: '<button class="btn" type="button" data-action="start">모험 시작하기</button>' },
+    { label: "일상 밖의 모험", sub: "일상 속의 성장", kicker: "심리학 전공자들이 만든 성장형 게임", title: "<span>일상 밖의 모험,</span><span><em>일상 속</em>의 성장</span>",
+      text: "이야기 속 작은 선택과 경험이 쌓여, 일상의 변화로 이어지는 여정을 함께합니다.", img: "img/banner-2.webp", pos: "70% 50%",
+      alt: "창가 책상 위 낡은 지도와 나침반, 창밖으로 보이는 항구 도시", cta: '<button class="btn" type="button" data-action="scroll" data-target="lib">게임 둘러보기</button>' },
+    { label: "내 선택이 이야기로", sub: "갈림길에서 고르는 모험", kicker: "게임 방식", title: "<span>내 선택이</span><span><em>이야기</em>가 됩니다</span>",
+      text: "갈림길에서 내린 선택이 쌓여 나만의 이야기가 만들어지고, 어떤 선택을 좋아하는지도 자연스럽게 알게 됩니다.", img: "img/banner-3.webp", pos: "70% 50%",
+      alt: "햇살이 스며드는 숲길의 갈림길과 나무 이정표", cta: '<button class="btn" type="button" data-action="scroll" data-target="lib">어떤 게임이 있나요</button>' },
+    { label: "아우텔리아", sub: "지금 만날 수 있는 모험", kicker: "아우텔리아", title: "<span>노을 진 항구에서</span><span><em>첫 모험</em>이 시작됩니다</span>",
+      text: "판타지 세계를 탐험하며 캐릭터를 키우는 스토리 RPG. 이야기의 갈림길과 작은 현실 실천이 이어집니다.", img: "img/banner-4.webp", pos: "70% 50%",
+      alt: "노을 진 바다와 항구 도시가 내려다보이는 언덕", cta: '<button class="btn" type="button" data-action="go" data-to="intro-autelia">아우텔리아 보기</button>' },
+    { label: "직접 만듭니다", sub: "심리학 전공자들", kicker: "온앤오프의 약속", title: "<span>심리학 전공자들이</span><span><em>직접</em> 만듭니다</span>",
+      text: "심리학 이론을 바탕으로 만들고, 효과를 부풀려 말하지 않습니다. 확인된 것만 말하고 지킬 수 있는 약속만 합니다.", img: "img/banner-5.webp", pos: "70% 50%",
+      alt: "책과 노트, 스탠드가 놓인 따뜻한 서재 창가", cta: '<button class="btn" type="button" data-action="go" data-to="about">서비스 소개 보기</button>' }
   ];
 
   const home = {
@@ -118,7 +124,7 @@ OnOff.Views = (function () {
           <p class="lead">온앤오프는 성장하고 싶은 분, 이야기가 있는 게임을 좋아하는 분, 자신의 마음을 돌아보고 싶은 분을 위해 기획했습니다. 이용하시는 분들의 행복과 성장을 바라는 마음으로 만들었습니다.</p><p class="lead">잠시 현실을 잊고 쉬어 가는 데서 그치지 않고, 게임에서 쌓은 경험이 내 하루에도 닿기를 바랍니다.</p>
           <ul class="checklist">
             <li>심리학 이론을 바탕으로, 심리학을 전공한 사람들이 직접 만듭니다.</li>
-            <li>효과가 입증되었다고 말하지 않고, 할 수 있는 만큼만 약속합니다.</li>
+            <li>효과를 부풀려 말하지 않습니다. 확인된 것만 말하고, 지킬 수 있는 약속만 합니다.</li>
             <li>수집되는 정보의 심리학 연구 활용은 가입할 때 선택 동의로 받으며, 동의하지 않아도 이용에 제한이 없습니다.</li>
           </ul>
           <div><button class="btn ghost" type="button" data-action="go" data-to="about">자세히 보기</button></div>
@@ -178,7 +184,7 @@ OnOff.Views = (function () {
       return `<div class="wrap page"><div class="page-narrow" style="max-width:720px;display:grid;gap:28px">
         <div class="section-head" style="margin:0"><p class="eyebrow">서비스 소개</p><h1 style="font-family:var(--font-display);font-size:var(--fs-2xl)">일상 밖의 모험, 일상 속의 성장</h1></div>
         <p class="lead" style="max-width:none">온앤오프는 심리학 전공자들이 만든 성장형 게임 플랫폼입니다. 하나의 계정으로 여러 게임을 즐기며, 행복과 성장에 한 걸음 더 가까워지시기를 바랍니다.</p>
-        <div class="panel"><h2>미리 알려 드립니다</h2><ul class="checklist"><li>치료를 목적으로 한 서비스가 아니며, 의료·상담을 대신하지 않습니다.</li><li>효과가 입증되었다고 말하지 않습니다.</li><li>${RESEARCH_REQUIRED ? "이용 중 수집되는 정보는 심리학 연구 자료로 활용되며, 가입할 때 이에 대한 동의를 받습니다. 연구 범위는 아직 정해지지 않았고, 정해지면 안내합니다." : "수집되는 정보의 심리학 연구 활용은 가입할 때 선택 동의로 받으며, 동의하지 않아도 이용에 제한이 없습니다. 연구 범위는 아직 정해지지 않았고, 정해지면 안내합니다."}</li></ul></div>
+        <div class="panel"><h2>미리 알려 드립니다</h2><ul class="checklist"><li>치료를 목적으로 한 서비스가 아니며, 의료·상담을 대신하지 않습니다.</li><li>효과를 부풀려 말하지 않습니다.</li><li>${RESEARCH_REQUIRED ? "이용 중 수집되는 정보는 심리학 연구 자료로 활용되며, 가입할 때 이에 대한 동의를 받습니다. 연구 범위는 아직 정해지지 않았고, 정해지면 안내합니다." : "수집되는 정보의 심리학 연구 활용은 가입할 때 선택 동의로 받으며, 동의하지 않아도 이용에 제한이 없습니다. 연구 범위는 아직 정해지지 않았고, 정해지면 안내합니다."}</li></ul></div>
         <div class="panel"><h2>계정과 저장 데이터</h2><p>하나의 계정으로 여러 게임을 이용합니다. 게임별 캐릭터와 진행 기록은 서로 독립적으로 저장되도록 설계했습니다.</p></div>
         <div><button class="btn" type="button" data-action="go" data-to="games">게임 둘러보기</button></div>
       </div></div>`;

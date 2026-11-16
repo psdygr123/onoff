@@ -255,8 +255,8 @@ main { display: block; outline: none; }
 .slide img { width: 100%; height: 100%; object-fit: cover; transform: scale(1.06); transition: transform 7s ease-out; }
 .slide.on img { transform: scale(1); }
 /* 배너 그림은 밝은 크림색 수채화이므로 글자는 어두운 색을 씁니다(다크 모드에서도 그림이 바뀌지 않아 고정색). */
-.slide-shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(248, 244, 232, .78), rgba(248, 244, 232, .42) 48%, rgba(248, 244, 232, 0) 72%); }
-.slide-copy { position: absolute; left: clamp(22px, 4vw, 48px); bottom: clamp(26px, 4vw, 46px); right: 24px; max-width: 520px; color: #302F2A; display: grid; gap: 12px; transform: translateY(14px); opacity: 0; transition: transform .7s ease .15s, opacity .7s ease .15s; }
+.slide-shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(250, 246, 235, .92) 0%, rgba(250, 246, 235, .78) 36%, rgba(250, 246, 235, 0) 62%); }
+.slide-copy { position: absolute; left: clamp(22px, 4vw, 52px); top: 0; bottom: 0; width: min(44%, 500px); color: #302F2A; display: flex; flex-direction: column; justify-content: center; gap: 14px; transform: translateY(14px); opacity: 0; transition: transform .7s ease .15s, opacity .7s ease .15s; }
 .slide.on .slide-copy { transform: none; opacity: 1; }
 .slide-copy .eyebrow { color: #5C5A51; }
 .slide-title { font-family: var(--font-display); font-size: clamp(1.9rem, 3.6vw + .4rem, 3.1rem); line-height: 1.2; letter-spacing: -.01em; }
@@ -271,11 +271,11 @@ main { display: block; outline: none; }
 .banner-dots { position: absolute; right: 18px; bottom: 16px; display: none; gap: 6px; z-index: 3; }
 .banner-dots i { width: 10px; height: 6px; border-radius: 9px; background: rgba(255, 255, 255, .5); transition: width .3s; }
 .banner-dots i.on { width: 26px; background: #fff; }
-.banner-list { display: grid; grid-template-rows: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.banner-list { display: grid; grid-template-rows: repeat(5, minmax(0, 1fr)); gap: 8px; }
 .banner-item { position: relative; display: flex; gap: 12px; align-items: center; text-align: left; padding: 12px; border-radius: var(--r-md); background: var(--surface); border: 1px solid var(--line); color: var(--ink); cursor: pointer; font: inherit; overflow: hidden; transition: transform .2s, border-color .2s, box-shadow .2s; }
 .banner-item:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
 .banner-item.on { border-color: var(--btn); box-shadow: 0 0 0 1px var(--btn) inset; }
-.banner-item img { width: 72px; height: 72px; border-radius: 10px; object-fit: cover; flex: none; }
+.banner-item img { width: 52px; height: 52px; border-radius: 10px; object-fit: cover; flex: none; }
 .banner-item span { display: grid; gap: 3px; min-width: 0; }
 .banner-item b { font-size: var(--fs-sm); }
 .banner-item small { font-size: var(--fs-xs); color: var(--ink-2); }
@@ -309,15 +309,18 @@ main { display: block; outline: none; }
 
 @media (max-width: 960px) {
   .banner { grid-template-columns: minmax(0, 1fr); }
-  .banner-list { grid-template-rows: none; grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .banner-item img { width: 52px; height: 52px; }
+  .banner-list { grid-template-rows: none; grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .banner-item { flex-direction: column; text-align: center; padding: 8px 6px; gap: 6px; }
+  .banner-item small { display: none; }
+  .banner-item img { width: 44px; height: 44px; }
+  .slide-copy { width: auto; right: 22px; }
   .banner-main { aspect-ratio: auto; min-height: 400px; }
   .banner-dots { display: flex; }
 }
 @media (max-width: 620px) {
-  .banner-list { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; }
-  .banner-item { padding: 8px 12px; }
-  .banner-item img { width: 44px; height: 44px; }
+  .banner-list { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .banner-item b { font-size: 11px; }
+  .banner-item img { width: 34px; height: 34px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .slide img, .slide-copy { transform: none !important; }
