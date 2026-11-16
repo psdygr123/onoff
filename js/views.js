@@ -478,7 +478,7 @@ OnOff.Views = (function () {
       const g = GAMES.find((x) => x.id === ctx.param);
       if (!g || g.status === "soon") return notfound.render();
       const save = S.user ? S.getSave(g.id) : null, research = researchPage(g), playable = OnOff.Device.canPlay(g);
-      const acked = !!(S.user && S.hasAck(g.id));   // 이 게임의 안내를 이미 확인한 사람에게는 다시 묻지 않습니다
+      const acked = !!(S.user && (S.hasAck(g.id) || (save && !save.example)));   // 이 게임의 안내를 이미 확인한 사람에게는 다시 묻지 않습니다
       return `<div class="wrap page"><div class="intro">
         <div class="art"><img src="${g.cover}" alt="${esc(g.coverAlt || (g.title + " 대표 이미지"))}" width="1000" height="720"></div>
         <div class="panel">

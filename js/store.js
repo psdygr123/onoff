@@ -69,7 +69,7 @@ OnOff.State = (function () {
         goals: ["happiness", "growth"], goalsFree: "", joined: today(),
         consents: { terms: today(), privacy: today(), research: today() }
       };
-      s.saves[id] = s.saves[id] || { "autelia": { label: "견습 모험가 Lv.3", percent: 30, updatedAt: today(), example: true } };
+      s.saves[id] = s.saves[id] || {};   // 체험 계정도 처음에는 저장 기록이 없습니다(가짜 "이어하기" 방지)
       emit();
     },
 

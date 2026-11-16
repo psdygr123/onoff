@@ -50,6 +50,7 @@ parent.postMessage({ source: "onoff-game", type: "exit" }, "*"); // 플랫폼으
       const m = ev.data;
       if (!m || m.source !== "onoff-game") return;
       if (m.type === "ready") {
+        OnOff.State.setAck(game.id);   // 게임이 실제로 열렸다면 안내 확인을 거친 것이므로 다시 묻지 않습니다
         const save = OnOff.State.getSave(game.id);
         iframe.contentWindow.postMessage({ source: "onoff-platform", type: "init", version: 1, gameId: game.id, saveKey: OnOff.State.saveKey(game.id), locale: "ko", savedProgress: save }, "*");
         opts.onLog("게임이 준비되었습니다. 플랫폼이 시작 정보를 보냈습니다.");
