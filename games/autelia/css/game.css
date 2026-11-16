@@ -441,3 +441,23 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
 .skipbtn, .mutebtn { background: #f8f0da; border: 1px solid #a8793a; color: #6e4c18; border-radius: 5px; }
 .skipbtn:hover, .mutebtn:hover { background: #f0dfb4; }
 .skipbtn em { color: #8a6a3a; }
+
+/* ----- 창 UI 테마: 양피지·황동 (인벤토리·장비·스탯·퀘스트·모험일지·상점·메뉴 등 게임 창 전체) ----- */
+.window.panel, .modal.panel { background: linear-gradient(180deg, #f8f0da, #efe1bf); border: 2px solid #a8793a; border-radius: 8px; box-shadow: 0 0 0 5px #f8f0da, 0 0 0 6.5px #a8793a, 0 18px 40px rgba(35, 25, 15, .45); }
+.window .wtitle { background: linear-gradient(#b98b45, #8d6425); color: #fff8e6; border-bottom: 1.5px solid #6e4c18; letter-spacing: .1em; text-shadow: 0 1px 2px rgba(0, 0, 0, .35); }
+.window .wtitle .whint { color: #f3e3bd; letter-spacing: 0; text-shadow: none; }
+.window .wtitle .close { color: #fff8e6; } .window .wtitle .close:hover { background: rgba(255, 248, 230, .18); }
+.window .wbody h4, .window .eqlabel { color: #8d6425; }
+.window .btn, .modal .btn { background: #fff8e6; border: 1px solid #a8793a; color: #6e4c18; border-radius: 5px; }
+.window .btn:hover, .modal .btn:hover { background: #f0dfb4; border-color: #8d6425; }
+.window .btn.primary, .modal .btn.primary { background: linear-gradient(#b98b45, #8d6425); border-color: #6e4c18; color: #fff8e6; }
+.window .btn.primary:hover, .modal .btn.primary:hover { background: linear-gradient(#c4964f, #99702b); }
+.window .btn.on { background: #6e4c18; border-color: #4b3210; color: #fff8e6; }
+.window .btn.danger, .modal .btn.danger { color: #9a3d3d; border-color: rgba(154, 61, 61, .55); }
+.window .detail, .window .item, .window .qitem, .window .eqslot, .window .lockbox { background: #fffaf0; border-color: rgba(168, 121, 58, .35); }
+.window .item:hover, .window .qitem:hover { border-color: #a8793a; }
+.window .item.sel, .window .qitem.sel { background: #f3e2b4; border-color: #a8793a; }
+.window .tag { background: #efe1bf; color: #6e4c18; }
+.window .silver { color: #8d6425; } .window .itype.t-story, .window .tag.star { background: #f0dfb4; color: #8d6425; }
+.winwrap, .modalwrap { background: rgba(25, 16, 8, .58); }
+.window .wtitle .close { background: transparent; border-color: transparent; color: #fff8e6; } .window .wtitle .close:hover { background: rgba(255, 248, 230, .2); border-color: transparent; }
