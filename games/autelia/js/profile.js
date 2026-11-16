@@ -44,7 +44,7 @@
       if (AU.Tint) AU.Tint.setLook(this.get().look); // 머리·조끼·바지 색(그림이 아직 읽히는 중이면 읽히는 대로 적용)
       const SP = AU.PRO_SPEAKERS, g = this.gender();
       if (SP && SP.hero) { Object.assign(SP.hero, { name: this.name(), portrait: g === "f" ? "pt_pro_hero_f" : "pt_pro_hero_m", alt: this.portraitKey() }); }
-      if (SP && SP.heroS) { Object.assign(SP.heroS, { name: this.name(), portrait: g === "f" ? "pt_pro_hero_f" : "pt_pro_hero_m_surprised", alt: this.portraitKey() }); }
+      if (SP && SP.heroS) { Object.assign(SP.heroS, { name: this.name(), portrait: g === "f" ? "pt_pro_hero_f_surprised" : "pt_pro_hero_m_surprised", alt: this.portraitKey() }); }
     },
     set(name, gender, look, line) {
       const S = AU.G.S; S.profile = this.clean({ name: String(name).trim(), gender, look, line: line || (S.profile && S.profile.line) }); this.apply(); return S.profile;

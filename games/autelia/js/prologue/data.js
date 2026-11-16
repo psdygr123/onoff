@@ -23,6 +23,7 @@ window.AU = window.AU || {};
   AR.ch.player_m_work = { frames: 4, names: ["carry", "give", "swing_up", "swing_dn"], separate: {}, cw: 300, ch: 330, standH: 300, foot: 150 };
   AR.ch.player_f_work = { frames: 4, names: ["carry", "give", "swing_up", "swing_dn"], separate: {}, cw: 300, ch: 345, standH: 300, foot: 150 };
   AR.ch.player_m_bag = { frames: 7, names: ["stand", "walk1", "walk2", "walk3", "walk4", "jump_up", "jump_down"], separate: {}, cw: 210, ch: 310, standH: 300, foot: 105 };   // 가방을 멘 이동 시트(남)
+  AR.ch.player_f_bag = { frames: 7, names: ["stand", "walk1", "walk2", "walk3", "walk4", "jump_up", "jump_down"], separate: {}, cw: 210, ch: 310, standH: 300, foot: 105 };   // 가방을 멘 이동 시트(여)
   AR.ch.player_m_combat = { frames: 6, names: ["attack1", "attack2", "strike", "spin", "hurt", "down"], separate: {}, cw: 463, ch: 394, standH: 300, foot: 231 };   // 본편 전투 동작
   AR.ch.player_f_combat = { frames: 6, names: ["attack1", "attack2", "strike", "spin", "hurt", "down"], separate: {}, cw: 453, ch: 389, standH: 300, foot: 226 };
   AR.ch.father_work = { frames: 4, names: ["reach", "hold", "walk1", "walk2"], separate: {}, cw: 300, ch: 330, standH: 300, foot: 150 };
@@ -32,7 +33,7 @@ window.AU = window.AU || {};
   }
   // 추가 그림(2차 패키지, tools/build_prologue_art2.py): 장애물·이음 골조·초상화
   for (const f of ["obst_rock", "obst_log", "obst_burnt_beams", "joint_frame", "monument", "flagpole", "flag_0", "flag_1", "flag_2"]) AU.ASSETS["po_" + f] = { path: "assets/prologue/ob/" + f + ".webp", optional: true };
-  for (const f of ["pt_pro_hero_m", "pt_pro_hero_f", "pt_pro_father", "pt_pro_elder", "pt_pro_baker", "pt_pro_child", "pt_pro_hero_m_surprised", "pt_pro_father_smile", "pt_pro_farmer", "pt_pro_priest", "pt_pro_musician", "pt_pro_scribe", "pt_pro_traveler", "pt_pro_florist", "pt_pro_officer", "pt_pro_raider"]) AU.ASSETS[f] = { path: "assets/prologue/pt/" + f + ".webp", optional: true };
+  for (const f of ["pt_pro_hero_m", "pt_pro_hero_f", "pt_pro_father", "pt_pro_elder", "pt_pro_baker", "pt_pro_child", "pt_pro_hero_m_surprised", "pt_pro_hero_f_surprised", "pt_pro_father_smile", "pt_pro_farmer", "pt_pro_priest", "pt_pro_musician", "pt_pro_scribe", "pt_pro_traveler", "pt_pro_florist", "pt_pro_officer", "pt_pro_raider"]) AU.ASSETS[f] = { path: "assets/prologue/pt/" + f + ".webp", optional: true };
   AU.ASSETS.fx_fire = { path: "assets/prologue/fx/fire.webp", optional: true }; AU.ASSETS.fx_smoke = { path: "assets/prologue/fx/smoke.webp", optional: true };   // 불꽃 6프레임·연기 4프레임 스트립
   AU.PRO_GENDER = "m"; // 남(m)/여(f) 주인공 시트 선택(성별 선택 기능이 생기면 이 값만 바꿉니다)
   // 장면별 배치 좌표(그림이 바뀌면 여기만 고칩니다)
@@ -58,7 +59,7 @@ window.AU = window.AU || {};
   AU.PRO_SPEAKERS = {
     // portrait: 정식 초상화(2차 그림), alt: 정식 그림을 불러오지 못했을 때 쓰는 옛 초상화
     hero:   { name: "주인공", portrait: "pt_pro_hero_m", alt: "pt_player_male" },
-    heroS:  { name: "주인공", portrait: "pt_pro_hero_m_surprised", alt: "pt_player_male" },     // 놀란 표정(여성형은 기본 표정으로 대체됨: Profile.apply)
+    heroS:  { name: "주인공", portrait: "pt_pro_hero_m_surprised", alt: "pt_player_male" },     // 놀란 표정(여성형은 pt_pro_hero_f_surprised: Profile.apply)
     officer: { name: "습격 간부", portrait: "pt_pro_officer" },
     raider: { name: "습격자", portrait: "pt_pro_raider" },
     father: { name: "아버지", portrait: "pt_pro_father", alt: "pt_smith" },
