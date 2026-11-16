@@ -32,7 +32,7 @@ window.AU = window.AU || {};
   }
   // 추가 그림(2차 패키지, tools/build_prologue_art2.py): 장애물·이음 골조·초상화
   for (const f of ["obst_rock", "obst_log", "obst_burnt_beams", "joint_frame", "monument", "flagpole", "flag_0", "flag_1", "flag_2"]) AU.ASSETS["po_" + f] = { path: "assets/prologue/ob/" + f + ".webp", optional: true };
-  for (const f of ["pt_pro_hero_m", "pt_pro_hero_f", "pt_pro_father", "pt_pro_elder", "pt_pro_baker", "pt_pro_child", "pt_pro_hero_m_surprised", "pt_pro_father_smile", "pt_pro_farmer", "pt_pro_priest", "pt_pro_musician", "pt_pro_scribe", "pt_pro_traveler", "pt_pro_florist"]) AU.ASSETS[f] = { path: "assets/prologue/pt/" + f + ".webp", optional: true };
+  for (const f of ["pt_pro_hero_m", "pt_pro_hero_f", "pt_pro_father", "pt_pro_elder", "pt_pro_baker", "pt_pro_child", "pt_pro_hero_m_surprised", "pt_pro_father_smile", "pt_pro_farmer", "pt_pro_priest", "pt_pro_musician", "pt_pro_scribe", "pt_pro_traveler", "pt_pro_florist", "pt_pro_officer", "pt_pro_raider"]) AU.ASSETS[f] = { path: "assets/prologue/pt/" + f + ".webp", optional: true };
   AU.ASSETS.fx_fire = { path: "assets/prologue/fx/fire.webp", optional: true }; AU.ASSETS.fx_smoke = { path: "assets/prologue/fx/smoke.webp", optional: true };   // 불꽃 6프레임·연기 4프레임 스트립
   AU.PRO_GENDER = "m"; // 남(m)/여(f) 주인공 시트 선택(성별 선택 기능이 생기면 이 값만 바꿉니다)
   // 장면별 배치 좌표(그림이 바뀌면 여기만 고칩니다)
@@ -59,8 +59,8 @@ window.AU = window.AU || {};
     // portrait: 정식 초상화(2차 그림), alt: 정식 그림을 불러오지 못했을 때 쓰는 옛 초상화
     hero:   { name: "주인공", portrait: "pt_pro_hero_m", alt: "pt_player_male" },
     heroS:  { name: "주인공", portrait: "pt_pro_hero_m_surprised", alt: "pt_player_male" },     // 놀란 표정(여성형은 기본 표정으로 대체됨: Profile.apply)
-    officer: { name: "습격 간부", portrait: "" },
-    raider: { name: "습격자", portrait: "" },
+    officer: { name: "습격 간부", portrait: "pt_pro_officer" },
+    raider: { name: "습격자", portrait: "pt_pro_raider" },
     father: { name: "아버지", portrait: "pt_pro_father", alt: "pt_smith" },
     fatherS: { name: "아버지", portrait: "pt_pro_father_smile", alt: "pt_smith" },                // 미소
     vendor: { name: "빵을 나누는 주민", portrait: "pt_pro_baker", alt: "pt_baker" },
