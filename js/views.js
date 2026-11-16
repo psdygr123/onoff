@@ -387,6 +387,7 @@ OnOff.Views = (function () {
           <a href="#mypage" data-action="scroll" data-target="sec-account">계정 정보</a>
           <a href="#mypage" data-action="scroll" data-target="sec-goals">이용 목표</a>
           <a href="#mypage" data-action="scroll" data-target="sec-games">이용 중인 게임</a>
+          <a href="#mypage" data-action="scroll" data-target="sec-records">내 플레이 기록</a>
           <a href="#mypage" data-action="scroll" data-target="sec-consent">동의 관리</a>
           <a href="#mypage" data-action="scroll" data-target="sec-leave">로그아웃·탈퇴</a>
         </nav>
@@ -411,6 +412,11 @@ OnOff.Views = (function () {
 
           <section class="panel" id="sec-games" aria-labelledby="h-games"><h2 id="h-games">이용 중인 게임</h2><div>${rows}</div>
             <p style="color:var(--ink-2);font-size:var(--fs-xs)">게임별 진행 기록은 서로 독립적으로 저장됩니다.</p></section>
+
+          <section class="panel" id="sec-records" aria-labelledby="h-records"><h2 id="h-records">내 플레이 기록 내려받기</h2>
+            <p style="font-size:var(--fs-sm);color:var(--ink-2)">게임을 하면 단계마다 소요 시간·속도 같은 행동 기록이 남습니다. 지금은 이 화면을 열어 둔 동안만 보관되며, 서버로 전송되지 않습니다. 새로고침하면 사라지니 필요하면 먼저 내려받아 주세요.</p>
+            ${GAMES.filter((g) => g.status !== "soon").map((g) => { const n = S.getRecords(g.id).length; return `<div class="game-row" style="grid-template-columns:1fr auto"><div><h3>${esc(g.title)}</h3><p>${n ? n + "건의 기록이 있습니다." : "아직 기록이 없습니다."}</p></div><button class="btn sm ${n ? "" : "ghost"}" type="button" data-action="export-records" data-id="${g.id}" ${n ? "" : "disabled"}>CSV 내려받기</button></div>`; }).join("")}
+          </section>
 
           <section class="panel" id="sec-consent" aria-labelledby="h-consent"><h2 id="h-consent">개인정보 및 이용 동의</h2>
             <dl class="kv"><dt>이용약관</dt><dd>동의함 (${esc((u.consents || {}).terms || "-")})</dd><dt>개인정보 수집·이용</dt><dd>동의함 (${esc((u.consents || {}).privacy || "-")})</dd><dt>연구 목적 활용</dt><dd>${(u.consents || {}).research ? `동의함 (${esc(u.consents.research)}). 연구 범위가 정해지면 안내합니다.` : "동의하지 않음"}</dd></dl>

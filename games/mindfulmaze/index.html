@@ -405,7 +405,7 @@
                 if (distance < this.radius) {
                     // 과속 상태에서 부딪히면 폭발
                     if (this.speed > MAX_SAFE_SPEED) {
-                        this.explode();
+                        this.explode('wall');
                         return;
                     }
                     if (distance < 0.0001) {
@@ -438,7 +438,7 @@
                 let dx = nextX - cx, dy = nextY - cy;
                 const d = Math.hypot(dx, dy), need = this.radius + 4;
                 if (d < need) {
-                    if (this.speed > MAX_SAFE_SPEED) { this.explode(); return; }
+                    if (this.speed > MAX_SAFE_SPEED) { this.explode('rotor'); return; }
                     if (d < 0.001) { dx = 1; dy = 0; } else { dx /= d; dy /= d; }
                     nextX = cx + dx * (need + 0.5); nextY = cy + dy * (need + 0.5);
                     const vn = this.vx * dx + this.vy * dy;
@@ -478,7 +478,7 @@
             // 위험지역(함정) 감지
             hazards.forEach(h => {
                 if (nextX > h.x && nextX < h.x + h.w && nextY > h.y && nextY < h.y + h.h) {
-                    this.explode();
+                    this.explode('hazard');
                 }
             });
 
@@ -502,9 +502,10 @@
             }
         }
 
-        explode() {
+        explode(cause) {
             if (!this.isAlive) return;
             this.isAlive = false;
+            finishAttempt('explode', cause || 'unknown', this.speed);
             sound.playExplosion();
             createParticles(this.x, this.y, '#BF616A', 25);
             setTimeout(() => {
@@ -720,6 +721,45 @@
     for (let i = 0; i < TOTAL_STAGES; i++) stages.push(buildStage(i));
     stages.forEach(st => st.rotors.forEach(r => { r.a0 = r.angle; }));
 
+    // --- 필수 지표 수집(연구용 행동 로그). 닉네임·이름 등 개인정보는 담지 않습니다. 플랫폼 안(iframe)일 때만 전달합니다. ---
+    const RUN_ID = Math.random().toString(36).slice(2, 10);   // 이 화면을 연 한 번의 접속(세션) 구분용 무작위 값
+    const attemptNo = {}; let totalActiveMs = 0, bestStage = 0, usedKeys = false, usedTouch = false, hiddenCount = 0;
+    let M = null;   // 현재 시도의 누적값
+    function newAttempt() {
+        const sd = stages[currentStage];
+        attemptNo[currentStage] = (attemptNo[currentStage] || 0) + 1;
+        bestStage = Math.max(bestStage, currentStage + 1);
+        M = { t0: performance.now(), last: performance.now(), active: 0, firstInput: null, sumSpeed: 0, maxSpeed: 0, overMs: 0, hotMs: 0, hidden: 0, safe: sd.safe, keysUsed: false, touchUsed: false };
+    }
+    function sampleMetrics(ball) {   // 매 프레임: 속도·시간 누적
+        if (!M) return;
+        const now = performance.now(); let dt = now - M.last; M.last = now;
+        if (dt > 120 || document.hidden) return;   // 탭을 떠났거나 멈춘 구간은 플레이 시간에서 제외
+        M.active += dt;
+        const keyOn = ['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','a','d','w','s'].some(k => keys[k]), joyOn = Math.hypot(joy.x, joy.y) > 0;
+        if (keyOn) { M.keysUsed = usedKeys = true; } if (joyOn) { M.touchUsed = usedTouch = true; }
+        if (M.firstInput === null && (keyOn || joyOn)) M.firstInput = Math.round(now - M.t0);
+        const sp = ball.speed; M.sumSpeed += sp * dt; if (sp > M.maxSpeed) M.maxSpeed = sp;
+        if (sp > M.safe) M.overMs += dt; if (sp >= M.safe * 0.8) M.hotMs += dt;
+    }
+    document.addEventListener('visibilitychange', () => { if (document.hidden) { hiddenCount++; if (M) M.hidden++; } });
+    function finishAttempt(result, cause, speedAtEnd) {
+        if (!M) return; const a = M; M = null;
+        totalActiveMs += a.active;
+        const r = (x, d) => Math.round(x * d) / d;
+        emitRecord({
+            event: 'stage_end', run: RUN_ID, stage: currentStage + 1, tier: stages[currentStage].tier + 1, attempt: attemptNo[currentStage],
+            result: result, cause: cause || '', lives_left: Math.max(0, lives - (result === 'explode' ? 1 : 0)),
+            duration_ms: Math.round(a.active), first_input_ms: a.firstInput === null ? '' : a.firstInput,
+            mean_speed: a.active ? r(a.sumSpeed / a.active, 100) : 0, max_speed: r(a.maxSpeed, 100), safe_speed: r(a.safe, 100),
+            over_safe_ratio: a.active ? r(a.overMs / a.active, 1000) : 0, hot_ratio: a.active ? r(a.hotMs / a.active, 1000) : 0,
+            speed_at_end: r(speedAtEnd || 0, 100), total_playtime_ms: Math.round(totalActiveMs), best_stage: bestStage,
+            input: a.keysUsed && a.touchUsed ? 'both' : a.touchUsed ? 'touch' : 'keyboard', tab_hidden: a.hidden,
+            viewport: window.innerWidth + 'x' + window.innerHeight, ts: new Date().toISOString()
+        });
+    }
+    function emitRecord(p) { try { if (window.parent !== window) parent.postMessage({ source: "onoff-game", type: "record", payload: p }, "*"); } catch (e) { /* 무시 */ } }
+
     let hintText = '', hintUntil = 0;
     function showHint(t, ms) { hintText = t; hintUntil = performance.now() + (ms || 2200); }
     function clearedCount(sData) { return sData.breatheZones.filter(b => b.cleared).length; }
@@ -773,6 +813,7 @@
 
     function winStage() {
         if (gameState !== 'PLAYING') return;
+        finishAttempt('clear', '', playerBall.speed);
         sound.playGoal();
         gameState = 'CLEAR';
         particles = [];
@@ -834,6 +875,7 @@
         }
         initStage(currentStage);
         gameState = 'PLAYING';
+        newAttempt();
     });
 
     // --- 터치 조이스틱 (온앤오프 연결용 추가) ---
@@ -942,6 +984,7 @@
                 sData.breatheZones,
                 sData.goal
             );
+            if (playerBall.isAlive) sampleMetrics(playerBall);
         }
 
         playerBall.draw();

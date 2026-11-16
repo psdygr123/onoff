@@ -5,7 +5,7 @@
    - 게임별 저장 데이터는 saves[사용자 id][게임 id]로 분리되어 서로 섞이지 않습니다. */
 window.OnOff = window.OnOff || {};
 OnOff.State = (function () {
-  const s = { user: null, accounts: [], saves: {}, pending: null };
+  const s = { user: null, accounts: [], saves: {}, pending: null, records: {} };
   const subs = [];
   const emit = () => subs.forEach((f) => f());
   const uid = () => "u" + Math.random().toString(36).slice(2, 10);
@@ -96,6 +96,22 @@ OnOff.State = (function () {
       s.saves[s.user.id][gameId] = { ...data, updatedAt: today() };
       emit();
       const c = cloud(); if (c && !s.user.demo) c.setSave(s.user.id, gameId, data).catch(warn);
+    },
+    /* 게임이 보내는 행동 기록(반응시간·속도 등). 지금은 이 탭의 메모리에만 두고 마이페이지에서 CSV로 내려받습니다(서버 전송 없음). */
+    addRecord(gameId, rec) {
+      if (!s.user || !rec || typeof rec !== "object") return;
+      const list = (s.records[s.user.id] = s.records[s.user.id] || {});
+      const arr = (list[gameId] = list[gameId] || []);
+      const clean = {};
+      Object.keys(rec).slice(0, 40).forEach((k) => { const v = rec[k]; clean[String(k).slice(0, 40)] = typeof v === "number" || typeof v === "boolean" ? v : String(v == null ? "" : v).slice(0, 80); });
+      arr.push(clean); if (arr.length > 5000) arr.shift();
+    },
+    getRecords(gameId) { return s.user && s.records[s.user.id] ? s.records[s.user.id][gameId] || [] : []; },
+    recordsCsv(gameId) {
+      const rows = this.getRecords(gameId); if (!rows.length) return "";
+      const cols = []; rows.forEach((r) => Object.keys(r).forEach((k) => { if (!cols.includes(k)) cols.push(k); }));
+      const q = (v) => { v = v == null ? "" : String(v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+      return "\ufeff" + [cols.join(",")].concat(rows.map((r) => cols.map((c) => q(r[c])).join(","))).join("\r\n");
     },
     saveKey(gameId) { return s.user ? s.user.id + ":" + gameId : null; }
   };

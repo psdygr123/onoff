@@ -1,7 +1,8 @@
 /* 게임 실행 연결부.
    게임 파일은 iframe으로 열리고, 플랫폼과 게임은 postMessage로만 대화합니다.
    플랫폼 → 게임: { source:"onoff-platform", type:"init", version:1, gameId, saveKey, locale, savedProgress }
-   게임 → 플랫폼: { source:"onoff-game", type:"ready" | "progress" | "exit", payload }
+   게임 → 플랫폼: { source:"onoff-game", type:"ready" | "progress" | "record" | "exit", payload }
+   - record: 단계 종료마다 행동 지표(소요시간·첫 입력 지연·속도·실패 원인 등). 개인정보는 담지 않습니다. 지금은 마이페이지에서 CSV로 내려받습니다.
    - saveKey는 사용자·게임별로 분리된 불투명 값이며 이름·이메일 같은 개인정보는 보내지 않습니다.
    - 게임 안의 상세 기록(PSS, PERMA 등)을 어디에 저장할지는 정해지지 않았으며, 서버 연동 때 정합니다. */
 window.OnOff = window.OnOff || {};
@@ -56,6 +57,8 @@ parent.postMessage({ source: "onoff-game", type: "exit" }, "*"); // 플랫폼으
         const p = m.payload;
         OnOff.State.setSave(game.id, { label: String(p.label || "진행 중").slice(0, 40), percent: Math.max(0, Math.min(100, Number(p.percent) || 0)), test: !!opts.entryOverride });
         opts.onLog("진행 상태를 받았습니다: " + String(p.label || "진행 중"));
+      } else if (m.type === "record" && m.payload) {
+        OnOff.State.addRecord(game.id, m.payload);
       } else if (m.type === "exit") {
         opts.onExit();
       }

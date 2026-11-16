@@ -72,6 +72,7 @@ OnOff.App = (function () {
     else if (a === "start") { const g = firstGame(); if (S.user) openGame(g.id); else { S.pending = "intro-" + g.id; go("signup"); } }
     else if (a === "open-game") openGame(t.dataset.id);
     else if (a === "logout") { S.logout(); toast("로그아웃했습니다."); go("home"); }
+    else if (a === "export-records") { const csv = S.recordsCsv(t.dataset.id); if (!csv) return; const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" })); const el = document.createElement("a"); el.href = url; el.download = "onoff-" + t.dataset.id + "-records.csv"; document.body.appendChild(el); el.click(); el.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000); }
     else if (a === "demo") { S.demoLogin(); const p = S.pending; S.pending = null; go(p || "mypage"); }
     else if (a === "toggle-menu") { const h = document.getElementById("site-header"); const open = h.classList.toggle("open"); t.setAttribute("aria-expanded", String(open)); }
     else if (a === "scroll") { e.preventDefault(); const el = document.getElementById(t.dataset.target); if (el) el.scrollIntoView({ behavior: "smooth", block: "start" }); }
