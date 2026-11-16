@@ -106,7 +106,7 @@
       root.innerHTML = "";
       const box = h("div", "panel setupbox"); box.id = "charsetup"; box.setAttribute("role", "dialog"); box.setAttribute("aria-label", "캐릭터 설정");
       if (!edit) box.append(this.stepBar(h, 2));
-      box.append(h("p", "stitle", edit ? "캐릭터 설정" : "캐릭터 만들기"), h("p", "ssub", edit ? "닉네임과 모습을 바꿀 수 있습니다. 진행 기록은 그대로 유지됩니다." : "모험을 시작하기 전에 이름과 모습을 정해 주세요. 시작 전에는 언제든 돌아와 바꿀 수 있습니다."));
+      box.append(h("p", "stitle", edit ? "캐릭터 설정" : "캐릭터 만들기"), h("p", "ssub", edit ? "닉네임과 모습을 바꿀 수 있습니다. 진행 기록은 그대로 유지됩니다." : "모험을 시작하기 전에 이름과 모습을 정해 주세요."));
       const body = h("div", "sbody"), left = h("div"), right = h("div", "sright");
       left.append(h("div", "slabel", "모습"));
       const cards = h("div", "scards"); cards.setAttribute("role", "radiogroup"); cards.setAttribute("aria-label", "모습");
