@@ -219,6 +219,12 @@ AU.JOBS = {
 // 2·3차 전직은 직업 이름과 계열을 임의로 정하지 않고 자리만 둠 (요청서 7장)
 /* 직업 계열: 캐릭터를 만들 때 먼저 고름. 시작 직업은 모두 견습 모험가이고, Lv.10 전직 때 고른 계열의 1차 직업이 됨.
    지금 열려 있는 계열은 전사뿐(open). 나머지 넷은 세계관의 다섯 영웅 직업으로, 화면에 잠긴 채 보여 줌. icon은 그림이 오기 전 임시 도형 */
+/* 직업군(1단계): 지금은 용사만 열려 있고 나머지는 추후 공개 예정. 용사를 고르면 아래 JOB_LINES(전사·마법사…) 선택 창으로 이어짐 */
+AU.JOB_GROUPS = [
+  { id: "hero", name: "용사", open: true, art: "job_warrior", icon: '<path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z"/>' },
+  { id: "soon1", name: "???", open: false, icon: '<text x="12" y="18" text-anchor="middle" font-size="18" fill="currentColor">?</text>' },
+  { id: "soon2", name: "???", open: false, icon: '<text x="12" y="18" text-anchor="middle" font-size="18" fill="currentColor">?</text>' }
+];
 AU.JOB_LINES = [
   { id: "warrior", name: "전사", open: true, job: "warrior", desc: "검과 방패로 가까이에서 버티며 싸웁니다.", icon: '<path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z"/>' },
   { id: "mage", name: "마법사", open: false, icon: '<path d="M12 2l2.6 6.2 6.7.5-5.1 4.3 1.6 6.5L12 16l-5.8 3.5 1.6-6.5L2.7 8.7l6.7-.5z"/>' },

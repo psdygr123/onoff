@@ -7,7 +7,7 @@ const note = (id, name, ok, ev) => { if (!ok) fail++; console.log((ok ? 'PASS ' 
   const b = await chromium.launch(); const p = await (await b.newContext({ viewport: { width: 1280, height: 720 } })).newPage(); const errs = []; p.on('pageerror', (e) => errs.push(e.message));
   const ev = (f, a) => p.evaluate(f, a);
   await p.goto(URL); await ev(() => localStorage.clear()); await p.goto(URL); await p.waitForSelector('#btn-start'); await p.click('#btn-start'); await sleep(300);
-  if (await p.$('#job-next')) { await p.click('#job-next'); await sleep(200); } if (await p.$('#charsetup')) { await p.fill('#sname', '시험용'); await p.click('#setup-ok'); await sleep(300); }
+  for (let i = 0; i < 2 && await p.$('#job-next'); i++) { await p.click('#job-next'); await sleep(200); } if (await p.$('#charsetup')) { await p.fill('#sname', '시험용'); await p.click('#setup-ok'); await sleep(300); }
   await ev(() => AU.Prologue.debugComplete('arche')); await sleep(200);
   await ev(() => { const S = AU.G.S; S.level = 10; S.jobChanged = true; S.freePoints = 3; S.flags.missionsUnlocked = true; S.flags.guideMet = true; AU.G.changed(); });
   note('G1', 'Lv.10: 미션 전에는 레벨 포인트 분배 불가', await ev(() => AU.G.pool() === 0 && !AU.G.applyAllocation({ STR: 1 })), 'pool=' + await ev(() => AU.G.pool()));

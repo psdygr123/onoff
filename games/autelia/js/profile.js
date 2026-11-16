@@ -71,28 +71,33 @@
       if (opts.mode === "new" && !opts._line) return this.openJobStep(root, opts);
       return this.openLookStep(root, opts);
     },
-    stepBar(h, n) { const s = h("div", "ssteps"); s.append(h(n === 1 ? "b" : "span", null, "1 직업 계열"), document.createTextNode("›"), h(n === 2 ? "b" : "span", null, "2 모습·이름")); return s; },
-    openJobStep(root, opts) {
+    stepBar(h, n) { const s = h("div", "ssteps"); s.append(h(n === 1 ? "b" : "span", null, "1 직업 선택"), document.createTextNode("›"), h(n === 2 ? "b" : "span", null, "2 모습·이름")); return s; },
+    openJobStep(root, opts, phase) {
       const h = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
-      root.innerHTML = ""; let sel = this.cleanLine(opts._lineSel || (opts.initial && opts.initial.line));
-      const box = h("div", "panel setupbox jobbox"); box.id = "jobsetup"; box.setAttribute("role", "dialog"); box.setAttribute("aria-label", "직업 계열 고르기");
-      box.append(this.stepBar(h, 1), h("p", "stitle", "직업 계열 고르기"), h("p", "ssub", "어떤 길을 걸을지 먼저 정해 주세요. 견습 모험가로 시작해 Lv.10 전직 때 이 계열의 직업이 됩니다."));
-      const row = h("div", "jcards"); row.setAttribute("role", "radiogroup"); row.setAttribute("aria-label", "직업 계열"); const els = {};
+      phase = phase || (opts._lineSel ? "line" : "group");   // 1단계는 직업군(용사) → 용사를 고르면 전사·마법사… 선택 창
+      root.innerHTML = ""; let sel = phase === "line" ? this.cleanLine(opts._lineSel || (opts.initial && opts.initial.line)) : "hero";
+      const box = h("div", "panel setupbox jobbox"); box.id = "jobsetup"; box.setAttribute("role", "dialog"); box.setAttribute("aria-label", "직업 선택하기");
+      box.append(this.stepBar(h, 1), h("p", "stitle", "직업 선택하기"), h("p", "ssub", "어떤 길을 걸을지 정해주세요."));
+      const list = phase === "line" ? AU.JOB_LINES : AU.JOB_GROUPS;
+      const row = h("div", "jcards"); row.setAttribute("role", "radiogroup"); row.setAttribute("aria-label", "직업"); const els = {};
       const note = h("p", "jnote", ""); note.setAttribute("aria-live", "polite");
-      const mark = () => { for (const L of AU.JOB_LINES) if (L.open) { els[L.id].classList.toggle("sel", L.id === sel); els[L.id].setAttribute("aria-checked", L.id === sel ? "true" : "false"); } };
-      for (const L of AU.JOB_LINES) {
-        const c = h("button", "jcard" + (L.open ? "" : " lock")); c.type = "button"; c.id = "jl-" + L.id; c.dataset.line = L.id; c.setAttribute("role", "radio");
+      const mark = () => { for (const L of list) if (L.open) { els[L.id].classList.toggle("sel", L.id === sel); els[L.id].setAttribute("aria-checked", L.id === sel ? "true" : "false"); } };
+      for (const L of list) {
+        const c = h("button", "jcard" + (L.open ? "" : " lock")); c.type = "button"; c.id = (phase === "line" ? "jl-" : "jg-") + L.id; c.dataset.line = L.id; c.setAttribute("role", "radio");
         if (!L.open) c.setAttribute("aria-disabled", "true");
-        const art = h("div", "jart"), key = "job_" + L.id, spec = AU.ASSETS[key];
-        if (spec) { const im = new Image(); im.alt = ""; im.src = spec.path; im.draggable = false; art.classList.add("has-img"); im.onerror = () => { art.classList.remove("has-img"); art.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + L.icon + "</svg>"; }; art.append(im); } // 그림이 있으면 그림, 없거나 못 불러오면 임시 도형
+        const art = h("div", "jart"), key = L.art || "job_" + L.id, spec = AU.ASSETS[key];
+        if (spec && L.open) { const im = new Image(); im.alt = ""; im.src = spec.path; im.draggable = false; art.classList.add("has-img"); im.onerror = () => { art.classList.remove("has-img"); art.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + L.icon + "</svg>"; }; art.append(im); }
+        else if (spec && phase === "line") { const im = new Image(); im.alt = ""; im.src = spec.path; im.draggable = false; art.classList.add("has-img"); art.append(im); }
         else art.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + L.icon + "</svg>";
-        c.append(h("i", L.open ? "chk" : "lk", L.open ? "✓" : "🔒"), art, h("b", null, L.name), h("p", null, L.open ? L.desc : "아직 열리지 않은 길입니다."), h("em", null, L.open ? "Lv.10 전직: " + AU.JOBS[L.job].name : "준비 중"));
-        c.onclick = () => { if (!L.open) { note.textContent = L.name + " 계열은 아직 준비 중입니다. 지금은 전사 계열로 시작할 수 있습니다."; return; } sel = L.id; note.textContent = ""; mark(); };
+        c.append(h("i", L.open ? "chk" : "lk", L.open ? "✓" : "🔒"), art, h("b", null, L.name));
+        if (!L.open) c.append(h("em", null, phase === "line" ? "준비 중" : "추후 공개 예정"));
+        c.onclick = () => { if (!L.open) { note.textContent = phase === "line" ? L.name + " 계열은 아직 준비 중입니다." : "추후 공개 예정입니다."; return; } sel = L.id; note.textContent = ""; mark(); };
         row.append(c); els[L.id] = c;
       }
-      const foot = h("div", "sfoot"), back = h("button", "btn", "뒤로"), next = h("button", "btn primary big", "다음: 모습·이름 정하기"); back.type = next.type = "button"; back.id = "job-back"; next.id = "job-next";
-      back.onclick = () => opts.onBack(); next.onclick = () => this.openLookStep(root, Object.assign({}, opts, { _line: sel }));
-      box.addEventListener("keydown", (e) => { if (e.key === "Escape") { e.preventDefault(); opts.onBack(); } else if (e.key === "Enter" && e.target === next) { /* 버튼 기본 동작 */ } });
+      const foot = h("div", "sfoot"), back = h("button", "btn", "뒤로"), next = h("button", "btn primary big", phase === "line" ? "다음: 모습·이름 정하기" : "다음"); back.type = next.type = "button"; back.id = "job-back"; next.id = "job-next";
+      back.onclick = () => { if (phase === "line") this.openJobStep(root, Object.assign({}, opts, { _lineSel: null }), "group"); else opts.onBack(); };
+      next.onclick = () => { if (phase === "group") this.openJobStep(root, Object.assign({}, opts, { _lineSel: opts._lineSel || (opts.initial && opts.initial.line) || "warrior" }), "line"); else this.openLookStep(root, Object.assign({}, opts, { _line: sel })); };
+      box.addEventListener("keydown", (e) => { if (e.key === "Escape") { e.preventDefault(); back.onclick(); } });
       foot.append(back, next); box.append(row, note, foot); root.append(box); root.classList.remove("hidden"); mark(); next.focus();
     },
     openLookStep(root, opts) {

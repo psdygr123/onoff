@@ -7,7 +7,7 @@ const URL = (process.env.GAME_URL || 'http://localhost:8801') + '/index.html?dev
   const ok = (n, c, e) => { console.log((c ? 'PASS ' : 'FAIL ') + n + ' :: ' + (e || '')); c ? pass++ : fail++; };
   const idx = () => p.evaluate(() => AU.G.S.flags.tut && AU.G.S.flags.tut.i); const card = () => p.evaluate(() => { const c = document.querySelector('.tutcard'); return c ? c.querySelector('.ttitle').textContent + '|' + c.querySelector('.tstep').textContent : null; });
   await p.goto(URL); await p.evaluate(() => localStorage.clear()); await p.goto(URL); await p.waitForSelector('#btn-start'); await p.click('#btn-start'); await sleep(400);
-  if (await p.$('#job-next')) { await p.click('#job-next'); await sleep(200); } if (await p.$('#charsetup')) { await p.fill('#sname', '시험용'); await p.click('#setup-ok'); await sleep(300); }
+  for (let i = 0; i < 2 && await p.$('#job-next'); i++) { await p.click('#job-next'); await sleep(200); } if (await p.$('#charsetup')) { await p.fill('#sname', '시험용'); await p.click('#setup-ok'); await sleep(300); }
   await p.evaluate(() => AU.Prologue.debugComplete('arche')); await sleep(1200);
   ok('T1 본편 시작 시 1단계 카드', /이동과 점프/.test(await card() || ''), await card());
   await p.keyboard.down('ArrowRight'); await sleep(1500); await p.keyboard.up('ArrowRight'); await p.keyboard.down('Alt'); await sleep(150); await p.keyboard.up('Alt'); await sleep(1800);

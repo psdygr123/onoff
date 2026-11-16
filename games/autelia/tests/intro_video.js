@@ -5,7 +5,7 @@ const R = []; const note = (id, name, ok, ev) => { R.push({ id, ok }); console.l
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 async function begin(p, url) {
   await p.goto(url); await p.evaluate(() => { const seen = localStorage.getItem('__keepSeen'); localStorage.clear(); }); await p.goto(url); await p.waitForSelector('#btn-start'); await p.click('#btn-start'); await sleep(300);
-  if (await p.$('#job-next')) { await p.click('#job-next'); await sleep(200); } if (await p.$('#charsetup')) { await p.fill('#sname', '시험용'); await p.click('#setup-ok'); await sleep(300); }
+  for (let i = 0; i < 2 && await p.$('#job-next'); i++) { await p.click('#job-next'); await sleep(200); } if (await p.$('#charsetup')) { await p.fill('#sname', '시험용'); await p.click('#setup-ok'); await sleep(300); }
 }
 (async () => {
   const b = await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required'] }); const errs = [];
@@ -32,7 +32,7 @@ async function begin(p, url) {
   // 2) 본 적 있는 사람 (같은 브라우저 기록)
   ctx = await b.newContext({ viewport: { width: 1280, height: 720 } }); p = await ctx.newPage(); p.on('pageerror', (e2) => errs.push(e2.message));
   await p.goto(BASE); await p.evaluate(() => localStorage.clear()); await p.goto(BASE); await p.evaluate(() => AU.Store.set('autelia.introSeen', 1)); await p.reload(); await p.waitForSelector('#btn-start'); await p.click('#btn-start'); await sleep(300);
-  if (await p.$('#job-next')) { await p.click('#job-next'); await sleep(200); } if (await p.$('#charsetup')) { await p.fill('#sname', '시험용'); await p.click('#setup-ok'); await sleep(300); }
+  for (let i = 0; i < 2 && await p.$('#job-next'); i++) { await p.click('#job-next'); await sleep(200); } if (await p.$('#charsetup')) { await p.fill('#sname', '시험용'); await p.click('#setup-ok'); await sleep(300); }
   await sleep(3000);
   const s = await p.evaluate(() => ({ skip: !!document.querySelector('.introskip'), on: !!document.querySelector('.introv.on') }));
   note('V7', '본 적 있는 사람에게는 건너뛰기 버튼이 보임', s.skip && s.on, JSON.stringify(s));
