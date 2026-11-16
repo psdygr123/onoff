@@ -22,7 +22,7 @@ window.AU = window.AU || {};
       draw(ctx, e, P) {
         const moving = e.pause <= 0, cyc = (e.step / 46) % 1, fr = !moving ? "stand" : cyc < 0.25 ? "walk1" : cyc < 0.5 ? "stand" : cyc < 0.75 ? "walk2" : "stand";
         const bob = moving ? Math.abs(Math.sin(cyc * Math.PI * 2)) * 3.2 : Math.sin(P.time * 1.6 + e.ph) * 1.1, sway = moving ? Math.sin(cyc * Math.PI * 2) * 0.018 : 0;
-        ctx.save(); ctx.globalAlpha = e.alpha == null ? (A.has("pc_raider_actions") ? 1 : 0.78) : e.alpha; ctx.translate(e.x, e.y - bob); ctx.rotate(sway * e.face); ctx.translate(-e.x, -e.y);
+        ctx.save(); ctx.globalAlpha = e.alpha == null ? (A.has("pc_raider_actions") ? 1 : 0.78) : e.alpha; ctx.translate(e.x, e.y - bob); ctx.rotate(sway * e.face + (e.tilt || 0) * e.face); ctx.translate(-e.x, -e.y);
         if (!A.spr(ctx, "pc_" + (A.has("pc_" + e.wk) ? e.wk : "raider_actions"), fr, e.x, e.y, e.face, e.s / 0.5)) A.raider(ctx, e.x, e.y, e.s, P.time, e.face); ctx.restore(); } });
   }
   const SHEETS = "abcdefghijklm".split("").filter(() => true); // 주민 동작 시트(a~c 1차, d~m NPC 다양화). 없는 시트는 runner/crowd 에서 건너뜀
@@ -395,7 +395,7 @@ window.AU = window.AU || {};
       lift: 0,
       draw(ctx, e, P) { if (e.lift > 0) { liftBag(ctx, e, P); return; } A.bag(ctx, e.x, G - 4, 1.05, 0); const k = 0.5 + 0.5 * Math.sin(P.time * 4); ctx.strokeStyle = "rgba(255,230,150," + (0.35 + 0.4 * k) + ")"; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(e.x, G - 4, 46, 9, 0, 0, 7); ctx.stroke();
         if (e.mark && !P.locked()) { const by = G - 90 + Math.sin(P.time * 4) * 4; ctx.fillStyle = "#E8B94E"; ctx.strokeStyle = "#fff"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(e.x - 11, by - 12); ctx.lineTo(e.x + 11, by - 12); ctx.lineTo(e.x, by + 4); ctx.closePath(); ctx.fill(); ctx.stroke(); } } });
-    P.trigger({ id: "find", goal: LAY.house.find, test: (p) => p.x >= LAY.house.find, fn: () => willScene(father, bag) });
+    P.trigger({ id: "find", goal: LAY.house.find, test: (p) => p.x >= LAY.house.find && !P.v.brawl, fn: () => willScene(father, bag) });
     /* 바닥의 가방이 포물선을 그리며 등으로 올라가는 모습(바닥 그림 → 등에 멘 그림으로 서서히 바뀜) */
     function liftBag(ctx, e, P) {
       const p = AU.World.player, d = p.dir, k = e.lift, ease = k * k * (3 - 2 * k), b = P.bagDyn(p), fx = e.x, fy = G - 4 - 39, tx = p.x - d * 20, ty = p.y - 74 + 29 + b.y;
@@ -432,21 +432,59 @@ window.AU = window.AU || {};
     }, { id: "cs03", skip: true, bars: true });
     if (!live(P, g)) return; bag.hidden = false; P.obj(OBJ.s4_bag); P.limits = { min: 120, max: null, msg: "도구 가방을 챙겨야 합니다." };
   }
+  /* 집 안 난투: 주인공이 망치로 부하 둘과 맞선다. 공격 키로 망치를 휘두르고(앞쪽 가까운 적에게 적중), 부하는 다가와 몸을 숙였다가 내려친다.
+     체력 표시·패배 없음(맞으면 비틀릴 뿐) — 부하 둘을 쓰러뜨리거나 18초가 지나면 끝나고 간부가 나선다. */
+  function startBrawl(P, foes, limitX) {
+    const p = AU.World.player, v = P.v, F = P.fight = { on: true, t: 0, cd: 0, sw: 0, hitDone: false, kb: 0, inv: 0, hits: 0 };
+    for (const e of foes) { e.hp = 3; e.stun = 0; e.cool = 0.6 + Math.random() * 0.9; e.wind = 0; e.kb = 0; e.down = false; e.tilt = 0; e.pause = 0; e.min = null; }
+    F.done = new Promise((res) => { F.resolve = res; });
+    const fall = async (e) => { e.alpha = 1; P.sfx("thud"); await P.tween(e, { tilt: -1.35 }, 0.45, (k) => k * k); await P.wait(0.25); await P.tween(e, { alpha: 0 }, 0.6); e.hidden = true; };
+    const hit = () => { for (const e of foes) { if (e.down) continue; const d = e.x - p.x; if (Math.sign(d || p.dir) === p.dir && Math.abs(d) < 115) { e.hp--; e.stun = 0.35; e.wind = 0; e.tilt = 0; e.kb = p.dir * 260; P.sfx("thud"); P.shake(4, 0.14); P.burst("dust", e.x, G - 70, 6); if (e.hp <= 0) { e.down = true; e.stun = 0; fall(e); } } } };
+    const strike = (e) => { e.tilt = 0; e.cool = 1.3 + Math.random() * 0.7; if (Math.abs(p.x - e.x) < 105 && F.inv <= 0) { F.inv = 0.8; F.hits++; p.flash = 0.3; F.kb = (p.x < e.x ? -1 : 1) * 240; P.sfx("thud"); P.shake(5, 0.18); } };
+    F.onAttack = () => { if (!F.on || F.cd > 0 || P.locked()) return; F.cd = 0.55; F.sw = 0.3; F.hitDone = false; P.pose("hammer"); v.swing = 0; P.sfx("hammer"); };
+    const finish = () => { if (!F.on) return; F.on = false; P.pose(null); v.swing = 0; F.resolve(); };
+    P.addEnt({ id: "brawl", x: 0, range: 0, draw() {}, update(_, dt) {
+      if (!F.on) return; F.t += dt; F.cd = Math.max(0, F.cd - dt); F.inv = Math.max(0, F.inv - dt);
+      if (F.sw > 0) { F.sw -= dt; v.swing = F.sw < 0.15 ? 1 : 0; if (F.sw < 0.15 && !F.hitDone) { F.hitDone = true; hit(); } if (F.sw <= 0) { P.pose(null); v.swing = 0; } }
+      if (F.kb) { p.x = Math.max(120, Math.min(limitX, p.x + F.kb * dt)); F.kb *= Math.pow(0.02, dt); if (Math.abs(F.kb) < 5) F.kb = 0; }
+      let alive = 0;
+      for (const e of foes) {
+        if (e.down) continue; alive++;
+        if (e.stun > 0) { e.stun -= dt; e.x += e.kb * dt; e.kb *= Math.pow(0.02, dt); e.tilt = -0.14 * Math.min(1, e.stun / 0.2); e.pause = 1; continue; }
+        const d = p.x - e.x, ad = Math.abs(d); e.face = d < 0 ? -1 : 1;
+        if (e.wind > 0) { e.wind -= dt; e.tilt = 0.24 * (1 - Math.max(0, e.wind) / 0.45); if (e.wind <= 0) strike(e); continue; }
+        if (ad > 80) { const sp = 150; e.x += e.face * sp * dt; e.step += sp * dt; e.pause = 0; } else { e.pause = 1; e.cool -= dt; if (e.cool <= 0) e.wind = 0.45; }
+      }
+      if (alive === 0 || F.t > 18) finish(); } });
+    P.hint("망치로 맞서세요! 공격: " + AU.keyLabel(AU.Input.bindings.attack), 7, true);
+    return F;
+  }
   SC.SCENE_04_FATHER = { name: "아버지의 마지막 유언", async enter(P) {
-    const g = P.gen; P.room("pro_house", LAY.house.start, (P) => setupHouse(P)); P.amb("raid_far", true);
-    // 집에 들어서는 순간 아버지는 아직 서서 습격 간부와 맞서고 있다 → 간부의 일격에 쓰러지고, 간부는 무너지는 지붕을 피해 물러난다(아버지가 누운 채로 갑자기 싸우지 않도록 컷을 먼저)
+    const g = P.gen; P.room("pro_house", LAY.house.start, (P) => setupHouse(P)); P.amb("raid_far", true); P.v.brawl = true;
+    // 집에 들어서는 순간 아버지는 아직 서서 습격 간부와 맞서고 있다 → 간부의 일격에 쓰러진다(컷) → 간부가 낙인을 알아보고 부하들을 보낸다 → 주인공이 망치로 맞선다(난투) → 간부가 직접 나서 제압 → 무너지는 지붕을 피해 물러난다
     P.cut = { src: "assets/prologue/cut/strike.webp", a: 1, zoom: 0.012, t0: P.time };
-    { const fx = LAY.house.father; // 간부(낙인을 알아본 우두머리)와 부하 둘: 아버지 곁에 서 있다가 대화가 끝나면 걸어서 물러난다
-      for (const [id, dx, sc] of [["off", 170, 0.66], ["rg1", 290, 0.54], ["rg2", 380, 0.52]]) { const e = raider(P, id, fx + dx, G, sc, -1, null, null); e.update = (q, dt) => { if (q.fleeing) { q.x += q.face * q.sp * dt; q.step += q.sp * dt; } }; e.pause = 1; } }
+    { const fx = LAY.house.father; // 간부(낙인을 알아본 우두머리)와 부하 둘: 아버지 곁에 서 있다가 명령이 떨어지면 부하가 달려든다
+      for (const [id, dx, sc] of [["off", 170, 0.66], ["rg1", 290, 0.54], ["rg2", 380, 0.52]]) { const e = raider(P, id, fx + dx, G, sc, -1, null, null); e.update = (q, dt) => { if (q.fleeing || q.go) { q.x += q.face * q.sp * dt; q.step += q.sp * dt; } }; e.pause = 1; } }
     await P.cutscene(async () => {
       P.obj(""); P.sfx("boom"); await P.fade(0, 1.2); await P.wait(0.8);
       await P.say([T.officer[0]]);
       P.sfx("collapse"); P.shake(12, 0.9); await P.flash("#ffd9a0", 0.35); await P.tween(P.cut, { a: 0 }, 0.7); P.cut = null; await P.wait(0.5);
-      await P.say(T.officer.slice(1)); P.sfx("collapse"); P.shake(14, 1.2); P.burst("dust", 760, 280, 16); await P.wait(0.5);
-      // 간부와 부하들이 무너지는 지붕을 피해 오른쪽 문으로 물러난다(걸음 주기를 맞춰 걷게)
-      for (const [id, dx] of [["off", 0], ["rg1", 120], ["rg2", 210]]) { const e = P.ents.find((q) => q.id === id); if (e) { e.face = 1; e.pause = 0; e.min = null; e.sp = 70; e.fleeing = true; } }
-      await P.wait(1.6); P.ents = P.ents.filter((q) => !q.fleeing); await P.wait(0.4);
-    }, { id: "cs03a", skip: true, bars: true }); P.cut = null; if (!live(P, g)) return; P.obj(OBJ.s3_dad);
+      await P.say(T.officer.slice(1));   // 주인공의 외침 → 간부의 명령
+    }, { id: "cs03a", skip: true, bars: true }); P.cut = null; if (!live(P, g)) return;
+    // 난투: 부하 둘이 달려든다(주인공은 왼쪽 구역에서만 움직임)
+    P.limits = { min: 120, max: 440, msg: "" }; P.obj("망치로 습격자를 물리치세요.");
+    const foes = ["rg1", "rg2"].map((id) => P.ents.find((q) => q.id === id)).filter(Boolean); P.face(1);
+    await P.wait(0.5); startBrawl(P, foes, 440); await P.fight.done; if (!live(P, g)) return;
+    await P.cutscene(async () => {
+      P.obj(""); const off = P.ents.find((q) => q.id === "off"), p = AU.World.player;
+      if (off) { off.face = -1; off.pause = 0; off.sp = 140; off.go = true; let guard = 0; while (Math.abs(off.x - p.x) > 95 && guard++ < 200) await P.wait(0.05); off.go = false; off.pause = 1; await P.wait(0.25); }
+      P.sfx("thud"); P.shake(10, 0.5); await P.flash("#ffd9a0", 0.25); P.pose("stagger"); await P.tween(p, { x: Math.max(130, p.x - 60) }, 0.3, (k) => k * (2 - k)); P.pose("kneel"); await P.wait(0.5);   // 간부의 일격에 무릎을 꿇음
+      await P.say(T.officer2); P.sfx("collapse"); P.shake(14, 1.2); P.burst("dust", 760, 280, 16); await P.wait(0.5); await P.say(T.officer3);
+      // 간부와 살아남은 부하들이 무너지는 지붕을 피해 오른쪽 문으로 물러난다(걸음 주기를 맞춰 걷게)
+      for (const id of ["off", "rg1", "rg2"]) { const e = P.ents.find((q) => q.id === id); if (e && !e.hidden) { e.face = 1; e.pause = 0; e.min = null; e.sp = 70; e.go = false; e.fleeing = true; e.tilt = 0; } }
+      P.pose(null); await P.wait(1.6); P.ents = P.ents.filter((q) => !q.fleeing && q.id !== "rg1" && q.id !== "rg2"); await P.wait(0.4);
+    }, { id: "cs03b", skip: true, bars: true }); P.cut = null; P.fight = null; if (!live(P, g)) return;
+    P.v.brawl = false; P.limits = { min: 120, max: null, msg: "아버지를 먼저 찾아야 합니다." }; P.obj(OBJ.s3_dad);
   } };
 
   /* ============================================================

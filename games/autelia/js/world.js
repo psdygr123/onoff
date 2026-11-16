@@ -187,7 +187,7 @@ window.AU = window.AU || {};
     onAction(id) {
       if (this.isBlocked()) return;
       const PR = AU.Prologue;
-      if (PR && PR.on) { if (id === "interact") { PR.interactNear(); return; } if (id === "attack" || id.startsWith("skill")) return; } // 프롤로그에서는 전투·스킬 없음
+      if (PR && PR.on) { if (id === "interact") { PR.interactNear(); return; } if (id === "attack") { if (PR.fight && PR.fight.on && PR.fight.onAttack) PR.fight.onAttack(); return; } if (id.startsWith("skill")) return; } // 프롤로그에서는 스킬 없음(공격은 집 안 난투 장면에서만)
       if (id === "potion" || id === "scroll") { AU.G.quickUse(id); return; }
       const p = this.player; if (id === "interact" || id === "up") this.scan();
       if (id === "jump") {
