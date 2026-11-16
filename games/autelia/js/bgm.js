@@ -5,13 +5,14 @@
    - 음원이 없거나 재생이 막혀도 게임은 그대로 진행됨 */
 window.AU = window.AU || {};
 (function () {
-  const CFG = { src: "assets/audio/light_through_the_blinds.mp3", vol: 0.32, duckVol: 0.14, fadeInPerSec: 0.5, fadeOutPerSec: 1.6 };
-  const B = AU.Bgm = { cfg: CFG, el: null, vol: 0, failed: false, blocked: false, state: "idle" };
+  const TRACKS = { main: "assets/audio/light_through_the_blinds.mp3", harbor: "assets/audio/harbor.mp3", adventure: "assets/audio/adventure.mp3" };
+  const CFG = { src: TRACKS.main, vol: 0.32, duckVol: 0.14, fadeInPerSec: 0.5, fadeOutPerSec: 1.6 };
+  const B = AU.Bgm = { cfg: CFG, el: null, vol: 0, failed: false, blocked: false, state: "idle", track: "main", cur: "main", tracks: TRACKS };
 
   function ensure() {
     if (B.el || B.failed) return B.el;
     try {
-      const a = new Audio(CFG.src); a.loop = true; a.preload = "auto"; a.volume = 0;
+      const a = new Audio(TRACKS[B.cur] || CFG.src); a.loop = true; a.preload = "auto"; a.volume = 0;
       a.addEventListener("error", () => { B.failed = true; B.state = "missing"; });
       B.el = a;
     } catch (e) { B.failed = true; }
@@ -29,6 +30,14 @@ window.AU = window.AU || {};
     return st in SCENE_MULT ? SCENE_MULT[st] : 1;
   };
 
+  /* 장면에 맞는 곡 고르기: 프롤로그 마지막(항구로 가는 길)=모험, 포르투 노바와 그 안쪽 건물=항구, 그 밖에는 기본 곡 */
+  B.pick = function () {
+    const P = AU.Prologue;
+    if (P && P.on) { const st = AU.G && AU.G.S && AU.G.S.prologue && AU.G.S.prologue.state; return st === "SCENE_06_PORT_VIEW" ? "adventure" : "main"; }
+    const W = AU.World, m = W && W.map; if (!m) return "main";
+    const id = W.mapId; return (id === "porto" || m.parent === "porto") ? "harbor" : "main";
+  };
+
   /* 설정의 배경음 음량(0~1). 설정이 없으면 100% */
   B.userVol = function () { const S = AU.UI && AU.UI.settings; const v = S && S.volBgm; return (typeof v === "number" && isFinite(v)) ? Math.max(0, Math.min(1, v)) : 1; };
 
@@ -36,8 +45,13 @@ window.AU = window.AU || {};
   B.tick = function (dt) {
     const main = AU.main, S = AU.UI && AU.UI.settings;
     const want = !!(main && main.running && S && !S.mute && !document.hidden);
-    let target = 0;
-    if (want) target = ((AU.Prologue && AU.Prologue.on) ? CFG.duckVol : CFG.vol) * B.sceneMult() * B.userVol();
+    let target = 0; B.track = B.pick();
+    if (B.el && B.track !== B.cur) { // 곡이 바뀌면 지금 곡을 서서히 줄인 뒤 새 곡으로 교체
+      if (B.vol > 0.002) { want && (B.vol = Math.max(0, B.vol - 0.9 * dt * CFG.vol)); B.el.volume = Math.max(0, Math.min(1, B.vol)); return; }
+      B.el.pause(); B.el.src = TRACKS[B.track]; B.el.load(); B.cur = B.track; B.state = "idle"; return;
+    }
+    if (!B.el && B.track !== B.cur) B.cur = B.track;
+    if (want) target = ((AU.Prologue && AU.Prologue.on) ? CFG.duckVol : CFG.vol) * B.sceneMult() * B.userVol() * ({ harbor: 1.7 }[B.cur] || 1);
     if (AU.Sfx && AU.Sfx.applyVolume) AU.Sfx.applyVolume(); // 소리 끄기·효과음 음량: 효과음·환경음에 반영
     if (target === 0 && B.vol === 0 && !B.el) return;
     const a = ensure(); if (!a || B.failed) return;

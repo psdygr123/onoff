@@ -144,6 +144,8 @@ window.AU = window.AU || {};
   def("revive", "되살아남(따뜻한 울림이 서서히 차오름)", (c, b, t) => { T(c, b, t, { f: 262, dur: 2.0, vol: 0.06, a: 0.7, rev: 0.6 }); T(c, b, t, { f: 392, dur: 2.0, vol: 0.035, a: 0.9, rev: 0.6 }); bell(c, b, t + 0.7, 784, 0.05, 1.6, 0.6); });
   def("mapchange", "지도 이동", (c, b, t) => N(c, b, t, { f: 500, f2: 1700, q: 0.5, dur: 0.5, a: 0.18, vol: 0.1 }));
   // 옛 이름 호환
+  def("cheer", "축제 광장 사람들의 함성(음원 파일 사용)", () => {});
+  S.files.cheer = "assets/audio/cheer.mp3";
   def("thud", "쿵(범용)", (c, b, t) => { T(c, b, t, { f: 95, f2: 38, dur: 0.3, vol: 0.45 }); N(c, b, t, { type: "lowpass", f: 500, dur: 0.2, vol: 0.22 }); });
   def("step", "발걸음(범용)", (c, b, t) => D.step_dirt.fn(c, b, t));
 
@@ -166,7 +168,7 @@ window.AU = window.AU || {};
     return true;
   };
   S.playFile = function (name) {
-    try { const a = new Audio(S.files[name]); a.volume = 0.7; a.play().catch(() => {}); return true; } catch (e) { return false; }
+    try { const st = AU.UI && AU.UI.settings; if (st && st.mute) return true; const vs = st && typeof st.volSfx === "number" && isFinite(st.volSfx) ? Math.max(0, Math.min(1, st.volSfx)) : 1; const a = new Audio(S.files[name]); a.volume = Math.min(1, (GAIN[name] || 0.7) * vs); a.play().catch(() => {}); return true; } catch (e) { return false; }
   };
   /* 오프라인 렌더(시험용): 소리를 3초 분량으로 계산해 최대 크기·평균 크기를 돌려줌 */
   S.measure = async function (name, secs, opts) {

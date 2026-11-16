@@ -15,7 +15,7 @@ const note = (id, name, ok, ev) => { if (!ok) fail++; console.log((ok ? 'PASS ' 
   const txt = await ev(() => document.body.innerText); note('G2', '스탯창에 잠금 안내', /잠겨 있습니다/.test(txt), '');
   await ev(() => AU.UI.close());
   const id = await ev(() => AU.MISSIONS.find((m) => !m.pre).id);
-  await ev((id) => { AU.G.S.missions.states[id].state = 'available'; AU.G.setMissionState(id, 'accept'); AU.G.setMissionState(id, 'attempt'); AU.G.setMissionState(id, 'done'); }, id);
+  await ev((id) => { AU.G.initMissions(); AU.G.S.missions.states[id].state = 'available'; AU.G.setMissionState(id, 'accept'); AU.G.setMissionState(id, 'attempt'); AU.G.setMissionState(id, 'done'); }, id);
   const g3 = await ev(() => ({ gb: AU.G.S.gateBand, st: AU.G.S.missions.states[AU.MISSIONS.find((m) => !m.pre).id].state, pool: AU.G.pool() })); note('G3', '현실 미션 1개 완료 후 분배 가능', g3.pool >= 3 && await ev(() => AU.G.applyAllocation({ STR: 3 })), JSON.stringify(g3));
   await ev(() => { const S = AU.G.S; S.level = 15; S.freePoints = 3; });
   note('G4', 'Lv.15 구간은 다시 잠김', await ev(() => AU.G.usableFree() === 0), '');

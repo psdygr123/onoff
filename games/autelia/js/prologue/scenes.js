@@ -326,7 +326,7 @@ window.AU = window.AU || {};
   }
   SC.SCENE_02_FESTIVAL = { name: "빛의 승리 100주년", async enter(P) {
     const g = P.gen; P.room("pro_plaza", LAY.plaza.start, (P) => setupPlaza(P, "peace")); P.amb("crowd", true);
-    await P.cutscene(async () => { await P.fade(0, 1.4); });
+    await P.cutscene(async () => { P.sfx("cheer"); await P.fade(0, 1.4); });
     if (!live(P, g)) return; P.obj(OBJ.s2_talk); P.hint("축제가 시작되어 마을길로는 돌아갈 수 없습니다. 광장에서 이야기를 나눠 보세요.", 6);
   } };
 
