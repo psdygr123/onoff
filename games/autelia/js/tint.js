@@ -16,6 +16,11 @@ window.AU = window.AU || {};
     pt_pro_hero_m: "09_pt_pro_hero_m", pt_pro_hero_f: "10_pt_pro_hero_f", pt_pro_hero_m_surprised: "11_pt_pro_hero_m_surprised",
     pc_player_m_work: "14_pro_player_m_work", pc_player_f_work: "15_pro_player_f_work", pc_player_m_bag: "16_pro_player_m_bag"   // 목공·가방 시트(자동 생성 1차 초안)
   };
+  /* 주인공이 그려진 그림의 이름 규칙(player_*, pc_player_*, pt_player_*, pt_pro_hero_*). 이 이름이면 위 표에 없어도
+     assets/mask/auto_<그림 이름>.png 마스크를 자동으로 찾아 색을 입힙니다(새 주인공 그림은 마스크 파일만 넣으면 코드 수정이 필요 없음).
+     마스크가 없거나 크기가 다르면 T.stats.missing 에 기록되고 tests/hero_tint_audit.js 가 실패합니다. 마스크 초안은 tools/art/hero_mask.py 로 만듭니다. */
+  const HERO_RE = /(^|_)player_|^pt_pro_hero_/;
+  const maskName = (key) => MASKS[key] || (HERO_RE.test(key) ? "auto_" + key : null);
   /* 색 후보: 첫 칸(null)은 원본색. h=색상(0~360), s=채도, v=밝기 배율. sw=견본 색 */
   const PALETTE = {
     hair: [null,
@@ -41,12 +46,15 @@ window.AU = window.AU || {};
   }
 
   const T = AU.Tint = {
-    MASKS, PALETTE, PARTS, look: { hair: 0, vest: 0, pants: 0 }, maskCache: {}, stats: { tinted: 0, failed: 0 },
+    MASKS, PALETTE, PARTS, HERO_RE, maskName, look: { hair: 0, vest: 0, pants: 0 }, maskCache: {}, stats: { tinted: 0, failed: 0, missing: {} },
     clean(l) {
       const o = l && typeof l === "object" ? l : {}, r = {};
       for (const p of PARTS) { const n = Number(o[p]); r[p] = Number.isInteger(n) && n >= 0 && n < PALETTE[p].length ? n : 0; }
       return r;
     },
+    heroKeys() { return Array.from(new Set(Object.keys(MASKS).concat(Object.keys(AU.ASSETS || {}).filter((k) => HERO_RE.test(k))))); },
+    /* 마스크가 없거나 크기가 맞지 않아 색이 안 입혀지는 주인공 그림(읽힌 것만) */
+    missingMasks() { return this.heroKeys().filter((k) => { const r = AU.Img && AU.Img.map[k]; return r && r.done && r.ok && this.stats.missing[k]; }); },
     isDefault(l) { return PARTS.every((p) => !l[p]); },
     sig(l) { return PARTS.map((p) => l[p] | 0).join("-"); },
     mask(key) { // 마스크를 한 번만 읽어 라벨 배열로 보관
@@ -56,15 +64,16 @@ window.AU = window.AU || {};
           try { const c = document.createElement("canvas"); c.width = im.naturalWidth; c.height = im.naturalHeight; const x = c.getContext("2d"); x.drawImage(im, 0, 0);
             const d = x.getImageData(0, 0, c.width, c.height).data, L = new Uint8Array(c.width * c.height); for (let i = 0; i < L.length; i++) L[i] = d[i * 4]; res({ w: c.width, h: c.height, L }); } catch (e) { res(null); }
         };
-        im.onerror = () => res(null); im.src = "assets/mask/" + MASKS[key] + ".png";
+        im.onerror = () => { T.stats.missing[key] = "마스크 파일 없음"; res(null); }; im.src = "assets/mask/" + maskName(key) + ".png";
       }));
     },
     /* 색을 입힌 그림을 캔버스로 돌려줌(AU.Img 그림은 건드리지 않음). 제목 화면의 캐릭터 카드처럼 현재 모습과 다른 모습을 그릴 때 씀 */
     async paint(key, look) {
-      const rec = AU.Img && AU.Img.map[key]; if (!rec || !rec.orig || !MASKS[key]) return null;
+      const rec = AU.Img && AU.Img.map[key]; if (!rec || !rec.orig || !maskName(key)) return null;
       look = this.clean(look);
       const m = await this.mask(key), o = rec.orig;
-      if (!m || m.w !== o.naturalWidth || m.h !== o.naturalHeight) return null; // 크기가 다르면 쓰지 않음
+      if (!m || m.w !== o.naturalWidth || m.h !== o.naturalHeight) { if (m) this.stats.missing[key] = "마스크 크기 불일치"; return null; } // 크기가 다르면 쓰지 않음
+      delete this.stats.missing[key];
       const c = document.createElement("canvas"); c.width = m.w; c.height = m.h; const x = c.getContext("2d"); x.drawImage(o, 0, 0);
       const id = x.getImageData(0, 0, m.w, m.h), d = id.data, N = m.w * m.h;
       for (const p of PARTS) {
@@ -84,7 +93,7 @@ window.AU = window.AU || {};
     /* 그림 1장에 색 적용(완료되면 AU.Img의 그림과 AU.ASSETS 경로를 교체) */
     async tint(key, look) {
       const rec = AU.Img && AU.Img.map[key], spec = AU.ASSETS && AU.ASSETS[key];
-      if (!rec || !rec.orig || !spec || !MASKS[key]) return false;
+      if (!rec || !rec.orig || !spec || !maskName(key)) return false;
       const sg = this.sig(look); if (rec.tsig === sg) return true;
       const ver = (rec.tver = (rec.tver || 0) + 1);
       if (!spec.origPath) spec.origPath = spec.path;
@@ -102,10 +111,10 @@ window.AU = window.AU || {};
     /* 현재 모습을 정함. keys를 주면 그 그림만(설정 화면 미리보기용), 없으면 전부. 아직 읽히지 않은 그림은 읽히는 대로 적용됨 */
     async setLook(look, keys) {
       this.look = this.clean(look);
-      const list = keys || Object.keys(MASKS), L = this.look;
+      const list = keys || this.heroKeys(), L = this.look;
       await Promise.all(list.map((k) => this.tint(k, L)));
       if (AU.Ev && AU.Ev.emit && !keys) { /* 필요 시 화면이 다시 그리도록 알림 자리 */ }
     },
-    onLoaded(key) { if (MASKS[key]) this.tint(key, this.look); }
+    onLoaded(key) { if (maskName(key)) this.tint(key, this.look); }
   };
 })();

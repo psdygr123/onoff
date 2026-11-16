@@ -24,3 +24,11 @@ python3 tools/build_prologue_art2.py <추가 원화 폴더> games/autelia/assets
 python3 tools/build_prologue_art3.py <Autelia_NPC_Diversity 폴더> games/autelia/assets/prologue
 ```
 시트 10장(`villager_d`~`villager_m`: 환호1·2, 도주1·2)을 `ch/`에 만들고 `js/prologue/artmeta.js`에 시트 정보를 **덧붙입니다**(`build_prologue_art.py all`을 다시 돌렸다면 이 도구도 다시 실행). 크기는 팔·모자를 든 환호 자세가 아니라 **도주1의 몸높이**를 기준으로, 기존 성인 주민(a~c)의 몸높이(시트 기준 282px) × 인물별 상대 키(manifest)로 맞춥니다.
+
+
+## 주인공 색 반영 자동화: `tools/art/hero_mask.py` + `games/autelia/tests/hero_tint_audit.js`
+캐릭터 생성에서 고른 성별·머리/조끼/바지 색은 **마스크 그림**(`games/autelia/assets/mask/*.png`, 0=그대로 1=머리 2=조끼 3=바지)으로 모든 주인공 그림에 입혀집니다.
+- **그림 이름이 `player_*`, `pc_player_*`, `pt_player_*`, `pt_pro_hero_*` 이면 자동으로 주인공 그림으로 인식**하고 `assets/mask/auto_<그림 이름>.png` 마스크를 찾습니다. 새 주인공 그림은 마스크 파일만 넣으면 코드 수정이 필요 없습니다. (기존 16장은 `js/tint.js` 의 MASKS 표 그대로)
+- 마스크 초안 만들기(games/autelia 폴더에서): `python3 ../../tools/art/hero_mask.py f assets/prologue/ch/player_f_bag.webp assets/mask/auto_pc_player_f_bag.png` → 옆에 `_vis.png`(머리 빨강·조끼 초록·바지 파랑)가 생기니 눈으로 확인하고 어긋난 곳만 손봅니다. (scikit-learn, scipy, Pillow, numpy 필요)
+- **시험**: `NODE_PATH=$(npm root -g) node tests/hero_tint_audit.js`(로컬 서버 8801). 남·여 모두 (1) 주인공 그림마다 마스크가 있고 크기가 맞는지 (2) 색을 고르면 전부 색이 입혀진 사본으로 바뀌는지 (3) 프롤로그 8장면에서 색이 안 입혀진 주인공 그림이 그려진 적이 없는지 확인하며, 마스크를 빠뜨리면 실패합니다.
+- **그림 작업 원칙(11-16 사용자 지시): 주인공 그림은 항상 남·여를 함께 그립니다.**
