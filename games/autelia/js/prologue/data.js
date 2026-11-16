@@ -24,6 +24,7 @@ window.AU = window.AU || {};
   AR.ch.player_f_work = { frames: 4, names: ["carry", "give", "swing_up", "swing_dn"], separate: {}, cw: 300, ch: 345, standH: 300, foot: 150 };
   AR.ch.player_m_bag = { frames: 7, names: ["stand", "walk1", "walk2", "walk3", "walk4", "jump_up", "jump_down"], separate: {}, cw: 210, ch: 310, standH: 300, foot: 105 };   // 가방을 멘 이동 시트(남)
   AR.ch.player_f_bag = { frames: 7, names: ["stand", "walk1", "walk2", "walk3", "walk4", "jump_up", "jump_down"], separate: {}, cw: 210, ch: 310, standH: 300, foot: 105 };   // 가방을 멘 이동 시트(여)
+  for (const [w, ch] of [["axe", 300], ["spear", 306], ["mace", 300]]) AR.ch["raider_" + w] = { frames: 3, names: ["stand", "walk1", "walk2"], separate: {}, cw: 240, ch, standH: 295, foot: ch - 5 };   // 습격자 무기 변형(도끼·창·철퇴). 허리 검을 찬 기본형은 raider_actions
   AR.ch.player_m_combat = { frames: 6, names: ["attack1", "attack2", "strike", "spin", "hurt", "down"], separate: {}, cw: 463, ch: 394, standH: 300, foot: 231 };   // 본편 전투 동작
   AR.ch.player_f_combat = { frames: 6, names: ["attack1", "attack2", "strike", "spin", "hurt", "down"], separate: {}, cw: 453, ch: 389, standH: 300, foot: 226 };
   AR.ch.father_work = { frames: 4, names: ["reach", "hold", "walk1", "walk2"], separate: {}, cw: 300, ch: 330, standH: 300, foot: 150 };
@@ -40,7 +41,7 @@ window.AU = window.AU || {};
   const L = AU.PRO_LAY = {
     temple: { w: BW("temple", 1839), start: 250, pile: 470, father: 700, joint: 905, tx: 1215, tBase: 548, tW: 720, limit: 1720, exit: 1790, hammerAt: 1010 },
     road:   { w: BW("road", 2149), start: 90, doorX: 268, end: 2050, m: { start: 300, farmer: 760, child: 600, baker: 930, elder: 1260, priest: 1480, stele: 1700, limit: 1780 }, b: { elder: 430, musician: 640, baker: 1000, scribe: 1520, poles: [800, 1300, 1750], limit: 2050 }, obst: [{ x: 800, y: 527, w: 190, h: 63 }, { x: 1270, y: 527, w: 190, h: 63 }], raiders: [[1150, 505, 1000, 1350], [1500, 500, 1350, 1750]] },
-    plaza:  { w: BW("plaza", 1279), start: 90, elder: 240, child: 430, vendor: 790, limit: 950, center: 1030, exit: 70, tx: 640, tBase: 520, tW: 520, obst: [{ x: 690, y: 527, w: 190, h: 63 }] },
+    plaza:  { w: BW("plaza", 2160), start: 120, elder: 380, child: 640, vendor: 1700, limit: 1860, center: 1080, exit: 70, tx: 1080, tBase: 520, tW: 520, obst: [{ x: 1270, y: 527, w: 190, h: 63 }, { x: 1640, y: 527, w: 170, h: 63 }] },   // 와이드 광장(2160px): 신전·이벤트 지점이 맵 정중앙(1080)
     house:  { w: BW("house", 1279), start: 170, father: 860, bag: 420, find: 470, exit: 100 },
     escape: { w: BW("escape", 3083), start: 90, recall: 1500, look: 2780, end: 3020 },
     hill:   { w: BW("port", 1849), start: 300 }

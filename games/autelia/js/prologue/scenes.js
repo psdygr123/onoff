@@ -9,9 +9,10 @@ window.AU = window.AU || {};
 
   /* ---------- 공통 도우미 ---------- */
   function npc(P, id, speaker, sprite, x, h, extra) { const e = Object.assign({ id, x, sprite, h, name: SP[speaker].name, faceP: true }, extra || {}); if (e.idle && e.wander == null && !e.working) e.wander = 46; return P.addEnt(e); }   // 서 있는 주민(idle 시트)은 제자리 근처를 천천히 배회
+  const RAIDER_WP = ["raider_actions", "raider_axe", "raider_spear", "raider_mace"]; let raiderN = 1;   // 습격자마다 다른 무기(검·도끼·창·철퇴). 간부("off")는 늘 검
   function raider(P, id, x, y, s, dir, min, max) { // 습격자: 걸음 주기(발이 닿는 박자)에 맞춘 상하 흔들림, 개체마다 속도·쉬는 간격이 달라 군중처럼 어긋남
     const sp = 22 + Math.random() * 12, ph = Math.random() * 6;
-    return P.addEnt({ id, x, y, s, face: dir, min, max, range: 0, layer: "mid", sp, ph, rest: 2 + Math.random() * 4, pause: 0, step: 0,
+    return P.addEnt({ id, x, y, s, face: dir, min, max, range: 0, layer: "mid", wk: id === "off" ? RAIDER_WP[0] : RAIDER_WP[(raiderN++) % RAIDER_WP.length], sp, ph, rest: 2 + Math.random() * 4, pause: 0, step: 0,
       update(e, dt) {
         if (e.min == null) return;
         if (e.pause > 0) { e.pause -= dt; if (e.pause <= 0) e.rest = 3 + Math.random() * 5; return; }
@@ -22,7 +23,7 @@ window.AU = window.AU || {};
         const moving = e.pause <= 0, cyc = (e.step / 46) % 1, fr = !moving ? "stand" : cyc < 0.25 ? "walk1" : cyc < 0.5 ? "stand" : cyc < 0.75 ? "walk2" : "stand";
         const bob = moving ? Math.abs(Math.sin(cyc * Math.PI * 2)) * 3.2 : Math.sin(P.time * 1.6 + e.ph) * 1.1, sway = moving ? Math.sin(cyc * Math.PI * 2) * 0.018 : 0;
         ctx.save(); ctx.globalAlpha = e.alpha == null ? (A.has("pc_raider_actions") ? 1 : 0.78) : e.alpha; ctx.translate(e.x, e.y - bob); ctx.rotate(sway * e.face); ctx.translate(-e.x, -e.y);
-        if (!A.spr(ctx, "pc_raider_actions", fr, e.x, e.y, e.face, e.s / 0.5)) A.raider(ctx, e.x, e.y, e.s, P.time, e.face); ctx.restore(); } });
+        if (!A.spr(ctx, "pc_" + (A.has("pc_" + e.wk) ? e.wk : "raider_actions"), fr, e.x, e.y, e.face, e.s / 0.5)) A.raider(ctx, e.x, e.y, e.s, P.time, e.face); ctx.restore(); } });
   }
   const SHEETS = "abcdefghijklm".split("").filter(() => true); // 주민 동작 시트(a~c 1차, d~m NPC 다양화). 없는 시트는 runner/crowd 에서 건너뜀
   const pickSheet = () => { const ok = SHEETS.filter((c) => A.has("pc_villager_" + c + "_actions")); return ok.length ? ok[(Math.random() * ok.length) | 0] : "a"; };
@@ -62,7 +63,7 @@ window.AU = window.AU || {};
     const act = "pc_villager_" + k + "_actions"; return { sprite: artSpr(act, fb), h: 150, extra: { frame: A.sprFrame(act, "cheer2") } };
   };  // 정식 그림이 있으면 그것, 없으면 이전 시제품 그림
   function drawCrowd(ctx, P) { // 축제 군중(정식 주민 시트): 가까운 곳에 NPC가 있어 피해서 배치, 깊이감을 위해 살짝 작고 위에 선다
-    const L = LAY.plaza, c = P.v.cheer == null ? 0.12 : P.v.cheer, xs = [60, 130, 330, 470, 545, 650, 905, 1010, 1100, 1200], sh = ["f", "d", "h", "a", "j", "a", "b", "i", "e", "m"].map((k, i) => (A.has("pc_villager_" + k + "_actions") ? k : "abc"[i % 3]));
+    const L = LAY.plaza, c = P.v.cheer == null ? 0.12 : P.v.cheer, xs = [90, 200, 500, 760, 870, 960, 1200, 1300, 1400, 1500, 1580, 1830, 1940, 2050], sh = ["f", "d", "h", "a", "j", "a", "b", "i", "e", "m", "c", "g", "k", "l"].map((k, i) => (A.has("pc_villager_" + k + "_actions") ? k : "abc"[i % 3]));
     xs.forEach((x, i) => { const bob = Math.abs(Math.sin(P.time * (3 + c * 5) + i * 1.7)) * (2 + c * 9); A.spr(ctx, "pc_villager_" + sh[i] + "_actions", c > 0.45 ? "cheer1" : "cheer2", x + (i % 2 ? 6 : -6), 566 - bob, i % 3 === 0 ? -1 : 1, 0.86); });
   }
   D.pro_temple = { // BG-01 신전 건축 현장 / 완공 상태
@@ -85,7 +86,7 @@ window.AU = window.AU || {};
       else A.crowd(ctx, 100, 2400, 548, t, 5, 30, { cheer: v.cheer == null ? 0.12 : v.cheer });
       for (const [a, b, y, s] of [[40, 700, 120, 60], [700, 1500, 100, 50], [1500, 2440, 120, 60]]) A.pennants(ctx, a, b, y, s, t, { burn: atk, seed: a + 3 });
     },
-    mid(ctx, P) { if (P.variant === "attack") { A.stall(ctx, LAY.plaza.obst[0].x + 50, G, 100, P.time); drawFlames(ctx, P); } }
+    mid(ctx, P) { if (P.variant === "attack") { for (const o of LAY.plaza.obst) A.obstacle(ctx, o, "beam", P.time); drawFlames(ctx, P); } }
   };
   // 집 안(습격 상태): 배경 그림은 아늑한 실내라서, 불꽃·연기·그을린 잔해·열기를 코드로 겹쳐 '불타는 집'으로 보이게 함(2차 효과 그림)
   const HOUSE_FIRE = [[150, 238, 120, 0], [196, 222, 86, 8], [352, 270, 70, 1], [520, 168, 62, 9], [760, 156, 64, 10], [968, 246, 110, 2], [1030, 226, 78, 11], [1148, 300, 150, 3], [1010, 396, 80, 4], [1200, 400, 90, 12]];   // 서까래·창가·기둥 위쪽
@@ -331,10 +332,10 @@ window.AU = window.AU || {};
       void elder; void child;
     } else { // BG-V02 광장 습격 상태
       P.tint = { color: "#c9a79f", a: 0.45 }; P.vig = 0.4; P.setPlatforms(L.obst);
-      flames(P, [{ x: 420, y: G, s: 1.0 }, { x: 760, y: G - 4, s: 0.9 }, { x: 1500, y: G, s: 1.3 }, { x: 1760, y: G, s: 1.1 }, { x: 2100, y: G, s: 1.2 }]);
-      fireEmitters(P, L.w, 120, 560, 1.2); raider(P, "r1", 500, 520, 0.55, -1, 380, 640); raider(P, "r2", 800, 524, 0.5, -1, 650, 900); raider(P, "r3", 1030, 520, 0.58, -1, 900, 1180);
+      flames(P, [{ x: 330, y: G, s: 1.0 }, { x: 640, y: G - 4, s: 0.9 }, { x: 930, y: G, s: 1.1 }, { x: 1250, y: G, s: 1.0 }, { x: 1520, y: G, s: 1.2 }, { x: 1830, y: G, s: 1.1 }, { x: 2050, y: G, s: 1.2 }]);
+      fireEmitters(P, L.w, 120, 560, 1.2); raider(P, "r1", 560, 520, 0.55, -1, 420, 780); raider(P, "r2", 1100, 524, 0.5, -1, 900, 1180); raider(P, "r3", 1480, 520, 0.58, -1, 1380, 1560); raider(P, "r4", 1900, 522, 0.54, -1, 1760, 2040);
       runnerSpawner(P, 1.6);
-      P.trigger({ id: "jumphint", test: (p) => p.x <= 980, fn: () => P.hint("장애물은 점프(" + P.keys().jump + ")로 넘을 수 있습니다.", 4, true) });
+      P.trigger({ id: "jumphint", test: (p) => p.x <= L.obst[1].x + 230, fn: () => P.hint("장애물은 점프(" + P.keys().jump + ")로 넘을 수 있습니다.", 4, true) });
       P.trigger({ id: "toroad", goal: 70, test: (p) => p.x <= 70, fn: () => go(P, "pro_road", LAY.road.w - 100, (P) => setupRoad(P, "attack", 3)) });
     }
   }
@@ -365,8 +366,8 @@ window.AU = window.AU || {};
         await P.fade(0, 1.2); await P.say(T.order); P.sfx("boom"); await P.flash("#fff", 0.5); P.cut = null; P.fadeS.color = "#fff"; P.fadeS.a = 1;
       }
       await P.wait(0.5); P.amb("raid", true); P.sfx("boom"); P.shake(12, 1.4); P.fade(0, 1.6);
-      await P.zoomTo(1.22, 2.0, 640, 300); runner(P, 1100, -1, 230); runner(P, 1240, -1, 200); runner(P, 980, 1, 210);
-      await P.wait(1.0); P.sfx("collapse"); P.shake(8, 0.8); P.burst("dust", 1050, 300, 12); await P.say(T.attack);
+      await P.zoomTo(1.22, 2.0, 640, 300); { const x0 = LAY.plaza.w - 180; runner(P, x0, -1, 230); runner(P, x0 + 140, -1, 200); runner(P, x0 - 120, 1, 210); }
+      await P.wait(1.0); P.sfx("collapse"); P.shake(8, 0.8); P.burst("dust", LAY.plaza.w - 230, 300, 12); await P.say(T.attack);
       await P.zoomTo(1, 1.4); P.face(-1); await P.wait(0.6); await P.say(T.hero_dad);
     }, { id: "cs02", skip: true, bars: true });
     if (!live(P, g)) return; P.obj(OBJ.s3_dad);
