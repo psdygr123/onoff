@@ -26,8 +26,10 @@ window.AU = window.AU || {};
         const wsh = moving && (e.id === "off" ? (!e.pose || e.pose === "ready") && "pc_raider_officer_walk" : "pc_" + e.wk + "_walk"), WF = ["walk1", "pass1", "walk2", "pass2"];   // 4프레임 걷기 시트가 있으면 사용(간부는 검 동작 자세가 아닐 때만)
         if (wsh && A.has(wsh)) A.spr(ctx, wsh, WF[Math.floor(e.step / 18) % 4], e.x, e.y, e.face, e.s / 0.5);
         else if (e.pose && A.has("pc_raider_officer")) A.spr(ctx, "pc_raider_officer", e.pose, e.x, e.y, e.face, e.s / 0.5);   // 간부의 검 동작(준비·치켜듦·내리침)
-        else if (!A.spr(ctx, "pc_" + (A.has("pc_" + e.wk) ? e.wk : "raider_actions"), fr, e.x, e.y, e.face, e.s / 0.5)) A.raider(ctx, e.x, e.y, e.s, P.time, e.face); ctx.restore(); } });
+        else if (!A.spr(ctx, "pc_" + (A.has("pc_" + e.wk) ? e.wk : "raider_actions"), fr, e.x, e.y, e.face, e.s / 0.5)) A.raider(ctx, e.x, e.y, e.s, P.time, e.face); ctx.restore();
+        } });
   }
+  /* 간부 망토: 초상화(찢어진 짙은 망토, 붉은 안감)와 같은 모습을 몸 뒤에 그려 일반 병사와 구분. 걷거나 움직이면 펄럭임 */
   const SHEETS = "abcdefghijklm".split("").filter(() => true); // 주민 동작 시트(a~c 1차, d~m NPC 다양화). 없는 시트는 runner/crowd 에서 건너뜀
   const pickSheet = () => { const ok = SHEETS.filter((c) => A.has("pc_villager_" + c + "_actions")); return ok.length ? ok[(Math.random() * ok.length) | 0] : "a"; };
   // 도망치는 주민 실루엣(배경 연출용, 충돌 없음)
@@ -306,7 +308,7 @@ window.AU = window.AU || {};
       P.tint = { color: "#c9a79f", a: 0.5 }; P.vig = 0.4; P.setPlatforms(LAY.road.obst);
       flames(P, [{ x: 560, y: G, s: 1.1 }, { x: 760, y: G, s: 0.8 }, { x: 1240, y: G, s: 1.2 }, { x: 1900, y: G, s: 1.0 }, { x: 2130, y: G, s: 0.9 }, { x: 180, y: 300, s: 1.5 }, { x: 300, y: 285, s: 1.8 }, { x: 400, y: 310, s: 1.3 }]);
       fireEmitters(P, LAY.road.w, 150, 560, 1); for (const [i, r] of LAY.road.raiders.entries()) raider(P, "r" + (i + 1), r[0], r[1], 0.5 - i * 0.05, -1, r[2], r[3]); runnerSpawner(P, 2.2);
-      P.trigger({ id: "jumphint", test: (p) => p.x <= 1000, fn: () => P.hint("장애물은 점프(" + P.keys().jump + ")로 넘을 수 있습니다.", 4, true) });
+      P.trigger({ id: "jumphint", test: (p) => p.x <= 1700, fn: () => P.hint("장애물은 점프(" + P.keys().jump + ")로 넘을 수 있습니다.", 4, true) });
       P.trigger({ id: "s3end", goal: LAY.road.doorX, test: (p) => p.x <= LAY.road.doorX + 60, fn: () => houseDoor() });
     }
   }
@@ -459,11 +461,13 @@ window.AU = window.AU || {};
     await P.cutscene(async () => {
       P.obj(""); P.sfx("boom"); await P.fade(0, 1.2); await P.wait(0.8);
       await P.say([T.officer[0]]);
-      P.sfx("collapse"); P.shake(12, 0.9); await P.flash("#ffd9a0", 0.35); await P.tween(P.cut, { a: 0 }, 0.7); P.cut = null; await P.wait(0.5);
+      P.sfx("collapse"); P.shake(12, 0.9); await P.flash("#ffd9a0", 0.35); await P.tween(P.cut, { a: 0 }, 0.7); P.cut = null; await P.wait(0.4);
+      AU.World.player.dir = 1; P.pose("stagger"); await P.wait(0.55); P.pose(null);   // 아버지가 쓰러진 모습에 충격으로 굳음
       await P.say(T.officer.slice(1, 2));   // 주인공의 외침
       const p = AU.World.player, off = ent("off"), r1 = ent("rg1"), r2 = ent("rg2"), fa = ent("father");
-      await P.say(T.officer.slice(2));      // 간부의 선언
-      await P.walkTo(660, 2.0); P.pose("kneel"); await P.wait(0.5);   // 주인공은 아버지 곁으로 달려가 주저앉음
+      // 아버지가 쓰러지는 것을 본 주인공이 충격으로 굳었다가 → 외치고 → 곧바로 달려가 곁에 주저앉음 → 그제야 간부가 반응
+      await P.walkTo(660, 2.2); P.pose("kneel"); await P.wait(0.5);
+      await P.say(T.officer.slice(2));      // 간부의 선언(아버지 곁에 무릎 꿇은 주인공을 향해)
       walkTo(r1, fx + 165, 70); walkTo(r2, fx + 260, 70);            // 부하들이 무기를 든 채 한 걸음씩 다가옴
       await walkTo(off, fx + 115, 80); off.pose = "raise"; P.sfx("hammer"); await P.wait(0.5); await P.say(T.officer2);   // 간부가 검을 치켜듦
       // 아버지가 마지막 힘으로 일어나 주인공 앞을 막아섬
@@ -492,8 +496,9 @@ window.AU = window.AU || {};
       if (s.kind === "fog") { for (let i = 0; i < 3; i++) { const fx = ((t * 30 + i * 500) % 1800) - 400, g = ctx.createLinearGradient(fx, 0, fx + 700, 0); g.addColorStop(0, "rgba(235,240,245,0)"); g.addColorStop(0.5, "rgba(235,240,245,.55)"); g.addColorStop(1, "rgba(235,240,245,0)"); ctx.fillStyle = g; ctx.fillRect(fx, 200 + i * 90, 700, 220); } }
       else if (s.kind === "rain") { ctx.strokeStyle = "rgba(210,225,240,.5)"; ctx.lineWidth = 1.5; ctx.beginPath(); for (let i = 0; i < 140; i++) { const rx = (i * 97 + t * 420) % (W + 100) - 50, ry = (i * 53 + t * 900) % H; ctx.moveTo(rx, ry); ctx.lineTo(rx - 10, ry + 26); } ctx.stroke(); }
       else { const g = ctx.createRadialGradient(W * 0.5, 330, 10, W * 0.5, 330, 520); g.addColorStop(0, "rgba(255,230,160,.6)"); g.addColorStop(1, "rgba(255,200,120,0)"); ctx.globalCompositeOperation = "lighter"; ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); ctx.globalCompositeOperation = "source-over"; }
-      const px = 260 + local * 120, bob = Math.abs(Math.sin(local * 7)) * 3; { const by = G + 6 - bob - 74 + Math.sin(local * 14) * 1.5, br = Math.sin(local * 7) * 0.03; if (!A.bagBack(ctx, px - 20, by, 58, 1, br)) A.bag(ctx, px - 22, by + 4, 0.62, 0.1 + br); }   // 등에 멘 목수 도구 가방
-      if (!A.spr(ctx, "pc_player_" + (AU.PRO_GENDER || "m") + "_locomotion", "walk" + (1 + Math.floor(local * 8) % 4), px, G + 6 - bob, 1)) AU.World.sprite(ctx, "player_male", px, G + 6 - bob, 150, 1, Math.floor(local * 8) % 4); ctx.restore(); }
+      const px = 260 + local * 120, bob = Math.abs(Math.sin(local * 7)) * 3; { const gk = "pc_player_" + (AU.PRO_GENDER || "m"), fr = "walk" + (1 + Math.floor(local * 8) % 4), y = G + 6 - bob;   // 가방을 멘 정식 걷기 그림(없으면 일반 걷기 + 등 뒤 가방)
+        if (!A.spr(ctx, gk + "_bag", fr, px, y, 1)) { const by = y - 74 + Math.sin(local * 14) * 1.5, br = Math.sin(local * 7) * 0.03; if (!A.spr(ctx, gk + "_locomotion", fr, px, y, 1)) AU.World.sprite(ctx, "player_male", px, y, 150, 1, Math.floor(local * 8) % 4); if (!A.bagBack(ctx, px - 20, by, 58, 1, br)) A.bag(ctx, px - 22, by + 4, 0.62, 0.1 + br); } }
+      ctx.restore(); }
   }
   SC.SCENE_05_ESCAPE = { name: "무너진 신전을 뒤로하고", async enter(P) {
     const g = P.gen, k = P.keys();

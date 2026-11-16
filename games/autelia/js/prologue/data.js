@@ -45,8 +45,8 @@ window.AU = window.AU || {};
   // 장면별 배치 좌표(그림이 바뀌면 여기만 고칩니다)
   const L = AU.PRO_LAY = {
     temple: { w: BW("temple", 1839), start: 250, pile: 470, father: 700, joint: 905, tx: 1215, tBase: 548, tW: 720, limit: 1720, exit: 1790, hammerAt: 1010 },
-    road:   { w: BW("road", 2149), start: 90, doorX: 268, end: 2050, m: { start: 300, farmer: 820, child: 560, baker: 1080, elder: 1320, priest: 1550, stele: 1700, limit: 1780 }, b: { elder: 430, musician: 640, baker: 1000, scribe: 1520, poles: [800, 1300, 1750], limit: 2050 }, obst: [{ x: 800, y: 527, w: 190, h: 63 }, { x: 1270, y: 527, w: 190, h: 63 }], raiders: [[1150, 505, 1000, 1350], [1500, 500, 1350, 1750]] },
-    plaza:  { w: BW("plaza", 2160), start: 120, elder: 380, child: 640, vendor: 1700, limit: 1860, center: 1080, exit: 70, tx: 1080, tBase: 520, tW: 520, obst: [{ x: 1270, y: 527, w: 190, h: 63 }, { x: 1640, y: 527, w: 170, h: 63 }] },   // 와이드 광장(2160px): 신전·이벤트 지점이 맵 정중앙(1080)
+    road:   { w: BW("road", 2149), start: 90, doorX: 268, end: 2050, m: { start: 300, farmer: 820, child: 560, baker: 1080, elder: 1320, priest: 1550, stele: 1700, limit: 1780 }, b: { elder: 430, musician: 640, baker: 1000, scribe: 1520, poles: [800, 1300, 1750], limit: 2050 }, obst: [{ x: 700, y: 527, w: 190, h: 63 }, { x: 1270, y: 527, w: 190, h: 63 }], raiders: [[1150, 505, 1000, 1350], [1500, 500, 1350, 1750]] },
+    plaza:  { w: BW("plaza", 2160), start: 120, elder: 380, child: 640, vendor: 1700, limit: 1860, center: 1080, exit: 70, tx: 1080, tBase: 520, tW: 520, obst: [{ x: 1150, y: 527, w: 190, h: 63 }, { x: 1640, y: 527, w: 170, h: 63 }] },   // 와이드 광장(2160px): 신전·이벤트 지점이 맵 정중앙(1080)
     house:  { w: BW("house", 1279), start: 170, father: 860, bag: 420, find: 470, exit: 100 },
     escape: { w: BW("escape", 3083), start: 90, recall: 1500, look: 2780, end: 3020 },
     hill:   { w: BW("port", 1849), start: 300 }
@@ -56,7 +56,7 @@ window.AU = window.AU || {};
   AU.MAPS.pro_plaza  = Object.assign({}, base, { name: "아르케아 축제 광장", bg: "pb_plaza", bgAtk: "pb_plaza_atk", width: L.plaza.w, platforms: ground(L.plaza.w), start: L.plaza.start });  // BG-03 / BG-V02
   AU.MAPS.pro_house  = Object.assign({}, base, { name: "주인공의 집", bg: "pb_house_atk", width: L.house.w, platforms: ground(L.house.w), start: L.house.start });                // BG-04(습격 상태)
   AU.MAPS.pro_escape = Object.assign({}, base, { name: "아르케아 외곽 탈출로", bg: "pb_escape", width: L.escape.w, start: L.escape.start,                                          // BG-05
-    platforms: [{ x: 0, y: G, w: L.escape.w }, { x: 630, y: 524, w: 170, h: 66 }, { x: 960, y: 538, w: 200, h: 52 }, { x: 1700, y: 538, w: 200, h: 52 }, { x: 2300, y: 524, w: 170, h: 66 }] });   // 장애물(코드로 그린 쓰러진 나무·바위)은 흙길 위에 놓음
+    platforms: [{ x: 0, y: G, w: L.escape.w }, { x: 630, y: 524, w: 170, h: 66 }, { x: 1130, y: 538, w: 200, h: 52 }, { x: 1700, y: 538, w: 200, h: 52 }, { x: 2300, y: 524, w: 170, h: 66 }] });   // 장애물(코드로 그린 쓰러진 나무·바위)은 흙길 위에 놓음
   AU.MAPS.pro_hill   = Object.assign({}, base, { name: "포르투 노바 외곽 언덕", bg: "pb_port", width: L.hill.w, platforms: ground(L.hill.w), start: L.hill.start });                    // BG-06
   // 맵 변형(BG-V01~V03)은 같은 배경·같은 지형 위에 코드로 연기·불길·잔해를 얹어 표현합니다.
   for (const id of Object.keys(AU.MAPS)) if (AU.MAPS[id].prologue) AU.MAPS[id].basePlatforms = AU.MAPS[id].platforms.slice();

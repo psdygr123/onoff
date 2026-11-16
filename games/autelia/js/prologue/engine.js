@@ -349,6 +349,7 @@ window.AU = window.AU || {};
       if (!this.on) return; this.time += dt; const w = AU.World, p = w.player;
       for (let i = this.timers.length - 1; i >= 0; i--) { const t = this.timers[i]; t.t -= dt; if (t.t <= 0) { this.timers.splice(i, 1); t.res(); } }
       for (const tw of this.tweens.slice()) { tw.t += dt; const k = Math.min(1, tw.t / tw.dur), e = tw.ease(k); for (const key of Object.keys(tw.to)) tw.obj[key] = tw.from[key] + (tw.to[key] - tw.from[key]) * e; if (k >= 1) { const i = this.tweens.indexOf(tw); if (i >= 0) this.tweens.splice(i, 1); tw.res(); } }
+      if (this.isRun() && p.onGround) { this.runT = (this.runT || 0) + dt; if (this.runT > 0.12) { this.runT = 0; this.burst("dust", p.x - p.dir * 16, p.y - 3, 1); } }   // 달리는 발밑 먼지
       if (this.walk) { this.walk.t += dt; const dx = this.walk.x - p.x; if (Math.abs(dx) <= 6 || this.walk.t > 12) { if (this.walk.t > 12) p.x = this.walk.x; p.vx = 0; w.virt = null; const r = this.walk.res; this.walk = null; r(); } else if (w.virt) w.virt.dir = sign(dx); }
       if (this.shk.t > 0) this.shk.t -= dt;
       if (p.pose) p.pose.t += dt;
@@ -412,12 +413,14 @@ window.AU = window.AU || {};
       if (nm === "hammer") fr = (this.v.swing || 0) > 0.5 ? "hammer2" : "hammer1";
       else if (nm === "kneel") fr = "kneel"; else if (nm === "shrug") fr = "shrug"; else if (nm === "lookback") fr = "lookback";
       else if (!p.onGround) { sheet = "locomotion"; fr = p.vy < 0 ? "jump_up" : "jump_down"; }
-      else if (moving) { sheet = "locomotion"; fr = "walk" + (1 + (Math.floor(AU.World.time * 9) % 4)); }
+      else if (moving) { sheet = "locomotion"; fr = "walk" + (1 + (Math.floor(AU.World.time * (this.isRun() ? 15 : 9)) % 4)); }   // 달릴 때는 발 구르는 속도를 빠르게(미끄러지는 느낌 방지)
       if (hasBag && !nm && !(this.v.carry || this.v.give) && (sheet === "locomotion" || fr === "idle")) { this.bagDrawn = true; return A.spr(ctx, bk, sheet === "locomotion" ? fr : "stand", p.x, p.y, p.dir); }
       return A.spr(ctx, this.heroKey(sheet), fr, p.x, p.y, p.dir);
     },
+    isRun() { return !!(this.walk && AU.World.virt && AU.World.virt.k >= 1.5); },   // 컷신에서 주인공이 달리는 중인지
     poseOf(p) {
-      const q = p.pose; if (!q) return null; const t = q.t;
+      const q = p.pose; if (!q) { if (this.isRun() && p.onGround) { const t = AU.World.time; return { sx: 1, sy: 1, rot: 0.15 * p.dir, dx: 0, dy: -Math.abs(Math.sin(t * Math.PI * 7.5)) * 5, art: true }; } return null; } const t = q.t;   // 달리기: 몸을 앞으로 기울이고 걸음마다 위아래로 튐
+
       if (this.heroArt() && q.name === "lookback") { const k = Math.min(1, t / 1.6), tr = Math.sin(t * 7) * 0.9 * k; return { sx: 1, sy: 1 - 0.035 * k, rot: 0.06 * p.dir * k, dx: tr, art: true }; }   // 고개와 어깨를 떨군 채 가늘게 떨며 마을을 바라봄(슬픔)
       if (this.heroArt()) return q.name === "stagger" ? { sx: 1, sy: 1, rot: 0.1 * p.dir, dx: 0 } : { sx: 1, sy: 1, rot: 0, dx: 0, hammer: q.name === "hammer", art: true };
       if (q.name === "kneel") return { sx: 1.06, sy: 0.78, rot: 0, dx: p.dir * 4 };
