@@ -11,7 +11,7 @@ const note = (id, name, ok, ev) => { ok ? pass++ : fail++; console.log((ok ? 'PA
   // ===== A. 도입 글 =====
   await fresh();
   const cards = await ev(() => AU.PRO_TEXT.cards);
-  note('A1', '도입 글 카드 5장·새 문구', cards.length === 5 && cards[1][0] === '대륙의 잔잔한 계곡 사이에 위치해 있던' && cards[2][0].startsWith('빛의 전쟁 승리 후 100주년') && cards[3][0].startsWith('목수인 아버지를 도와 나 역시'), JSON.stringify(cards.slice(1, 4)));
+  note('A1', '도입 글 카드 5장·새 문구', cards.length === 5 && cards[1][0] === '대륙의 잔잔한 계곡 사이에 위치해 있던' && cards[2][0].startsWith('빛의 승리 천 년을 기념하여') && cards[3][0].startsWith('목수인 아버지를 도와 나 역시'), JSON.stringify(cards.slice(1, 4)));
   note('A2', '카드 규칙(3줄·줄당 28자 이내)', cards.every((c) => c.length <= 3 && c.every((l) => l.length <= 28)), cards.map((c) => c.map((l) => l.length).join('/')).join(' | '));
   note('A3', '불타는 마을 나레이션 문구', (await ev(() => AU.PRO_TEXT.lookNarr)) === '나의 마을, 나의 아르케아가...');
   // ===== B. 이전 버튼(프롤로그 대화) =====
