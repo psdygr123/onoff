@@ -405,7 +405,8 @@ window.AU = window.AU || {};
     if (!kind) { b.append(h("p", { class: "empty", text: "상인에게 말을 걸어 주세요." })); return; }
     if (kind === "smith") { UI.craftPanel(b); b.append(h("div", { class: "silver", text: "은화 " + S.silver })); return; }
     const weapon = kind === "weapon", tab = weapon ? "buy" : UI.tab.shop || "sell";
-    b.append(h("div", { class: "tabs" }, weapon ? [] : [["sell", "팔기"], ["buy", "사기"]].map(([k, l]) => btn(l, tab === k ? "on" : "", () => { UI.tab.shop = k; UI.renderWin(); }))), h("div", { class: "silver", text: "은화 " + S.silver }));
+    const wrap = h("div", { class: "shopsplit" }), left = h("div", { class: "shopleft" });   // 왼쪽 상점 / 오른쪽 내 가방(1117)
+    left.append(h("div", { class: "tabs" }, weapon ? [] : [["sell", "팔기"], ["buy", "사기"]].map(([k, l]) => btn(l, tab === k ? "on" : "", () => { UI.tab.shop = k; UI.renderWin(); }))), h("div", { class: "silver", text: "은화 " + S.silver }));
     const list = h("div", { class: "shoplist" });
     if (tab === "sell") {
       const ids = Object.keys(S.inv).filter((id) => AU.ITEMS[id].type === "etc" && AU.ITEMS[id].sell > 0);
@@ -414,7 +415,16 @@ window.AU = window.AU || {};
     } else {
       for (const id of AU.SHOP[kind].buy) { const it = AU.ITEMS[id]; list.append(h("div", { class: "shoprow" }, UI.itemIcon(id, 34), h("span", { class: "iname", text: it.name.replace(" (임시)", "") }), h("span", { class: "tag", text: "보유 " + AU.G.count(id) }), h("span", { class: "price", text: "개당 " + it.buy }), btn("1개 사기", "mini", () => AU.G.buyItem(id, 1), { disabled: S.silver >= it.buy ? null : "" }))); }
     }
-    b.append(list);
+    left.append(list); wrap.append(left, UI.shopBag(weapon)); b.append(wrap);
+  };
+  // 상점 옆 내 가방: 가진 물건을 한눈에 보고, 팔 수 있는 재료는 바로 1개씩 팔 수 있음
+  UI.shopBag = function (weapon) {
+    const S = AU.G.S, TY = { equip: "장비", use: "소비", etc: "재료", quest: "퀘스트", story: "중요" }, box = h("div", { class: "shopbag" }, h("h4", { text: "내 가방" }));
+    const ids = Object.keys(S.inv).filter((id) => AU.ITEMS[id] && S.inv[id] > 0), list = h("div", { class: "shoplist bag" });
+    if (!ids.length) list.append(h("p", { class: "empty", text: "가방이 비어 있습니다." }));
+    for (const id of ids) { const it = AU.ITEMS[id], n = S.inv[id], can = !weapon && it.type === "etc" && it.sell > 0;
+      list.append(h("div", { class: "shoprow" }, UI.itemIcon(id, 30), h("span", { class: "iname", text: it.name.replace(" (임시)", "") }), h("span", { class: "tag", text: (TY[it.type] || "") + " ×" + n }), can ? btn("판매 " + it.sell, "mini", () => AU.G.sellItem(id, 1)) : null)); }
+    box.append(list); return box;
   };
   /* ---------- 아이템 아이콘: assets/item/<id>.webp 가 있으면 그림, 없으면 종류별 도형 ---------- */
   const GL = {
