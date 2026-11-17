@@ -408,8 +408,17 @@ window.AU = window.AU || {};
     const wrap = h("div", { class: "shopsplit" }), left = h("div", { class: "shopleft" });   // 왼쪽: 살 물건 / 오른쪽: 내 가방(물건마다 판매 버튼, 1117)
     left.append(h("h4", { text: weapon ? "무기·방어구" : "판매 중인 물건" }), h("div", { class: "silver", text: "은화 " + S.silver }));
     const list = h("div", { class: "shoplist" });
-    for (const id of AU.SHOP[kind].buy) { const it = AU.ITEMS[id]; list.append(h("div", { class: "shoprow" }, UI.itemIcon(id, 34), h("span", { class: "iname", text: it.name.replace(" (임시)", "") }), h("span", { class: "tag", text: "보유 " + AU.G.count(id) }), h("span", { class: "price", text: "개당 " + it.buy }), btn("1개 사기", "mini", () => AU.G.buyItem(id, 1), { disabled: S.silver >= it.buy ? null : "" }))); }
+    for (const id of AU.SHOP[kind].buy) { const it = AU.ITEMS[id], max = it.type === "equip" ? 1 : Math.max(1, Math.min(99, Math.floor(S.silver / it.buy))), q = UI.shopQtyGet("buy:" + id, max);
+      list.append(h("div", { class: "shoprow" }, UI.itemIcon(id, 34), h("span", { class: "iname", text: it.name.replace(" (임시)", "") }), h("span", { class: "tag", text: "보유 " + AU.G.count(id) }), h("span", { class: "price", text: "개당 " + it.buy }),
+        max > 1 ? UI.qtyStepper("buy:" + id, q, max) : null, btn("사기 (" + it.buy * q + ")", "mini", () => { if (AU.G.buyItem(id, q)) UI.shopQty["buy:" + id] = 1; }, { disabled: S.silver >= it.buy * q ? null : "" }))); }
     left.append(list); wrap.append(left, UI.shopBag(weapon)); b.append(wrap);
+  };
+  // 수량 고르기(−  n  +  최대): 사고팔 때 개수를 정함
+  UI.shopQty = {};
+  UI.shopQtyGet = (key, max) => Math.max(1, Math.min(max, UI.shopQty[key] || 1));
+  UI.qtyStepper = function (key, q, max) {
+    const set = (v) => { UI.shopQty[key] = Math.max(1, Math.min(max, v)); UI.renderWin(); };
+    return h("span", { class: "qty" }, btn("−", "mini", () => set(q - 1), { "aria-label": "하나 줄이기" }), h("b", { text: String(q) }), btn("+", "mini", () => set(q + 1), { "aria-label": "하나 늘리기" }), btn("최대", "mini", () => set(max)));
   };
   // 상점 옆 내 가방: 물건마다 판매 버튼(재료만 판매 가능, 무기점은 사기 전용)
   UI.shopBag = function (weapon) {
@@ -418,7 +427,8 @@ window.AU = window.AU || {};
     if (!ids.length) list.append(h("p", { class: "empty", text: "가방이 비어 있습니다." }));
     for (const id of ids) { const it = AU.ITEMS[id], n = S.inv[id], can = !weapon && it.type === "etc" && it.sell > 0;
       list.append(h("div", { class: "shoprow" }, UI.itemIcon(id, 30), h("span", { class: "iname", text: it.name.replace(" (임시)", "") }), h("span", { class: "tag", text: (TY[it.type] || "") + " ×" + n }),
-        can ? h("span", { class: "price", text: "개당 " + it.sell }) : null, can ? btn("1개", "mini", () => AU.G.sellItem(id, 1)) : null, can && n > 1 ? btn("모두", "mini", () => AU.G.sellItem(id, n)) : null)); }
+        can ? h("span", { class: "price", text: "개당 " + it.sell }) : null, can && n > 1 ? UI.qtyStepper("sell:" + id, UI.shopQtyGet("sell:" + id, n), n) : null,
+        can ? btn("팔기 (" + it.sell * UI.shopQtyGet("sell:" + id, n) + ")", "mini", () => { const q = UI.shopQtyGet("sell:" + id, n); if (AU.G.sellItem(id, q)) UI.shopQty["sell:" + id] = 1; }) : null)); }
     box.append(list); return box;
   };
   /* ---------- 아이템 아이콘: assets/item/<id>.webp 가 있으면 그림, 없으면 종류별 도형 ---------- */
