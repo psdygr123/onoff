@@ -87,8 +87,9 @@ window.AU = window.AU || {};
       h("div", { class: "svintro" },
         h("p", null, h("b", { text: "무엇을 묻나요  " }), what + " 약 " + MINUTES[key] + "분 걸립니다."),
         h("p", null, h("b", { text: "왜 하나요  " }), why + " 진단 검사가 아니며, 점수에 좋고 나쁨의 기준선이 없습니다."),
-        h("p", null, h("b", { text: "알아 두세요  " }), "정답이 없습니다. 하고 싶지 않으면 지금 하지 않아도 되고, 중간에 닫으면 답한 곳까지 저장됩니다. 점수를 올리려고 답을 고를 필요도, 그에 대한 보상도 없습니다.")),
-      h("div", { class: "svbtns" }, btn("뒤로", "", () => toList(rerender)), btn("시작", "primary", () => { state.view = "form"; rerender(); }, { "data-act": "begin" })));
+        h("p", null, h("b", { text: "알아 두세요  " }), "정답이 없습니다. 하고 싶지 않으면 지금 시작하지 않아도 됩니다. 점수를 올리려고 답을 고를 필요도, 그에 대한 보상도 없습니다."),
+        h("div", { class: "svwarn", role: "note" }, h("b", { text: "꼭 읽어 주세요  " }), "검사 시점의 상태가 중간에 달라지면 결과를 비교할 수 없습니다. 그래서 한 번 시작하면 끝까지 모두 응답해야 합니다. 시간이 충분할 때 시작해 주세요.")),
+      h("div", { class: "svbtns" }, btn("뒤로", "", () => toList(rerender)), btn("시작하기", "primary", () => { state.view = "form"; rerender(); }, { "data-act": "begin" })));
   }
 
   function formView(rerender) {

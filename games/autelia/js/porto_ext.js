@@ -3,7 +3,7 @@
 (function () {
   const BG = (n) => ({ path: "assets/bg/" + n + ".webp" });
   Object.assign(AU.ASSETS, {
-    harbor_houses: BG("harbor_houses"), harbor_market: BG("harbor_market"), harbor_wharf: BG("harbor_wharf"), harbor_shipyard: BG("harbor_shipyard"),
+    harbor_houses: BG("harbor_houses"), harbor_market: BG("harbor_market"), harbor_wharf: BG("harbor_wharf"), harbor_shipyard: BG("harbor_shipyard"), harbor_mid: BG("harbor_mid"),
     npc_fisher: { path: "assets/char/npc_fisher.webp" }, npc_sailor: { path: "assets/char/npc_sailor.webp" }, npc_porter: { path: "assets/char/npc_porter.webp" },
     npc_fishwife: { path: "assets/char/npc_fishwife.webp" }, npc_housewife: { path: "assets/char/npc_housewife.webp" }, npc_townsman: { path: "assets/char/npc_townsman.webp" },
     pt_npc_fisher: { path: "assets/portrait/npc_fisher.webp" }, pt_npc_sailor: { path: "assets/portrait/npc_sailor.webp" }, pt_npc_porter: { path: "assets/portrait/npc_porter.webp" },
@@ -14,7 +14,7 @@
   AU.PORTO_OFF = OFF;
   const P = AU.MAPS.porto, sh = (x) => x + OFF;
 
-  P.bgs = ["harbor_houses", "harbor_market", "harbor_wharf", "harbor", "harbor_shipyard"]; P.bg = "harbor_houses"; P.width = TOTAL;
+  P.bgs = ["harbor_houses", "harbor_market", "harbor_wharf", "harbor_mid", "harbor_shipyard"]; P.bg = "harbor_houses"; P.width = TOTAL;
   P.platforms = [{ x: 0, y: 590, w: TOTAL }];
   P.portals = P.portals.map((p) => p.to === "harbor_road" ? p : p.to === "docks" ? Object.assign({}, p, { x: TOTAL - 70 }) : Object.assign({}, p, { x: sh(p.x) }));
   P.npcs = P.npcs.map((n) => Object.assign({}, n, { x: sh(n.x) }));
