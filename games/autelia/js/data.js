@@ -242,9 +242,9 @@ AU.JOB_TIERS = [
 
 /* ---------- 스킬 (전사, 임시) ---------- */
 AU.SKILLS = {
-  strike: { name: "결의의 일격", cost: 15, cd: 3, mult: 2.2, range: 135, desc: "마음을 모아 앞쪽의 적에게 강한 일격을 가합니다. (공격력 220%)" },
-  spin:   { name: "소용돌이 베기", cost: 25, cd: 6, mult: 1.5, radius: 150, desc: "몸을 돌리며 주변 양쪽의 적을 한꺼번에 벱니다. (공격력 150%)" },
-  focus:  { name: "마음 다잡기", cost: 20, cd: 10, heal: 0.35, desc: "숨을 고르고 마음을 다잡아 HP를 최대 HP의 35% 회복합니다." }
+  strike: { name: "결의의 일격", cost: 8, cd: 3, mult: 2.2, range: 135, desc: "마음을 모아 앞쪽의 적에게 강한 일격을 가합니다. (공격력 220%)" },
+  spin:   { name: "소용돌이 베기", cost: 14, cd: 6, mult: 1.5, radius: 150, desc: "몸을 돌리며 주변 양쪽의 적을 한꺼번에 벱니다. (공격력 150%)" },
+  focus:  { name: "마음 다잡기", cost: 12, cd: 10, heal: 0.35, desc: "숨을 고르고 마음을 다잡아 HP를 최대 HP의 35% 회복합니다." }
 };
 AU.WARRIOR_SKILLS = ["strike", "spin", "focus"];
 
