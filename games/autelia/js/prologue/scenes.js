@@ -329,14 +329,17 @@ window.AU = window.AU || {};
   function setupPlaza(P, variant) {
     const v = P.v, L = LAY.plaza; P.variant = variant;
     if (variant === "peace") {
-      P.tint = { color: "#F0904F", a: 0.42 }; P.vig = 0.3; v.cheer = 0.12;
+      P.tint = { color: "#F0904F", a: 0.42 }; P.vig = 0.3; v.cheer = P.flag("plaza_cheered") ? 0.75 : 0.12;
       P.overlayFn = duskSky;   // 해 질 녘 하늘(임시: 정식 석양 배경 그림이 오면 교체)
       P.limits = { min: 40, max: L.limit, msg: "먼저 주민과 이야기를 나눠 보세요. (마을길로는 돌아갈 수 없습니다)" };
       // 광장 전용 인물: 마을길에서 만난 주민(나이 든 주민·축제 어린이)과 겹치지 않도록 새 인물을 둠(빵을 나누는 주민은 마을길에서 "광장에서 보자"고 한 인물이라 그대로)
       const sT = standing("g", "villager_a"), sF = standing("l", "villager_b");
-      const elder = npc(P, "traveler", "traveler", sT.sprite, L.elder, sT.h, Object.assign({}, sT.extra, { range: 100, interact: { label: "대화: 먼 마을에서 온 할머니", fn: () => P.cutscene(() => P.say(T.plaza_traveler)) } }));
-      const child = npc(P, "florist", "florist", sF.sprite, L.child, sF.h, Object.assign({}, sF.extra, { range: 100, interact: { label: "대화: 꽃 심부름 온 사내아이", fn: () => P.cutscene(() => P.say(T.plaza_florist)) } }));
+      // 주민과 대화를 시작하면 군중이 환호하고(함성 1회), 그 뒤로는 계속 즐겁게 들떠 있음(가라앉지 않음)
+      const joy = () => { try { if (!P.flag("plaza_cheered")) { P.setFlag("plaza_cheered"); P.sfx("cheer"); } P.tween(P.v, { cheer: 0.75 }, 0.7); } catch (e) { /* 무시 */ } };
+      const elder = npc(P, "traveler", "traveler", sT.sprite, L.elder, sT.h, Object.assign({}, sT.extra, { range: 100, interact: { label: "대화: 먼 마을에서 온 할머니", fn: () => { joy(); return P.cutscene(() => P.say(T.plaza_traveler)); } } }));
+      const child = npc(P, "florist", "florist", sF.sprite, L.child, sF.h, Object.assign({}, sF.extra, { range: 100, interact: { label: "대화: 꽃 심부름 온 사내아이", fn: () => { joy(); return P.cutscene(() => P.say(T.plaza_florist)); } } }));
       const vendor = npc(P, "vendor", "vendor", artSpr("pc_villager_b_actions", "baker"), L.vendor, 150, { frame: A.sprFrame("pc_villager_b_actions", "cheer2"), range: 110, mark: true, interact: { label: "대화: 빵을 나누는 주민", fn: async () => {
+        joy();
         await P.cutscene(async () => { await P.say(P.flag("met_baker_morning") && P.flag("met_baker_evening") ? T.vendor2 : (P.flag("met_baker_morning") || P.flag("met_baker_evening")) ? T.vendor1 : T.vendor); });   // 이미 만난 횟수에 따라 첫인사를 달리함 if (P.flag("festival_interaction_complete")) return;
         P.setFlag("festival_interaction_complete"); vendor.mark = false; P.limits = { min: 40, max: null, msg: "마을길로는 돌아갈 수 없습니다. 광장 중앙으로 가 보세요." }; P.obj(OBJ.s2_center);
         P.trigger({ id: "center", goal: L.center, test: (p) => p.x >= L.center, fn: () => centerEvent() }); } } });
@@ -361,7 +364,7 @@ window.AU = window.AU || {};
   }
   SC.SCENE_02_FESTIVAL = { name: "빛의 승리 천 년 기념제", async enter(P) {
     const g = P.gen; P.room("pro_plaza", LAY.plaza.start, (P) => setupPlaza(P, "peace")); P.amb("crowd", true);
-    await P.cutscene(async () => { P.sfx("cheer"); await P.fade(0, 1.4); });
+    await P.cutscene(async () => { await P.fade(0, 1.4); });   // 시작부터 박수·함성은 없음(11-17): 주민과 대화할 때 환호가 일어남
     if (!live(P, g)) return; P.obj(OBJ.s2_talk); P.hint("축제가 시작되어 마을길로는 돌아갈 수 없습니다. 광장에서 이야기를 나눠 보세요.", 6);
   } };
 

@@ -10,10 +10,16 @@ window.AU = window.AU || {};
 
   /* ---------- 기반: 소리 그래프 만들기 ---------- */
   /* 마스터 음량 = 기본 0.7 × 설정의 효과음 음량. "소리 끄기"면 0 */
+  /* 전투음(공격·스킬·타격·피격·몬스터 소리)은 효과음과 따로 음량을 조절함(설정의 volCombat). 마스터는 둘 중 큰 값에 맞추고, 소리마다 자기 종류의 비율을 곱합니다. */
+  const isCombat = (n) => /^(swing|skill|skill_.*|hit|hit_spark|crit|hurt|kill|mon_.*)$/.test(n);
+  const volOf = (key) => { const st = AU.UI && AU.UI.settings; const v = st && typeof st[key] === "number" && isFinite(st[key]) ? st[key] : 1; return Math.max(0, Math.min(1, v)); };
+  const peak = () => Math.max(volOf("volSfx"), volOf("volCombat"), 0.0001);
+  S.catScale = (n) => (isCombat(n) ? volOf("volCombat") : volOf("volSfx")) / peak();
   S.applyVolume = function () {
     if (!S.master) return;
-    const st = AU.UI && AU.UI.settings; const v = st && typeof st.volSfx === "number" && isFinite(st.volSfx) ? Math.max(0, Math.min(1, st.volSfx)) : 1;
-    S.master.gain.value = (st && st.mute) ? 0 : 0.7 * v;
+    const st = AU.UI && AU.UI.settings;
+    S.master.gain.value = (st && st.mute) ? 0 : 0.7 * peak();
+    const amb = volOf("volSfx") / peak(); Object.keys(S.loops || {}).forEach((k) => { const o = S.loops[k]; if (o && o.amb !== amb) { o.amb = amb; try { o.vg.gain.value = amb; } catch (e) { /* 무시 */ } } });
   };
   S.ensure = function () {
     if (AU.UI && AU.UI.settings && AU.UI.settings.mute) return null;
@@ -171,14 +177,14 @@ window.AU = window.AU || {};
     if (S.files[name]) { return S.playFile(name); }
     const c = S.ensure(); if (!c) return true;
     try {
-      const g = c.createGain(), rg = c.createGain(); g.gain.value = rg.gain.value = GAIN[name] || 1; g.connect(S.bus.out); rg.connect(S.bus.rev);
+      const g = c.createGain(), rg = c.createGain(); g.gain.value = rg.gain.value = (GAIN[name] || 1) * S.catScale(name); g.connect(S.bus.out); rg.connect(S.bus.rev);
       d.fn(c, { out: g, rev: rg }, c.currentTime + 0.005);
       setTimeout(() => { try { g.disconnect(); rg.disconnect(); } catch (e) { /* 무시 */ } }, 4500);
     } catch (e) { /* 소리 실패는 무시 */ }
     return true;
   };
   S.playFile = function (name) {
-    try { const st = AU.UI && AU.UI.settings; if (st && st.mute) return true; const vs = st && typeof st.volSfx === "number" && isFinite(st.volSfx) ? Math.max(0, Math.min(1, st.volSfx)) : 1; const a = new Audio(S.files[name]); a.volume = Math.min(1, (GAIN[name] || 0.7) * vs); a.play().catch(() => {}); return true; } catch (e) { return false; }
+    try { const st = AU.UI && AU.UI.settings; if (st && st.mute) return true; const vs = isCombat(name) ? volOf("volCombat") : volOf("volSfx"); const a = new Audio(S.files[name]); a.volume = Math.min(1, (GAIN[name] || 0.7) * vs); a.play().catch(() => {}); return true; } catch (e) { return false; }
   };
   /* 오프라인 렌더(시험용): 소리를 3초 분량으로 계산해 최대 크기·평균 크기를 돌려줌 */
   S.measure = async function (name, secs, opts) {
@@ -263,8 +269,8 @@ window.AU = window.AU || {};
       if (on === false) return true;
       if (!L[name]) return false;
       const c = S.ensure(); if (!c) return true;
-      const g = c.createGain(); g.gain.value = 0.0001; g.gain.linearRampToValueAtTime(0.45, c.currentTime + 1.2); g.connect(S.master); // 환경음은 효과음 아래에 깔리도록 낮게
-      const o = { nodes: [], timers: [], g, c }, bus = { out: g, rev: S.bus.rev }; L[name](c, bus, o); S.loops[name] = o; return true;
+      const g = c.createGain(); g.gain.value = 0.0001; g.gain.linearRampToValueAtTime(0.45, c.currentTime + 1.2); const vg = c.createGain(); vg.gain.value = volOf("volSfx") / peak(); g.connect(vg); vg.connect(S.master); // 환경음은 효과음 아래에 깔리도록 낮게(효과음 음량 반영)
+      const o = { nodes: [], timers: [], g, c, vg, amb: vg.gain.value }, bus = { out: g, rev: S.bus.rev }; L[name](c, bus, o); S.loops[name] = o; return true;
     } catch (e) { return false; }
   };
   /* 음원 파일 반복 재생(호흡 안내 물결 소리 등): S.loopFile("breath_wave", true|false). 켤 때 서서히 커지고, 끌 때 서서히 줄어듦 */

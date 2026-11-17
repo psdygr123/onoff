@@ -796,7 +796,7 @@ window.AU = window.AU || {};
     rows.append(h("div", { class: "keyrow fixed" }, h("span", { class: "kl", text: "메뉴 닫기·일시정지" }), h("span", { class: "keycap fixedcap", text: "Esc (고정)" })));
     const msg = h("div", { class: "keymsg" + (UI.keyMsg ? " show" : ""), text: UI.keyMsg || "" });
     const unl = UI.settings && UI.settings.confirmUnload !== false;
-    b.append(h("div", { class: "volbox" }, h("b", { text: "소리 크기" }), UI.volRow("배경음", "volBgm"), UI.volRow("효과음·환경음", "volSfx", true)), h("p", { class: "note", text: "바꿀 키를 누른 뒤 새 키를 누르세요. 이미 쓰는 키면 교체 여부를 묻습니다. 변경은 바로 저장됩니다. 한글 입력 상태에서도 키 위치(물리 키) 기준으로 동작합니다." }), msg, rows,
+    b.append(h("div", { class: "volbox" }, h("b", { text: "소리 크기" }), UI.volRow("배경음", "volBgm"), UI.volRow("효과음·환경음", "volSfx", true), UI.volRow("전투음(공격·스킬·타격)", "volCombat", "swing")), h("p", { class: "note", text: "바꿀 키를 누른 뒤 새 키를 누르세요. 이미 쓰는 키면 교체 여부를 묻습니다. 변경은 바로 저장됩니다. 한글 입력 상태에서도 키 위치(물리 키) 기준으로 동작합니다." }), msg, rows,
       h("div", { class: "keyfoot" }, btn("기본값으로 복원", "", () => { I.reset(); AU.main.saveSettings(); UI.keyMsg = "기본 키로 복원했습니다."; UI.renderWin(); }),
         h("label", { class: "chk" }, h("input", { type: "checkbox", checked: unl ? "" : null, onchange: (e) => { UI.settings.confirmUnload = e.target.checked; AU.main.saveSettings(); } }), " 탭을 닫기 전에 확인 창 표시"),
         h("label", { class: "chk" }, h("input", { type: "checkbox", checked: UI.settings.reduceFx ? "" : null, onchange: (e) => { UI.settings.reduceFx = e.target.checked; AU.main.saveSettings(); } }), " 화면 흔들림·번쩍임 줄이기"),
@@ -809,7 +809,7 @@ window.AU = window.AU || {};
     const out = h("span", { class: "volnum", text: cur + "%" });
     const inp = h("input", { type: "range", min: "0", max: "100", step: "5", value: String(cur), "aria-label": label + " 크기" });
     inp.oninput = () => { const v = +inp.value / 100; UI.settings[key] = v; out.textContent = inp.value + "%"; if (AU.Sfx && AU.Sfx.applyVolume) AU.Sfx.applyVolume(); };
-    inp.onchange = () => { AU.main.saveSettings(); if (sample && AU.Sfx) { AU.Sfx.applyVolume(); AU.Sfx.play("item"); } };
+    inp.onchange = () => { AU.main.saveSettings(); if (sample && AU.Sfx) { AU.Sfx.applyVolume(); AU.Sfx.play(typeof sample === "string" ? sample : "item"); } };
     return h("label", { class: "volrow" }, h("span", { class: "vl", text: label }), inp, out);
   };
   UI.listenKey = function (id) {
@@ -851,5 +851,5 @@ window.AU = window.AU || {};
       btn("즉시 완료 → 포르투 노바", "mini", () => { UI.close(); PR.debugComplete("porto"); }), btn("컷신 건너뛰기", "mini", () => { UI.close(); PR.skip(); }),
       h("p", { class: "note", text: "상태 " + PR.st().state + " · 깃발 " + Object.keys(PR.st().flags).filter((k) => PR.st().flags[k]).length + "개" + (PR.replay ? " (다시 보기 중: 저장 기록은 바뀌지 않음)" : "") })));
   };
-  UI.settings = { confirmUnload: true, reduceFx: false, mute: false, volBgm: 1, volSfx: 1 }; UI.devVisible = false;
+  UI.settings = { confirmUnload: true, reduceFx: false, mute: false, volBgm: 1, volSfx: 1, volCombat: 1 }; UI.devVisible = false;
 })();

@@ -6,7 +6,7 @@ window.AU = window.AU || {};
   const main = AU.main = { embedded, resetting: false, running: false, platform: null, post(type, payload) { if (embedded) { try { parent.postMessage({ source: "onoff-game", type, payload }, "*"); } catch (e) { /* 무시 */ } } } };
 
   /* ---------- 설정(키 배치 등): 게임 저장과 분리 ---------- */
-  main.saveSettings = function () { AU.Store.set(C.save.settingsKey, { v: 1, bindings: AU.Input.bindings, confirmUnload: AU.UI.settings.confirmUnload, reduceFx: !!AU.UI.settings.reduceFx, mute: !!AU.UI.settings.mute, volBgm: AU.UI.settings.volBgm, volSfx: AU.UI.settings.volSfx }); };
+  main.saveSettings = function () { AU.Store.set(C.save.settingsKey, { v: 1, bindings: AU.Input.bindings, confirmUnload: AU.UI.settings.confirmUnload, reduceFx: !!AU.UI.settings.reduceFx, mute: !!AU.UI.settings.mute, volBgm: AU.UI.settings.volBgm, volSfx: AU.UI.settings.volSfx, volCombat: AU.UI.settings.volCombat }); };
   main.loadSettings = function () {
     const s = AU.Store.get(C.save.settingsKey);
     AU.Input.load(s && s.bindings);
@@ -14,7 +14,7 @@ window.AU = window.AU || {};
     if (s && typeof s.reduceFx === "boolean") AU.UI.settings.reduceFx = s.reduceFx;
     if (s && typeof s.mute === "boolean") AU.UI.settings.mute = s.mute;
     const vol = (x) => (typeof x === "number" && isFinite(x)) ? Math.max(0, Math.min(1, x)) : 1;
-    if (s) { AU.UI.settings.volBgm = vol(s.volBgm); AU.UI.settings.volSfx = vol(s.volSfx); }
+    if (s) { AU.UI.settings.volBgm = vol(s.volBgm); AU.UI.settings.volSfx = vol(s.volSfx); AU.UI.settings.volCombat = vol(s.volCombat); }
   };
 
   /* ---------- 화면 크기 맞추기: 1280×720 고정 무대를 창 크기에 맞춰 확대·축소 ---------- */
