@@ -159,7 +159,7 @@ window.AU = window.AU || {};
    ["inn_blanket", "여관 휴식 — 이불 소리", "inn_blanket", 0.6], ["inn_fire", "여관 휴식 — 따뜻한 난로", "inn_fire", 1],
    ["breath_wave", "호흡 안내음 — 물결 소리(반복용)", "breath_wave", 0.35], ["timer_start", "명상·쉼 타이머 시작(작은 종)", "timer_start", 0.6],
    ["escort_start", "상인 호위 시작(출발 호각)", "escort_start", 0.7], ["escort_success", "상인 호위 성공(팡파르)", "escort_success", 0.65],
-   ["escort_fail", "상인 호위 실패", "escort_fail", 0.7], ["escort_hit", "상인 호위 장애물 충돌", "escort_hit", 0.7]
+   ["escort_fail", "상인 호위 실패", "escort_fail", 0.7], ["gull", "갈매기 울음(실제 녹음, 약 8초)", "gull", 0.5], ["escort_hit", "상인 호위 장애물 충돌", "escort_hit", 0.7]
   ].forEach(([n, d, f, g]) => { def(n, d, () => {}); S.files[n] = "assets/audio/sfx/" + f + ".mp3"; GAIN[n] = g; });
   S.CATALOG = Object.keys(D).map((k) => ({ id: k, desc: D[k].desc }));
 
@@ -252,7 +252,7 @@ window.AU = window.AU || {};
     o.timers.push(setInterval(() => { if (Math.random() < 0.25) N(c, bus, c.currentTime, { f: rnd(500, 900), q: 0.7, dur: rnd(0.5, 1.1), a: 0.25, vol: 0.09 }); }, 1500));
   };
   L.forest = (c, bus, o) => { L.wind(c, bus, o); L.birds(c, bus, o); const ins = chain(c, bus, "highpass", 5500, 0.7, 0.008); o.nodes.push(ins.s, lfo(c, 0.4, 0.006, ins.g.gain)); };
-  L.harbor = (c, bus, o) => { L.waves(c, bus, o); const m = chain(c, bus, "bandpass", 500, 0.7, 0.03); o.nodes.push(m.s); o.timers.push(setInterval(() => { if (Math.random() < 0.3) D.gull.fn(c, bus, c.currentTime); }, 3000)); };
+  L.harbor = (c, bus, o) => { L.waves(c, bus, o); const m = chain(c, bus, "bandpass", 500, 0.7, 0.03); o.nodes.push(m.s); o.timers.push(setInterval(() => { const t = performance.now(); if (Math.random() < 0.25 && t - (S.lastGull || 0) > 24000) { S.lastGull = t; S.play("gull"); } }, 3000)); };
   S.L = L; S.AMBIENCE = Object.keys(L);
 
   S.loop = function (name, on) {
