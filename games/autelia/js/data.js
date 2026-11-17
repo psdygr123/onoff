@@ -167,10 +167,10 @@ AU.AREA_LINKS = [["forest", "harbor_road"], ["harbor_road", "porto"], ["porto", 
 // sprite/sw: 정식 그림(assets/monster/*.webp, 투명 배경, 오른쪽을 보는 옆모습 1장)이 있으면 그 그림을 sw(가로 px)로 그리고, 없으면 임시 도형으로 표시합니다.
 // 이전 아스텔리아 기획의 사냥터 구성(들짐승→부두 쥐→게→거대 적)을 규칙으로만 재사용. 모두 임시 수치.
 AU.MONSTERS = {
-  fox:   { motion: "pounce", name: "들여우", lv: 1, hp: 51, atk: 8, speed: 70, chase: 130, w: 72, h: 50, exp: 34, silver: [2, 5], silverRate: 0.5, drops: [["fur", 0.33, 1, 2], ["fox_tail", 0.108], ["black_crystal", 0.2, 1, 1, "q_a1_variant"], ["potion", 0.04], ["fox_scarf", 0.009]], color: "#F5A25D", ear: true, sprite: "mon_fox", sw: 92 },
-  snake: { motion: "coil", name: "뱀", lv: 3, hp: 88, atk: 14, speed: 85, chase: 150, w: 90, h: 34, exp: 62, silver: [4, 8], silverRate: 0.55, drops: [["snake_skin", 0.3], ["snake_fang", 0.096], ["black_crystal", 0.3, 1, 1, "q_a1_variant"], ["potion", 0.05], ["snake_ring", 0.009]], color: "#7DBE6B", snake: true, sprite: "mon_snake", sw: 128 },
-  rat:   { motion: "scurry", name: "부두 쥐", lv: 5, hp: 144, atk: 21, speed: 100, chase: 160, w: 70, h: 46, exp: 90, silver: [6, 12], silverRate: 0.6, drops: [["rat_tooth", 0.33, 1, 2], ["black_crystal", 0.4, 1, 1, "q_a1_variant"], ["potion", 0.06]], color: "#A79C94", ear: true, sprite: "mon_rat", sw: 88 },
-  crab:  { motion: "sidestep", name: "집게 게", lv: 8, hp: 272, atk: 36, speed: 60, chase: 150, w: 92, h: 56, exp: 132, silver: [10, 18], silverRate: 0.65, drops: [["crab_claw", 0.3, 1, 2], ["crab_shell", 0.12], ["potion", 0.075], ["crab_vest", 0.009]], color: "#E9777A", crab: true, sprite: "mon_crab", sw: 116 },
+  fox:   { motion: "pounce", name: "들여우", lv: 1, hp: 51, atk: 8, speed: 70, chase: 130, w: 72, h: 50, exp: 34, silver: [1, 4], silverRate: 0.1, drops: [["fur", 0.15, 1, 2], ["fox_tail", 0.07], ["black_crystal", 0.2, 1, 1, "q_a1_variant"], ["potion", 0.04], ["fox_scarf", 0]], color: "#F5A25D", ear: true, sprite: "mon_fox", sw: 92 },
+  snake: { motion: "coil", name: "뱀", lv: 3, hp: 88, atk: 14, speed: 85, chase: 150, w: 90, h: 34, exp: 62, silver: [2, 7], silverRate: 0.12, drops: [["snake_skin", 0.15], ["snake_fang", 0.07], ["black_crystal", 0.3, 1, 1, "q_a1_variant"], ["potion", 0.05], ["snake_ring", 0]], color: "#7DBE6B", snake: true, sprite: "mon_snake", sw: 128 },
+  rat:   { motion: "scurry", name: "부두 쥐", lv: 5, hp: 144, atk: 21, speed: 100, chase: 160, w: 70, h: 46, exp: 90, silver: [3, 10], silverRate: 0.14, drops: [["rat_tooth", 0.15, 1, 2], ["black_crystal", 0.4, 1, 1, "q_a1_variant"], ["potion", 0.05]], color: "#A79C94", ear: true, sprite: "mon_rat", sw: 88 },
+  crab:  { motion: "sidestep", name: "집게 게", lv: 8, hp: 272, atk: 36, speed: 60, chase: 150, w: 92, h: 56, exp: 132, silver: [5, 14], silverRate: 0.16, drops: [["crab_claw", 0.15, 1, 2], ["crab_shell", 0.07], ["potion", 0.06], ["crab_vest", 0]], color: "#E9777A", crab: true, sprite: "mon_crab", sw: 116 },
   trial_boss: { name: "움브라", lv: 10, hp: 700, atk: 40, speed: 75, chase: 420, w: 240, h: 150, exp: 600, silver: [60, 80], silverRate: 1, drops: [], color: "#9B7FD1", boss: true, motion: "swing",
     sprite: "mon_umbra_base", sw: 300, refW: 345, poses: { idle: "mon_umbra_base", walkA: "mon_umbra_walkA", walkB: "mon_umbra_walkB", windup: "mon_umbra_windup", attack: "mon_umbra_attack", hurt: "mon_umbra_hurt", down: "mon_umbra_down" } }
 };
@@ -182,7 +182,7 @@ AU.ITEMS = {
   charm_a: { name: "작은 부적", type: "equip", slot: "accessory", buy: 80, stats: { dodge: 1, crit: 1 }, desc: "작은 행운이 깃들었다는 부적입니다." },
   town_scroll: { name: "마을 귀환 주문서", type: "use", recall: true, buy: 60, desc: "가까운 마을로 즉시 귀환합니다. 마을 안에서는 쓸 수 없습니다." },
   potion:  { name: "작은 회복약", type: "use", heal: 50, buy: 15, desc: "HP를 50 회복합니다." },
-  // 드롭 확률 원칙: 좋은 아이템일수록 확률이 낮다 — 흔함 50~55% · 포션 8~15% · 드묾 16~20% · 희귀(장비) 1.5%. 은화는 몬스터마다 silverRate 확률(50~65%)로 바닥에 떨어짐
+  // 드롭 확률 원칙: 좋은 아이템일수록 확률이 낮다 — 흔함 15% · 포션 평균 5% · 드묾 7% · 희귀(장비) 0%(제작서로만 획득). 은화는 몬스터마다 silverRate 확률(10%대)로 레벨이 높을수록 커지는 범위(1~20, 균등 랜덤)가 바닥에 떨어짐
   // rarity: common(흔함) / uncommon(드묾) / rare(희귀). sell: 안전한 곳(마을)에서 팔 때 받는 은화. 재료는 팔거나 제작(AU.RECIPES)에 씀
   fur:     { name: "여우 털 뭉치", type: "etc", rarity: "common", sell: 3, desc: "부드러운 털 뭉치입니다. 팔거나 장신구 제작에 씁니다." },
   fox_tail: { name: "여우 꼬리털", type: "etc", rarity: "uncommon", sell: 10, desc: "윤기가 도는 꼬리털입니다. 제작 재료로 쓰입니다." },

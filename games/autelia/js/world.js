@@ -261,7 +261,7 @@ window.AU = window.AU || {};
     spawnDrops(m) {
       let k = 0;
       const sv = m.d.silver; if (sv && Math.random() < (m.d.silverRate == null ? 0.5 : m.d.silverRate)) { // 은화: 몬스터마다 정해진 확률(silverRate)로 떨어짐
-        const n = Math.max(1, Math.round(rnd(sv[0], sv[1]))); this.drops.push({ id: "silver_coin", n, x: m.x - 8, y: m.y - m.d.h * 0.5, vx: -(40 + Math.random() * 50), vy: -(280 + Math.random() * 80), gy: m.y, age: 0, onGround: false }); k++;
+        const n = sv[0] + Math.floor(Math.random() * (sv[1] - sv[0] + 1)); this.drops.push({ id: "silver_coin", n, x: m.x - 8, y: m.y - m.d.h * 0.5, vx: -(40 + Math.random() * 50), vy: -(280 + Math.random() * 80), gy: m.y, age: 0, onGround: false }); k++;
       }
       for (const row of m.d.drops || []) {
         const [id, rate, lo = 1, hi = lo, need] = row; if (!AU.ITEMS[id] || Math.random() >= rate) continue; if (need && AU.G.questStatus(need) !== "active") continue;
@@ -632,10 +632,15 @@ window.AU = window.AU || {};
           ctx.globalAlpha = 0.28; ctx.beginPath(); ctx.arc(0, 0, 19, 0, 7); ctx.fill(); ctx.globalAlpha = 1;
           const sz = 34; ctx.drawImage(art, -sz / 2, -sz / 2, sz, sz);
         } else if (d.id === "silver_coin") { // 은화: 은빛 동전(액수가 크면 2~3개가 겹쳐 보임). 정식 그림은 assets/item/silver_coin.webp 로 오면 위쪽 분기가 자동으로 대신함
-          const cnt = Math.min(3, 1 + Math.floor(d.n / 6));
-          for (let i = 0; i < cnt; i++) { const cx = (i - (cnt - 1) / 2) * 11, cy = -i * 3 + (i % 2) * 2, sx = 0.55 + 0.45 * Math.abs(Math.cos(this.time * 2.2 + d.x * 0.05 + i)); ctx.save(); ctx.translate(cx, cy); ctx.scale(sx, 1);
-            const g = ctx.createRadialGradient(-3, -3, 1, 0, 0, 11); g.addColorStop(0, "#FFFFFF"); g.addColorStop(0.6, "#D5D9DE"); g.addColorStop(1, "#9AA3AD"); ctx.fillStyle = g; ctx.strokeStyle = "#6C7580"; ctx.lineWidth = 1.8; ctx.beginPath(); ctx.arc(0, 0, 9.5, 0, 7); ctx.fill(); ctx.stroke();
-            ctx.strokeStyle = "rgba(255,255,255,.7)"; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(0, 0, 6, 0.3, 4.2); ctx.stroke(); ctx.restore(); }
+          const cnt = Math.min(3, 1 + Math.floor(d.n / 7));
+          for (let i = 0; i < cnt; i++) { const cx = (i - (cnt - 1) / 2) * 12, cy = -i * 3 + (i % 2) * 2, ph = this.time * 2.2 + d.x * 0.05 + i, sx = 0.5 + 0.5 * Math.abs(Math.cos(ph)); ctx.save(); ctx.translate(cx, cy); ctx.scale(sx, 1);
+            const R = 10.5, g = ctx.createLinearGradient(-R, -R, R, R); g.addColorStop(0, "#F4F7FA"); g.addColorStop(0.45, "#C9D0D8"); g.addColorStop(1, "#8E98A4");
+            ctx.fillStyle = g; ctx.strokeStyle = "#5F6873"; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.arc(0, 0, R, 0, 7); ctx.fill(); ctx.stroke();            // 동전 몸통
+            ctx.strokeStyle = "rgba(255,255,255,.85)"; ctx.lineWidth = 1.1; ctx.beginPath(); ctx.arc(0, 0, R - 2, 0, 7); ctx.stroke();                              // 안쪽 테두리(밀링)
+            ctx.strokeStyle = "rgba(95,104,115,.55)"; ctx.lineWidth = 0.9; ctx.beginPath(); ctx.arc(0, 0, R - 3.6, 0, 7); ctx.stroke();
+            ctx.fillStyle = "rgba(95,104,115,.7)"; ctx.beginPath(); for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + k * Math.PI / 5, r = k % 2 ? 1.9 : 4.4; ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r); } ctx.closePath(); ctx.fill();   // 가운데 별 문양
+            ctx.fillStyle = "rgba(255,255,255,.8)"; ctx.beginPath(); ctx.ellipse(-4, -5, 3.2, 1.5, -0.7, 0, 7); ctx.fill();                                        // 반사광
+            ctx.restore(); }
         } else {
         ctx.beginPath();
         if (it.type === "equip") { ctx.moveTo(0, -12); ctx.lineTo(11, 0); ctx.lineTo(0, 12); ctx.lineTo(-11, 0); } else if (it.type === "use") { ctx.arc(0, 0, 9, 0, 7); } else if (ctx.roundRect) { ctx.roundRect(-9, -8, 18, 16, 5); } else { ctx.rect(-9, -8, 18, 16); }
