@@ -262,8 +262,9 @@ window.AU = window.AU || {};
         const mkSrc = (src, type) => { const s = document.createElement("source"); s.src = src; s.type = type; return s; };
         v.append(mkSrc("assets/video/intro.webm", 'video/webm; codecs="vp9"'), mkSrc("assets/video/intro.mp4", 'video/mp4; codecs="avc1.42E01E"'));
         let done = false, started = false, raf = 0, lastKey = -1;
+        this.introOn = true; // 도입 영상 중에는 기본 곡(bgm.js)
         const finish = (played, completed) => {
-          if (done) return; done = true; cancelAnimationFrame(raf); clearTimeout(guard); document.removeEventListener("keydown", onKey, true);
+          if (done) return; done = true; cancelAnimationFrame(raf); this.introOn = false; clearTimeout(guard); document.removeEventListener("keydown", onKey, true);
           if (completed) AU.Store.set("autelia.introSeen", 1);
           try { v.pause(); } catch (e) { /* 무시 */ } box.classList.remove("on");
           setTimeout(() => { box.remove(); resolve(played); }, 450);
