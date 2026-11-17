@@ -234,10 +234,10 @@ window.AU = window.AU || {};
       L.fire(c, bus, o);
       const k = far ? 0.45 : 1, rv = far ? 0.6 : 0.25;
       o.timers.push(setInterval(() => { // 사람 외침: 남성(낮음)·여성·아이(높음), 가끔 둘이 겹침
-        const n = Math.random() < 0.3 ? 2 : 1;
+        const n = Math.random() < (far ? 0.3 : 0.45) ? 2 : 1;
         for (let i = 0; i < n; i++) { const kind = Math.random(), f0 = kind < 0.4 ? rnd(120, 170) : kind < 0.8 ? rnd(230, 330) : rnd(380, 520), v = [VOW.a, VOW.o, VOW.i][Math.floor(rnd(0, 3))];
-          shout(c, bus, c.currentTime + i * rnd(0.1, 0.4), { f: f0, vol: rnd(0.09, 0.17) * k, dur: rnd(0.35, 0.9), vowel: v, rev: rv }); }
-      }, far ? 2300 : 1100));
+          shout(c, bus, c.currentTime + i * rnd(0.1, 0.4), { f: f0, vol: rnd(0.09, 0.17) * k * (far ? 1 : 1.9), dur: rnd(0.35, 0.9), vowel: v, rev: rv }); }   // 비명 크기: 가까운 습격 장면은 1.9배(1117 요청)
+      }, far ? 2300 : 950));
       o.timers.push(setInterval(() => { if (Math.random() < 0.45) woodCrack(c, bus, c.currentTime, rnd(0.1, 0.18) * k, far); }, far ? 2700 : 1600));
       o.timers.push(setInterval(() => { if (Math.random() < 0.35) clang(c, bus, c.currentTime, rnd(0.07, 0.13) * k, far); }, far ? 3100 : 1900));
       o.timers.push(setInterval(() => { if (Math.random() < 0.18) rumble(c, bus, c.currentTime, rnd(0.1, 0.18) * k); }, 3500));

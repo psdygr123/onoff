@@ -12,7 +12,7 @@ window.AU = window.AU || {};
     ship1: BG + "ship1.mp3", ship2: BG + "ship2.mp3", boss: BG + "boss.mp3", escort: BG + "escort.mp3", breath: BG + "breath.mp3", ending: BG + "ending.mp3" };
   /* 곡 묶음(그룹): 같은 묶음 안에서는 곡이 끝나면 다음 곡으로 이어지고, 묶음 안의 다른 지역으로 옮겨도 끊기지 않고 계속 이어집니다.
      oneShot은 한 번만 재생하고 끝납니다. 예: 포르투 노바 1·2·3번이 차례로 이어지고, 숲길·항구 길·선창 외곽은 사냥터 1·2번이 이어집니다. */
-  const GROUPS = { main: ["main"], arkea: ["arkea"], adventure: ["adventure"], town: ["porto1", "porto2", "porto3"], store_a: ["store_a"], store_b: ["store_b"], guild: ["guild"], inn: ["inn"], warehouse: ["warehouse"],
+  const GROUPS = { main: ["main"], arkea: ["arkea"], adventure: ["adventure"], town: ["adventure", "porto1", "porto2", "porto3"], store_a: ["store_a"], store_b: ["store_b"], guild: ["guild"], inn: ["inn"], warehouse: ["warehouse"],
     field: ["field1", "field2"], east_road: ["east_road"], ship: ["ship1", "ship2"], boss: ["boss"], escort: ["escort"], breath: ["breath"], ending: ["ending"] };
   const ONE_SHOT = { ending: true };
   const MAP_GROUP = { porto: "town", general_store: "store_a", weapon_store: "store_b", guild_hall: "guild", warehouse: "warehouse", forest: "field", harbor_road: "field", docks: "field", hide_outer: "adventure", hide_tunnel: "adventure", hide_lab: "adventure" };
