@@ -28,7 +28,7 @@ AU.CONFIG = {
     autoGrowthUntil: 10,          // 이 레벨까지는 기본 능력치가 자동 성장
     freePointsPerLevel: 3,        // 11레벨 이후 레벨업마다
     freePointsOnJobChange: 3,     // 10레벨 전직 시
-    capWithoutJob: 10             // 전직 전에는 10레벨에서 멈춤
+    capWithoutJob: 15             // 전직 전(1막)에는 15레벨에서 멈춤. 10레벨에서는 전직이 아니라 제페토의 "힘의 각성"이 일어남
   },
 
   // [임시] 스탯 1점당 효과. 요청서 8장 가안

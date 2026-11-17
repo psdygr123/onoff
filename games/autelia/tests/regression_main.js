@@ -73,7 +73,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
   // 퀘스트 반납 + 장비
   await goto('guild_hall', 800); await sleep(100);
-  for (let i = 0; i < 4 && await ev(() => !!AU.UI.dialog || i === 0); i++) { await p.keyboard.press('Space'); await sleep(130); }
+  for (let i = 0; i < 4 && (i === 0 || await ev(() => !!AU.UI.dialog)); i++) { await p.keyboard.press('Space'); await sleep(130); }
   const swordCount = await ev(() => AU.G.count('sword_a')), qdone = await ev(() => AU.G.S.quests.q_first.state);
 
   // ===== 7. 창 열기 =====
@@ -103,28 +103,14 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const apiLocked = await ev(() => { AU.G.S.flags.missionsUnlocked = false; return [AU.G.discoverMissions(), AU.G.setMissionState('m_p1', 'accept')]; });
   note('10', '프롤로그 직후부터 현실 미션 열림(쉼 미션·피로도는 스킬 습득 전까지 잠김), 플래그 없으면 API 차단', !/🔒 현실 활동/.test(jtxt) && openNow && tabsCount === 1 && apiLocked[0] === false && apiLocked[1] === false && !lvMid.job.includes('warrior'), `Lv.${lvMid.lv}: 일지·퀘스트·메뉴 화면에 '현실' 문구 없음=${!/현실/.test(jtxt + qtxt + mtxt)}, 일지 탭 수=${tabsCount}, 강제 호출 discover=${apiLocked[0]}, accept=${apiLocked[1]}`);
 
-  // ===== 11. 10레벨 도달 → 아직 미해금 → 전직 후 해금 =====
+  // ===== 11. 1막 최대 레벨 15 + 제페토의 힘의 각성(전직 아님) =====
   await ev(() => { AU.G.gainExp(1e6, 'dev'); });
-  const lv10 = await S(); const unl10 = await ev(() => AU.G.S.flags.missionsUnlocked);
-  const capBefore = lv10.lv; await ev(() => AU.G.gainExp(5000, 'dev')); const lvStill = (await S()).lv;
-  await goto('porto', 860); await sleep(100);
-  await p.keyboard.press('Space'); await sleep(120); await p.keyboard.press('Space'); await sleep(120); await p.keyboard.press('Space'); await sleep(150); // 열기→다음→수락
-  for (let i = 0; i < 4 && (await ev(() => !!AU.UI.dialog)); i++) { await p.keyboard.press('Space'); await sleep(150); } // 대사 줄 수가 바뀌어도 남은 대화창은 닫고 시작
-  const qj = await ev(() => AU.G.S.quests.q_job && AU.G.S.quests.q_job.state);
-  await goto('docks', 700); await sleep(1300); // 보스 등장 확인
-  const bossThere = await ev(() => AU.World.monsters.some((m) => m.type === 'trial_boss' && m.alive));
-  const bossDead = await kill('trial_boss', 40000);
-  await ev(() => { AU.G.S.hp = AU.G.d().maxHp; });
-  const qj2 = await ev(() => AU.G.S.quests.q_job.state);
-  const unlBefore = await ev(() => AU.G.S.flags.missionsUnlocked);
-  await goto('porto', 860); await sleep(100);
-  await p.keyboard.press('Space'); await sleep(150); await p.keyboard.press('Space'); await sleep(300);
-  const post = await S(); const unlAfter = await ev(() => AU.G.S.flags.missionsUnlocked); const jobcard = await win();
-  await p.screenshot({ path: SH + 'jobcard.png' });
-  const slots = await ev(() => JSON.stringify(AU.G.S.skills.slots));
-  note('11', '10레벨 도달만으론 미해금, 전직 후 해금', lv10.lv === 10 && unl10 === false && lvStill === 10 && qj === 'active' && bossThere && bossDead && qj2 === 'ready' && unlBefore === false && post.job === 'warrior' && unlAfter === true && jobcard === '전직',
-    `Lv=${lv10.lv}(10에서 정지 ${lvStill}), 해금(전직 전)=${unl10}, 시험 수락=${qj}, 시험대상 등장=${bossThere}, 처치=${bossDead}, 반납 전 해금=${unlBefore}, 전직 후 직업=${post.job}, 해금=${unlAfter}, 전직 안내창="${jobcard}", 스킬슬롯=${slots}, 자유 포인트=${post.fp}`);
-  await p.keyboard.press('Escape'); await sleep(100);
+  const lvMax = await S(); const unlPre = await ev(() => AU.G.S.flags.missionsUnlocked);
+  const skPre = await ev(() => AU.G.S.skills.unlocked.length);
+  await ev(() => AU.G.awaken());
+  const post = await S(); const awk = await ev(() => ({ aw: AU.G.awakened(), job: AU.G.S.job, jc: AU.G.S.jobChanged, sk: AU.G.S.skills.unlocked.length, un: AU.G.S.flags.missionsUnlocked }));
+  note('11', '레벨 상한 15·각성 전엔 스킬 없음·각성하면 스킬 열림(전직은 아님)', lvMax.lv === 15 && skPre === 0 && awk.aw === true && awk.jc === false && awk.job === 'apprentice' && awk.sk > 0 && awk.un === true,
+    `Lv=${lvMax.lv}, 현실 미션 해금(각성 전)=${unlPre}, 스킬(각성 전)=${skPre}, 각성 후 직업=${awk.job}, 전직=${awk.jc}, 스킬=${awk.sk}, 자유 포인트=${post.fp}`);
 
   // ===== 현실 미션 흐름 / 13. 중복 지급 방지 =====
   await p.keyboard.press('j'); await sleep(100); await ev(() => { AU.UI.tab.jg = 'real'; AU.UI.tab.j = 'missions'; AU.UI.renderWin(); }); await sleep(100);
@@ -217,12 +203,12 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
   // ===== 12. 현실 미션 없이 진행(새 저장) =====
   await fresh();
-  await ev(() => { AU.G.gainExp(1e6, 'dev'); AU.G.S.quests.q_job = { state: 'ready', prog: [1] }; });
-  await goto('porto', 860); await p.keyboard.press('Space'); await sleep(150); await p.keyboard.press('Space'); await sleep(250); await p.keyboard.press('Escape'); await sleep(100);
+  await ev(() => { AU.G.S.level = 10; AU.G.S.exp = 0; AU.G.awaken(); });
+  await goto('porto', 860); await sleep(100);
   const nm0 = await S(); await ev(() => { AU.G.gainExp(AU.expToNext(AU.G.S.level), 'dev'); });
   const nm1 = await S(); const msUntouched = await ev(() => Object.values(AU.G.S.missions.states).every((s) => s.state === 'locked'));
   await goto('docks', 400); const killed = await kill('crab'); const nm2 = await S();
-  note('12', '현실 미션 없이 메인 RPG 계속 진행', nm0.job === 'warrior' && nm1.lv === 11 && nm1.fp === 3 + 3 && msUntouched && killed && nm2.exp > nm1.exp, `전직 직후 직업=${nm0.job}, 미션 전부 미해금 상태(건드리지 않음)=${msUntouched}, 그 상태로 11레벨 도달=${nm1.lv}(자유 포인트 ${nm1.fp}), 전투 경험치 ${nm1.exp}→${nm2.exp}`);
+  note('12', '현실 미션 없이 메인 RPG 계속 진행', nm0.job === 'apprentice' && nm1.lv === 11 && nm1.fp === 3 + 3 && msUntouched && killed && nm2.exp > nm1.exp, `각성 직후 직업=${nm0.job}, 미션 전부 미해금 상태(건드리지 않음)=${msUntouched}, 그 상태로 11레벨 도달=${nm1.lv}(자유 포인트 ${nm1.fp}), 전투 경험치 ${nm1.exp}→${nm2.exp}`);
 
   const errs1 = errs.slice();
   fs.writeFileSync((process.env.SHOTS || '/tmp') + '/results_part1.json', JSON.stringify({ R, errs: errs1 }, null, 1));

@@ -55,16 +55,11 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   note('B2', '포르투 노바에 잔다리 골목 출입구', pp === 'jandari', String(pp));
   await key('ArrowUp'); await sleep(1500);
   note('B3', '위 키로 잔다리 골목에 도착', (await ev(() => AU.World.mapId)) === 'jandari', await ev(() => AU.World.mapId));
-  // 은화 부족: 수락 불가
-  await ev(() => AU.UI.talkNpc('barsha')); await sleep(200);
-  const fl = await ev(() => AU.UI.dialog && AU.UI.dialog.lines.length);
-  for (let i = 0; i < 6 && (await ev(() => !!AU.UI.dialog)); i++) { await key('Space'); await sleep(100); }
-  note('B4', '은화가 모자라면 수락 대신 거절 대사', fl === 3 && (await st('q_a2_secret')) === 'available', 'lines=' + fl);
-  // 은화 충분: 수락 시 80 차감
-  await ev(() => { AU.G.S.silver = 200; });
+  // 바르샤: 정보 구매 없음, 바로 수락
+  await ev(() => { AU.G.S.silver = 0; });
   await accept('barsha');
   const sv = await ev(() => AU.G.S.silver);
-  note('B5', '수락하면 은화 80이 빠지고 퀘스트 시작', (await st('q_a2_secret')) === 'active' && sv === 120, (await st('q_a2_secret')) + ' silver=' + sv);
+  note('B4', '은화 없이도 바르샤의 전언을 수락(정보 구매 폐지)', (await st('q_a2_secret')) === 'active' && sv === 0, (await st('q_a2_secret')) + ' silver=' + sv);
   // 지점 조사
   await ev(() => { AU.World.player.x = 640; AU.World.player.vx = 0; AU.World.scan(); }); await sleep(100);
   const ns = await ev(() => { AU.World.scan(); return AU.World.nearSpot && AU.World.nearSpot.id; });
@@ -93,8 +88,8 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const dl = await ev(() => AU.UI.dialog && AU.UI.dialog.lines.length);
   const speakers = await ev(() => AU.UI.dialog.lines.filter((l) => typeof l === 'object').map((l) => l.npc.name));
   for (let i = 0; i < 12 && (await ev(() => !!AU.UI.dialog)); i++) { await key('Space'); await sleep(100); }
-  note('B13', '천막 대화에 클로드·발테인·주인공 화자가 나옴', /클로드/.test(speakers.join()) && /발테인/.test(speakers.join()) && dl >= 7, dl + ' ' + speakers.join('|'));
-  const hero = await ev(() => { const l = AU.QUESTS.q_a3_scout.done.find((x) => typeof x === 'object' && /{이름}/.test(x.t)); return AU.Profile.fmt(l.t); });
+  note('B13', '천막 대화에 클로드·발테인·주인공 화자가 나옴', /클로드/.test(speakers.join()) && /검수관/.test(speakers.join()) && dl >= 7, dl + ' ' + speakers.join('|'));
+  const hero = await ev(() => { const all = [].concat(AU.QUESTS.q_a3_scout.done, AU.QUESTS.q_a2_secret.done, AU.QUESTS.q_a3_jepeto.done).filter((x) => typeof x === 'object'); const l = all.find((x) => /{이름/.test(x.t)); return l ? AU.Profile.fmt(l.t) : ''; });
   note('B14', '주인공 대사에 닉네임이 들어감', /시험용/.test(hero), hero.slice(0, 30));
   for (let i = 0; i < 5; i++) await ev(() => AU.G.onKill('merc'));
   note('B15', '용병 5명 처치 반영', await ev(() => AU.G.S.quests.q_a3_scout.prog[1] === 5), await ev(() => JSON.stringify(AU.G.S.quests.q_a3_scout.prog)));
@@ -113,21 +108,22 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const before = await ev(() => AU.G.S.silver);
   await talk('jepeto');
   note('B19', '제페토에게 보고하면 정찰 완료·은화 +120', (await st('q_a3_scout')) === 'done' && (await ev(() => AU.G.S.silver)) - before === 120, (await st('q_a3_scout')) + ' ' + ((await ev(() => AU.G.S.silver)) - before));
-  note('B20', '제페토의 결 읽기 퀘스트가 열림', (await st('q_a3_jepeto')) === 'available', await st('q_a3_jepeto'));
+  note('B19b', '제페토 보고로 Lv10 달성·힘의 각성(스킬 열림, 전직 아님)', (await ev(() => AU.G.S.level)) === 10 && (await ev(() => AU.G.awakened() && !AU.G.S.jobChanged && AU.G.S.skills.unlocked.length > 0)), String(await ev(() => AU.G.S.level)));
+  note('B20', '제페토의 부탁 퀘스트가 열림', (await st('q_a3_jepeto')) === 'available', await st('q_a3_jepeto'));
   await accept('jepeto');
-  await ev(() => { AU.G.completeSpot('grain_a'); AU.G.completeSpot('grain_b'); for (let i = 0; i < 4; i++) AU.G.onKill('wolf'); });
-  note('B21', '결 읽기 2곳 + 늑대 4마리 → 보고 가능', (await st('q_a3_jepeto')) === 'ready', await st('q_a3_jepeto'));
+  await ev(() => { for (let i = 0; i < 4; i++) AU.G.onKill('wolf'); });
+  note('B21', '변형 늑대 4마리 → 보고 가능', (await st('q_a3_jepeto')) === 'ready', await st('q_a3_jepeto'));
   await talk('jepeto');
-  const fin = await ev(() => ({ s: AU.G.questStatus('q_a3_jepeto'), flag: AU.G.S.flags.act1_done, bp: AU.G.count('jepeto_blueprint') }));
-  note('B22', '완료 → 1막 완료 표시 + 도면 부품 지급', fin.s === 'done' && fin.flag === true && fin.bp === 1, JSON.stringify(fin));
+  const fin = await ev(() => ({ s: AU.G.questStatus('q_a3_jepeto'), flag: AU.G.S.flags.a1_jepeto_done }));
+  note('B22', '완료 → 제페토 부탁 완료 표시', fin.s === 'done' && fin.flag === true, JSON.stringify(fin));
   // 막다른 포털 안내
   await ev(() => { AU.World.player.x = 1460; AU.World.player.vx = 0; AU.World.scan(); }); await sleep(100);
   await key('ArrowUp'); await sleep(300);
   const still = await ev(() => AU.World.mapId);
-  note('B23', '서부 수송로는 안내만 나오고 이동하지 않음', still === 'gorge', still);
+  note('B23', '협곡 안쪽 길은 안내만 나오고 이동하지 않음', still === 'gorge', still);
   // 저장·복원
   await ev(() => AU.G.save('t')); await p.reload(); await p.waitForSelector('#btn-start'); await p.click('#btn-start'); await sleep(500);
-  const rs = await ev(() => ({ q: AU.G.questStatus('q_a3_jepeto'), f: AU.G.S.flags.act1_done }));
+  const rs = await ev(() => ({ q: AU.G.questStatus('q_a3_jepeto'), f: AU.G.S.flags.a1_jepeto_done }));
   note('B24', '새로고침 후에도 1막 완료 상태 유지', rs.q === 'done' && rs.f === true, JSON.stringify(rs));
   note('Z', '페이지 오류 없음', errs.length === 0, errs.slice(0, 3).join(' || ') || '0건');
   await b.close();

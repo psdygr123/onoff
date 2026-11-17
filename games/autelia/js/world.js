@@ -295,7 +295,7 @@ window.AU = window.AU || {};
     useSkillSlot(i) {
       const S = AU.G.S, p = this.player, id = S.skills.slots[i];
       if (p.dead) return;
-      if (!id) { AU.G.toast(S.jobChanged ? "빈 슬롯입니다. K 키에서 스킬을 배치하세요." : "아직 배운 스킬이 없습니다. 전직 후 사용할 수 있습니다.", "warn"); return; }
+      if (!id) { AU.G.toast(AU.G.awakened() ? "빈 슬롯입니다. K 키에서 스킬을 배치하세요." : "아직 스킬이 열리지 않았습니다. 10레벨에 힘이 깨어나면 사용할 수 있습니다.", "warn"); return; }
       const sk = AU.SKILLS[id];
       if ((p.cd[id] || 0) > 0 || p.gcd > 0) return;
       if (!AU.G.canSpend(id)) { AU.G.toast("피로도가 가득 차 스킬을 쓸 수 없습니다. 기본 공격은 가능하며, 휴식(스킬 창)이나 쉼 미션으로 줄일 수 있습니다.", "warn"); this.floater(p.x, p.y - 140, "피로도 가득", "#FF9AA2"); return; }

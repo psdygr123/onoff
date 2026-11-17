@@ -25,7 +25,7 @@ window.AU = window.AU || {};
       const cap = AU.levelCap(S);
       if (S.level >= cap) {
         // 전직 전에는 10레벨에서 멈춤: 경험치는 쌓지 않고 안내만 한다
-        if (!S.jobChanged) this.toast("전직 전에는 더 오를 수 없습니다. 전직 시험을 받아 보세요.", "warn");
+        if (!S.jobChanged) this.toast("1막의 최대 레벨(" + AU.levelCap(S) + ")입니다. 다음 이야기에서 이어집니다.", "warn");
         return;
       }
       S.exp += n; AU.Ev.emit("exp", { n, label });
@@ -272,9 +272,23 @@ window.AU = window.AU || {};
       for (const t of q.after || []) this.toast(t, "info");
       if (q.jobChange) this.jobChange(q.jobChange);
       if (r.exp) this.gainExp(r.exp, q.title);
+      if (r.levelTo) { let g = 0; while (this.S.level < r.levelTo && g++ < 20) this.gainExp(Math.max(1, AU.expToNext(this.S.level) - this.S.exp), q.title); }
+      if (q.awaken) this.awaken();
       this.save("quest"); this.changed(); return true;
     },
     bossActive() { const r = this.qs("q_job"); return !!r && (r.state === "active"); },
+
+    /* ---------- 힘의 각성(Lv10, 제페토): 전직 없이 스킬이 열리고, 피로도·쉼 미션이 시작됨 ---------- */
+    awakened() { return !!(this.S.jobChanged || this.S.flags.awakened); },
+    awaken() {
+      const S = this.S; if (S.flags.awakened || S.jobChanged) return false;
+      S.flags.awakened = true; S.freePoints += C.levels.freePointsOnJobChange;
+      S.skills.unlocked = AU.WARRIOR_SKILLS.slice(); S.skills.slots = AU.WARRIOR_SKILLS.slice(0, 3); S.hp = this.d().maxHp;
+      this.unlockRealMissions(false); this.log("용사의 힘이 깨어났습니다.");
+      this.toast("힘이 깨어났습니다! 스킬이 열렸습니다 (1·2·3 키, K 키)", "good");
+      this.toast("스탯 포인트 +" + C.levels.freePointsOnJobChange + ". 스킬을 쓰면 피로도가 쌓이며, 모험일지의 '쉼'에서 줄일 수 있습니다", "info");
+      AU.Ev.emit("awaken", {}); return true;
+    },
 
     /* ---------- 전직 ---------- */
     jobChange(job) {
@@ -301,7 +315,7 @@ window.AU = window.AU || {};
     syncUnlockedState() {
       const S = this.S, pro = S.prologue;
       // 프롤로그를 이미 끝낸 저장(또는 이전 규칙으로 전직한 저장)은 현실 미션을 연다
-      if (!S.flags.missionsUnlocked && ((pro && pro.state === "COMPLETED") || S.jobChanged)) { S.flags.missionsUnlocked = true; }
+      if (!S.flags.missionsUnlocked && ((pro && pro.state === "COMPLETED") || S.jobChanged || S.flags.awakened)) { S.flags.missionsUnlocked = true; }
       if (S.flags.missionsUnlocked) this.initMissions();
     },
 

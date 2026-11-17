@@ -337,11 +337,11 @@ AU.QUESTS = {
         { label: "일단 혼자 알아본다", flag: "alone", reply: ["혼자서 말인가. 위험한 일일세. 그래도 먼저 확인해 보겠다면 말리진 않겠네.", "다만 무슨 일이든 알게 되면 귀띔은 해 주게."] }
       ]
     },
-    done: ["수고했네. 자네 덕에 창고 일이 한결 분명해졌어."],
+    done: ["수고했네. 자네 덕에 창고 일이 한결 분명해졌어.", "이건 길드가 풀 수 있는 일이 아닌 것 같네. 잔다리 골목에 길드 뒷일을 맡는 자가 있으니 찾아가 보게. 내가 보냈다고 하게."],
     reward: { exp: 800, silver: 100, items: [] }
   },
   q_job: {
-    title: "전직 시험", type: "main", giver: "job_npc", minLevel: 10, pre: [],
+    title: "전직 시험", type: "main", giver: "job_npc", minLevel: 99, pre: [],
     area: "docks", desc: "선창 외곽에 나타나는 움브라를 처치합니다.",
     objectives: [{ kind: "kill", target: "trial_boss", count: 1 }],
     offer: ["10레벨이 되었군요. 전직 시험을 치르겠습니까? 선창 외곽에 움브라가 나타납니다."],
@@ -362,7 +362,7 @@ AU.NPCS = {
   porto_guild: { name: "다프네", sprite: "villager_b", portrait: "pt_villager_b", quests: ["q_guild_talk", "q_guild_rats", "q_guild_crabs"],
     idle: ["선창 길드입니다. 의뢰가 필요하면 말씀하세요.", "오늘은 부두가 조용하군요."] },
   job_npc: { name: "레오니다스", sprite: "smith", portrait: "pt_smith", quests: ["q_job"],
-    idle: ["10레벨이 되면 다시 오세요.", "준비가 되면 말을 걸어 주세요."] },
+    idle: ["전직이라... 아직은 이른 이야기일세.", "더 단련하고 오게. 때가 되면 알려 주겠네."] },
   porto_armor: { name: "이리스", title: "점원", sprite: "porto_armor", portrait: "pt_porto_armor", quests: [],
     idle: ["방어구는 몸에 맞는 게 제일이에요. 천천히 구경하세요.", "무기점 주인이 망치를 잡으면 저는 갑옷을 손봅니다."] },
   porto_general: { name: "페넬로페", sprite: "porto_general", portrait: "pt_porto_general", shop: "general",
@@ -380,7 +380,7 @@ AU.NPCS = {
 AU.UNLOCKS = [
   { level: 2, text: "스탯창(S)에서 현재 능력치를 볼 수 있습니다." },
   { level: 4, text: "항구 길의 의뢰를 받을 수 있습니다. 선창 길드를 찾아보세요." },
-  { level: 10, text: "전직 조건을 충족했습니다. 포르투 노바의 레오니다스에게 가 보세요." }
+  { level: 10, text: "10레벨입니다. 손목의 낙인이 반응합니다. 제페토에게 힘이 깨어나는 이야기를 들어 보세요." }
 ];
 
 /* ---------- 현실 미션 (임시 목록, [미정]) ---------- */
