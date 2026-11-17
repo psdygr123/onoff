@@ -151,6 +151,7 @@ window.AU = window.AU || {};
 
   /* 소리마다 크기를 맞춘 보정값(작은 소리는 키우고 큰 소리는 줄임). 시험으로 측정한 최대 크기를 목표 크기에 맞춘 값 */
   const GAIN = {"hammer": 1.66, "plank": 1.24, "door": 1.1, "stone": 0.69, "temple_glow": 1, "boom": 0.69, "collapse": 0.87, "cloth": 0.87, "pick": 2.07, "item": 2.33, "keyitem": 1.16, "slump": 1.12, "fragment": 1.88, "bag": 1.85, "gull": 1.35, "step_dirt": 2.56, "step_wood": 3.93, "step_stone": 3.55, "jump": 1.91, "land": 3.08, "swing": 1.95, "skill": 1.07, "hit": 1.99, "crit": 1.6, "mon_fox": 1.32, "mon_snake": 1.15, "mon_rat": 1.94, "mon_crab": 2.9, "mon_trial_boss": 1.65, "hurt": 1.46, "kill": 2.63, "levelup": 0.8, "jobchange": 0.72, "potion": 1.71, "coin": 1.38, "drop": 5.0, "equip": 2.5, "click": 3.7, "menu_open": 1.54, "menu_close": 1.85, "blip": 3.89, "accept": 1.85, "complete": 1.2, "warn": 2.35, "save": 2.45, "death": 1.45, "revive": 1.04, "mapchange": 0.92, "boss": 0.86, "thud": 1.49, "step": 2.14, "select_a": 3.57, "select_b": 3.12, "select_c": 2.22};
+  ["step_dirt", "step_wood", "step_stone", "jump", "land"].forEach((k) => { GAIN[k] = (GAIN[k] || 1) * 0.5; }); // 이동 소리(걷기·점프·착지)는 계속 들리므로 절반으로 낮춤(11-17 사용자 요청)
   S.DEFS = D; S.GAIN = GAIN;
   // 정식 음원(2026-11-16 받음) — 같은 이름의 합성음 대신 파일을 재생. [이름, 설명, 파일, 기본 음량]
   [["skill_strike", "스킬① 결의의 일격(묵직한 베기)", "skill_strike2", 0.75], ["skill_strike_alt", "스킬① 결의의 일격 — 다른 버전(비교용)", "skill_strike", 0.75],
