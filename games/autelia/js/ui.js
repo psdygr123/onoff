@@ -586,6 +586,18 @@ window.AU = window.AU || {};
     iv = setInterval(tick, 250); tick();
   };
 
+  /* 쉼 미션을 마친 뒤: 어떤 감정이 느껴졌는지 한 문장 이상(최소 글자 수) 적어야 피로도가 줄어듦 */
+  UI.restNote = function (m, onSubmit) {
+    const wrap = UI.modalEl, MIN = C.fatigue.restNoteMin; UI.modal = true; wrap.classList.remove("hidden"); wrap.innerHTML = "";
+    const ta = h("textarea", { class: "memo", maxlength: String(C.fatigue.restNoteMax), rows: "4", placeholder: "예: 숨을 고르고 나니 어깨가 풀리고 마음이 한결 차분해졌어요." }), cnt = h("div", { class: "rncount" });
+    const ok = btn("기록하고 쉼 마치기", "primary", () => { if (!AU.G.restNoteOk(ta.value)) return; close(); onSubmit(ta.value); }, { disabled: "" }), no = btn("취소", "", () => close());
+    const close = () => { UI.modal = false; wrap.classList.add("hidden"); wrap.innerHTML = ""; };
+    const upd = () => { const n = ta.value.replace(/\s+/g, " ").trim().length, good = n >= MIN; cnt.textContent = n + " / 최소 " + MIN + "자"; cnt.classList.toggle("good", good); if (good) ok.removeAttribute("disabled"); else ok.setAttribute("disabled", ""); };
+    ta.addEventListener("input", upd);
+    wrap.append(h("div", { class: "panel modal restnote" }, h("h3", { text: m.title + " · 어떤 감정이 느껴졌나요?" }), h("p", { class: "note", text: "방금 쉬면서 느낀 감정을 한 문장 이상으로 적어 주세요. (최소 " + MIN + "자) 잘 쓰려고 애쓰지 않아도 괜찮아요." }), ta, cnt, h("div", { class: "choices" }, ok, no)));
+    upd(); setTimeout(() => ta.focus(), 50);
+  };
+
   R.stats = function (b) {
     const S = AU.G.S, P = UI.pending, pend = Object.values(P).reduce((a, c) => a + c, 0), pool = AU.G.pool(), left = pool - pend;
     const tot = {}; for (const k of Object.keys(S.stats)) tot[k] = AU.statTotal(S, k) + P[k];
@@ -762,11 +774,11 @@ window.AU = window.AU || {};
     } else if (tab === "rest" && !S.skills.unlocked.length) {
       b.append(h("div", { class: "lockbox lockband" }, h("b", { text: "🔒 스킬을 배우면 열립니다 (Lv.10)" }), h("p", { text: "피로도는 스킬을 쓸 때 쌓이는 수치입니다. 스킬을 배우는 시점에 설명과 회복 방법을 알려 드립니다." })));
     } else if (tab === "rest") {
-      b.append(h("p", { class: "note", text: "쉼 미션은 선택입니다. 하지 않아도 모험은 계속할 수 있고, 하면 피로도가 줄어듭니다. 같은 미션은 하루에 한 번입니다. 직접 해 보고 ‘해 봤어요’를 눌러 주세요." }), UI.fatigueMeter(S, false));
+      b.append(h("p", { class: "note", text: "쉼 미션은 선택입니다. 하지 않아도 모험은 계속할 수 있고, 하면 피로도가 줄어듭니다. 같은 미션은 하루에 한 번입니다. 직접 해 보고 ‘해 봤어요’를 누른 뒤, 어떤 감정이 느껴졌는지 한 문장 이상 적어 주세요." }), UI.fatigueMeter(S, false));
       const grid = h("div", { class: "missions" });
       for (const m of AU.REST_MISSIONS) { const ok = AU.G.restMissionAvailable(m.id);
         grid.append(h("div", { class: "mission st-" + (ok ? "available" : "done") }, h("div", { class: "mh" }, h("span", { class: "tag", text: "쉼 · 피로도 −" + m.recover }), h("span", { class: "tag", text: ok ? "오늘 가능" : "오늘 완료" })), h("b", { text: m.title }), h("p", { text: m.desc }),
-          ok ? h("div", { class: "macts" }, btn(m.guide ? "시작하기 (" + Math.round(m.guide.secs / 60 * 10) / 10 + "분)" : "해 봤어요", "primary", () => (m.guide ? UI.guided(m.title, m.guide, () => AU.G.doRestMission(m.id)) : AU.G.doRestMission(m.id)))) : null)); }
+          ok ? h("div", { class: "macts" }, btn(m.guide ? "시작하기 (" + Math.round(m.guide.secs / 60 * 10) / 10 + "분)" : "해 봤어요", "primary", () => (m.guide ? UI.guided(m.title, m.guide, () => UI.restNote(m, (t) => AU.G.doRestMission(m.id, t))) : UI.restNote(m, (t) => AU.G.doRestMission(m.id, t))))) : null)); }
       b.append(grid);
     } else if (tab === "record") {
       const cnt = AU.G.permaCounts();

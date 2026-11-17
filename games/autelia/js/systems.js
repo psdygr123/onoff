@@ -337,9 +337,12 @@ window.AU = window.AU || {};
     restMission(id) { return AU.REST_MISSIONS.find((m) => m.id === id); },
     // 선택형 '쉼' 현실 미션: 하루에 같은 미션은 한 번. 자기보고이며 마음 스탯·훈련 포인트와는 무관
     restMissionAvailable(id) { return this.S.flags.missionsUnlocked && this.S.skills.unlocked.length > 0 && this.S.rest.done[id] !== AU.dateStr(); },
-    doRestMission(id) {
+    restNoteOk(note) { return String(note || "").replace(/\s+/g, " ").trim().length >= C.fatigue.restNoteMin; }, // 쉼 미션 소감: 한 문장 이상(최소 글자 수)
+    doRestMission(id, note) {
       const S = this.S, m = this.restMission(id); if (!m || !this.restMissionAvailable(id)) return false;
-      this.openGate(); S.rest.done[id] = AU.dateStr(); S.rest.log.push({ t: AU.dateStr(), id, recover: m.recover }); if (S.rest.log.length > 200) S.rest.log.shift();
+      if (!this.restNoteOk(note)) { this.toast("느낀 감정을 " + C.fatigue.restNoteMin + "자 이상 적어 주세요.", "warn"); return false; }
+      const text = String(note).replace(/\s+/g, " ").trim().slice(0, C.fatigue.restNoteMax);
+      this.openGate(); S.rest.done[id] = AU.dateStr(); S.rest.log.push({ t: AU.dateStr(), id, recover: m.recover, note: text }); if (S.rest.log.length > 200) S.rest.log.shift();
       const before = S.fatigue; this.relieve("mission", m.recover, m.title);
       this.log("쉼 미션 완료: " + m.title); this.toast("쉼 미션 완료! 피로도 −" + Math.round((before - S.fatigue) * 10) / 10 + " (현재 " + S.fatigue + " / " + S.fatigueMax + ")", "good");
       this.save("rest"); return true;

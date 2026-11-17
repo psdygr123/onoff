@@ -19,7 +19,7 @@ const note = (id, name, ok, ev) => { if (!ok) fail++; console.log((ok ? 'PASS ' 
   const g3 = await ev(() => ({ gb: AU.G.S.gateBand, st: AU.G.S.missions.states[AU.MISSIONS.find((m) => !m.pre).id].state, pool: AU.G.pool() })); note('G3', '현실 미션 1개 완료 후 분배 가능', g3.pool >= 3 && await ev(() => AU.G.applyAllocation({ STR: 3 })), JSON.stringify(g3));
   await ev(() => { const S = AU.G.S; S.level = 15; S.freePoints = 3; });
   note('G4', 'Lv.15 구간은 다시 잠김', await ev(() => AU.G.usableFree() === 0), '');
-  await ev(() => { const r = AU.REST_MISSIONS[0].id; const no = AU.G.doRestMission(r); if (no) throw new Error('스킬 전 쉼 미션 가능'); AU.G.S.skills.unlocked = AU.WARRIOR_SKILLS.slice(); AU.G.doRestMission(r); });
+  await ev(() => { const r = AU.REST_MISSIONS[0].id; const no = AU.G.doRestMission(r); if (no) throw new Error('스킬 전 쉼 미션 가능'); AU.G.S.skills.unlocked = AU.WARRIOR_SKILLS.slice(); AU.G.doRestMission(r, '조용히 쉬니 마음이 편안해졌어요.'); });
   note('G5', '쉼 미션으로도 해제(대체 경로)', await ev(() => AU.G.usableFree() === 3), '');
   note('G6', '오류 없음', errs.length === 0, JSON.stringify(errs)); await b.close(); process.exit(fail ? 1 : 0);
 })();
