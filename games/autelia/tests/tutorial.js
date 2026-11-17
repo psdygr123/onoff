@@ -13,7 +13,7 @@ const URL = (process.env.GAME_URL || 'http://localhost:8801') + '/index.html?dev
   await p.keyboard.down('ArrowRight'); await sleep(1500); await p.keyboard.up('ArrowRight'); await p.keyboard.down('Alt'); await sleep(150); await p.keyboard.up('Alt'); await sleep(1800);
   ok('T2 걷기·점프 후 2단계로', (await idx()) === 1, 'i=' + await idx() + ' ' + await card());
   await p.screenshot({ path: OUT + 'tut_step2.png' });
-  await p.evaluate(() => { AU.World.enterMap('porto', 1330, true); AU.World.trans = null; }); await sleep(400);
+  await p.evaluate(() => { AU.World.enterMap('porto', AU.PORTO_OFF + 1330, true); AU.World.trans = null; }); await sleep(400);
   await p.keyboard.press('Space'); await sleep(500); await p.screenshot({ path: OUT + 'tut_talk.png' });
   ok('T3 대화하면 talk ✔', await p.evaluate(() => !!AU.G.S.flags.tut.c.talk), '');
   await p.evaluate(() => AU.UI.close && AU.UI.close()); 

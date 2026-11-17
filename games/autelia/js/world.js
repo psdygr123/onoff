@@ -98,7 +98,7 @@ window.AU = window.AU || {};
 
       const blocked = this.isBlocked();
       this.updatePlayer(dt, blocked);
-      this.updateMonsters(dt);
+      this.updateMonsters(dt); this.updateNpcs(dt);
       // 쿨다운
       p.invuln = Math.max(0, p.invuln - dt); p.flash = Math.max(0, p.flash - dt); p.atkT = Math.max(0, p.atkT - dt); if (p.sk) { p.sk.t += dt; if (p.sk.t >= p.sk.dur) p.sk = null; }
       p.atkCD = Math.max(0, p.atkCD - dt); p.gcd = Math.max(0, p.gcd - dt);
@@ -338,6 +338,15 @@ window.AU = window.AU || {};
     },
 
     /* ---------- 적 AI: 순찰 → 추적 → 준비 동작(!) → 돌진 ---------- */
+    updateNpcs(dt) { // 오가는 주민: patrol:[왼끝,오른끝]이 있으면 천천히 걷는다(플레이어가 가까우면 멈춰 선다)
+      const map = AU.MAPS[AU.G.S.map]; if (!map || !map.npcs) return;
+      for (const n of map.npcs) {
+        if (!n.patrol) continue; n._f = n._f || 1; n._t = (n._t || 0) + dt;
+        n._walk = Math.abs(this.player.x - n.x) > 130;
+        if (!n._walk) continue; n.x += n._f * (n.speed || 38) * dt;
+        if (n.x > n.patrol[1]) { n.x = n.patrol[1]; n._f = -1; } else if (n.x < n.patrol[0]) { n.x = n.patrol[0]; n._f = 1; }
+      }
+    },
     updateMonsters(dt) {
       const p = this.player;
       for (const m of this.monsters) {
@@ -507,8 +516,8 @@ window.AU = window.AU || {};
       });
     },
     drawNpc(ctx, n) {
-      const d = AU.NPCS[n.id], y = n.npcY || GROUND, face = this.player.x < n.x ? -1 : 1;
-      if (!this.sprite(ctx, d.sprite, n.x, y, 150, face, 0)) { ctx.fillStyle = "#C9B8A0"; this.rr(ctx, n.x - 30, y - 130, 60, 130, 20); ctx.fill(); ctx.fillStyle = "#5B4636"; ctx.font = "14px sans-serif"; ctx.textAlign = "center"; ctx.fillText("이미지 없음", n.x, y - 60); }
+      const d = AU.NPCS[n.id], y = n.npcY || GROUND, face = n.patrol && n._walk ? n._f : (this.player.x < n.x ? -1 : 1), bob = n.patrol && n._walk ? Math.abs(Math.sin(n._t * 7)) * 3 : 0;
+      if (!this.sprite(ctx, d.sprite, n.x, y - bob, 150, face, 0)) { ctx.fillStyle = "#C9B8A0"; this.rr(ctx, n.x - 30, y - 130, 60, 130, 20); ctx.fill(); ctx.fillStyle = "#5B4636"; ctx.font = "14px sans-serif"; ctx.textAlign = "center"; ctx.fillText("이미지 없음", n.x, y - 60); }
     },
     npcRole(id) { // 역할별 구분(글자·색): 상점/전직/안내/의뢰
       const d = AU.NPCS[id];

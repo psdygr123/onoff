@@ -23,7 +23,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     while (Date.now() - t0 < max) { dead = await ev(() => { const W = AU.World, m = W.__t, pl = W.player; if (AU.G.S.hp < AU.G.d().maxHp * 0.4) AU.G.S.hp = AU.G.d().maxHp; if (m.alive) { m.x = pl.x + 70; m.y = pl.y; pl.dir = 1; } return !m.alive; }); if (dead) break; await sleep(60); }
     await p.keyboard.up('Control'); return dead;
   };
-  const goto = (m, x) => ev(([m, x]) => { AU.World.enterMap(m, x, true); AU.World.trans = null; }, [m, x]);
+  const goto = (m, x) => ev(([m, x]) => { AU.World.enterMap(m, x + (m === 'porto' ? AU.PORTO_OFF : 0), true); AU.World.trans = null; }, [m, x]);
 
   // ===== 1. 이동·점프 =====
   await fresh();
@@ -191,7 +191,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await p.reload(); await p.waitForSelector('#btn-start'); const btnTxt = await p.textContent('#btn-start'); await p.click('#btn-start'); await sleep(300);
   const after = await ev(() => { const g = AU.G.S; return JSON.stringify({ lv: g.level, exp: g.exp, job: g.job, equip: g.equip, quests: Object.fromEntries(Object.entries(g.quests).map(([k, v]) => [k, v.state])), map: g.map, res: g.fatigue, alloc: g.alloc, inv: g.inv, ms: g.flags.missionsUnlocked, mst: g.missions.states.m_p1, tp: g.trainingPoints }); });
   const posAfter = await S();
-  note('15', '저장 후 재실행 시 복원(레벨·장비·퀘스트·전직·미션·자원)', before === after && posAfter.map === 'porto' && Math.abs(posAfter.x - 900) < 40, `이어하기 버튼="${btnTxt}", 저장값=복원값 일치=${before === after}, 복원 위치=${posAfter.map}/${posAfter.x}`);
+  note('15', '저장 후 재실행 시 복원(레벨·장비·퀘스트·전직·미션·자원)', before === after && posAfter.map === 'porto' && Math.abs(posAfter.x - 900 - (await ev(() => AU.PORTO_OFF))) < 40, `이어하기 버튼="${btnTxt}", 저장값=복원값 일치=${before === after}, 복원 위치=${posAfter.map}/${posAfter.x}`);
 
   // ===== 16. 메뉴와 플레이 충돌 =====
   await p.keyboard.down('ArrowRight'); await sleep(100); await p.keyboard.press('i'); await sleep(100); await p.keyboard.up('ArrowRight'); const xw0 = (await S()).x;

@@ -50,7 +50,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const tr = await ev(() => !AU.QUESTS.q_a1_traces.done.some((l) => /쇳조각/.test(l)));
   note('B1', '십장 완료 대사에 쇳조각·정보상 구매 안내가 없음(개편)', tr, String(tr));
   // 포르투 노바 → 잔다리 골목 포털
-  await ev(() => AU.World.enterMap('porto', 215, true)); await sleep(300);
+  await ev(() => AU.World.enterMap('porto', AU.PORTO_OFF + 215, true)); await sleep(300);
   const pp = await ev(() => { AU.World.scan(); return AU.World.nearPortal && AU.World.nearPortal.to; });
   note('B2', '포르투 노바에 잔다리 골목 출입구', pp === 'jandari', String(pp));
   await key('ArrowUp'); await sleep(1500);
