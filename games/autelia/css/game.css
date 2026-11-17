@@ -532,3 +532,5 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
 .jcard .jart.full::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 40px; background: linear-gradient(transparent, rgba(255, 243, 207, .96)); pointer-events: none; }
 .jcard .jart.full + p { margin-top: -2px; position: relative; }
 @media (max-width: 760px) { .jcard .jart.full, .jcard .jart.full.has-img { height: 150px; } }
+
+.mcards { display: grid; gap: 10px; margin: 8px 0 12px; } .mcard { display: flex; gap: 12px; background: #fff; border-radius: 10px; padding: 10px; } .mcard img { width: 150px; height: 84px; object-fit: cover; border-radius: 8px; flex: none; background: #eee; } .mtxt { flex: 1; min-width: 0; } .mtxt b { font-size: 15px; } .mtxt p { margin: 3px 0 6px; font-size: 13px; color: var(--ink2); } .memo { width: 100%; box-sizing: border-box; resize: vertical; font: inherit; font-size: 13px; padding: 6px 8px; border: 1px solid #ddd; border-radius: 6px; background: #fcfbf8; }

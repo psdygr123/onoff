@@ -175,6 +175,7 @@ window.AU = window.AU || {};
         this.replay = false; this.rs = null; this.on = false; this.setHud(false); this.resetMapRuntime(); this.fadeS = { a: 0, color: "#000" }; const r = this.ret; w.enterMap(r.map, r.x, true); AU.UI.mapBanner(AU.MAPS[r.map].name); return;
       }
       this.on = false; this.setHud(false); this.resetMapRuntime(); this.fadeS = { a: 0, color: "#000" }; this.holdFade = false;
+      AU.G.unlockRealMissions(false); // 프롤로그가 끝나는 순간부터 현실 미션 공개(안내는 튜토리얼과 알렉시오스)
       if (!S.inv.potion) AU.G.giveItem("potion", 2, true); // 기존 시제품의 시작 소지품과 동일(본편 시작 시 지급)
       S.visited.porto = true; w.enterMap("porto", AU.MAPS.porto.start, true); AU.G.log("아르케아를 떠나 포르투 노바에 도착했습니다."); AU.UI.mapBanner(AU.MAPS.porto.name);
       AU.G.save("start"); if (AU.main && AU.main.reportProgress) AU.main.reportProgress(); AU.G.changed();
@@ -189,6 +190,7 @@ window.AU = window.AU || {};
     debugComplete(mapId) {
       const S = AU.G.S; this.cancelAll(); this.replay = false; this.rs = null; this.on = false; this.setHud(false); this.resetMapRuntime(); this.fadeS = { a: 0, color: "#000" }; this.holdFade = false; this.endEl.classList.add("hidden"); Au.stopAll();
       const st = S.prologue; st.state = "COMPLETED"; for (const o of OWN) for (const f of o.flags) st.flags[f] = true;
+      AU.G.unlockRealMissions(false);
       if (!S.inv.potion) S.inv.potion = 2; const id = mapId || "porto"; S.visited[id] = true; AU.World.enterMap(id, AU.MAPS[id].start || 200, true); AU.UI.dialog = null; AU.UI.dlgEl.classList.add("hidden"); AU.G.changed(); return true;
     },
 

@@ -23,6 +23,8 @@ window.AU = window.AU || {};
       checks: [{ id: "kill", label: () => K("attack") + " 로 몬스터 처치하기" }] },
     { id: "loot", title: "전리품과 가방", lines: () => ["몬스터가 떨어뜨린 물건은 앞에서 " + K("interact") + " 로 줍습니다.", "가방에서 물건을 쓰고, 장비창에서 무기·방어구를 끼면 능력치가 달라집니다."],
       checks: [{ id: "inv", label: () => K("inventory") + " 로 인벤토리 열어 보기" }, { id: "equip", label: () => K("equipment") + " 로 장비창 열어 보기" }] },
+    { id: "journal", title: "모험일지와 현실 활동", lines: () => ["모험일지에는 마음에 남은 장면이 정리되고, 그때의 기분을 적어 둘 수 있습니다.", "'현실 활동'에는 일상에서 해 볼 수 있는 작은 미션이 있습니다. 게임 능력치와는 별개이고, 직접 해 보는 선택 활동입니다.", "포르투 노바의 알렉시오스에게서 더 자세한 이야기를 들을 수 있습니다."],
+      checks: [{ id: "jwin", label: () => K("journal") + " 로 모험일지 열어 보기" }] },
     { id: "grow", title: "성장: 능력치", ready: () => S().level >= 2, lines: () => ["레벨이 오르면 능력치 포인트를 얻습니다.", "스탯창에서 힘·체력·민첩 등에 나눠 넣으면 전투가 달라집니다. (스킬은 10레벨 전직 뒤에 배웁니다)"],
       checks: [{ id: "stats", label: () => K("stats") + " 로 스탯창 열어 보기" }] }
   ];
@@ -46,7 +48,7 @@ window.AU = window.AU || {};
       this.wasGround = p.onGround;
       if (AU.UI.dialog) this.mark("talk");
       if (Object.keys(S().quests).length) this.mark("accept");
-      const w = win(); if (w === "quests") this.mark("qwin"); if (w === "worldmap") this.mark("mapwin"); if (w === "inventory") this.mark("inv"); if (w === "equipment") this.mark("equip"); if (w === "stats") this.mark("stats");
+      const w = win(); if (w === "quests") this.mark("qwin"); if (w === "worldmap") this.mark("mapwin"); if (w === "inventory") this.mark("inv"); if (w === "equipment") this.mark("equip"); if (w === "stats") this.mark("stats"); if (w === "journal") this.mark("jwin");
       if (this.travels > 0) this.mark("travel"); if (this.ses.kill) this.mark("kill");
     },
     tick(dt) {
@@ -59,7 +61,7 @@ window.AU = window.AU || {};
         if (s.checks.every((c) => this.st.c[c.id])) { // 이번 단계 완료: 잠깐 보여 준 뒤 다음 단계
           this.hold += dt; if (this.hold > 1.1) { this.hold = 0; this.st.i++; if (this.st.i >= STEPS.length) this.st.off = true; AU.G.save && AU.G.save("tutorial"); this.cur = null; }
         } else this.hold = 0;
-        this.render(AU.UI.anyOpen() && !s.checks.every((c) => this.st.c[c.id]) && !["quests", "worldmap", "inventory", "equipment", "stats"].includes(win()) ? null : s);
+        this.render(AU.UI.anyOpen() && !s.checks.every((c) => this.st.c[c.id]) && !["quests", "worldmap", "inventory", "equipment", "stats", "journal"].includes(win()) ? null : s);
       } catch (e) { console.error("[튜토리얼]", e); }
     },
     render(s) {

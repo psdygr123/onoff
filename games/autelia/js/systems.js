@@ -281,15 +281,28 @@ window.AU = window.AU || {};
       S.job = job; S.jobChanged = true;
       S.freePoints += C.levels.freePointsOnJobChange;
       S.skills.unlocked = AU.WARRIOR_SKILLS.slice(); S.skills.slots = AU.WARRIOR_SKILLS.slice(0, 3);
-      S.flags.missionsUnlocked = true; this.initMissions();
+      this.unlockRealMissions(false);
       S.hp = this.d().maxHp;
       this.log("전직: " + AU.JOBS[job].name);
       this.toast("전직했습니다: " + AU.JOBS[job].name, "good");
       this.toast("전사 스킬이 활성화되었습니다 (1·2·3 키, K 키)", "info");
-      this.toast("스탯 포인트 +" + C.levels.freePointsOnJobChange + ", 모험일지(J)에 현실 미션이 열렸습니다", "info");
+      this.toast("스탯 포인트 +" + C.levels.freePointsOnJobChange + ". 모험일지(J)의 '쉼' 미션으로 피로도를 줄일 수 있습니다", "info");
       AU.Ev.emit("jobchange", { job });
     },
-    syncUnlockedState() { if (this.S.flags.missionsUnlocked) this.initMissions(); },
+    /* 현실 미션: 프롤로그가 끝나 본편(Lv1)이 시작되는 순간부터 열린다. 게임 안의 능력치와는 별개이며 선택 사항.
+       쉼 미션·피로도는 스킬을 배우는 시점(Lv10)에 따로 안내한다(skills.unlocked가 비어 있는 동안은 쉼 미션을 쓸 수 없음). */
+    unlockRealMissions(announce) {
+      const S = this.S; if (S.flags.missionsUnlocked) return false;
+      S.flags.missionsUnlocked = true; this.initMissions();
+      if (announce) this.toast("모험일지(J)에 현실 활동이 열렸습니다. 알렉시오스에게 말을 걸어 보세요.", "info");
+      return true;
+    },
+    syncUnlockedState() {
+      const S = this.S, pro = S.prologue;
+      // 프롤로그를 이미 끝낸 저장(또는 이전 규칙으로 전직한 저장)은 현실 미션을 연다
+      if (!S.flags.missionsUnlocked && ((pro && pro.state === "COMPLETED") || S.jobChanged)) { S.flags.missionsUnlocked = true; }
+      if (S.flags.missionsUnlocked) this.initMissions();
+    },
 
     /* ---------- 피로도: 스킬을 쓸수록 쌓이는 수치. 가득 차면 스킬 잠김(기본 공격은 항상 가능) ---------- */
     skillCost(id) { return Math.max(0, Math.round(AU.SKILLS[id].cost * this.d().costMult * 10) / 10); }, // 스킬 1회로 쌓이는 피로도. 의지 효율(0.2%/점)이 소수 첫째 자리까지 보이도록
@@ -308,7 +321,7 @@ window.AU = window.AU || {};
     relieve(source, amount, reason) { this.setFatigue(this.S.fatigue - amount, source); AU.Ev.emit("recover", { source, amount, reason }); },
     restMission(id) { return AU.REST_MISSIONS.find((m) => m.id === id); },
     // 선택형 '쉼' 현실 미션: 하루에 같은 미션은 한 번. 자기보고이며 마음 스탯·훈련 포인트와는 무관
-    restMissionAvailable(id) { return this.S.flags.missionsUnlocked && this.S.rest.done[id] !== AU.dateStr(); },
+    restMissionAvailable(id) { return this.S.flags.missionsUnlocked && this.S.skills.unlocked.length > 0 && this.S.rest.done[id] !== AU.dateStr(); },
     doRestMission(id) {
       const S = this.S, m = this.restMission(id); if (!m || !this.restMissionAvailable(id)) return false;
       this.openGate(); S.rest.done[id] = AU.dateStr(); S.rest.log.push({ t: AU.dateStr(), id, recover: m.recover }); if (S.rest.log.length > 200) S.rest.log.shift();

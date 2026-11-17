@@ -305,7 +305,7 @@ window.AU = window.AU || {};
       }
       if (npc.special === "missionGuide") {
         if (S.flags.missionsUnlocked && !S.flags.guideMet) {
-          return this.say(npc, ["전사가 되셨군요! 모험을 하다 보면, 일상에서 해 볼 만한 작은 활동들도 만나게 돼요.", "해 볼지 말지는 전적으로 자유예요. 안 해도 모험은 이어갈 수 있어요.", "모험일지(" + keyOf("journal") + ")에서 확인해 보세요."], { end: () => { AU.G.discoverMissions(); } });
+          return this.say(npc, ["처음 뵙겠어요. 이 도시에서는 모험가들이 마음을 돌보는 작은 활동도 함께 해요.", "모험일지(" + keyOf("journal") + ")의 '현실 활동'에 있어요. 걷기, 물 마시기, 기록하기처럼 오늘 바로 해 볼 수 있는 것들이에요.", "게임 속 능력치와는 별개지만, 직접 해 보면 현실의 나도 조금씩 자라요. 천천히, 하나만 해 봐도 좋아요."], { end: () => { AU.G.discoverMissions(); } });
         }
         if (S.flags.guideMet) return this.say(npc, ["일상 속 작은 활동은 모험일지(" + keyOf("journal") + ")에서 볼 수 있어요. 편할 때 천천히 하세요."]);
       }
@@ -695,6 +695,8 @@ window.AU = window.AU || {};
     b.append(h("h4", { text: "단축 슬롯" }), slots, h("h4", { text: "배운 스킬" }), list, h("p", { class: "note", text: "단축키 자체는 키보드 설정(" + keyOf("keysettings") + ")에서 바꿀 수 있습니다. 새로운 직업 스킬은 이 목록에 추가되는 구조입니다." }));
   };
 
+  const PRO_CARDS = [["stele_read", "마을길 끝의 기념비", "축제를 앞둔 아침, 마을길 끝 기념비에서 다섯 용사의 이야기를 읽었다.", "road"], ["temple_work_complete", "신전을 짓는 아버지 곁에서", "신전 건축 현장에서 목수인 아버지를 도왔다. 평범하고 따뜻한 하루였다.", "temple"], ["banners_done", "축제 깃발", "축제 깃대에 깃발을 달아 마을을 꾸몄다.", "road"], ["festival_interaction_complete", "빛의 축제", "축제 광장에서 이웃들과 이야기를 나눴다.", "plaza"], ["attack_triggered", "갑작스러운 습격", "축제가 열리던 광장에 검은 무리가 들이닥쳤다.", "plaza_atk"], ["father_final_words_seen", "아버지의 마지막 말", "아버지는 낯선 금속 조각과 도구 가방을 맡기고 도망치라고 했다.", "house_atk"], ["arkea_escape_complete", "아르케아를 떠나며", "불타는 마을을 뒤로하고 길을 달렸다.", "escape"], ["porto_nova_reached", "포르투 노바 도착", "낯선 항구도시에 닿았다. 이곳에서 새로운 모험이 시작된다.", "port"]];
+  const ACT1_CARDS = []; // 1막 핵심 장면은 본편 구현에 맞춰 추가
   const PRO_STEPS = [["stele_read", "마을길 끝의 기념비를 읽었다"], ["banners_done", "축제 깃발을 깃대에 달았다"], ["temple_work_complete", "신전 건축 현장에서 아버지를 도왔다"], ["festival_interaction_complete", "축제 광장에서 주민들과 이야기를 나눴다"], ["father_final_conversation_complete", "아버지와 마지막 이야기를 나눴다"], ["metal_fragment_acquired", "의문의 금속 조각을 손에 넣었다"], ["carpenter_bag_acquired", "목수 도구 가방을 챙겼다"], ["arkea_escape_complete", "아르케아를 탈출했다"], ["porto_nova_reached", "포르투 노바에 도착했다"]];
   R.journal = function (b) {
     const S = AU.G.S, un = S.flags.missionsUnlocked;
@@ -706,23 +708,23 @@ window.AU = window.AU || {};
       b.append(h("div", { class: "tabs" }, [["pro", "프롤로그"], ["a1", "1막 · 항구도시"], ["log", "전체 기록"]].map(([k, l]) => btn(l, tab === k ? "on" : "", () => { UI.tab.j = k; UI.renderWin(); }))));
     } else {
       tab = ["missions", "rest", "record"].includes(UI.tab.j) ? UI.tab.j : "missions";
-      if (!un) b.append(h("div", { class: "lockbox lockband" }, h("b", { text: "🔒 Lv.10 전직 후에 열립니다" }), h("p", { text: "지금은 어떤 활동이 있는지 미리 볼 수 있지만, 수락·기록 같은 기능은 사용할 수 없습니다." })));
+      if (!un) b.append(h("div", { class: "lockbox lockband" }, h("b", { text: "🔒 아직 열리지 않았습니다" }), h("p", { text: "프롤로그를 마치면 열립니다." })));
       b.append(h("div", { class: "realband", text: "게임 속 이야기와는 별개인 현실 활동입니다. 하지 않아도 모험은 계속되고, 직접 해 보고 기록하는 방식입니다." }),
         h("div", { class: "tabs" }, [["missions", "현실 미션"], ["rest", "쉼"], ["record", "마음 기록"]].map(([k, l]) => btn(l, tab === k ? "on" : "", () => { UI.tab.j = k; UI.renderWin(); }))));
     }
     const logOf = (act) => { const j = S.journal, arr = j.findIndex((e) => /포르투 노바에 도착/.test(e.text)); return j.map((e, i) => ({ e, a: e.a || (arr >= 0 && i <= arr ? "pro" : "a1") })).filter((x) => !act || x.a === act).map((x) => x.e).reverse(); };
     const logBox = (rows) => h("div", { class: "logs" }, rows.length ? rows.map((e) => h("div", { class: "logrow" }, h("span", { text: e.t }), h("b", { text: e.text }))) : h("p", { class: "empty", text: "아직 기록이 없습니다." }));
+    const memo = (key) => { S.memos = S.memos || {}; const ta = h("textarea", { class: "memo", maxlength: "300", rows: "2", placeholder: "그때 어떤 기분이었나요? 한두 줄로 적어 두세요." }); ta.value = S.memos[key] || "";
+      ta.oninput = () => { S.memos[key] = ta.value; }; ta.onchange = () => AU.G.save("memo"); return ta; };
+    const cards = (list, F, legacy) => h("div", { class: "mcards" }, list.filter(([k]) => F[k] || legacy).map(([k, t, sum, img]) => h("div", { class: "mcard" }, h("img", { src: "assets/prologue/bg/" + img + ".webp", alt: "" }), h("div", { class: "mtxt" }, h("b", { text: t }), h("p", { text: sum }), memo("pro_" + k)))));
     if (tab === "pro") {
-      const F = (S.prologue && S.prologue.flags) || {}, done = PRO_STEPS.filter(([k]) => F[k]).length;
-      b.append(h("div", { class: "chaphead" }, h("b", { text: "프롤로그 · 아르케아" }), h("span", { class: "tag", text: done >= PRO_STEPS.length ? "완료" : done + " / " + PRO_STEPS.length })), h("p", { class: "note", text: "평화로운 축제 날, 마을에서 일어난 일들입니다." }),
-        h("div", { class: "steps" }, PRO_STEPS.map(([k, t]) => h("div", { class: "step" + (F[k] ? " ok" : "") }, (F[k] ? "✔ " : "□ ") + (F[k] || S.prologue.legacy ? t : "아직 모르는 일")))), h("h4", { text: "기록" }), logBox(logOf("pro")));
+      const F = (S.prologue && S.prologue.flags) || {}, leg = !!(S.prologue && S.prologue.legacy), seen = PRO_CARDS.filter(([k]) => F[k] || leg).length;
+      b.append(h("div", { class: "chaphead" }, h("b", { text: "프롤로그 · 아르케아" }), h("span", { class: "tag", text: seen + " / " + PRO_CARDS.length })), h("p", { class: "note", text: "마음에 남은 장면만 간추렸습니다. 아래 칸에 그때의 기분을 적어 두세요. 완료한 의뢰는 퀘스트창(" + keyOf("quests") + ")에서 볼 수 있습니다." }),
+        seen ? cards(PRO_CARDS, F, leg) : h("p", { class: "empty", text: "아직 정리된 이야기가 없습니다." }));
     } else if (tab === "a1") {
-      const ids = Object.keys(AU.QUESTS).filter((id) => !AU.QUESTS[id].dev);
-      const rows = ids.map((id) => ({ id, q: AU.QUESTS[id], rec: S.quests[id] })), shown = rows.filter((r) => r.rec), nDone = shown.filter((r) => r.rec.state === "done").length;
-      b.append(h("div", { class: "chaphead" }, h("b", { text: "1막 · 항구도시 포르투 노바" }), h("span", { class: "tag", text: "퀘스트 " + nDone + " 완료 / " + shown.length + " 수락" })), h("p", { class: "note", text: "상세 조건과 보상은 퀘스트창(" + keyOf("quests") + ")에서 볼 수 있습니다." }));
-      const lst = h("div", { class: "steps" }); if (!shown.length) lst.append(h("p", { class: "empty", text: "아직 받은 퀘스트가 없습니다. 포르투 노바의 NPC에게 말을 걸어 보세요." }));
-      shown.forEach((r) => { const st = r.rec.state; lst.append(h("div", { class: "step" + (st === "done" ? " ok" : "") }, (st === "done" ? "✔ " : st === "ready" ? "▶ " : "□ ") + r.q.title.replace(" (임시)", ""), h("em", { text: st === "done" ? "완료" : st === "ready" ? "의뢰인에게 돌아가기" : "진행 중" }))); });
-      b.append(lst, h("h4", { text: "기록" }), logBox(logOf("a1")));
+      const F = S.flags, list = ACT1_CARDS.filter(([k]) => F[k]);
+      b.append(h("div", { class: "chaphead" }, h("b", { text: "1막 · 항구도시 포르투 노바" })), h("p", { class: "note", text: "1막의 핵심 이야기는 진행하면서 이곳에 정리됩니다. 받은 의뢰는 퀘스트창(" + keyOf("quests") + ")에서 확인하세요." }),
+        list.length ? h("div", { class: "mcards" }, list.map(([k, t, sum, img]) => h("div", { class: "mcard" }, img ? h("img", { src: "assets/bg/" + img + ".webp", alt: "" }) : null, h("div", { class: "mtxt" }, h("b", { text: t }), h("p", { text: sum }), memo("a1_" + k))))) : h("p", { class: "empty", text: "아직 정리된 이야기가 없습니다." }));
     } else if (tab === "log") {
       b.append(logBox(logOf(null)));
     } else if (tab === "missions") {
@@ -741,7 +743,9 @@ window.AU = window.AU || {};
       }
       b.append(grid);
     } else if (tab === "rest" && !un) {
-      b.append(h("p", { class: "note", text: "쉼 미션은 피로도를 줄여 주는 선택 활동입니다. 전직 후부터 할 수 있습니다." }), h("div", { class: "missions preview" }, AU.REST_MISSIONS.map((m) => h("div", { class: "mission st-locked" }, h("div", { class: "mh" }, h("span", { class: "tag", text: "쉼 · 피로도 −" + m.recover }), h("span", { class: "tag", text: "🔒 잠김" })), h("b", { text: m.title }), h("p", { text: m.desc })))));
+      b.append(h("p", { class: "note", text: "쉼 미션은 피로도를 줄여 주는 선택 활동입니다. 스킬을 배우는 Lv.10부터 안내됩니다." }), h("div", { class: "missions preview" }, AU.REST_MISSIONS.map((m) => h("div", { class: "mission st-locked" }, h("div", { class: "mh" }, h("span", { class: "tag", text: "쉼 · 피로도 −" + m.recover }), h("span", { class: "tag", text: "🔒 잠김" })), h("b", { text: m.title }), h("p", { text: m.desc })))));
+    } else if (tab === "rest" && !S.skills.unlocked.length) {
+      b.append(h("div", { class: "lockbox lockband" }, h("b", { text: "🔒 스킬을 배우면 열립니다 (Lv.10)" }), h("p", { text: "피로도는 스킬을 쓸 때 쌓이는 수치입니다. 스킬을 배우는 시점에 설명과 회복 방법을 알려 드립니다." })));
     } else if (tab === "rest") {
       b.append(h("p", { class: "note", text: "쉼 미션은 선택입니다. 하지 않아도 모험은 계속할 수 있고, 하면 피로도가 줄어듭니다. 같은 미션은 하루에 한 번입니다. 직접 해 보고 ‘해 봤어요’를 눌러 주세요." }), UI.fatigueMeter(S, false));
       const grid = h("div", { class: "missions" });

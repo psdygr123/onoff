@@ -99,8 +99,9 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await p.keyboard.press('Escape');
   await p.keyboard.press('q'); await sleep(100); const qtxt = await ev(() => document.querySelector('.window').textContent); await p.keyboard.press('Escape');
   await p.keyboard.press('Escape'); await sleep(100); const mtxt = await ev(() => document.querySelector('.window').textContent); await p.keyboard.press('Escape');
+  const openNow = await ev(() => AU.G.S.flags.missionsUnlocked === true && AU.G.restMissionAvailable(AU.REST_MISSIONS[0].id) === false);
   const apiLocked = await ev(() => { AU.G.S.flags.missionsUnlocked = false; return [AU.G.discoverMissions(), AU.G.setMissionState('m_p1', 'accept')]; });
-  note('10', '10레벨 이전 현실 미션 잠김(일지에 잠금 탭으로 미리 보이되 기능은 사용 불가)', /🔒 현실 활동/.test(jtxt) && tabsCount === 1 && apiLocked[0] === false && apiLocked[1] === false && !lvMid.job.includes('warrior'), `Lv.${lvMid.lv}: 일지·퀘스트·메뉴 화면에 '현실' 문구 없음=${!/현실/.test(jtxt + qtxt + mtxt)}, 일지 탭 수=${tabsCount}, 강제 호출 discover=${apiLocked[0]}, accept=${apiLocked[1]}`);
+  note('10', '프롤로그 직후부터 현실 미션 열림(쉼 미션·피로도는 스킬 습득 전까지 잠김), 플래그 없으면 API 차단', !/🔒 현실 활동/.test(jtxt) && openNow && tabsCount === 1 && apiLocked[0] === false && apiLocked[1] === false && !lvMid.job.includes('warrior'), `Lv.${lvMid.lv}: 일지·퀘스트·메뉴 화면에 '현실' 문구 없음=${!/현실/.test(jtxt + qtxt + mtxt)}, 일지 탭 수=${tabsCount}, 강제 호출 discover=${apiLocked[0]}, accept=${apiLocked[1]}`);
 
   // ===== 11. 10레벨 도달 → 아직 미해금 → 전직 후 해금 =====
   await ev(() => { AU.G.gainExp(1e6, 'dev'); });
