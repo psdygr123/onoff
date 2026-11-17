@@ -12,6 +12,17 @@ window.AU = window.AU || {};
     jepeto:  { path: "assets/char/jepeto.webp", optional: true },
     pt_barsha: { path: "assets/portrait/barsha.webp", optional: true },
     pt_jepeto: { path: "assets/portrait/jepeto.webp", optional: true },
+    faustos: { path: "assets/char/faustos.webp", frames: 4, optional: true },
+    faustos_run: { path: "assets/char/faustos_run.webp", frames: 4, optional: true },
+    pt_faustos: { path: "assets/portrait/faustos.webp", optional: true },
+    pt_faustos_mad: { path: "assets/portrait/faustos_mad.webp", optional: true },
+    pt_faustos_shock: { path: "assets/portrait/faustos_shock.webp", optional: true },
+    bg_hideout_outer_1: { path: "assets/bg/hideout_outer_1.webp", optional: true },
+    bg_hideout_outer_2: { path: "assets/bg/hideout_outer_2.webp", optional: true },
+    bg_hideout_tunnel: { path: "assets/bg/hideout_tunnel.webp", optional: true },
+    bg_hideout_lab_1: { path: "assets/bg/hideout_lab_1.webp", optional: true },
+    bg_hideout_lab_2: { path: "assets/bg/hideout_lab_2.webp", optional: true },
+    bg_hideout_boss: { path: "assets/bg/hideout_boss.webp", optional: true },
     mon_merc: { path: "assets/monster/merc.webp", optional: true },
     mon_wolf: { path: "assets/monster/wolf.webp", optional: true }
   });
