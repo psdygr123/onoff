@@ -12,7 +12,7 @@ const note = (id, name, ok, ev) => { ok ? pass++ : fail++; console.log((ok ? 'PA
   const files = await ev(() => Object.values(AU.Bgm.tracks)); const missing = [];
   for (const f of files) { const r = await ev(async (u) => (await fetch(u, { method: 'HEAD' })).ok, f); if (!r) missing.push(f); }
   note('A1', '모든 곡 파일이 있음', missing.length === 0, missing.join(','));
-  note('A2', '프롤로그 중에는 아르케아(회상) 곡', (await ev(() => AU.Bgm.pick().key)) === 'arkea');
+  note('A2', '프롤로그 중에는 기본 곡(이전 버전)', (await ev(() => AU.Bgm.pick().key)) === 'main');
   await ev(() => AU.Prologue.debugComplete('porto')); await sleep(200);
   const at = async (map) => { await ev((m) => AU.World.enterMap(m, AU.MAPS[m].start || 200, true), map); await sleep(80); return ev(() => AU.Bgm.pick()); };
   const t = await at('porto'); note('B1', '포르투 노바: 마을 묶음 1번부터', t.g === 'town' && t.key === 'porto1', JSON.stringify(t));

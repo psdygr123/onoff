@@ -42,12 +42,12 @@ window.AU = window.AU || {};
     return st in SCENE_MULT ? SCENE_MULT[st] : 1;
   };
 
-  /* 장면에 맞는 곡 고르기. 프롤로그: 항구로 가는 마지막 장면=모험, 끝 화면=엔딩, 그 밖=아르케아(회상) 곡.
+  /* 장면에 맞는 곡 고르기. 프롤로그: 항구로 가는 마지막 장면=모험, 그 밖=기본 곡(이전 버전으로 되돌림, 11-17).
      본편: 보스가 있으면 보스 곡, 호흡 가이드가 열려 있으면 호흡 곡, 그 밖에는 지역별 곡 묶음. 반환: { g: 묶음, key: 곡 } */
   B.endShown = function () { const P = AU.Prologue; return !!(P && P.on && P.endEl && !P.endEl.classList.contains("hidden")); };
   B.pickGroup = function () {
     const P = AU.Prologue;
-    if (P && P.on) { if (B.endShown()) return "ending"; const st = AU.G && AU.G.S && AU.G.S.prologue && AU.G.S.prologue.state; return st === "SCENE_06_PORT_VIEW" ? "adventure" : "arkea"; }
+    if (P && P.on) { const st = AU.G && AU.G.S && AU.G.S.prologue && AU.G.S.prologue.state; return st === "SCENE_06_PORT_VIEW" ? "adventure" : "main"; }
     const me = AU.UI && AU.UI.modalEl; if (me && !me.classList.contains("hidden") && me.querySelector(".guided")) return "breath";
     const W = AU.World, m = W && W.map; if (!m) return "main";
     if ((W.monsters || []).some((q) => q.alive && q.d && q.d.boss)) return "boss";
