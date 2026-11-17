@@ -60,9 +60,9 @@ OnOff.Views = (function () {
     { label: "내 선택이 이야기로", sub: "갈림길에서 고르는 모험", kicker: "게임 방식", title: "<span>내 선택이</span><span><em>이야기</em>가 됩니다</span>",
       text: "갈림길에서 내린 선택이 쌓여 나만의 이야기가 만들어지고, 어떤 선택을 좋아하는지도 자연스럽게 알게 됩니다.", img: "img/banner-3.webp", pos: "70% 50%",
       alt: "햇살이 스며드는 숲길의 갈림길과 나무 이정표", cta: '<button class="btn" type="button" data-action="scroll" data-target="lib">어떤 게임이 있나요</button>' },
-    { label: "아우텔리아", sub: "지금 만날 수 있는 모험", kicker: "아우텔리아", title: "<span>노을 진 항구에서</span><span><em>첫 모험</em>이 시작됩니다</span>",
+    { label: "아우텔리아", sub: "지금 만날 수 있는 모험", kicker: "아우텔리아", title: "<span>햇살 가득한 항구에서</span><span><em>첫 모험</em>이 시작됩니다</span>",
       text: "판타지 세계를 탐험하며 캐릭터를 키우는 스토리 RPG. 이야기의 갈림길과 작은 현실 실천이 이어집니다.", img: "img/banner-4.webp", pos: "70% 50%",
-      alt: "노을 진 바다와 항구 도시가 내려다보이는 언덕", cta: '<button class="btn" type="button" data-action="go" data-to="intro-autelia">아우텔리아 보기</button>' },
+      alt: "햇살 가득한 항구 마을의 꽃과 깃발로 장식된 축제 광장", cta: '<button class="btn" type="button" data-action="go" data-to="intro-autelia">아우텔리아 보기</button>' },
     { label: "직접 만듭니다", sub: "심리학 전공자들", kicker: "온앤오프의 약속", title: "<span>심리학 전공자들이</span><span><em>직접</em> 만듭니다</span>",
       text: "심리학 이론을 바탕으로 만들고, 효과를 부풀려 말하지 않습니다. 확인된 것만 말하고 지킬 수 있는 약속만 합니다.", img: "img/banner-5.webp", pos: "70% 50%",
       alt: "책과 노트, 스탠드가 놓인 따뜻한 서재 창가", cta: '<button class="btn" type="button" data-action="go" data-to="about">서비스 소개 보기</button>' }
