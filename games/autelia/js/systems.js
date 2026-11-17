@@ -263,6 +263,7 @@ window.AU = window.AU || {};
       const rec = this.qs(id), q = AU.QUESTS[id];
       if (!rec || rec.state !== "ready") return false;
       rec.state = "done"; rec.doneAt = AU.dateStr();
+      for (const o of q.objectives) if (o.kind === "collect") this.takeItem(o.item, o.count); // 모은 퀘스트 물건은 제출
       const r = q.reward;
       if (r.silver) this.gainSilver(r.silver);
       for (const [it, n] of r.items || []) this.giveItem(it, n);

@@ -45,7 +45,7 @@ const note = (id, name, ok, ev) => { ok ? pass++ : fail++; console.log((ok ? 'PA
   const kh = await ev(() => ({ vis: getComputedStyle(document.querySelector('.keyhint')).display, txt: document.querySelector('.keyhint').textContent }));
   note('D1', '조작 안내는 상시 표시하지 않음(프롤로그·첫 상호작용에서 단계 안내)', kh.vis === 'none', JSON.stringify(kh));
   const tr0 = await ev(() => document.querySelector('.tracker').innerText);
-  note('D2', '퀘스트가 없을 때 새 의뢰·Lv.10 목표 안내', /목표/.test(tr0) && /새 의뢰: 빈 주머니/.test(tr0) && /Lv\.10까지/.test(tr0), tr0.replace(/\n/g, ' / '));
+  note('D2', '퀘스트가 없을 때 새 의뢰·Lv.10 목표 안내', /목표/.test(tr0) && /새 의뢰: 항구도시의 첫걸음/.test(tr0) && /Lv\.10까지/.test(tr0), tr0.replace(/\n/g, ' / '));
   await ev(() => { const S = AU.G.S; S.quests.q_s1_silver = { state: 'done', prog: [1], spots: {} }; S.quests.q_s1_test = { state: 'done', prog: [2], spots: {} }; AU.G.startQuest('q_first'); }); await sleep(400);
   const tr1 = await ev(() => document.querySelector('.tracker').innerText);
   note('D3', '들여우 퀘스트: 숲길까지 가는 방향(항구 길 포털) 안내', /숲길 방향: ◀ 왼쪽 끝의 '항구 길'/.test(tr1), tr1.replace(/\n/g, ' / '));

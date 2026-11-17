@@ -73,7 +73,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
   // 퀘스트 반납 + 장비
   await goto('guild_hall', 800); await sleep(100);
-  await p.keyboard.press('Space'); await sleep(120); await p.keyboard.press('Space'); await sleep(150);
+  for (let i = 0; i < 4 && await ev(() => !!AU.UI.dialog || i === 0); i++) { await p.keyboard.press('Space'); await sleep(130); }
   const swordCount = await ev(() => AU.G.count('sword_a')), qdone = await ev(() => AU.G.S.quests.q_first.state);
 
   // ===== 7. 창 열기 =====

@@ -260,7 +260,7 @@ window.AU = window.AU || {};
         const n = Math.max(1, Math.round(rnd(sv[0], sv[1]))); this.drops.push({ id: "silver_coin", n, x: m.x - 8, y: m.y - m.d.h * 0.5, vx: -(40 + Math.random() * 50), vy: -(280 + Math.random() * 80), gy: m.y, age: 0, onGround: false }); k++;
       }
       for (const row of m.d.drops || []) {
-        const [id, rate, lo = 1, hi = lo] = row; if (!AU.ITEMS[id] || Math.random() >= rate) continue;
+        const [id, rate, lo = 1, hi = lo, need] = row; if (!AU.ITEMS[id] || Math.random() >= rate) continue; if (need && AU.G.questStatus(need) !== "active") continue;
         const n = Math.round(lo + Math.random() * (hi - lo)); const dir = (k % 2 ? -1 : 1) * (0.7 + 0.5 * Math.floor(k / 2) + Math.random() * 0.4); k++;
         this.drops.push({ id, n, x: m.x + (k - 1) * 6, y: m.y - m.d.h * 0.5, vx: dir * (50 + Math.random() * 70), vy: -(260 + Math.random() * 120), gy: m.y, age: 0, onGround: false });
       }

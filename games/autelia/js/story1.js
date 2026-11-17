@@ -145,6 +145,4 @@ window.AU = window.AU || {};
     }
   });
 
-  // 십장이 쇳조각 이야기를 꺼내 잔다리 골목으로 이어 줌(1장 → 2장)
-  const tr = AU.QUESTS.q_a1_traces; if (tr && tr.done.length < 2) tr.done.push("참, 자네가 들고 다니는 그 쇳조각 말일세. 그런 건 잔다리 골목의 늙은 정보상이 밝지. 다만 입을 열게 하려면 은화가 필요할 걸세.");
 })();
