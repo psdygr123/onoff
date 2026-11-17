@@ -13,15 +13,16 @@ window.AU = window.AU || {};
 
   /* ---------- 적 ---------- */
   Object.assign(AU.MONSTERS, {
-    hide_guard:  { name: "아지트 경비병", lv: 11, hp: 320, atk: 38, speed: 85, chase: 230, sight: 330, w: 60, h: 112, exp: 190, silver: [14, 22], drops: [["iron_scrap", 0.5, 1, 2], ["potion", 0.15]], color: "#3A3340", motion: "swing", sprite: "mon_merc", sw: 88 },
-    hide_beast:  { name: "실험체 늑대", lv: 12, hp: 380, atk: 42, speed: 118, chase: 250, w: 88, h: 54, exp: 230, silver: [14, 22], drops: [["wolf_pelt", 0.5, 1, 2], ["black_crystal", 0.3], ["potion", 0.12]], color: "#4A3A52", ear: true, motion: "leap", sprite: "mon_wolf", sw: 140 },
-    hide_keeper: { name: "연구소 감시병", lv: 13, hp: 440, atk: 46, speed: 92, chase: 240, sight: 340, w: 60, h: 112, exp: 270, silver: [16, 26], drops: [["iron_scrap", 0.5, 1, 3], ["black_crystal", 0.25], ["potion", 0.15]], color: "#35303E", motion: "swing", sprite: "mon_merc", sw: 88 },
+    hide_guard:  { name: "아지트 경비병", lv: 11, hp: 320, atk: 38, speed: 85, chase: 230, sight: 330, w: 60, h: 112, exp: 190, silver: [14, 22], drops: [["iron_scrap", 0.5, 1, 2], ["potion", 0.15]], color: "#3A3340", motion: "swing", sprite: "mon_hide_guard", sw: 72 },
+    hide_beast:  { name: "실험체 늑대", lv: 12, hp: 380, atk: 42, speed: 118, chase: 250, w: 88, h: 54, exp: 230, silver: [14, 22], drops: [["wolf_pelt", 0.5, 1, 2], ["black_crystal", 0.3], ["potion", 0.12]], color: "#4A3A52", ear: true, motion: "leap", sprite: "mon_hide_beast", sw: 140 },
+    hide_keeper: { name: "연구소 감시병", lv: 13, hp: 440, atk: 46, speed: 92, chase: 240, sight: 340, w: 60, h: 112, exp: 270, silver: [16, 26], drops: [["iron_scrap", 0.5, 1, 3], ["black_crystal", 0.25], ["potion", 0.15]], color: "#35303E", motion: "swing", sprite: "mon_hide_keeper", sw: 52 },
     umbra_boss:  { name: "움브라", lv: 15, hp: 1700, atk: 56, speed: 80, chase: 520, w: 240, h: 150, exp: 1500, silver: [120, 160], silverRate: 1, drops: [["black_crystal", 1, 2, 3], ["potion", 1, 2, 3]], color: "#9B7FD1", boss: true, motion: "swing",
       sprite: "mon_umbra_base", sw: 300, refW: 345, poses: { idle: "mon_umbra_base", walkA: "mon_umbra_walkA", walkB: "mon_umbra_walkB", windup: "mon_umbra_windup", attack: "mon_umbra_attack", hurt: "mon_umbra_hurt", down: "mon_umbra_down" } }
   });
 
   /* ---------- 맵 ---------- */
   Object.assign(AU.ASSETS, {
+    mon_hide_guard: { path: "assets/monster/hide_guard.webp", optional: true }, mon_hide_keeper: { path: "assets/monster/hide_keeper.webp", optional: true }, mon_hide_beast: { path: "assets/monster/hide_beast.webp", optional: true },
     bg_hideout_outer_1: BG("hideout_outer_1"), bg_hideout_outer_2: BG("hideout_outer_2"), bg_hideout_tunnel: BG("hideout_tunnel"),
     bg_hideout_lab_1: BG("hideout_lab_1"), bg_hideout_lab_2: BG("hideout_lab_2"), bg_hideout_boss: BG("hideout_boss")
   });
