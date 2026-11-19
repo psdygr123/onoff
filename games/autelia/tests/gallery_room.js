@@ -44,6 +44,14 @@ const { chromium } = require('playwright');
   test('ROOM11 gallery actions and content fit viewport without outer scrolling',
     clipping.scrollHeight<=clipping.clientHeight+3 && clipping.actionsBottom<=clipping.viewportBottom+2 && clipping.galleryBottom<=clipping.viewportBottom+2,
     clipping);
+    const mural = await p.evaluate(async () => {
+    const image=new Image();
+    image.src='assets/bg/personal_gallery_room.svg';
+    try {await image.decode();} catch(e) {return {loaded:false,error:String(e)};}
+    const svg=await fetch(image.src).then(x=>x.text());
+    return {loaded:image.naturalWidth>=1200 && image.naturalHeight>=675, width:image.naturalWidth,height:image.naturalHeight,hasPainting:svg.includes('watercolour')||svg.includes('watercolor'),hasBlankWall:svg.includes('intentionally free')};
+  });
+  test('ROOM12 painted gallery background decodes and leaves empty memory wall',mural.loaded && mural.hasBlankWall,mural);
     await p.screenshot({path:(process.env.SHOTS||'/tmp/autelia-shots')+'/gallery_layout_corrected.png'});
 
 
