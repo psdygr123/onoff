@@ -350,3 +350,15 @@ main { display: block; outline: none; }
 @media (max-width: 760px) {
   .stage { aspect-ratio: auto; height: max(560px, calc(100dvh - 190px)); }
 }
+
+
+/* 나만의 공간: 플랫폼에서도 RPG iframe을 실제 화면에 더 가깝게 확대 */
+.space-page {
+  max-width: min(1380px, calc(100vw - 32px));
+  padding-block: 14px 22px;
+}
+.space-page .play-bar { margin-bottom: 8px; }
+.space-page .play-bar h1 { font-size: clamp(20px,2vw,27px); }
+.space-page > .note { font-size: 13px; margin: 0 0 8px; }
+.space-page .stage { border-style: solid; border-color: var(--bronze); }
+@media (max-width: 780px) { .space-page .stage { height: max(560px,calc(100dvh - 170px)); } }
