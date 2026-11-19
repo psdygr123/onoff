@@ -376,6 +376,8 @@ window.AU = window.AU || {};
   /* 나만의 공간 — 선택된 시안 A: 따뜻한 기억 갤러리, 실제 저장 데이터를 사용 */
   R.gallery = function (b) {
     const S = AU.G.S, g = AU.G.galleryState(), items = AU.G.galleryItems();
+    const galleryArt = (name, cls, label) => h("img", { class: cls || "gallery-asset", src: "assets/gallery/" + name + ".svg", alt: label || "", loading: "lazy", draggable: "false" });
+    const permaArt = (k, cls) => galleryArt("memory_" + (["P","E","R","M","A"].includes(k) ? k : "P"), cls || "gallery-memory-landscape", "");
     const unlocked = new Set(g.unlocked), selected = new Set(g.selected);
     const today = AU.dateStr(), attended = g.attendance.includes(today);
     const mission = (e) => AU.G.mission(e.id);
@@ -395,10 +397,10 @@ window.AU = window.AU || {};
     const openJournal = () => { UI.tab.j = "missions"; UI.tab.jg = "real"; UI.open("journal"); };
     const toggleShop = () => { UI.tab.galleryShop = !UI.tab.galleryShop; UI.renderWin(); };
     const card = (entry, i) => {
-      if (!entry) return h("div", { class: "roommemory empty-memory" }, h("div", { class: "roommemory-art" }, "✧"), h("small", { text: "새 경험을 기다리는 액자" }));
+      if (!entry) return h("div", { class: "roommemory empty-memory" }, h("div", { class: "roommemory-art" }, galleryArt("memory", "gallery-placeholder", "")), h("small", { text: "새 경험을 기다리는 액자" }));
       const m = mission(entry), k = entry.perma || "P";
       return h("div", { class: "roommemory " + statusClass(entry) },
-        h("div", { class: "roommemory-art perma-" + k }, h("span", { class: "roommemory-sigil", text: ({P:"☀",E:"✦",R:"♡",M:"❀",A:"★"})[k] || "✧" })),
+        h("div", { class: "roommemory-art perma-" + k }, permaArt(k)),
         h("span", { class: "roommemory-state", text: statusName(entry) }),
         h("strong", { text: m ? m.title : "나의 경험" }),
         h("small", { text: entry.t }));
@@ -408,7 +410,7 @@ window.AU = window.AU || {};
     const missionList = active.length ? active.map(m => {
       const state = AU.G.ms(m.id).state;
       return h("div", { class: "roomactivity " + (state === "attempted" || state === "partial" ? "is-attempted" : "") },
-        h("span", { class: "roomactivity-icon", text: ({ P: "☀", E: "✦", R: "♡", M: "❀", A: "★" })[m.perma] || "✧" }),
+        h("span", { class: "roomactivity-icon" }, galleryArt("mission", "gallery-mission-img", "")),
         h("div", { class: "roomactivity-text" },
           h("strong", { text: m.title }),
           h("small", { text: state === "attempted" ? "시도 중 · 이어서 해볼 수 있어요" : state === "partial" ? "조금 해봤어요 · 경험이 남았어요" : state === "accepted" ? "선택한 활동" : "언제든 선택할 수 있어요" })),
@@ -419,8 +421,8 @@ window.AU = window.AU || {};
       h("div", { class: "choices" },
         ...AU.main.SLOTS.map(n => { const info = AU.main.slotInfo(n); return btn(n + "번 " + (info ? info.name : "새 캐릭터") + (n === AU.main.slot ? " ✓" : ""), n === AU.main.slot ? "on" : "mini", () => { if (n !== AU.main.slot) AU.main.setSlot(n); }, { disabled: n === AU.main.slot ? "" : null }); }),
         btn("공간에서 나가기", "", () => AU.main.exitGame()))) : null;
-    const left = panel("room-left", "⌂  오늘의 활동",
-      h("div", { class: "room-date", text: dateLabel }),
+    const left = panel("room-left", "오늘의 활동",
+      galleryArt("mission", "gallery-panel-head-art", ""), h("div", { class: "room-date", text: dateLabel }),
       h("p", { class: "room-greeting", text: "오늘의 작은 시도도 소중한 경험으로 남습니다." }),
       h("h4", { text: "현실 미션" }),
       h("div", { class: "roomactivities" }, ...missionList),
@@ -430,7 +432,7 @@ window.AU = window.AU || {};
       ...[0,1,2].map(i => { const entry = lastThree[i], m = entry && mission(entry);
         return h("div", { class: "roomframe" },
           h("div", { class: "roomframein" },
-            entry ? h("span", { class: "symbol", text: ({P:"☀",E:"✦",R:"♡",M:"❀",A:"★"})[entry.perma] || "✧" }) : h("span", { class: "symbol", text: "✧" }),
+            entry ? permaArt(entry.perma, "gallery-frame-landscape") : galleryArt("memory", "gallery-frame-placeholder", ""),
             h("strong", { text: entry ? (m ? m.title : "나의 활동") : "새 경험을 기다리는 액자" }),
             h("small", { text: entry ? statusName(entry) : "나의 추억" })));
       }));
@@ -440,9 +442,9 @@ window.AU = window.AU || {};
           h("div", { class: "roomwindow" }, h("span", { text: "☀" })),
           h("div", { class: "roomcrest", text: "✦" }),
           frames,
-          h("div", { class: "roomdecors" }, ...items.filter(item => selected.has(item.id)).map(item => h("span", { title: item.name, text: item.icon })))),
+          h("div", { class: "roomdecors" }, ...items.filter(item => selected.has(item.id)).map(item => h("span", { class: "room-decor-set", title: item.name }, galleryArt(item.id, "gallery-decor-img", item.name))))),
         h("div", { class: "roomfloor" }, h("div", { class: "roomrug", text: "나의 이야기" }))),
-      h("div", { class: "room-recent" }, h("h3", { text: "▤  최근 기록" }),
+      h("div", { class: "room-recent" }, h("h3", null, galleryArt("journal", "gallery-inline-art", ""), " 최근 기록"),
         h("p", { class: "note", text: "시도한 경험도, 완료한 경험도 함께 남습니다." }),
         h("div", { class: "room-recent-grid" }, ...[0,1,2].map(i => card(lastThree[i],i)))));
     const makeChart = () => {
@@ -460,28 +462,28 @@ window.AU = window.AU || {};
       h("div", { class: "room-perma-legend" }, ...dailyRows.map(d => h("div", { class: "room-perma-row" },
         h("strong", { text: d.key }), h("span", { text: d.label }), h("b", { text: d.value + "점" })))));
     const right = h("aside", { class: "room-right" },
-      panel("room-growth", "♧  마음 성장",
+      panel("room-growth", "마음 성장",
         h("p", { class: "note", text: "현실 활동의 누적 실천 점수입니다. 심리검사 결과나 행복 수준을 뜻하지 않습니다." }),
-        radar,
+        galleryArt("memory", "gallery-panel-head-art", ""), radar,
         h("div", { class: "room-perma-bars" }, ...dailyRows.map(d => h("div", { class: "room-perma-meter" },
           h("span", { text: d.key }), h("div", { class: "room-meter-track" }, h("i", { style: "width:" + d.pct + "%" })), h("small", { text: d.pct + "%" }))))),
       h("div", { class: "room-counter-grid" },
-        panel("room-token-panel", "갤러리 토큰", h("b", { class: "room-big-number", text: g.tokens + "개" })),
-        panel("room-visit-panel", "오늘 방문 기록", h("b", { class: "room-big-number", text: attended ? "방문 완료" : "미기록" }),
+        panel("room-token-panel", "갤러리 토큰", galleryArt("token", "gallery-counter-icon", ""), h("b", { class: "room-big-number", text: g.tokens + "개" })),
+        panel("room-visit-panel", "오늘 방문 기록", galleryArt("rest", "gallery-counter-icon", ""), h("b", { class: "room-big-number", text: attended ? "방문 완료" : "미기록" }),
           h("small", { text: "누적 " + g.attendance.length + "일" }))),
       btn(attended ? "오늘 방문 기록 완료" : "오늘 방문 기록하기 (+1)", "primary room-visit-btn", () => AU.G.galleryCheckin(), { disabled: attended ? "" : null }),
       panel("room-decor-panel", "공간 꾸미기",
-        h("div", { class: "room-decor-icons" }, ...items.slice(0,3).map(item => h("span", { title: item.name, text: item.icon }))),
+        h("div", { class: "room-decor-icons" }, ...items.slice(0,3).map(item => h("span", { title: item.name }, galleryArt(item.id, "gallery-decor-preview", item.name)))),
         btn("장식 관리 " + (UI.tab.galleryShop ? "접기" : "열기"), "mini", toggleShop)));
     b.append(h("div", { class: "room-a-layout" },
-      h("div", { class: "room-a-heading" }, h("div", null,
+      h("div", { class: "room-a-heading" }, galleryArt("frame", "gallery-heading-art", ""), h("div", null,
         h("h2", { text: "나만의 공간" }), h("p", { text: "오늘의 경험이 쌓여 만들어지는 나만의 기억 갤러리" })),
         h("span", { class: "room-a-tag", text: "아우텔리아 · 성장 기록" })),
       slots,
       h("div", { class: "room-a-columns" }, left, center, right),
       UI.tab.galleryShop ? panel("room-shop-panel", "꾸미기 상점 · 전시 설정",
         h("div", { class: "roomshop" }, ...items.map(item => h("div", { class: "roomshopitem" },
-          h("span", { class: "roomicon", text: item.icon }), h("b", { text: item.name }), h("p", { class: "note", text: item.desc }),
+          galleryArt(item.id, "roomicon", item.name), h("b", { text: item.name }), h("p", { class: "note", text: item.desc }),
           btn(unlocked.has(item.id) ? (selected.has(item.id) ? "전시 중 · 숨기기" : "전시하기") : "토큰 " + item.cost + "개로 획득",
             "mini", () => unlocked.has(item.id) ? AU.G.galleryToggle(item.id) : AU.G.galleryBuy(item.id),
             { disabled: !unlocked.has(item.id) && g.tokens < item.cost ? "" : null }))))) : null,
