@@ -373,41 +373,124 @@ window.AU = window.AU || {};
   /* ============ 창 내용 ============ */
   const R = UI.renders = {};
 
+  /* 나만의 공간 — 선택된 시안 A: 따뜻한 기억 갤러리, 실제 저장 데이터를 사용 */
   R.gallery = function (b) {
-    const g = AU.G.galleryState(), items = AU.G.galleryItems(), unlocked = new Set(g.unlocked), selected = new Set(g.selected);
+    const S = AU.G.S, g = AU.G.galleryState(), items = AU.G.galleryItems();
+    const unlocked = new Set(g.unlocked), selected = new Set(g.selected);
     const today = AU.dateStr(), attended = g.attendance.includes(today);
-    if (AU.main && AU.main.galleryOnly) {
-      b.append(h("div", { class: "roomstandalone" },
-        h("p", { class: "note", text: "게임을 실행하지 않은 독립 이용 모드입니다. 전투와 이동은 시작되지 않습니다. 아래 캐릭터의 개인 기록을 보여줍니다." }),
-        h("div", { class: "choices" },
-          ...AU.main.SLOTS.map(n => {
-            const info = AU.main.slotInfo(n);
-            return btn(n + "번 " + (info ? info.name : "(새 캐릭터)") + (n === AU.main.slot ? " · 선택됨" : ""), n === AU.main.slot ? "on" : "mini", () => { if (n !== AU.main.slot) AU.main.setSlot(n); }, { disabled: n === AU.main.slot ? "" : null });
-          })),
-        btn("나만의 공간에서 나가기", "", () => AU.main.exitGame())));
-    }
-    const logs = AU.G.S.missions.log.filter(x => x.state === "done").slice().reverse();
-    b.append(h("div", { class: "roomtop" },
-      h("div", null, h("h3", { text: "나만의 공간" }), h("p", { class: "note", text: "현실에서 시도한 경험이 전시되는 개인 공간입니다. 이곳의 장식은 전투 능력이나 스토리 진행에 영향을 주지 않습니다." })),
-      h("div", { class: "roomwallet" }, h("b", { text: "갤러리 토큰 " + g.tokens }), btn(attended ? "오늘 방문 기록 완료" : "오늘 방문 기록하기 (+1)", "mini", () => AU.G.galleryCheckin(), { disabled: attended ? "" : null }))));
-    b.append(h("div", { class: "personalroom" },
-      h("div", { class: "roomwall" },
-        h("div", { class: "roomcrest", text: "✦" }),
-        h("div", { class: "roomframes" }, ...[0,1,2].map(i => {
-          const entry = logs[i], m = entry && AU.G.mission(entry.id);
-          return h("div", { class: "roomframe" }, entry ? h("div", { class: "roomframein" }, h("span", { class: "symbol", text: ({P:"☀",E:"✦",R:"♡",M:"✧",A:"★"})[entry.perma] || "✦" }), h("strong", { text: m ? m.title : "나의 활동" }), h("small", { text: entry.t })) : h("div", { class: "roomframein emptyframe", text: "새로운 경험을 기다리는 액자" }));
-        })),
-        h("div", { class: "roomdecors" }, ...items.filter(item => selected.has(item.id)).map(item => h("span", { title: item.name, text: item.icon })))) ,
-      h("div", { class: "roomfloor" }, h("div", { class: "roomrug", text: "MY GALLERY" }))));
-    b.append(h("h4", { text: "공간 꾸미기" }), h("p", { class: "note", text: "방문 기록은 하루 한 번 토큰 1개를 줍니다. 연속 방문 보상이나 결석 불이익은 없습니다. 현실 미션을 완료해도 토큰을 얻습니다." }));
-    b.append(h("div", { class: "roomshop" }, items.map(item => h("div", { class: "roomshopitem" }, h("span", { class: "roomicon", text: item.icon }), h("b", { text: item.name }), h("p", { class: "note", text: item.desc }), btn(unlocked.has(item.id) ? (selected.has(item.id) ? "전시 중 · 숨기기" : "전시하기") : "토큰 " + item.cost + "개로 획득", "mini", () => unlocked.has(item.id) ? AU.G.galleryToggle(item.id) : AU.G.galleryBuy(item.id), { disabled: !unlocked.has(item.id) && g.tokens < item.cost ? "" : null })) )));
-    b.append(h("h4", { text: "나의 경험 갤러리" }));
-    b.append(logs.length ? h("div", { class: "roomhistory" }, logs.slice(0,30).map(e => {
-      const m = AU.G.mission(e.id), notes = e.reflection;
-      return h("div", { class: "roomhistoryitem" }, h("span", { class: "tag perma", text: e.perma }), h("b", { text: m ? m.title : e.id }), h("small", { text: e.t }), notes ? h("p", { class: "note", text: "도전 " + notes.challenge + "/5 · 의미 " + notes.meaning + "/5 · 만족 " + notes.satisfaction + "/5" }) : null);
-    })) : h("p", { class: "empty", text: "아직 전시할 활동이 없습니다. 현실 미션을 기록하면 여기에 추억이 하나씩 쌓입니다." }));
+    const mission = (e) => AU.G.mission(e.id);
+    const shown = S.missions.log.filter(e => ["done", "attempted", "partial"].includes(e.state)).slice().reverse();
+    const memories = shown.filter((e, i, arr) => arr.findIndex(x => x.id === e.id) === i).slice(0, 30);
+    const lastThree = memories.slice(0, 3);
+    const active = AU.MISSIONS.filter(m => {
+      const state = AU.G.ms(m.id).state;
+      return ["available", "accepted", "attempted", "partial"].includes(state);
+    }).slice(0, 3);
+    const statusName = (e) => e.state === "done" ? "완료" : e.state === "partial" ? "조금 해봤어요" : "시도함";
+    const statusClass = (e) => e.state === "done" ? "done" : "attempt";
+    const dailyRows = ["P", "E", "R", "M", "A"].map(k => {
+      const value = S.mindStats[k] || 0, max = Math.max(1, AU.G.mindMax(k));
+      return { key: k, label: AU.PERMA[k], value, pct: Math.round(value / max * 100) };
+    });
+    const openJournal = () => { UI.tab.j = "missions"; UI.tab.jg = "real"; UI.open("journal"); };
+    const toggleShop = () => { UI.tab.galleryShop = !UI.tab.galleryShop; UI.renderWin(); };
+    const card = (entry, i) => {
+      if (!entry) return h("div", { class: "roommemory empty-memory" }, h("div", { class: "roommemory-art" }, "✧"), h("small", { text: "새 경험을 기다리는 액자" }));
+      const m = mission(entry), k = entry.perma || "P";
+      return h("div", { class: "roommemory " + statusClass(entry) },
+        h("div", { class: "roommemory-art perma-" + k }, h("span", { class: "roommemory-sigil", text: ({P:"☀",E:"✦",R:"♡",M:"❀",A:"★"})[k] || "✧" })),
+        h("span", { class: "roommemory-state", text: statusName(entry) }),
+        h("strong", { text: m ? m.title : "나의 경험" }),
+        h("small", { text: entry.t }));
+    };
+    const panel = (cls, title, ...contents) => h("section", { class: "room-panel " + cls }, h("h3", { class: "room-section-title", text: title }), ...contents);
+    const dateLabel = new Date().toLocaleDateString("ko-KR", { month: "long", day: "numeric", weekday: "short" });
+    const missionList = active.length ? active.map(m => {
+      const state = AU.G.ms(m.id).state;
+      return h("div", { class: "roomactivity " + (state === "attempted" || state === "partial" ? "is-attempted" : "") },
+        h("span", { class: "roomactivity-icon", text: ({ P: "☀", E: "✦", R: "♡", M: "❀", A: "★" })[m.perma] || "✧" }),
+        h("div", { class: "roomactivity-text" },
+          h("strong", { text: m.title }),
+          h("small", { text: state === "attempted" ? "시도 중 · 이어서 해볼 수 있어요" : state === "partial" ? "조금 해봤어요 · 경험이 남았어요" : state === "accepted" ? "선택한 활동" : "언제든 선택할 수 있어요" })),
+        h("span", { class: "roomactivity-label", text: state === "attempted" || state === "partial" ? "시도함" : state === "accepted" ? "선택" : "제안" }));
+    }) : [h("p", { class: "note", text: S.flags.missionsUnlocked ? "표시할 새 미션이 없습니다. 모험일지에서 전체 기록을 확인하세요." : "현실 미션은 게임에서 안내를 받은 뒤 열립니다. 그 전에도 공간을 꾸미고 방문 기록을 남길 수 있습니다." })];
+    const slots = AU.main && AU.main.galleryOnly ? h("div", { class: "roomstandalone" },
+      h("p", { class: "note", text: "RPG를 시작하지 않고 이용 중입니다. 캐릭터별 저장 공간은 서로 독립적입니다." }),
+      h("div", { class: "choices" },
+        ...AU.main.SLOTS.map(n => { const info = AU.main.slotInfo(n); return btn(n + "번 " + (info ? info.name : "새 캐릭터") + (n === AU.main.slot ? " ✓" : ""), n === AU.main.slot ? "on" : "mini", () => { if (n !== AU.main.slot) AU.main.setSlot(n); }, { disabled: n === AU.main.slot ? "" : null }); }),
+        btn("공간에서 나가기", "", () => AU.main.exitGame()))) : null;
+    const left = panel("room-left", "⌂  오늘의 활동",
+      h("div", { class: "room-date", text: dateLabel }),
+      h("p", { class: "room-greeting", text: "오늘의 작은 시도도 소중한 경험으로 남습니다." }),
+      h("h4", { text: "현실 미션" }),
+      h("div", { class: "roomactivities" }, ...missionList),
+      btn("전체 활동 보기", "mini", openJournal),
+      h("p", { class: "room-affirmation", text: "끝내지 못한 경험도 이 공간에 남길 수 있습니다." }));
+    const frames = h("div", { class: "roomframes" },
+      ...[0,1,2].map(i => { const entry = lastThree[i], m = entry && mission(entry);
+        return h("div", { class: "roomframe" },
+          h("div", { class: "roomframein" },
+            entry ? h("span", { class: "symbol", text: ({P:"☀",E:"✦",R:"♡",M:"❀",A:"★"})[entry.perma] || "✧" }) : h("span", { class: "symbol", text: "✧" }),
+            h("strong", { text: entry ? (m ? m.title : "나의 활동") : "새 경험을 기다리는 액자" }),
+            h("small", { text: entry ? statusName(entry) : "나의 추억" })));
+      }));
+    const center = h("section", { class: "room-center" },
+      h("div", { class: "personalroom" },
+        h("div", { class: "roomwall" },
+          h("div", { class: "roomwindow" }, h("span", { text: "☀" })),
+          h("div", { class: "roomcrest", text: "✦" }),
+          frames,
+          h("div", { class: "roomdecors" }, ...items.filter(item => selected.has(item.id)).map(item => h("span", { title: item.name, text: item.icon })))),
+        h("div", { class: "roomfloor" }, h("div", { class: "roomrug", text: "나의 이야기" }))),
+      h("div", { class: "room-recent" }, h("h3", { text: "▤  최근 기록" }),
+        h("p", { class: "note", text: "시도한 경험도, 완료한 경험도 함께 남습니다." }),
+        h("div", { class: "room-recent-grid" }, ...[0,1,2].map(i => card(lastThree[i],i)))));
+    const makeChart = () => {
+      const ns = "http://www.w3.org/2000/svg", svg = document.createElementNS(ns, "svg");
+      svg.setAttribute("viewBox", "0 0 240 205"); svg.setAttribute("role", "img"); svg.setAttribute("aria-label", "현실 미션 실천 기록에 따른 PERMA 영역별 성장치");
+      const xy = (i, pct) => { const angle = -Math.PI/2 + i*2*Math.PI/5; return [120 + Math.cos(angle)*86*pct, 98 + Math.sin(angle)*83*pct]; };
+      const poly = (points, fill, stroke, opacity) => { const p = document.createElementNS(ns,"polygon"); p.setAttribute("points",points.map(v=>v.join(",")).join(" "));p.setAttribute("fill",fill);p.setAttribute("stroke",stroke);p.setAttribute("stroke-width","1.5");if(opacity)p.setAttribute("opacity",opacity);svg.appendChild(p); };
+      for (const t of [.25,.5,.75,1]) poly(dailyRows.map((_,i)=>xy(i,t)),"none","#baaf8e","0.7");
+      dailyRows.forEach((d,i)=>{const line=document.createElementNS(ns,"line");const [x,y]=xy(i,1);line.setAttribute("x1","120");line.setAttribute("y1","98");line.setAttribute("x2",x);line.setAttribute("y2",y);line.setAttribute("stroke","#c8baa0");svg.appendChild(line);});
+      poly(dailyRows.map((d,i)=>xy(i,Math.max(0,Math.min(1,d.pct/100)))),"#d8b66b","#a87b32","0.85");
+      dailyRows.forEach((d,i)=>{const [x,y]=xy(i,1.16);const label=document.createElementNS(ns,"text");label.setAttribute("x",x);label.setAttribute("y",y+4);label.setAttribute("text-anchor","middle");label.setAttribute("font-size","15");label.setAttribute("font-weight","700");label.setAttribute("fill","#70552d");label.textContent=d.key;svg.appendChild(label);});
+      return svg;
+    };
+    const radar = h("div", { class: "room-radar" }, makeChart(),
+      h("div", { class: "room-perma-legend" }, ...dailyRows.map(d => h("div", { class: "room-perma-row" },
+        h("strong", { text: d.key }), h("span", { text: d.label }), h("b", { text: d.value + "점" })))));
+    const right = h("aside", { class: "room-right" },
+      panel("room-growth", "♧  마음 성장",
+        h("p", { class: "note", text: "현실 활동의 누적 실천 점수입니다. 심리검사 결과나 행복 수준을 뜻하지 않습니다." }),
+        radar,
+        h("div", { class: "room-perma-bars" }, ...dailyRows.map(d => h("div", { class: "room-perma-meter" },
+          h("span", { text: d.key }), h("div", { class: "room-meter-track" }, h("i", { style: "width:" + d.pct + "%" })), h("small", { text: d.pct + "%" }))))),
+      h("div", { class: "room-counter-grid" },
+        panel("room-token-panel", "갤러리 토큰", h("b", { class: "room-big-number", text: g.tokens + "개" })),
+        panel("room-visit-panel", "오늘 방문 기록", h("b", { class: "room-big-number", text: attended ? "방문 완료" : "미기록" }),
+          h("small", { text: "누적 " + g.attendance.length + "일" }))),
+      btn(attended ? "오늘 방문 기록 완료" : "오늘 방문 기록하기 (+1)", "primary room-visit-btn", () => AU.G.galleryCheckin(), { disabled: attended ? "" : null }),
+      panel("room-decor-panel", "공간 꾸미기",
+        h("div", { class: "room-decor-icons" }, ...items.slice(0,3).map(item => h("span", { title: item.name, text: item.icon }))),
+        btn("장식 관리 " + (UI.tab.galleryShop ? "접기" : "열기"), "mini", toggleShop)));
+    b.append(h("div", { class: "room-a-layout" },
+      h("div", { class: "room-a-heading" }, h("div", null,
+        h("h2", { text: "나만의 공간" }), h("p", { text: "오늘의 경험이 쌓여 만들어지는 나만의 기억 갤러리" })),
+        h("span", { class: "room-a-tag", text: "아우텔리아 · 성장 기록" })),
+      slots,
+      h("div", { class: "room-a-columns" }, left, center, right),
+      UI.tab.galleryShop ? panel("room-shop-panel", "꾸미기 상점 · 전시 설정",
+        h("div", { class: "roomshop" }, ...items.map(item => h("div", { class: "roomshopitem" },
+          h("span", { class: "roomicon", text: item.icon }), h("b", { text: item.name }), h("p", { class: "note", text: item.desc }),
+          btn(unlocked.has(item.id) ? (selected.has(item.id) ? "전시 중 · 숨기기" : "전시하기") : "토큰 " + item.cost + "개로 획득",
+            "mini", () => unlocked.has(item.id) ? AU.G.galleryToggle(item.id) : AU.G.galleryBuy(item.id),
+            { disabled: !unlocked.has(item.id) && g.tokens < item.cost ? "" : null }))))) : null,
+      h("div", { class: "room-a-actions" },
+        btn("공간 꾸미기", "primary", toggleShop),
+        btn("기록 보기", "", openJournal),
+        btn("방문 기록", "", () => { if (!attended) AU.G.galleryCheckin(); }),
+        btn("나가기", "", () => AU.main && AU.main.galleryOnly ? AU.main.exitGame() : UI.close()))));
   };
-
 
   R.menu = function (b) {
     const S = AU.G.S;
