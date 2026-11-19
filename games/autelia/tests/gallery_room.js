@@ -25,7 +25,17 @@ const { chromium } = require('playwright');
   test('ROOM7 selected concept A panels rendered',await p.locator('.room-a-columns > .room-left').count()===1 && await p.locator('.room-a-columns > .room-center').count()===1 && await p.locator('.room-a-columns > .room-right').count()===1 && await p.locator('.room-radar svg').count()===1,'three panels + PERMA chart');
   const attempted=await p.evaluate(()=>{const G=AU.G;const id='m_e1';const m=G.mission(id);const initial=G.ms(id).state;if(initial==='available')G.setMissionState(id,'accept');if(G.ms(id).state==='accepted')G.setMissionState(id,'attempt');AU.UI.renderWin();return {id,state:G.ms(id).state};});
   test('ROOM8 attempted but unfinished mission remains visible',attempted.state==='attempted'&&await p.locator('.roommemory.attempt').count()>0,attempted);
-  await p.screenshot({path:(process.env.SHOTS||'/tmp/autelia-shots')+'/gallery_concept_A.png'});
+  const visual = await p.evaluate(async () => {
+    const win=document.querySelector('.win-gallery'),stage=document.querySelector('#stage'),center=document.querySelector('.room-center .personalroom');
+    const files=[...document.querySelectorAll('.room-a-layout img')];
+    await Promise.all(files.map(im => im.decode().catch(()=>{})));
+    const wr=win.getBoundingClientRect(),sr=stage.getBoundingClientRect(),cr=center.getBoundingClientRect();
+    return {w:wr.width,h:wr.height,shareW:wr.width/sr.width,shareH:wr.height/sr.height,centerH:cr.height,count:files.length,invalid:files.filter(im=>!im.complete||im.naturalWidth===0).map(im=>im.getAttribute('src')),roomBg:getComputedStyle(center).backgroundImage};
+  });
+  test('ROOM9 gallery occupies most of 1280x720 stage',visual.shareW>=.95&&visual.shareH>=.95&&visual.centerH>=300,visual);
+  test('ROOM10 all watercolor SVG assets load',visual.count>=7&&visual.invalid.length===0&&visual.roomBg.includes('personal_gallery_room.svg'),visual);
+  await p.screenshot({path:(process.env.SHOTS||'/tmp/autelia-shots')+'/gallery_immersive_art.png'});
+
 
  }finally{await b.close();}
  process.exit(fail?1:0);
