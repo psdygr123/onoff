@@ -799,3 +799,15 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
   .room-center .roomframes {width:62%; margin-left:23%; }
   .room-center .roomframe {height:132px;}
 }
+
+
+/* Visual screenshot review: keep the complete recent memories visible above footer. */
+.room-center { grid-template-rows: minmax(0,1fr) 168px; }
+.room-recent { overflow:hidden; }
+.room-recent-grid { height:118px; align-items:stretch; }
+.roommemory { overflow:hidden; gap:2px; padding:4px; }
+.roommemory-art { height:72px; flex:none; }
+.roommemory strong { font-size:10px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; line-height:1.25; }
+.roommemory small { font-size:9px; }
+.roommemory-state { top:7px;right:7px; }
+@media (max-width:780px) { .room-center { grid-template-rows:minmax(0,1fr) 168px; } }
