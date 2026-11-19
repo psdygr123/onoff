@@ -568,7 +568,7 @@ OnOff.Views = (function () {
     render(ctx) {
       const g = GAMES.find(x => x.id === ctx.param);
       if (!g || g.id !== "autelia" || !OnOff.Device.canPlay(g)) return notfound.render();
-      return `<div class="wrap page">
+      return `<div class="wrap page space-page">
         <div class="play-bar"><h1>나만의 공간 · 아우텔리아</h1><button class="btn ghost sm" type="button" data-action="go" data-to="mypage">마이페이지로 돌아가기</button></div>
         <p class="note">RPG를 플레이하지 않아도 이 공간에서 오늘의 방문을 기록하거나 갤러리를 꾸밀 수 있습니다. 게임 안에서 열어도 같은 캐릭터 기록이 유지됩니다.</p>
         <div class="stage" id="space-stage"></div>
