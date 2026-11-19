@@ -37,7 +37,11 @@ jobs:
         run: |
           mkdir -p /tmp/autelia-shots
           python3 -m http.server 8801 --directory games/autelia > /tmp/autelia-server.log 2>&1 &
-          for i in $(seq 1 30); do curl -fsS http://localhost:8801/index.html >/dev/null && exit 0; sleep 1; done
+          python3 -m http.server 8802 --directory games/autelia/tests/prologue > /tmp/autelia-harness.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost:8801/index.html >/dev/null 2>&1 && curl -fsS http://localhost:8802/harness.html >/dev/null 2>&1; then exit 0; fi
+            sleep 1
+          done
           exit 1
       - name: Run extended suite
         env:
@@ -68,4 +72,5 @@ jobs:
           path: |
             /tmp/autelia-shots/
             /tmp/autelia-server.log
+            /tmp/autelia-harness.log
           if-no-files-found: ignore
