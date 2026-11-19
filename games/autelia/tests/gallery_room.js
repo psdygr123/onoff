@@ -22,6 +22,11 @@ const { chromium } = require('playwright');
   test('ROOM5 gallery data survives reload',saved.tokens===0&&saved.selected.includes('frame')&&saved.attendance===1&&saved.log>0&&saved.oldTraining===0,saved);
   await p.evaluate(()=>AU.UI.open('gallery'));
   test('ROOM6 purchase and memory frame appear in room',await p.locator('.roomdecors span').count()===1&&await p.locator('.roomframein strong').count()>0,await p.locator('.roomframein').allTextContents());
+  test('ROOM7 selected concept A panels rendered',await p.locator('.room-a-columns > .room-left').count()===1 && await p.locator('.room-a-columns > .room-center').count()===1 && await p.locator('.room-a-columns > .room-right').count()===1 && await p.locator('.room-radar svg').count()===1,'three panels + PERMA chart');
+  const attempted=await p.evaluate(()=>{const G=AU.G;const id='m_e1';const m=G.mission(id);const initial=G.ms(id).state;if(initial==='available')G.setMissionState(id,'accept');if(G.ms(id).state==='accepted')G.setMissionState(id,'attempt');AU.UI.renderWin();return {id,state:G.ms(id).state};});
+  test('ROOM8 attempted but unfinished mission remains visible',attempted.state==='attempted'&&await p.locator('.roommemory.attempt').count()>0,attempted);
+  await p.screenshot({path:(process.env.SHOTS||'/tmp/autelia-shots')+'/gallery_concept_A.png'});
+
  }finally{await b.close();}
  process.exit(fail?1:0);
 })().catch(e=>{console.error('FAIL',e);process.exit(1);});
