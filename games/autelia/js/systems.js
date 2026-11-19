@@ -137,10 +137,10 @@ window.AU = window.AU || {};
     },
 
     /* ---------- 스탯 분배: 미리보기 → 최종 적용 ---------- */
-    // 레벨 포인트는 5레벨 구간(10·15·20…)마다 현실 미션을 한 번 완료해야 분배할 수 있음. 훈련 포인트는 항상 분배 가능
+    // 기본 레벨 포인트는 현실 미션 수행 여부와 무관하게 사용 가능. 훈련 포인트는 선택형 현실 활동 추가 보상.
     gateBand() { return Math.max(10, Math.floor(this.S.level / 5) * 5); },
-    gateOpen() { return (this.S.gateBand || 0) >= this.gateBand(); },
-    openGate() { const S = this.S, b = this.gateBand(); if ((S.gateBand || 0) < b) { S.gateBand = b; if (S.freePoints > 0) this.toast("레벨 포인트 " + S.freePoints + "점을 분배할 수 있습니다 (S 키)", "good"); } },
+    gateOpen() { return true; },
+    openGate() { /* 구 저장과의 호환용. 더 이상 현실 미션이 스탯 분배를 잠그지 않음. */ },
     usableFree() { return this.gateOpen() ? this.S.freePoints : 0; },
     pool() { return this.usableFree() + this.S.trainingPoints; },
     // pending: { STR: 2, ... }. 레벨 포인트를 먼저 쓰고 부족하면 훈련 포인트를 씀
@@ -337,12 +337,12 @@ window.AU = window.AU || {};
     restMission(id) { return AU.REST_MISSIONS.find((m) => m.id === id); },
     // 선택형 '쉼' 현실 미션: 하루에 같은 미션은 한 번. 자기보고이며 마음 스탯·훈련 포인트와는 무관
     restMissionAvailable(id) { return this.S.flags.missionsUnlocked && this.S.skills.unlocked.length > 0 && this.S.rest.done[id] !== AU.dateStr(); },
-    restNoteOk(note) { return String(note || "").replace(/\s+/g, " ").trim().length >= C.fatigue.restNoteMin; }, // 쉼 미션 소감: 한 문장 이상(최소 글자 수)
+    restNoteOk(note) { return !!(note && typeof note === 'object' && ['calm', 'same', 'mixed', 'tense', 'other'].includes(note.feeling)); }, // 감정 선택 필수, 자유 소감은 선택
     doRestMission(id, note) {
       const S = this.S, m = this.restMission(id); if (!m || !this.restMissionAvailable(id)) return false;
-      if (!this.restNoteOk(note)) { this.toast("느낀 감정을 " + C.fatigue.restNoteMin + "자 이상 적어 주세요.", "warn"); return false; }
-      const text = String(note).replace(/\s+/g, " ").trim().slice(0, C.fatigue.restNoteMax);
-      this.openGate(); S.rest.done[id] = AU.dateStr(); S.rest.log.push({ t: AU.dateStr(), id, recover: m.recover, note: text }); if (S.rest.log.length > 200) S.rest.log.shift();
+      if (!this.restNoteOk(note)) { this.toast("활동 후 느낀 상태를 한 가지 선택해 주세요.", "warn"); return false; }
+      const text = String(note.note || "").replace(/\s+/g, " ").trim().slice(0, C.fatigue.restNoteMax);
+      S.rest.done[id] = AU.dateStr(); S.rest.log.push({ t: AU.dateStr(), id, recover: m.recover, feeling: note.feeling, note: text, proof: "self_report" }); if (S.rest.log.length > 200) S.rest.log.shift();
       const before = S.fatigue; this.relieve("mission", m.recover, m.title);
       this.log("쉼 미션 완료: " + m.title); this.toast("쉼 미션 완료! 피로도 −" + Math.round((before - S.fatigue) * 10) / 10 + " (현재 " + S.fatigue + " / " + S.fatigueMax + ")", "good");
       this.save("rest"); return true;
@@ -383,7 +383,7 @@ window.AU = window.AU || {};
       for (const m of AU.MISSIONS) { const r = S.missions.states[m.id]; if (r.state === "locked" && (!m.pre || this.ms(m.pre).state === "done")) r.state = "available"; }
       this.save("mission"); this.changed(); return true;
     },
-    setMissionState(id, next) {
+    setMissionState(id, next, feedback) {
       const S = this.S; if (!S.flags.missionsUnlocked) return false;
       this.initMissions();
       const r = S.missions.states[id], m = this.mission(id); if (!r || !m) return false;
@@ -392,6 +392,7 @@ window.AU = window.AU || {};
         skip: ["available", "accepted", "attempted", "partial"], retry: ["partial", "skipped"]
       };
       if (!ok[next] || !ok[next].includes(r.state)) return false;
+      const review = this.validMissionFeedback(feedback) ? { challenge: feedback.challenge, meaning: feedback.meaning, satisfaction: feedback.satisfaction, note: String(feedback.note || '').trim().slice(0, 200) } : null;
       let points = 0, capped = false, gained = 0;
       if (next === "accept") r.state = "accepted";
       else if (next === "attempt") { r.state = "attempted"; r.tries++; }
@@ -405,19 +406,20 @@ window.AU = window.AU || {};
           const room = Math.max(0, C.missions.weeklyPointCap - S.missions.weekPoints);
           points = Math.min(m.points, room); capped = points < m.points;
           S.trainingPoints += points; S.missions.weekPoints += points; r.rewarded = true;
-          gained = this.gainMind(m.perma, m.points); // 마음 스탯은 주간 한도와 무관하게 오름(전투 스탯과 별개)
+          gained = this.gainMind(m.perma, m.points + (review ? 1 : 0)); // 기본 실천 점수 + 평가 참여 1점. 높은 만족도 자체에는 가산하지 않음
         }
         for (const n of AU.MISSIONS) { const nr = S.missions.states[n.id]; if (n.pre === id && nr.state === "locked" && S.flags.guideMet) nr.state = "available"; }
       }
       // 수행 상태(state)와 인증 자료(proof)는 따로 기록. 지금은 자기보고만 있음
-      S.missions.log.push({ t: AU.dateStr(), id, perma: m.perma, state: r.state, points, capped, proof: "self_report" });
+      S.missions.log.push({ t: AU.dateStr(), id, perma: m.perma, state: r.state, points, capped, reflection: review, mindGained: gained, proof: "self_report" });
       if (next === "done") {
-        this.openGate(); this.log("현실 미션 완료: " + m.title);
+        this.log("현실 미션 완료: " + m.title);
         const mindTxt = gained ? " · 마음 [" + AU.PERMA[m.perma] + "] +" + gained : "";
         this.toast((points ? "현실 미션 완료! 훈련 포인트 +" + points : (r.rewarded && capped ? "이번 주 훈련 포인트 한도에 도달해 포인트는 지급되지 않았습니다" : "현실 미션 완료")) + mindTxt, "good");
       }
       this.save("mission"); this.changed(); return true;
     },
+    validMissionFeedback(x) { return !!(x && typeof x === 'object' && ['challenge','meaning','satisfaction'].every(k => Number.isInteger(x[k]) && x[k] >= 1 && x[k] <= 5)); },
     /* ---------- 마음 스탯(PERMA 5): 현실 미션을 수행하면 오르는 수치 ----------
        전투 스탯과 따로 보관하며 전투 능력에는 영향을 주지 않습니다(게임 효과 연결은 [미정]). 같은 미션의 보상은 한 번만. */
     /* 마음 스탯 변화 추이: '이전' = 이번 주가 시작될 때의 기록(주가 바뀌면 그 시점의 수치로 새로 찍음). 현재−이전 = 이번 주에 오른 만큼.
@@ -441,7 +443,7 @@ window.AU = window.AU || {};
       return n;
     },
     // 영역별 현재 목록에서 얻을 수 있는 최대치(막대 길이 기준). 미션이 늘면 자동으로 늘어남
-    mindMax(k) { return AU.MISSIONS.filter((m) => m.perma === k).reduce((a, m) => a + m.points, 0); },
+    mindMax(k) { return AU.MISSIONS.filter((m) => m.perma === k).reduce((a, m) => a + m.points + 1, 0); },
     // 영역별(PERMA) 주간 완료 횟수: 마음 기록 화면용
     permaCounts() {
       const out = {}; for (const k of Object.keys(AU.PERMA)) out[k] = 0;
