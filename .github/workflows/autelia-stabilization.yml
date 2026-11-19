@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - chore/stabilization-baseline-20261119
+      - fix/gallery-visual-layout-20261119
       - feat/gallery-immersive-art-20261119
   workflow_dispatch:
 
