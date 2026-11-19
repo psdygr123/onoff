@@ -34,7 +34,17 @@ const { chromium } = require('playwright');
   });
   test('ROOM9 gallery occupies most of 1280x720 stage',visual.shareW>=.95&&visual.shareH>=.95&&visual.centerH>=300,visual);
   test('ROOM10 all watercolor SVG assets load',visual.count>=7&&visual.invalid.length===0&&visual.roomBg.includes('personal_gallery_room.svg'),visual);
-  await p.screenshot({path:(process.env.SHOTS||'/tmp/autelia-shots')+'/gallery_immersive_art.png'});
+  const clipping = await p.evaluate(() => {
+    const body=document.querySelector('.win-gallery .wbody');
+    const actions=document.querySelector('.room-a-actions');
+    const gallery=document.querySelector('.room-a-columns');
+    const br=body.getBoundingClientRect(), ar=actions.getBoundingClientRect(), gr=gallery.getBoundingClientRect();
+    return { scrollHeight:body.scrollHeight, clientHeight:body.clientHeight, actionsBottom:ar.bottom, viewportBottom:br.bottom, galleryBottom:gr.bottom };
+  });
+  test('ROOM11 gallery actions and content fit viewport without outer scrolling',
+    clipping.scrollHeight<=clipping.clientHeight+3 && clipping.actionsBottom<=clipping.viewportBottom+2 && clipping.galleryBottom<=clipping.viewportBottom+2,
+    clipping);
+    await p.screenshot({path:(process.env.SHOTS||'/tmp/autelia-shots')+'/gallery_layout_corrected.png'});
 
 
  }finally{await b.close();}
