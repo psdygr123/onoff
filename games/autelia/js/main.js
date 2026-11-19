@@ -3,7 +3,7 @@ window.AU = window.AU || {};
 (function () {
   const C = AU.CONFIG;
   const embedded = window.parent !== window;
-  const main = AU.main = { embedded, resetting: false, running: false, platform: null, post(type, payload) { if (embedded) { try { parent.postMessage({ source: "onoff-game", type, payload }, "*"); } catch (e) { /* 무시 */ } } } };
+  const main = AU.main = { embedded, galleryOnly: /[?&]space=1(?:&|$)/.test(location.search), resetting: false, running: false, platform: null, post(type, payload) { if (embedded) { try { parent.postMessage({ source: "onoff-game", type, payload }, "*"); } catch (e) { /* 무시 */ } } } };
 
   /* ---------- 설정(키 배치 등): 게임 저장과 분리 ---------- */
   main.saveSettings = function () { AU.Store.set(C.save.settingsKey, { v: 1, bindings: AU.Input.bindings, confirmUnload: AU.UI.settings.confirmUnload, reduceFx: !!AU.UI.settings.reduceFx, mute: !!AU.UI.settings.mute, volBgm: AU.UI.settings.volBgm, volSfx: AU.UI.settings.volSfx, volCombat: AU.UI.settings.volCombat }); };
@@ -63,7 +63,9 @@ window.AU = window.AU || {};
   main.exitGame = function () {
     AU.G.save("exit");
     if (embedded) { AU.main.post("exit"); return; }
-    main.running = false; main.resetting = true; location.reload();
+    main.running = false; main.resetting = true;
+    if (main.galleryOnly) { location.replace("index.html"); return; }
+    location.reload();
   };
   main.resetAll = function () {
     main.resetting = true; AU.Store.remove(C.save.key); location.reload();
@@ -92,6 +94,11 @@ window.AU = window.AU || {};
 
     AU.Profile.apply();
     buildTitle(!!saved);
+    if (main.galleryOnly) {
+      // 게임 루프를 시작하지 않은 상태에서 동일한 저장 슬롯의 갤러리만 엽니다.
+      document.getElementById("title").classList.add("hidden");
+      AU.UI.open("gallery");
+    }
     main.saveTimer = setInterval(() => { if (main.running) AU.G.save("autosave"); }, C.save.autosaveSec * 1000);
     const flush = () => { if (main.running && !main.resetting) AU.G.save("autosave"); };
     window.addEventListener("pagehide", flush);

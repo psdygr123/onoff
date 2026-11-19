@@ -12,7 +12,7 @@ const R = []; const ok = (n, c, d) => { R.push([n, !!c]); console.log((c ? 'PASS
   ok('J02a 직업군 화면: 용사만 열림, 나머지는 추후 공개 예정', j0.cards.join(',') === 'hero:sel,soon1:lock,soon2:lock', j0.cards.join(','));
   await p.click('#job-next'); await sleep(200);
   const jl = await ev(() => Array.from(document.querySelectorAll('.jcard')).map((c) => c.dataset.line + (c.classList.contains('lock') ? ':lock' : '') + (c.classList.contains('sel') ? ':sel' : '')).join(',') + '|' + document.querySelectorAll('.jcard p').length);
-  ok('J02 용사 다음 창: 다섯 계열, 전사만 선택 가능, 설명 문구 없음', jl === 'warrior:sel,mage:lock,archer:lock,rogue:lock,pirate:lock|0', jl);
+  ok('J02 용사 다음 창: 다섯 계열, 전사만 선택 가능, 설명 1개', jl === 'warrior:sel,mage:lock,archer:lock,rogue:lock,pirate:lock|1', jl);
   await p.click('#jl-mage', { force: true }); await sleep(150);
   const j1 = await ev(() => ({ sel: document.querySelector('.jcard.sel').dataset.line, note: document.querySelector('.jnote').textContent }));
   ok('J03 잠긴 계열을 누르면 선택되지 않고 안내만', j1.sel === 'warrior' && /준비 중/.test(j1.note), JSON.stringify(j1));

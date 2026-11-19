@@ -16,7 +16,7 @@ window.AU = window.AU || {};
   }
   const btn = (label, cls, fn, extra) => h("button", Object.assign({ type: "button", class: "btn " + (cls || ""), onclick: fn }, extra || {}), label);
   const WIN_KEYS = { inventory: "inventory", equipment: "equipment", stats: "stats", worldmap: "worldmap", quests: "quests", skills: "skills", journal: "journal", help: "help", keysettings: "keysettings" };
-  const WIN_TITLE = { inventory: "인벤토리", equipment: "장비", stats: "스탯", worldmap: "월드맵", quests: "퀘스트", skills: "스킬", journal: "모험일지", help: "기능 안내", keysettings: "설정 (소리·키보드)", menu: "메뉴", jobcard: "전직", shop: "상점", dev: "개발 테스트" };
+  const WIN_TITLE = { inventory: "인벤토리", equipment: "장비", stats: "스탯", worldmap: "월드맵", quests: "퀘스트", skills: "스킬", journal: "모험일지", gallery: "나만의 공간", help: "기능 안내", keysettings: "설정 (소리·키보드)", menu: "메뉴", jobcard: "전직", shop: "상점", dev: "개발 테스트" };
 
   /* ---------- 키 이름 표시 ---------- */
   AU.keyLabel = function (code) {
@@ -260,6 +260,7 @@ window.AU = window.AU || {};
       AU.Input.held.clear();
     },
     close() {
+      if (AU.main && AU.main.galleryOnly && this.curName === "gallery") { AU.main.exitGame(); return; }
       this.resetPending(); this.cur = null; this.curName = null; this.listening = null; AU.G.shop = null; this.winEl.classList.add("hidden"); this.winEl.innerHTML = ""; if (AU.Guide) AU.Guide.closed();
       AU.Input.held.clear(); AU.G.save("menu-close");
     },
@@ -372,11 +373,130 @@ window.AU = window.AU || {};
   /* ============ 창 내용 ============ */
   const R = UI.renders = {};
 
+  /* 나만의 공간 — 선택된 시안 A: 따뜻한 기억 갤러리, 실제 저장 데이터를 사용 */
+  R.gallery = function (b) {
+    const S = AU.G.S, g = AU.G.galleryState(), items = AU.G.galleryItems();
+    const unlocked = new Set(g.unlocked), selected = new Set(g.selected);
+    const today = AU.dateStr(), attended = g.attendance.includes(today);
+    const mission = (e) => AU.G.mission(e.id);
+    const shown = S.missions.log.filter(e => ["done", "attempted", "partial"].includes(e.state)).slice().reverse();
+    const memories = shown.filter((e, i, arr) => arr.findIndex(x => x.id === e.id) === i).slice(0, 30);
+    const lastThree = memories.slice(0, 3);
+    const active = AU.MISSIONS.filter(m => {
+      const state = AU.G.ms(m.id).state;
+      return ["available", "accepted", "attempted", "partial"].includes(state);
+    }).slice(0, 3);
+    const statusName = (e) => e.state === "done" ? "완료" : e.state === "partial" ? "조금 해봤어요" : "시도함";
+    const statusClass = (e) => e.state === "done" ? "done" : "attempt";
+    const dailyRows = ["P", "E", "R", "M", "A"].map(k => {
+      const value = S.mindStats[k] || 0, max = Math.max(1, AU.G.mindMax(k));
+      return { key: k, label: AU.PERMA[k], value, pct: Math.round(value / max * 100) };
+    });
+    const openJournal = () => { UI.tab.j = "missions"; UI.tab.jg = "real"; UI.open("journal"); };
+    const toggleShop = () => { UI.tab.galleryShop = !UI.tab.galleryShop; UI.renderWin(); };
+    const card = (entry, i) => {
+      if (!entry) return h("div", { class: "roommemory empty-memory" }, h("div", { class: "roommemory-art" }, "✧"), h("small", { text: "새 경험을 기다리는 액자" }));
+      const m = mission(entry), k = entry.perma || "P";
+      return h("div", { class: "roommemory " + statusClass(entry) },
+        h("div", { class: "roommemory-art perma-" + k }, h("span", { class: "roommemory-sigil", text: ({P:"☀",E:"✦",R:"♡",M:"❀",A:"★"})[k] || "✧" })),
+        h("span", { class: "roommemory-state", text: statusName(entry) }),
+        h("strong", { text: m ? m.title : "나의 경험" }),
+        h("small", { text: entry.t }));
+    };
+    const panel = (cls, title, ...contents) => h("section", { class: "room-panel " + cls }, h("h3", { class: "room-section-title", text: title }), ...contents);
+    const dateLabel = new Date().toLocaleDateString("ko-KR", { month: "long", day: "numeric", weekday: "short" });
+    const missionList = active.length ? active.map(m => {
+      const state = AU.G.ms(m.id).state;
+      return h("div", { class: "roomactivity " + (state === "attempted" || state === "partial" ? "is-attempted" : "") },
+        h("span", { class: "roomactivity-icon", text: ({ P: "☀", E: "✦", R: "♡", M: "❀", A: "★" })[m.perma] || "✧" }),
+        h("div", { class: "roomactivity-text" },
+          h("strong", { text: m.title }),
+          h("small", { text: state === "attempted" ? "시도 중 · 이어서 해볼 수 있어요" : state === "partial" ? "조금 해봤어요 · 경험이 남았어요" : state === "accepted" ? "선택한 활동" : "언제든 선택할 수 있어요" })),
+        h("span", { class: "roomactivity-label", text: state === "attempted" || state === "partial" ? "시도함" : state === "accepted" ? "선택" : "제안" }));
+    }) : [h("p", { class: "note", text: S.flags.missionsUnlocked ? "표시할 새 미션이 없습니다. 모험일지에서 전체 기록을 확인하세요." : "현실 미션은 게임에서 안내를 받은 뒤 열립니다. 그 전에도 공간을 꾸미고 방문 기록을 남길 수 있습니다." })];
+    const slots = AU.main && AU.main.galleryOnly ? h("div", { class: "roomstandalone" },
+      h("p", { class: "note", text: "RPG를 시작하지 않고 이용 중입니다. 캐릭터별 저장 공간은 서로 독립적입니다." }),
+      h("div", { class: "choices" },
+        ...AU.main.SLOTS.map(n => { const info = AU.main.slotInfo(n); return btn(n + "번 " + (info ? info.name : "새 캐릭터") + (n === AU.main.slot ? " ✓" : ""), n === AU.main.slot ? "on" : "mini", () => { if (n !== AU.main.slot) AU.main.setSlot(n); }, { disabled: n === AU.main.slot ? "" : null }); }),
+        btn("공간에서 나가기", "", () => AU.main.exitGame()))) : null;
+    const left = panel("room-left", "⌂  오늘의 활동",
+      h("div", { class: "room-date", text: dateLabel }),
+      h("p", { class: "room-greeting", text: "오늘의 작은 시도도 소중한 경험으로 남습니다." }),
+      h("h4", { text: "현실 미션" }),
+      h("div", { class: "roomactivities" }, ...missionList),
+      btn("전체 활동 보기", "mini", openJournal),
+      h("p", { class: "room-affirmation", text: "끝내지 못한 경험도 이 공간에 남길 수 있습니다." }));
+    const frames = h("div", { class: "roomframes" },
+      ...[0,1,2].map(i => { const entry = lastThree[i], m = entry && mission(entry);
+        return h("div", { class: "roomframe" },
+          h("div", { class: "roomframein" },
+            entry ? h("span", { class: "symbol", text: ({P:"☀",E:"✦",R:"♡",M:"❀",A:"★"})[entry.perma] || "✧" }) : h("span", { class: "symbol", text: "✧" }),
+            h("strong", { text: entry ? (m ? m.title : "나의 활동") : "새 경험을 기다리는 액자" }),
+            h("small", { text: entry ? statusName(entry) : "나의 추억" })));
+      }));
+    const center = h("section", { class: "room-center" },
+      h("div", { class: "personalroom" },
+        h("div", { class: "roomwall" },
+          h("div", { class: "roomwindow" }, h("span", { text: "☀" })),
+          h("div", { class: "roomcrest", text: "✦" }),
+          frames,
+          h("div", { class: "roomdecors" }, ...items.filter(item => selected.has(item.id)).map(item => h("span", { title: item.name, text: item.icon })))),
+        h("div", { class: "roomfloor" }, h("div", { class: "roomrug", text: "나의 이야기" }))),
+      h("div", { class: "room-recent" }, h("h3", { text: "▤  최근 기록" }),
+        h("p", { class: "note", text: "시도한 경험도, 완료한 경험도 함께 남습니다." }),
+        h("div", { class: "room-recent-grid" }, ...[0,1,2].map(i => card(lastThree[i],i)))));
+    const makeChart = () => {
+      const ns = "http://www.w3.org/2000/svg", svg = document.createElementNS(ns, "svg");
+      svg.setAttribute("viewBox", "0 0 240 205"); svg.setAttribute("role", "img"); svg.setAttribute("aria-label", "현실 미션 실천 기록에 따른 PERMA 영역별 성장치");
+      const xy = (i, pct) => { const angle = -Math.PI/2 + i*2*Math.PI/5; return [120 + Math.cos(angle)*86*pct, 98 + Math.sin(angle)*83*pct]; };
+      const poly = (points, fill, stroke, opacity) => { const p = document.createElementNS(ns,"polygon"); p.setAttribute("points",points.map(v=>v.join(",")).join(" "));p.setAttribute("fill",fill);p.setAttribute("stroke",stroke);p.setAttribute("stroke-width","1.5");if(opacity)p.setAttribute("opacity",opacity);svg.appendChild(p); };
+      for (const t of [.25,.5,.75,1]) poly(dailyRows.map((_,i)=>xy(i,t)),"none","#baaf8e","0.7");
+      dailyRows.forEach((d,i)=>{const line=document.createElementNS(ns,"line");const [x,y]=xy(i,1);line.setAttribute("x1","120");line.setAttribute("y1","98");line.setAttribute("x2",x);line.setAttribute("y2",y);line.setAttribute("stroke","#c8baa0");svg.appendChild(line);});
+      poly(dailyRows.map((d,i)=>xy(i,Math.max(0,Math.min(1,d.pct/100)))),"#d8b66b","#a87b32","0.85");
+      dailyRows.forEach((d,i)=>{const [x,y]=xy(i,1.16);const label=document.createElementNS(ns,"text");label.setAttribute("x",x);label.setAttribute("y",y+4);label.setAttribute("text-anchor","middle");label.setAttribute("font-size","15");label.setAttribute("font-weight","700");label.setAttribute("fill","#70552d");label.textContent=d.key;svg.appendChild(label);});
+      return svg;
+    };
+    const radar = h("div", { class: "room-radar" }, makeChart(),
+      h("div", { class: "room-perma-legend" }, ...dailyRows.map(d => h("div", { class: "room-perma-row" },
+        h("strong", { text: d.key }), h("span", { text: d.label }), h("b", { text: d.value + "점" })))));
+    const right = h("aside", { class: "room-right" },
+      panel("room-growth", "♧  마음 성장",
+        h("p", { class: "note", text: "현실 활동의 누적 실천 점수입니다. 심리검사 결과나 행복 수준을 뜻하지 않습니다." }),
+        radar,
+        h("div", { class: "room-perma-bars" }, ...dailyRows.map(d => h("div", { class: "room-perma-meter" },
+          h("span", { text: d.key }), h("div", { class: "room-meter-track" }, h("i", { style: "width:" + d.pct + "%" })), h("small", { text: d.pct + "%" }))))),
+      h("div", { class: "room-counter-grid" },
+        panel("room-token-panel", "갤러리 토큰", h("b", { class: "room-big-number", text: g.tokens + "개" })),
+        panel("room-visit-panel", "오늘 방문 기록", h("b", { class: "room-big-number", text: attended ? "방문 완료" : "미기록" }),
+          h("small", { text: "누적 " + g.attendance.length + "일" }))),
+      btn(attended ? "오늘 방문 기록 완료" : "오늘 방문 기록하기 (+1)", "primary room-visit-btn", () => AU.G.galleryCheckin(), { disabled: attended ? "" : null }),
+      panel("room-decor-panel", "공간 꾸미기",
+        h("div", { class: "room-decor-icons" }, ...items.slice(0,3).map(item => h("span", { title: item.name, text: item.icon }))),
+        btn("장식 관리 " + (UI.tab.galleryShop ? "접기" : "열기"), "mini", toggleShop)));
+    b.append(h("div", { class: "room-a-layout" },
+      h("div", { class: "room-a-heading" }, h("div", null,
+        h("h2", { text: "나만의 공간" }), h("p", { text: "오늘의 경험이 쌓여 만들어지는 나만의 기억 갤러리" })),
+        h("span", { class: "room-a-tag", text: "아우텔리아 · 성장 기록" })),
+      slots,
+      h("div", { class: "room-a-columns" }, left, center, right),
+      UI.tab.galleryShop ? panel("room-shop-panel", "꾸미기 상점 · 전시 설정",
+        h("div", { class: "roomshop" }, ...items.map(item => h("div", { class: "roomshopitem" },
+          h("span", { class: "roomicon", text: item.icon }), h("b", { text: item.name }), h("p", { class: "note", text: item.desc }),
+          btn(unlocked.has(item.id) ? (selected.has(item.id) ? "전시 중 · 숨기기" : "전시하기") : "토큰 " + item.cost + "개로 획득",
+            "mini", () => unlocked.has(item.id) ? AU.G.galleryToggle(item.id) : AU.G.galleryBuy(item.id),
+            { disabled: !unlocked.has(item.id) && g.tokens < item.cost ? "" : null }))))) : null,
+      h("div", { class: "room-a-actions" },
+        btn("공간 꾸미기", "primary", toggleShop),
+        btn("기록 보기", "", openJournal),
+        btn("방문 기록", "", () => { if (!attended) AU.G.galleryCheckin(); }),
+        btn("나가기", "", () => AU.main && AU.main.galleryOnly ? AU.main.exitGame() : UI.close()))));
+  };
+
   R.menu = function (b) {
     const S = AU.G.S;
-    let items = [["인벤토리", "inventory"], ["장비", "equipment"], ["스탯", "stats"], ["월드맵", "worldmap"], ["퀘스트", "quests"], ["스킬", "skills"], ["모험일지", "journal"], ["기능 안내", "help"], ["키보드 설정", "keysettings"]];
+    let items = [["인벤토리", "inventory"], ["장비", "equipment"], ["스탯", "stats"], ["월드맵", "worldmap"], ["퀘스트", "quests"], ["스킬", "skills"], ["모험일지", "journal"], ["나만의 공간", "gallery"], ["기능 안내", "help"], ["키보드 설정", "keysettings"]];
     if (AU.Prologue && AU.Prologue.on) items = items.filter(([, n]) => AU.Prologue.allowWin(n)); // 프롤로그 중에는 필요한 메뉴만
-    b.append(h("div", { class: "menugrid" }, items.map(([label, name]) => btn(h("span", null, label, h("em", { text: "[" + keyOf(WIN_KEYS[name]) + "]" })), "menuitem", () => this.open(name)))));
+    b.append(h("div", { class: "menugrid" }, items.map(([label, name]) => btn(h("span", null, label, h("em", { text: WIN_KEYS[name] ? "[" + keyOf(WIN_KEYS[name]) + "]" : "" })), "menuitem", () => this.open(name)))));
     const row = h("div", { class: "menurow" },
       btn("게임으로 돌아가기", "primary", () => this.close()),
       btn("게임 종료하기", "", () => this.confirm("정말로 종료하겠습니까?\n현재까지 게임을 저장합니다.", "저장하고 종료", () => AU.main.exitGame())));
@@ -524,7 +644,7 @@ window.AU = window.AU || {};
   /* 마음 능력치(PERMA 5) 표시: 수치·막대·방금 오른 양. 스탯 창과 수행 기록 탭에서 같이 씀 */
   UI.mindBlock = function () {
     const S = AU.G.S, last = S.mind && S.mind.last, tr = AU.G.mindTrend(), keys = Object.keys(AU.PERMA);
-    const box = h("div", { class: "mindbox" }, h("h3", { text: "마음 능력치" }));
+    const box = h("div", { class: "mindbox" }, h("h3", { text: "마음 성장 · 실천 경험" }));
     // 오각형 레이더: 바깥쪽이 영역별 만점(해당 영역 미션 점수 합). 현재(초록 면) vs 이전(회색 점선)
     const CX = 130, CY = 124, R0 = 92, pt = (i, f) => { const a = -Math.PI / 2 + i * 2 * Math.PI / keys.length; return [CX + Math.cos(a) * R0 * f, CY + Math.sin(a) * R0 * f]; };
     const poly = (f) => keys.map((k, i) => pt(i, f(k)).map((n) => n.toFixed(1)).join(",")).join(" ");
@@ -547,7 +667,7 @@ window.AU = window.AU || {};
         h("span", { class: "mup", text: fresh ? "방금 +" + last.n : "" })));
     }
     box.append(h("div", { class: "mtrend" }, chart, rows));
-    box.append(h("p", { class: "note", text: "현실 미션을 완료하면 해당 영역 수치가 오르고 이곳에 기록됩니다. 점선·세로선의 '이전'은 이번 주가 시작될 때의 기록입니다." }));
+    box.append(h("p", { class: "note", text: "현실 활동 완료 시 기본 점수가 오르고, 자기평가 3항목을 기록하면 추가 1점이 쌓입니다. 점선·세로선의 '이전'은 이번 주가 시작될 때의 기록입니다." }));
     box.append(h("p", { class: "note", text: "이것은 게임 속 활동 점수이며 행복이나 건강 상태를 재는 검사 점수가 아닙니다. 전투에는 영향을 주지 않습니다." }));
     if (AU.G.rollMindWeek()) AU.G.save("mind");
     return box;
@@ -586,16 +706,45 @@ window.AU = window.AU || {};
     iv = setInterval(tick, 250); tick();
   };
 
-  /* 쉼 미션을 마친 뒤: 어떤 감정이 느껴졌는지 한 문장 이상(최소 글자 수) 적어야 피로도가 줄어듦 */
-  UI.restNote = function (m, onSubmit) {
-    const wrap = UI.modalEl, MIN = C.fatigue.restNoteMin; UI.modal = true; wrap.classList.remove("hidden"); wrap.innerHTML = "";
-    const ta = h("textarea", { class: "memo", maxlength: String(C.fatigue.restNoteMax), rows: "4", placeholder: "예: 숨을 고르고 나니 어깨가 풀리고 마음이 한결 차분해졌어요." }), cnt = h("div", { class: "rncount" });
-    const ok = btn("기록하고 쉼 마치기", "primary", () => { if (!AU.G.restNoteOk(ta.value)) return; close(); onSubmit(ta.value); }, { disabled: "" }), no = btn("취소", "", () => close());
+  /* 짧은 자기평가: 점수는 응답의 긍정성 자체가 아니라 평가 참여 여부만 반영합니다. */
+  UI.missionReview = function (m, next, onSubmit) {
+    const wrap = UI.modalEl; UI.modal = true; wrap.classList.remove("hidden"); wrap.innerHTML = "";
+    const ratings = {}, labels = [["challenge", "얼마나 도전적이었나요?"], ["meaning", "나에게 얼마나 의미 있었나요?"], ["satisfaction", "활동 후 얼마나 만족스러웠나요?"]];
+    const fields = labels.map(([key, label]) => {
+      const sel = h("select", { "aria-label": label });
+      sel.append(h("option", { value: "", text: "선택해 주세요" }));
+      for (let i = 1; i <= 5; i++) sel.append(h("option", { value: String(i), text: i + " / 5" }));
+      ratings[key] = sel; return h("label", { class: "note" }, label, sel);
+    });
+    const ta = h("textarea", { class: "memo", maxlength: "200", rows: "3", placeholder: "선택: 어떤 경험이었는지 자유롭게 적어 주세요." });
     const close = () => { UI.modal = false; wrap.classList.add("hidden"); wrap.innerHTML = ""; };
-    const upd = () => { const n = ta.value.replace(/\s+/g, " ").trim().length, good = n >= MIN; cnt.textContent = n + " / 최소 " + MIN + "자"; cnt.classList.toggle("good", good); if (good) ok.removeAttribute("disabled"); else ok.setAttribute("disabled", ""); };
-    ta.addEventListener("input", upd);
-    wrap.append(h("div", { class: "panel modal restnote" }, h("h3", { text: m.title + " · 어떤 감정이 느껴졌나요?" }), h("p", { class: "note", text: "방금 쉬면서 느낀 감정을 한 문장 이상으로 적어 주세요. (최소 " + MIN + "자) 잘 쓰려고 애쓰지 않아도 괜찮아요." }), ta, cnt, h("div", { class: "choices" }, ok, no)));
-    upd(); setTimeout(() => ta.focus(), 50);
+    const submit = () => {
+      const review = Object.fromEntries(labels.map(([key]) => [key, Number(ratings[key].value)]));
+      review.note = ta.value;
+      if (!AU.G.validMissionFeedback(review)) return;
+      close(); onSubmit(review);
+    };
+    const yes = btn(next === "partial" ? "시도 기록하기" : "평가하고 완료하기", "primary", submit, { disabled: "" });
+    const upd = () => { if (labels.every(([key]) => ratings[key].value)) yes.removeAttribute("disabled"); else yes.setAttribute("disabled", ""); };
+    for (const s of Object.values(ratings)) s.addEventListener("change", upd);
+    wrap.append(h("div", { class: "panel modal restnote" }, h("h3", { text: m.title + " · 활동 돌아보기" }),
+      h("p", { class: "note", text: "세 항목은 정답이 없습니다. 어려움·낮은 만족도도 그대로 기록해 주세요. 소감 글쓰기는 선택입니다." }),
+      ...fields, ta, h("div", { class: "choices" }, yes, btn("평가 없이 계속", "", () => { close(); onSubmit(null); }), btn("취소", "", close))));
+    upd();
+  };
+
+  UI.restNote = function (m, onSubmit) {
+    const wrap = UI.modalEl; UI.modal = true; wrap.classList.remove("hidden"); wrap.innerHTML = "";
+    const feeling = h("select", { "aria-label": "활동 후 느낀 상태" });
+    feeling.append(h("option", { value: "", text: "느낀 상태를 선택해 주세요" }));
+    for (const [value, label] of [["calm","조금 편안해졌어요"],["same","별다른 변화가 없었어요"],["mixed","여러 감정이 섞여 있어요"],["tense","아직 긴장되거나 불편해요"],["other","그 밖의 느낌이에요"]]) feeling.append(h("option", { value, text: label }));
+    const ta = h("textarea", { class: "memo", maxlength: String(C.fatigue.restNoteMax), rows: "3", placeholder: "선택: 경험을 자유롭게 적어 주세요." });
+    const close = () => { UI.modal = false; wrap.classList.add("hidden"); wrap.innerHTML = ""; };
+    const ok = btn("쉼 기록하고 마치기", "primary", () => { if (!feeling.value) return; close(); onSubmit({ feeling: feeling.value, note: ta.value }); }, { disabled: "" });
+    feeling.addEventListener("change", () => { if (feeling.value) ok.removeAttribute("disabled"); else ok.setAttribute("disabled", ""); });
+    wrap.append(h("div", { class: "panel modal restnote" }, h("h3", { text: m.title + " · 쉰 뒤 어떤 느낌이었나요?" }),
+      h("p", { class: "note", text: "느낀 상태를 선택하면 기록할 수 있습니다. 편안해지지 않았더라도 보상은 같습니다. 글쓰기는 선택입니다." }),
+      feeling, ta, h("div", { class: "choices" }, ok, btn("취소", "", close))));
   };
 
   R.stats = function (b) {
@@ -617,7 +766,7 @@ window.AU = window.AU || {};
     const cmp = (label, k, u, bonus) => h("div", { class: "cmp" }, h("span", { text: label }), h("b", { text: d0[k] + u }), d1[k] !== d0[k] ? h("span", { text: "→ " }) : null, d1[k] !== d0[k] ? h("b", { class: "up", text: d1[k] + u }) : null, bonus ? h("em", { text: "장비 +" + bonus + u }) : null);
     const derived = h("div", { class: "derived" }, h("h3", { text: "전투 능력치" }), cmp("공격력", "atk", "", eq.atk), cmp("최대 HP", "maxHp", "", eq.hp), cmp("회피율", "dodge", "%", eq.dodge), cmp("치명타율", "crit", "%", eq.crit), cmp("스킬 피로 감소", "eff", "%", 0));
     const actions = h("div", { class: "statactions" }, btn("초기화", "", () => { UI.resetPending(); UI.renderWin(); }, { disabled: pend ? null : "" }), btn("적용 (" + pend + "점)", "primary", () => { const a = {}; for (const k of Object.keys(P)) if (P[k]) a[k] = P[k]; if (AU.G.applyAllocation(a)) UI.resetPending(); UI.renderWin(); }, { disabled: pend ? null : "" }));
-    const locked = AU.G.awakened() && S.freePoints > 0 && !AU.G.gateOpen(), hint = locked ? "레벨 포인트 " + S.freePoints + "점이 잠겨 있습니다. 현실 미션(또는 쉼 미션)을 한 번 완료하면 Lv." + AU.G.gateBand() + " 구간의 포인트를 분배할 수 있습니다. 5레벨마다(10·15·20…) 한 번씩 필요합니다." : pool > 0 ? "＋ 버튼으로 미리 배분한 뒤 [적용]을 눌러야 확정·저장됩니다. 창을 닫으면 미적용분은 취소됩니다." : (S.jobChanged ? "남은 포인트가 없습니다. 레벨업(11레벨부터)이나 현실 미션으로 포인트를 얻을 수 있습니다." : "1~9레벨은 능력치가 자동으로 성장합니다. 10레벨 전직 후부터 직접 분배합니다.");
+    const locked = false, hint = pool > 0 ? "레벨 포인트는 현실 미션을 하지 않아도 사용할 수 있습니다. 기존에 획득한 훈련 포인트도 사용할 수 있습니다. ＋ 버튼으로 배분한 뒤 [적용]을 눌러 확정하세요." : (AU.G.awakened() ? "남은 포인트가 없습니다. 레벨업하면 전투 스탯을 얻으며, 현실 미션은 갤러리 토큰과 마음 성장을 제공합니다." : "1~9레벨은 능력치가 자동으로 성장합니다. 10레벨 힘의 각성 이후 직접 분배할 수 있습니다.");
     b.append(h("div", { class: "statlayout" }, left1, h("div", { class: "statmid" }, rows, h("p", { class: "note", text: hint }), locked ? btn("현실 미션 보기", "primary", () => { UI.tab.jg = "real"; UI.tab.j = "missions"; UI.open("journal"); }) : null, actions), derived));
   };
 
@@ -755,18 +904,18 @@ window.AU = window.AU || {};
     } else if (tab === "log") {
       b.append(logBox(logOf(null)));
     } else if (tab === "missions") {
-      if (!un) { b.append(h("div", { class: "missions preview" }, AU.MISSIONS.map((m) => h("div", { class: "mission st-locked" }, h("div", { class: "mh" }, h("span", { class: "tag perma", text: m.perma + " · " + AU.PERMA[m.perma] }), h("span", { class: "tag", text: "🔒 잠김" }), h("span", { class: "pts", text: "훈련 포인트 +" + m.points })), h("b", { text: m.title }), h("p", { text: m.desc }))))); return; }
+      if (!un) { b.append(h("div", { class: "missions preview" }, AU.MISSIONS.map((m) => h("div", { class: "mission st-locked" }, h("div", { class: "mh" }, h("span", { class: "tag perma", text: m.perma + " · " + AU.PERMA[m.perma] }), h("span", { class: "tag", text: "🔒 잠김" }), h("span", { class: "pts", text: "갤러리 토큰 +1" })), h("b", { text: m.title }), h("p", { text: m.desc }))))); return; }
       if (!S.flags.guideMet) { b.append(h("div", { class: "lockbox" }, h("h3", { text: "새로운 이야기를 기다리고 있어요" }), h("p", { text: "포르투 노바의 알렉시오스과 이야기를 나누면 이곳에 내용이 나타납니다." }))); return; }
       const M = S.missions;
-      b.append(h("div", { class: "msummary" }, h("span", { text: "훈련 포인트 보유 " }), h("b", { text: S.trainingPoints }), h("span", { text: "  ·  이번 주 획득 " }), h("b", { text: M.weekPoints + " / " + C.missions.weeklyPointCap }), h("span", { class: "note", text: "" })),
+      b.append(h("div", { class: "msummary" }, h("span", { text: "갤러리 토큰 " }), h("b", { text: AU.G.galleryState().tokens }), h("span", { text: " · 마음 성장과 개인 공간 꾸미기에 사용합니다." }), btn("나만의 공간 보기", "mini", () => UI.open("gallery"))),
         h("p", { class: "note", text: "현실 미션은 선택 사항입니다. 하지 않아도 모험을 계속할 수 있고, 수행 여부는 직접 기록하는 방식입니다." }));
       const grid = h("div", { class: "missions" });
       for (const m of AU.MISSIONS) {
         const r = M.states[m.id]; if (!r || r.state === "locked") continue;
         const acts = { available: [["수락", "primary", "accept"], ["건너뛰기", "", "skip"]], accepted: [["해 봤어요", "primary", "attempt"], ["건너뛰기", "", "skip"]], attempted: [["완료했어요", "primary", "done"], ["일부만 했어요", "", "partial"], ["건너뛰기", "", "skip"]],
           partial: [["완료했어요", "primary", "done"], ["다시 도전", "", "retry"], ["건너뛰기", "", "skip"]], skipped: [["다시 도전", "", "retry"]], done: [] }[r.state] || [];
-        grid.append(h("div", { class: "mission st-" + r.state }, h("div", { class: "mh" }, h("span", { class: "tag perma", text: m.perma + " · " + AU.PERMA[m.perma] }), h("span", { class: "tag", text: AU.MISSION_STATES[r.state] }), h("span", { class: "pts", text: r.rewarded ? "지급 완료" : "훈련 포인트 +" + m.points })),
-          h("b", { text: m.title }), h("p", { text: m.desc }), acts.length ? h("div", { class: "macts" }, acts.map(([l, c, a]) => btn(l, c, () => (m.guide && a === "attempt" ? UI.guided(m.title, m.guide, () => AU.G.setMissionState(m.id, a)) : AU.G.setMissionState(m.id, a))))) : null));
+        grid.append(h("div", { class: "mission st-" + r.state }, h("div", { class: "mh" }, h("span", { class: "tag perma", text: m.perma + " · " + AU.PERMA[m.perma] }), h("span", { class: "tag", text: AU.MISSION_STATES[r.state] }), h("span", { class: "pts", text: r.rewarded ? "지급 완료" : "갤러리 토큰 +1" })),
+          h("b", { text: m.title }), h("p", { text: m.desc }), acts.length ? h("div", { class: "macts" }, acts.map(([l, c, a]) => btn(l, c, () => ((a === "done" || a === "partial") ? UI.missionReview(m, a, (feedback) => AU.G.setMissionState(m.id, a, feedback)) : (m.guide && a === "attempt" ? UI.guided(m.title, m.guide, () => AU.G.setMissionState(m.id, a)) : AU.G.setMissionState(m.id, a)))))) : null));
       }
       b.append(grid);
     } else if (tab === "rest" && !un) {
@@ -774,7 +923,7 @@ window.AU = window.AU || {};
     } else if (tab === "rest" && !S.skills.unlocked.length) {
       b.append(h("div", { class: "lockbox lockband" }, h("b", { text: "🔒 스킬을 배우면 열립니다 (Lv.10)" }), h("p", { text: "피로도는 스킬을 쓸 때 쌓이는 수치입니다. 스킬을 배우는 시점에 설명과 회복 방법을 알려 드립니다." })));
     } else if (tab === "rest") {
-      b.append(h("p", { class: "note", text: "쉼 미션은 선택입니다. 하지 않아도 모험은 계속할 수 있고, 하면 피로도가 줄어듭니다. 같은 미션은 하루에 한 번입니다. 직접 해 보고 ‘해 봤어요’를 누른 뒤, 어떤 감정이 느껴졌는지 한 문장 이상 적어 주세요." }), UI.fatigueMeter(S, false));
+      b.append(h("p", { class: "note", text: "쉼 미션은 선택입니다. 같은 미션은 하루 한 번 가능하며, 실천 후 느낀 상태만 선택하면 됩니다. 자유 소감은 선택입니다." }), UI.fatigueMeter(S, false));
       const grid = h("div", { class: "missions" });
       for (const m of AU.REST_MISSIONS) { const ok = AU.G.restMissionAvailable(m.id);
         grid.append(h("div", { class: "mission st-" + (ok ? "available" : "done") }, h("div", { class: "mh" }, h("span", { class: "tag", text: "쉼 · 피로도 −" + m.recover }), h("span", { class: "tag", text: ok ? "오늘 가능" : "오늘 완료" })), h("b", { text: m.title }), h("p", { text: m.desc }),

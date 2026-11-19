@@ -9,7 +9,7 @@ OnOff.App = (function () {
 
   function parse() {
     const raw = (location.hash || "#home").slice(1) || "home";
-    const m = raw.match(/^(intro|play)-(.+)$/);
+    const m = raw.match(/^(intro|play|space)-(.+)$/);
     return m ? { name: m[1], param: m[2], raw } : { name: raw, param: null, raw };
   }
 
@@ -22,7 +22,7 @@ OnOff.App = (function () {
     return `<div class="proto-bar"><div class="wrap">${OnOff.Cloud && OnOff.Cloud.enabled ? "<b>시험 운영</b><span>가입 정보는 서버(서울)에 저장됩니다. 정식 공개 전이므로 실제 개인정보 대신 가상의 정보를 입력해 주세요.</span>" : "<b>시제품</b><span>실제 계정 인증과 서버 저장은 아직 없습니다. 입력한 내용은 서버로 전송되지 않으며, 새로고침하면 사라집니다.</span>"}</div></div>
     <header class="site-header" id="site-header"><div class="wrap header-row">
       <a class="brand" href="#home" aria-label="온앤오프 홈">${logo(36)}<span>On &amp; Off</span><small>온앤오프</small></a>
-      <nav class="nav" aria-label="주 메뉴"><a href="#home"${cur("home")}>홈</a><a href="#games"${cur("games")}>게임 둘러보기</a><a href="#about"${cur("about")}>서비스 소개</a></nav>
+      <nav class="nav" aria-label="주 메뉴"><a href="#home"${cur("home")}>홈</a><a href="#games"${cur("games")}>게임 둘러보기</a>${u ? '<a href="#space-autelia"' + cur("space") + '>나만의 공간</a>' : ""}<a href="#about"${cur("about")}>서비스 소개</a></nav>
       <div class="header-actions">${actions}</div>
       <button class="menu-toggle" type="button" data-action="toggle-menu" aria-expanded="false" aria-controls="site-header">메뉴</button>
     </div></header>`;
@@ -41,7 +41,7 @@ OnOff.App = (function () {
     const u = S.user;
     if (current && current.unmount) current.unmount();
 
-    if ((route.name === "mypage" || route.name === "intro" || route.name === "play") && !u) { S.pending = route.raw; return go("login"); }
+    if ((route.name === "mypage" || route.name === "intro" || route.name === "play" || route.name === "space") && !u) { S.pending = route.raw; return go("login"); }
     if ((route.name === "login" || route.name === "signup") && u) return go("games");
 
     const view = Vw[route.name] && route.name !== "GATED" ? Vw[route.name] : Vw.notfound;

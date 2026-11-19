@@ -120,21 +120,22 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const guideMet = await ev(() => AU.G.S.flags.guideMet);
   await p.keyboard.press('j'); await sleep(150); await ev(() => { AU.UI.tab.jg = 'real'; AU.UI.tab.j = 'missions'; AU.UI.renderWin(); }); await sleep(100); await p.screenshot({ path: SH + 'missions.png' });
   const cardCount = await ev(() => document.querySelectorAll('.window .mission').length);
-  // 화면 버튼으로 수락 → 해 봤어요 → 완료했어요
+  // 새 버전: 현실 미션은 전투 훈련포인트 대신 갤러리 토큰을 지급함.
   const tp0 = (await S()).tp;
+  const wallet = () => ev(() => AU.G.galleryState().tokens);
+  const token0 = await wallet();
   const clickBtn = async (txt) => { await p.locator('.window .mission:has-text("좋아하는 노래") .btn', { hasText: txt }).first().click(); await sleep(120); };
-  await clickBtn('수락'); await clickBtn('해 봤어요'); await clickBtn('완료했어요');
-  const tp1 = (await S()).tp;
+  await clickBtn('수락'); await clickBtn('해 봤어요'); await clickBtn('완료했어요'); await p.locator('.modal .btn', { hasText: '평가 없이 계속' }).click();
+  const token1 = await wallet();
   const again = await ev(() => [AU.G.setMissionState('m_p1', 'done'), AU.G.setMissionState('m_p1', 'accept'), AU.G.setMissionState('m_p1', 'retry'), AU.G.ms('m_p1').rewarded]);
-  const tp2 = (await S()).tp;
-  // 한도 검사
+  const token2 = await wallet();
   await ev(() => { for (const id of ['m_e1', 'm_r1', 'm_m1', 'm_a1']) { AU.G.setMissionState(id, 'accept'); AU.G.setMissionState(id, 'attempt'); AU.G.setMissionState(id, 'done'); } });
-  const tp3 = (await S()).tp, wk3 = await ev(() => AU.G.S.missions.weekPoints);
+  const token3 = await wallet();
   await ev(() => { for (const id of ['m_p2', 'm_e2']) { AU.G.setMissionState(id, 'accept'); AU.G.setMissionState(id, 'attempt'); AU.G.setMissionState(id, 'done'); } });
-  const tp4 = (await S()).tp, wk4 = await ev(() => AU.G.S.missions.weekPoints);
+  const token4 = await wallet(), tp4 = (await S()).tp;
   await p.keyboard.press('Escape');
-  note('13', '훈련 포인트 중복 지급 방지·주간 한도', tp1 === tp0 + 1 && tp2 === tp1 && again[0] === false && again[1] === false && again[2] === false && wk4 === 6 && tp4 === tp3 + 1,
-    `완료 1회 +${tp1 - tp0}, 같은 미션 재완료 시도 후 ${tp2}(변화 없음), 5개 완료 후 주간 ${wk3}/6, 2단계 2개 추가 후 주간 ${wk4}/6(한도), 포인트 ${tp3}→${tp4}`);
+  note('13', '갤러리 토큰 1회 지급·중복 방지·기존 전투 포인트 분리', token1 === token0 + 1 && token2 === token1 && again[0] === false && again[1] === false && again[2] === false && token4 === token3 + 2 && tp4 === tp0,
+    `토큰 ${token0}→${token1}→${token2}→${token3}→${token4}, 훈련 포인트 ${tp0}→${tp4}`);
   note('11b', '전직 후 현실 미션 화면(발견 전 안내 → 안내인 대화 후 목록)', /기다리고/.test(lockedMsg) && guideMet === true && cardCount >= 5, `발견 전 안내문="${lockedMsg.slice(0, 30)}…", 안내인 대화 후 guideMet=${guideMet}, 표시된 카드=${cardCount}`);
 
   // ===== 12. 현실 미션 없이도 진행 =====

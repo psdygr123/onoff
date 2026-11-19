@@ -1,25 +1,21 @@
-/* 5레벨 구간마다 현실 미션을 완료해야 레벨 포인트를 분배할 수 있음 */
-const { chromium } = require('playwright');
-const URL = (process.env.GAME_URL || 'http://localhost:8801') + '/index.html?dev=1&intro=cards';
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms)); let fail = 0;
-const note = (id, name, ok, ev) => { if (!ok) fail++; console.log((ok ? 'PASS ' : 'FAIL ') + id + ' ' + name + ' :: ' + ev); };
-(async () => {
-  const b = await chromium.launch(); const p = await (await b.newContext({ viewport: { width: 1280, height: 720 } })).newPage(); const errs = []; p.on('pageerror', (e) => errs.push(e.message));
-  const ev = (f, a) => p.evaluate(f, a);
-  await p.goto(URL); await ev(() => localStorage.clear()); await p.goto(URL); await p.waitForSelector('#btn-start'); await p.click('#btn-start'); await sleep(300);
-  for (let i = 0; i < 2 && await p.$('#job-next'); i++) { await p.click('#job-next'); await sleep(200); } if (await p.$('#charsetup')) { await p.fill('#sname', '시험용'); await p.click('#setup-ok'); await sleep(300); }
-  await ev(() => AU.Prologue.debugComplete('arche')); await sleep(200);
-  await ev(() => { const S = AU.G.S; S.level = 10; S.jobChanged = true; S.freePoints = 3; S.flags.missionsUnlocked = true; S.flags.guideMet = true; AU.G.changed(); });
-  note('G1', 'Lv.10: 미션 전에는 레벨 포인트 분배 불가', await ev(() => AU.G.pool() === 0 && !AU.G.applyAllocation({ STR: 1 })), 'pool=' + await ev(() => AU.G.pool()));
-  await ev(() => { AU.UI.open('stats'); }); await sleep(300);
-  const txt = await ev(() => document.body.innerText); note('G2', '스탯창에 잠금 안내', /잠겨 있습니다/.test(txt), '');
-  await ev(() => AU.UI.close());
-  const id = await ev(() => AU.MISSIONS.find((m) => !m.pre).id);
-  await ev((id) => { AU.G.initMissions(); AU.G.S.missions.states[id].state = 'available'; AU.G.setMissionState(id, 'accept'); AU.G.setMissionState(id, 'attempt'); AU.G.setMissionState(id, 'done'); }, id);
-  const g3 = await ev(() => ({ gb: AU.G.S.gateBand, st: AU.G.S.missions.states[AU.MISSIONS.find((m) => !m.pre).id].state, pool: AU.G.pool() })); note('G3', '현실 미션 1개 완료 후 분배 가능', g3.pool >= 3 && await ev(() => AU.G.applyAllocation({ STR: 3 })), JSON.stringify(g3));
-  await ev(() => { const S = AU.G.S; S.level = 15; S.freePoints = 3; });
-  note('G4', 'Lv.15 구간은 다시 잠김', await ev(() => AU.G.usableFree() === 0), '');
-  await ev(() => { const r = AU.REST_MISSIONS[0].id; const no = AU.G.doRestMission(r); if (no) throw new Error('스킬 전 쉼 미션 가능'); AU.G.S.skills.unlocked = AU.WARRIOR_SKILLS.slice(); AU.G.doRestMission(r, '조용히 쉬니 마음이 편안해졌어요.'); });
-  note('G5', '쉼 미션으로도 해제(대체 경로)', await ev(() => AU.G.usableFree() === 3), '');
-  note('G6', '오류 없음', errs.length === 0, JSON.stringify(errs)); await b.close(); process.exit(fail ? 1 : 0);
-})();
+/* 레벨 포인트는 현실 활동과 무관하게 분배 가능, 활동 보상은 선택형 */
+const {chromium}=require('playwright');
+(async()=>{
+ const b=await chromium.launch(),p=await b.newPage();
+ let fail=0;const test=(n,v)=>{console.log((v?'PASS ':'FAIL ')+n);if(!v)fail++;};
+ try{
+ await p.goto((process.env.GAME_URL||'http://localhost:8801')+'/index.html?dev=1&intro=cards');
+ await p.evaluate(()=>localStorage.clear());await p.reload();await p.click('#btn-start');
+ for(let i=0;i<2&&await p.$('#job-next');i++)await p.click('#job-next');
+ if(await p.$('#charsetup')){await p.fill('#sname','시험');await p.click('#setup-ok');}
+ await p.evaluate(()=>AU.Prologue.debugComplete('arche'));
+ const a=await p.evaluate(()=>{const S=AU.G.S;S.level=10;S.flags.awakened=true;S.freePoints=3;S.trainingPoints=0;return {pool:AU.G.pool(),ok:AU.G.applyAllocation({STR:1}),free:S.freePoints};});
+ test('G1 Lv10 기본 포인트 즉시 분배',a.pool===3&&a.ok&&a.free===2);
+ await p.evaluate(()=>AU.UI.open('stats'));
+ test('G2 잠금 안내 없음',!((await p.locator('.statlayout').innerText()).includes('잠겨 있습니다')));
+ const z=await p.evaluate(()=>{const S=AU.G.S;S.level=15;S.freePoints=3;return AU.G.usableFree()===3&&AU.G.gateOpen();});
+ test('G3 Lv15도 현실 미션 없이 분배 가능',z);
+ const m=await p.evaluate(()=>{AU.UI.close();AU.G.S.flags.missionsUnlocked=true;AU.G.discoverMissions();const id=AU.MISSIONS.find(x=>!x.pre).id;AU.G.setMissionState(id,'accept');AU.G.setMissionState(id,'attempt');AU.G.setMissionState(id,'done');return AU.G.galleryState().tokens>0&&AU.G.S.trainingPoints===0;});
+ test('G4 선택 미션은 갤러리 토큰을 지급하고 전투 훈련 포인트는 주지 않음',m);
+ }finally{await b.close();}process.exit(fail?1:0);
+})().catch(e=>{console.error(e);process.exit(1);});
