@@ -59,8 +59,8 @@ jobs:
             echo "::endgroup::"
           done
           exit "$overall"
-      - name: Upload failure evidence
-        if: failure()
+      - name: Upload gallery preview and regression evidence
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: autelia-stabilization-evidence
