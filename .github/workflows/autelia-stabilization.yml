@@ -28,6 +28,7 @@ jobs:
         run: |
           mkdir -p /tmp/autelia-shots
           python3 -m http.server 8801 --directory games/autelia > /tmp/autelia-http.log 2>&1 &
+          python3 -m http.server 8803 --directory . > /tmp/onoff-http.log 2>&1 &
           for i in $(seq 1 30); do
             if curl -fsS http://localhost:8801/index.html >/dev/null; then exit 0; fi
             sleep 1
@@ -36,7 +37,7 @@ jobs:
           exit 1
       - name: Check JS syntax
         run: |
-          for file in games/autelia/js/*.js games/autelia/tests/gallery_room.js; do node --check "$file" || exit 1; done
+          for file in js/*.js games/autelia/js/*.js games/autelia/tests/gallery_room.js games/autelia/tests/gallery_dual_entry.js games/autelia/tests/platform_gallery_entry.js; do node --check "$file" || exit 1; done
       - name: Browser regression suite
         env:
           GAME_URL: http://localhost:8801
@@ -46,7 +47,7 @@ jobs:
           set +e
           set -uo pipefail
           overall=0
-          for test in tests/regression_main.js tests/fatigue.js tests/survey_pss.js tests/survey_perma.js tests/act1_hideout.js tests/feedback_tests.js tests/reality_growth_v2.js tests/gallery_room.js tests/gallery_dual_entry.js tests/prologue_resume_smoke.js; do
+          for test in tests/regression_main.js tests/fatigue.js tests/survey_pss.js tests/survey_perma.js tests/act1_hideout.js tests/feedback_tests.js tests/reality_growth_v2.js tests/gallery_room.js tests/gallery_dual_entry.js tests/platform_gallery_entry.js tests/prologue_resume_smoke.js; do
             echo "::group::$test"
             node "games/autelia/$test" > /tmp/one-test.log 2>&1
             code=$?
