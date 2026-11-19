@@ -16,7 +16,7 @@ window.AU = window.AU || {};
   }
   const btn = (label, cls, fn, extra) => h("button", Object.assign({ type: "button", class: "btn " + (cls || ""), onclick: fn }, extra || {}), label);
   const WIN_KEYS = { inventory: "inventory", equipment: "equipment", stats: "stats", worldmap: "worldmap", quests: "quests", skills: "skills", journal: "journal", help: "help", keysettings: "keysettings" };
-  const WIN_TITLE = { inventory: "인벤토리", equipment: "장비", stats: "스탯", worldmap: "월드맵", quests: "퀘스트", skills: "스킬", journal: "모험일지", help: "기능 안내", keysettings: "설정 (소리·키보드)", menu: "메뉴", jobcard: "전직", shop: "상점", dev: "개발 테스트" };
+  const WIN_TITLE = { inventory: "인벤토리", equipment: "장비", stats: "스탯", worldmap: "월드맵", quests: "퀘스트", skills: "스킬", journal: "모험일지", gallery: "나만의 공간", help: "기능 안내", keysettings: "설정 (소리·키보드)", menu: "메뉴", jobcard: "전직", shop: "상점", dev: "개발 테스트" };
 
   /* ---------- 키 이름 표시 ---------- */
   AU.keyLabel = function (code) {
@@ -372,11 +372,37 @@ window.AU = window.AU || {};
   /* ============ 창 내용 ============ */
   const R = UI.renders = {};
 
+  R.gallery = function (b) {
+    const g = AU.G.galleryState(), items = AU.G.galleryItems(), unlocked = new Set(g.unlocked), selected = new Set(g.selected);
+    const today = AU.dateStr(), attended = g.attendance.includes(today);
+    const logs = AU.G.S.missions.log.filter(x => x.state === "done").slice().reverse();
+    b.append(h("div", { class: "roomtop" },
+      h("div", null, h("h3", { text: "나만의 공간" }), h("p", { class: "note", text: "현실에서 시도한 경험이 전시되는 개인 공간입니다. 이곳의 장식은 전투 능력이나 스토리 진행에 영향을 주지 않습니다." })),
+      h("div", { class: "roomwallet" }, h("b", { text: "갤러리 토큰 " + g.tokens }), btn(attended ? "오늘 방문 기록 완료" : "오늘 방문 기록하기 (+1)", "mini", () => AU.G.galleryCheckin(), { disabled: attended ? "" : null }))));
+    b.append(h("div", { class: "personalroom" },
+      h("div", { class: "roomwall" },
+        h("div", { class: "roomcrest", text: "✦" }),
+        h("div", { class: "roomframes" }, ...[0,1,2].map(i => {
+          const entry = logs[i], m = entry && AU.G.mission(entry.id);
+          return h("div", { class: "roomframe" }, entry ? h("div", { class: "roomframein" }, h("span", { class: "symbol", text: ({P:"☀",E:"✦",R:"♡",M:"✧",A:"★"})[entry.perma] || "✦" }), h("strong", { text: m ? m.title : "나의 활동" }), h("small", { text: entry.t })) : h("div", { class: "roomframein emptyframe", text: "새로운 경험을 기다리는 액자" });
+        })),
+        h("div", { class: "roomdecors" }, ...items.filter(item => selected.has(item.id)).map(item => h("span", { title: item.name, text: item.icon })))) ,
+      h("div", { class: "roomfloor" }, h("div", { class: "roomrug", text: "MY GALLERY" }))));
+    b.append(h("h4", { text: "공간 꾸미기" }), h("p", { class: "note", text: "방문 기록은 하루 한 번 토큰 1개를 줍니다. 연속 방문 보상이나 결석 불이익은 없습니다. 현실 미션을 완료해도 토큰을 얻습니다." }));
+    b.append(h("div", { class: "roomshop" }, items.map(item => h("div", { class: "roomshopitem" }, h("span", { class: "roomicon", text: item.icon }), h("b", { text: item.name }), h("p", { class: "note", text: item.desc }), btn(unlocked.has(item.id) ? (selected.has(item.id) ? "전시 중 · 숨기기" : "전시하기") : "토큰 " + item.cost + "개로 획득", "mini", () => unlocked.has(item.id) ? AU.G.galleryToggle(item.id) : AU.G.galleryBuy(item.id), { disabled: !unlocked.has(item.id) && g.tokens < item.cost ? "" : null })) )));
+    b.append(h("h4", { text: "나의 경험 갤러리" }));
+    b.append(logs.length ? h("div", { class: "roomhistory" }, logs.slice(0,30).map(e => {
+      const m = AU.G.mission(e.id), notes = e.reflection;
+      return h("div", { class: "roomhistoryitem" }, h("span", { class: "tag perma", text: e.perma }), h("b", { text: m ? m.title : e.id }), h("small", { text: e.t }), notes ? h("p", { class: "note", text: "도전 " + notes.challenge + "/5 · 의미 " + notes.meaning + "/5 · 만족 " + notes.satisfaction + "/5" }) : null);
+    })) : h("p", { class: "empty", text: "아직 전시할 활동이 없습니다. 현실 미션을 기록하면 여기에 추억이 하나씩 쌓입니다." }));
+  };
+
+
   R.menu = function (b) {
     const S = AU.G.S;
-    let items = [["인벤토리", "inventory"], ["장비", "equipment"], ["스탯", "stats"], ["월드맵", "worldmap"], ["퀘스트", "quests"], ["스킬", "skills"], ["모험일지", "journal"], ["기능 안내", "help"], ["키보드 설정", "keysettings"]];
+    let items = [["인벤토리", "inventory"], ["장비", "equipment"], ["스탯", "stats"], ["월드맵", "worldmap"], ["퀘스트", "quests"], ["스킬", "skills"], ["모험일지", "journal"], ["나만의 공간", "gallery"], ["기능 안내", "help"], ["키보드 설정", "keysettings"]];
     if (AU.Prologue && AU.Prologue.on) items = items.filter(([, n]) => AU.Prologue.allowWin(n)); // 프롤로그 중에는 필요한 메뉴만
-    b.append(h("div", { class: "menugrid" }, items.map(([label, name]) => btn(h("span", null, label, h("em", { text: "[" + keyOf(WIN_KEYS[name]) + "]" })), "menuitem", () => this.open(name)))));
+    b.append(h("div", { class: "menugrid" }, items.map(([label, name]) => btn(h("span", null, label, h("em", { text: WIN_KEYS[name] ? "[" + keyOf(WIN_KEYS[name]) + "]" : "" })), "menuitem", () => this.open(name)))));
     const row = h("div", { class: "menurow" },
       btn("게임으로 돌아가기", "primary", () => this.close()),
       btn("게임 종료하기", "", () => this.confirm("정말로 종료하겠습니까?\n현재까지 게임을 저장합니다.", "저장하고 종료", () => AU.main.exitGame())));
@@ -646,7 +672,7 @@ window.AU = window.AU || {};
     const cmp = (label, k, u, bonus) => h("div", { class: "cmp" }, h("span", { text: label }), h("b", { text: d0[k] + u }), d1[k] !== d0[k] ? h("span", { text: "→ " }) : null, d1[k] !== d0[k] ? h("b", { class: "up", text: d1[k] + u }) : null, bonus ? h("em", { text: "장비 +" + bonus + u }) : null);
     const derived = h("div", { class: "derived" }, h("h3", { text: "전투 능력치" }), cmp("공격력", "atk", "", eq.atk), cmp("최대 HP", "maxHp", "", eq.hp), cmp("회피율", "dodge", "%", eq.dodge), cmp("치명타율", "crit", "%", eq.crit), cmp("스킬 피로 감소", "eff", "%", 0));
     const actions = h("div", { class: "statactions" }, btn("초기화", "", () => { UI.resetPending(); UI.renderWin(); }, { disabled: pend ? null : "" }), btn("적용 (" + pend + "점)", "primary", () => { const a = {}; for (const k of Object.keys(P)) if (P[k]) a[k] = P[k]; if (AU.G.applyAllocation(a)) UI.resetPending(); UI.renderWin(); }, { disabled: pend ? null : "" }));
-    const locked = false, hint = pool > 0 ? "레벨 포인트는 현실 미션을 하지 않아도 사용할 수 있습니다. ＋ 버튼으로 배분한 뒤 [적용]을 눌러 확정하세요." : (AU.G.awakened() ? "남은 포인트가 없습니다. 레벨업 또는 선택형 현실 미션으로 추가 훈련 포인트를 얻을 수 있습니다." : "1~9레벨은 능력치가 자동으로 성장합니다. 10레벨 힘의 각성 이후 직접 분배할 수 있습니다.");
+    const locked = false, hint = pool > 0 ? "레벨 포인트는 현실 미션을 하지 않아도 사용할 수 있습니다. 기존에 획득한 훈련 포인트도 사용할 수 있습니다. ＋ 버튼으로 배분한 뒤 [적용]을 눌러 확정하세요." : (AU.G.awakened() ? "남은 포인트가 없습니다. 레벨업하면 전투 스탯을 얻으며, 현실 미션은 갤러리 토큰과 마음 성장을 제공합니다." : "1~9레벨은 능력치가 자동으로 성장합니다. 10레벨 힘의 각성 이후 직접 분배할 수 있습니다.");
     b.append(h("div", { class: "statlayout" }, left1, h("div", { class: "statmid" }, rows, h("p", { class: "note", text: hint }), locked ? btn("현실 미션 보기", "primary", () => { UI.tab.jg = "real"; UI.tab.j = "missions"; UI.open("journal"); }) : null, actions), derived));
   };
 
@@ -784,17 +810,17 @@ window.AU = window.AU || {};
     } else if (tab === "log") {
       b.append(logBox(logOf(null)));
     } else if (tab === "missions") {
-      if (!un) { b.append(h("div", { class: "missions preview" }, AU.MISSIONS.map((m) => h("div", { class: "mission st-locked" }, h("div", { class: "mh" }, h("span", { class: "tag perma", text: m.perma + " · " + AU.PERMA[m.perma] }), h("span", { class: "tag", text: "🔒 잠김" }), h("span", { class: "pts", text: "훈련 포인트 +" + m.points })), h("b", { text: m.title }), h("p", { text: m.desc }))))); return; }
+      if (!un) { b.append(h("div", { class: "missions preview" }, AU.MISSIONS.map((m) => h("div", { class: "mission st-locked" }, h("div", { class: "mh" }, h("span", { class: "tag perma", text: m.perma + " · " + AU.PERMA[m.perma] }), h("span", { class: "tag", text: "🔒 잠김" }), h("span", { class: "pts", text: "갤러리 토큰 +1" })), h("b", { text: m.title }), h("p", { text: m.desc }))))); return; }
       if (!S.flags.guideMet) { b.append(h("div", { class: "lockbox" }, h("h3", { text: "새로운 이야기를 기다리고 있어요" }), h("p", { text: "포르투 노바의 알렉시오스과 이야기를 나누면 이곳에 내용이 나타납니다." }))); return; }
       const M = S.missions;
-      b.append(h("div", { class: "msummary" }, h("span", { text: "훈련 포인트 보유 " }), h("b", { text: S.trainingPoints }), h("span", { text: "  ·  이번 주 획득 " }), h("b", { text: M.weekPoints + " / " + C.missions.weeklyPointCap }), h("span", { class: "note", text: "" })),
+      b.append(h("div", { class: "msummary" }, h("span", { text: "갤러리 토큰 " }), h("b", { text: AU.G.galleryState().tokens }), h("span", { text: " · 마음 성장과 개인 공간 꾸미기에 사용합니다." }), btn("나만의 공간 보기", "mini", () => UI.open("gallery"))),
         h("p", { class: "note", text: "현실 미션은 선택 사항입니다. 하지 않아도 모험을 계속할 수 있고, 수행 여부는 직접 기록하는 방식입니다." }));
       const grid = h("div", { class: "missions" });
       for (const m of AU.MISSIONS) {
         const r = M.states[m.id]; if (!r || r.state === "locked") continue;
         const acts = { available: [["수락", "primary", "accept"], ["건너뛰기", "", "skip"]], accepted: [["해 봤어요", "primary", "attempt"], ["건너뛰기", "", "skip"]], attempted: [["완료했어요", "primary", "done"], ["일부만 했어요", "", "partial"], ["건너뛰기", "", "skip"]],
           partial: [["완료했어요", "primary", "done"], ["다시 도전", "", "retry"], ["건너뛰기", "", "skip"]], skipped: [["다시 도전", "", "retry"]], done: [] }[r.state] || [];
-        grid.append(h("div", { class: "mission st-" + r.state }, h("div", { class: "mh" }, h("span", { class: "tag perma", text: m.perma + " · " + AU.PERMA[m.perma] }), h("span", { class: "tag", text: AU.MISSION_STATES[r.state] }), h("span", { class: "pts", text: r.rewarded ? "지급 완료" : "훈련 포인트 +" + m.points })),
+        grid.append(h("div", { class: "mission st-" + r.state }, h("div", { class: "mh" }, h("span", { class: "tag perma", text: m.perma + " · " + AU.PERMA[m.perma] }), h("span", { class: "tag", text: AU.MISSION_STATES[r.state] }), h("span", { class: "pts", text: r.rewarded ? "지급 완료" : "갤러리 토큰 +1" })),
           h("b", { text: m.title }), h("p", { text: m.desc }), acts.length ? h("div", { class: "macts" }, acts.map(([l, c, a]) => btn(l, c, () => ((a === "done" || a === "partial") ? UI.missionReview(m, a, (feedback) => AU.G.setMissionState(m.id, a, feedback)) : (m.guide && a === "attempt" ? UI.guided(m.title, m.guide, () => AU.G.setMissionState(m.id, a)) : AU.G.setMissionState(m.id, a)))))) : null));
       }
       b.append(grid);
