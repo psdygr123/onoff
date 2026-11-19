@@ -524,7 +524,7 @@ window.AU = window.AU || {};
   /* 마음 능력치(PERMA 5) 표시: 수치·막대·방금 오른 양. 스탯 창과 수행 기록 탭에서 같이 씀 */
   UI.mindBlock = function () {
     const S = AU.G.S, last = S.mind && S.mind.last, tr = AU.G.mindTrend(), keys = Object.keys(AU.PERMA);
-    const box = h("div", { class: "mindbox" }, h("h3", { text: "마음 능력치" }));
+    const box = h("div", { class: "mindbox" }, h("h3", { text: "마음 성장 · 실천 경험" }));
     // 오각형 레이더: 바깥쪽이 영역별 만점(해당 영역 미션 점수 합). 현재(초록 면) vs 이전(회색 점선)
     const CX = 130, CY = 124, R0 = 92, pt = (i, f) => { const a = -Math.PI / 2 + i * 2 * Math.PI / keys.length; return [CX + Math.cos(a) * R0 * f, CY + Math.sin(a) * R0 * f]; };
     const poly = (f) => keys.map((k, i) => pt(i, f(k)).map((n) => n.toFixed(1)).join(",")).join(" ");
@@ -547,7 +547,7 @@ window.AU = window.AU || {};
         h("span", { class: "mup", text: fresh ? "방금 +" + last.n : "" })));
     }
     box.append(h("div", { class: "mtrend" }, chart, rows));
-    box.append(h("p", { class: "note", text: "현실 미션을 완료하면 해당 영역 수치가 오르고 이곳에 기록됩니다. 점선·세로선의 '이전'은 이번 주가 시작될 때의 기록입니다." }));
+    box.append(h("p", { class: "note", text: "현실 활동 완료 시 기본 점수가 오르고, 자기평가 3항목을 기록하면 추가 1점이 쌓입니다. 점선·세로선의 '이전'은 이번 주가 시작될 때의 기록입니다." }));
     box.append(h("p", { class: "note", text: "이것은 게임 속 활동 점수이며 행복이나 건강 상태를 재는 검사 점수가 아닙니다. 전투에는 영향을 주지 않습니다." }));
     if (AU.G.rollMindWeek()) AU.G.save("mind");
     return box;
@@ -586,16 +586,45 @@ window.AU = window.AU || {};
     iv = setInterval(tick, 250); tick();
   };
 
-  /* 쉼 미션을 마친 뒤: 어떤 감정이 느껴졌는지 한 문장 이상(최소 글자 수) 적어야 피로도가 줄어듦 */
-  UI.restNote = function (m, onSubmit) {
-    const wrap = UI.modalEl, MIN = C.fatigue.restNoteMin; UI.modal = true; wrap.classList.remove("hidden"); wrap.innerHTML = "";
-    const ta = h("textarea", { class: "memo", maxlength: String(C.fatigue.restNoteMax), rows: "4", placeholder: "예: 숨을 고르고 나니 어깨가 풀리고 마음이 한결 차분해졌어요." }), cnt = h("div", { class: "rncount" });
-    const ok = btn("기록하고 쉼 마치기", "primary", () => { if (!AU.G.restNoteOk(ta.value)) return; close(); onSubmit(ta.value); }, { disabled: "" }), no = btn("취소", "", () => close());
+  /* 짧은 자기평가: 점수는 응답의 긍정성 자체가 아니라 평가 참여 여부만 반영합니다. */
+  UI.missionReview = function (m, next, onSubmit) {
+    const wrap = UI.modalEl; UI.modal = true; wrap.classList.remove("hidden"); wrap.innerHTML = "";
+    const ratings = {}, labels = [["challenge", "얼마나 도전적이었나요?"], ["meaning", "나에게 얼마나 의미 있었나요?"], ["satisfaction", "활동 후 얼마나 만족스러웠나요?"]];
+    const fields = labels.map(([key, label]) => {
+      const sel = h("select", { "aria-label": label });
+      sel.append(h("option", { value: "", text: "선택해 주세요" }));
+      for (let i = 1; i <= 5; i++) sel.append(h("option", { value: String(i), text: i + " / 5" }));
+      ratings[key] = sel; return h("label", { class: "note" }, label, sel);
+    });
+    const ta = h("textarea", { class: "memo", maxlength: "200", rows: "3", placeholder: "선택: 어떤 경험이었는지 자유롭게 적어 주세요." });
     const close = () => { UI.modal = false; wrap.classList.add("hidden"); wrap.innerHTML = ""; };
-    const upd = () => { const n = ta.value.replace(/\s+/g, " ").trim().length, good = n >= MIN; cnt.textContent = n + " / 최소 " + MIN + "자"; cnt.classList.toggle("good", good); if (good) ok.removeAttribute("disabled"); else ok.setAttribute("disabled", ""); };
-    ta.addEventListener("input", upd);
-    wrap.append(h("div", { class: "panel modal restnote" }, h("h3", { text: m.title + " · 어떤 감정이 느껴졌나요?" }), h("p", { class: "note", text: "방금 쉬면서 느낀 감정을 한 문장 이상으로 적어 주세요. (최소 " + MIN + "자) 잘 쓰려고 애쓰지 않아도 괜찮아요." }), ta, cnt, h("div", { class: "choices" }, ok, no)));
-    upd(); setTimeout(() => ta.focus(), 50);
+    const submit = () => {
+      const review = Object.fromEntries(labels.map(([key]) => [key, Number(ratings[key].value)]));
+      review.note = ta.value;
+      if (!AU.G.validMissionFeedback(review)) return;
+      close(); onSubmit(review);
+    };
+    const yes = btn(next === "partial" ? "시도 기록하기" : "평가하고 완료하기", "primary", submit, { disabled: "" });
+    const upd = () => { if (labels.every(([key]) => ratings[key].value)) yes.removeAttribute("disabled"); else yes.setAttribute("disabled", ""); };
+    for (const s of Object.values(ratings)) s.addEventListener("change", upd);
+    wrap.append(h("div", { class: "panel modal restnote" }, h("h3", { text: m.title + " · 활동 돌아보기" }),
+      h("p", { class: "note", text: "세 항목은 정답이 없습니다. 어려움·낮은 만족도도 그대로 기록해 주세요. 소감 글쓰기는 선택입니다." }),
+      ...fields, ta, h("div", { class: "choices" }, yes, btn("평가 없이 계속", "", () => { close(); onSubmit(null); }), btn("취소", "", close))));
+    upd();
+  };
+
+  UI.restNote = function (m, onSubmit) {
+    const wrap = UI.modalEl; UI.modal = true; wrap.classList.remove("hidden"); wrap.innerHTML = "";
+    const feeling = h("select", { "aria-label": "활동 후 느낀 상태" });
+    feeling.append(h("option", { value: "", text: "느낀 상태를 선택해 주세요" }));
+    for (const [value, label] of [["calm","조금 편안해졌어요"],["same","별다른 변화가 없었어요"],["mixed","여러 감정이 섞여 있어요"],["tense","아직 긴장되거나 불편해요"],["other","그 밖의 느낌이에요"]]) feeling.append(h("option", { value, text: label }));
+    const ta = h("textarea", { class: "memo", maxlength: String(C.fatigue.restNoteMax), rows: "3", placeholder: "선택: 경험을 자유롭게 적어 주세요." });
+    const close = () => { UI.modal = false; wrap.classList.add("hidden"); wrap.innerHTML = ""; };
+    const ok = btn("쉼 기록하고 마치기", "primary", () => { if (!feeling.value) return; close(); onSubmit({ feeling: feeling.value, note: ta.value }); }, { disabled: "" });
+    feeling.addEventListener("change", () => { if (feeling.value) ok.removeAttribute("disabled"); else ok.setAttribute("disabled", ""); });
+    wrap.append(h("div", { class: "panel modal restnote" }, h("h3", { text: m.title + " · 쉰 뒤 어떤 느낌이었나요?" }),
+      h("p", { class: "note", text: "느낀 상태를 선택하면 기록할 수 있습니다. 편안해지지 않았더라도 보상은 같습니다. 글쓰기는 선택입니다." }),
+      feeling, ta, h("div", { class: "choices" }, ok, btn("취소", "", close))));
   };
 
   R.stats = function (b) {
@@ -617,7 +646,7 @@ window.AU = window.AU || {};
     const cmp = (label, k, u, bonus) => h("div", { class: "cmp" }, h("span", { text: label }), h("b", { text: d0[k] + u }), d1[k] !== d0[k] ? h("span", { text: "→ " }) : null, d1[k] !== d0[k] ? h("b", { class: "up", text: d1[k] + u }) : null, bonus ? h("em", { text: "장비 +" + bonus + u }) : null);
     const derived = h("div", { class: "derived" }, h("h3", { text: "전투 능력치" }), cmp("공격력", "atk", "", eq.atk), cmp("최대 HP", "maxHp", "", eq.hp), cmp("회피율", "dodge", "%", eq.dodge), cmp("치명타율", "crit", "%", eq.crit), cmp("스킬 피로 감소", "eff", "%", 0));
     const actions = h("div", { class: "statactions" }, btn("초기화", "", () => { UI.resetPending(); UI.renderWin(); }, { disabled: pend ? null : "" }), btn("적용 (" + pend + "점)", "primary", () => { const a = {}; for (const k of Object.keys(P)) if (P[k]) a[k] = P[k]; if (AU.G.applyAllocation(a)) UI.resetPending(); UI.renderWin(); }, { disabled: pend ? null : "" }));
-    const locked = AU.G.awakened() && S.freePoints > 0 && !AU.G.gateOpen(), hint = locked ? "레벨 포인트 " + S.freePoints + "점이 잠겨 있습니다. 현실 미션(또는 쉼 미션)을 한 번 완료하면 Lv." + AU.G.gateBand() + " 구간의 포인트를 분배할 수 있습니다. 5레벨마다(10·15·20…) 한 번씩 필요합니다." : pool > 0 ? "＋ 버튼으로 미리 배분한 뒤 [적용]을 눌러야 확정·저장됩니다. 창을 닫으면 미적용분은 취소됩니다." : (S.jobChanged ? "남은 포인트가 없습니다. 레벨업(11레벨부터)이나 현실 미션으로 포인트를 얻을 수 있습니다." : "1~9레벨은 능력치가 자동으로 성장합니다. 10레벨 전직 후부터 직접 분배합니다.");
+    const locked = false, hint = pool > 0 ? "레벨 포인트는 현실 미션을 하지 않아도 사용할 수 있습니다. ＋ 버튼으로 배분한 뒤 [적용]을 눌러 확정하세요." : (AU.G.awakened() ? "남은 포인트가 없습니다. 레벨업 또는 선택형 현실 미션으로 추가 훈련 포인트를 얻을 수 있습니다." : "1~9레벨은 능력치가 자동으로 성장합니다. 10레벨 힘의 각성 이후 직접 분배할 수 있습니다.");
     b.append(h("div", { class: "statlayout" }, left1, h("div", { class: "statmid" }, rows, h("p", { class: "note", text: hint }), locked ? btn("현실 미션 보기", "primary", () => { UI.tab.jg = "real"; UI.tab.j = "missions"; UI.open("journal"); }) : null, actions), derived));
   };
 
@@ -766,7 +795,7 @@ window.AU = window.AU || {};
         const acts = { available: [["수락", "primary", "accept"], ["건너뛰기", "", "skip"]], accepted: [["해 봤어요", "primary", "attempt"], ["건너뛰기", "", "skip"]], attempted: [["완료했어요", "primary", "done"], ["일부만 했어요", "", "partial"], ["건너뛰기", "", "skip"]],
           partial: [["완료했어요", "primary", "done"], ["다시 도전", "", "retry"], ["건너뛰기", "", "skip"]], skipped: [["다시 도전", "", "retry"]], done: [] }[r.state] || [];
         grid.append(h("div", { class: "mission st-" + r.state }, h("div", { class: "mh" }, h("span", { class: "tag perma", text: m.perma + " · " + AU.PERMA[m.perma] }), h("span", { class: "tag", text: AU.MISSION_STATES[r.state] }), h("span", { class: "pts", text: r.rewarded ? "지급 완료" : "훈련 포인트 +" + m.points })),
-          h("b", { text: m.title }), h("p", { text: m.desc }), acts.length ? h("div", { class: "macts" }, acts.map(([l, c, a]) => btn(l, c, () => (m.guide && a === "attempt" ? UI.guided(m.title, m.guide, () => AU.G.setMissionState(m.id, a)) : AU.G.setMissionState(m.id, a))))) : null));
+          h("b", { text: m.title }), h("p", { text: m.desc }), acts.length ? h("div", { class: "macts" }, acts.map(([l, c, a]) => btn(l, c, () => ((a === "done" || a === "partial") ? UI.missionReview(m, a, (feedback) => AU.G.setMissionState(m.id, a, feedback)) : (m.guide && a === "attempt" ? UI.guided(m.title, m.guide, () => AU.G.setMissionState(m.id, a)) : AU.G.setMissionState(m.id, a)))))) : null));
       }
       b.append(grid);
     } else if (tab === "rest" && !un) {
@@ -774,7 +803,7 @@ window.AU = window.AU || {};
     } else if (tab === "rest" && !S.skills.unlocked.length) {
       b.append(h("div", { class: "lockbox lockband" }, h("b", { text: "🔒 스킬을 배우면 열립니다 (Lv.10)" }), h("p", { text: "피로도는 스킬을 쓸 때 쌓이는 수치입니다. 스킬을 배우는 시점에 설명과 회복 방법을 알려 드립니다." })));
     } else if (tab === "rest") {
-      b.append(h("p", { class: "note", text: "쉼 미션은 선택입니다. 하지 않아도 모험은 계속할 수 있고, 하면 피로도가 줄어듭니다. 같은 미션은 하루에 한 번입니다. 직접 해 보고 ‘해 봤어요’를 누른 뒤, 어떤 감정이 느껴졌는지 한 문장 이상 적어 주세요." }), UI.fatigueMeter(S, false));
+      b.append(h("p", { class: "note", text: "쉼 미션은 선택입니다. 같은 미션은 하루 한 번 가능하며, 실천 후 느낀 상태만 선택하면 됩니다. 자유 소감은 선택입니다." }), UI.fatigueMeter(S, false));
       const grid = h("div", { class: "missions" });
       for (const m of AU.REST_MISSIONS) { const ok = AU.G.restMissionAvailable(m.id);
         grid.append(h("div", { class: "mission st-" + (ok ? "available" : "done") }, h("div", { class: "mh" }, h("span", { class: "tag", text: "쉼 · 피로도 −" + m.recover }), h("span", { class: "tag", text: ok ? "오늘 가능" : "오늘 완료" })), h("b", { text: m.title }), h("p", { text: m.desc }),
