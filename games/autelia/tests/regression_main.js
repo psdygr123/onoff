@@ -123,7 +123,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   // 화면 버튼으로 수락 → 해 봤어요 → 완료했어요
   const tp0 = (await S()).tp;
   const clickBtn = async (txt) => { await p.locator('.window .mission:has-text("좋아하는 노래") .btn', { hasText: txt }).first().click(); await sleep(120); };
-  await clickBtn('수락'); await clickBtn('해 봤어요'); await clickBtn('완료했어요');
+  await clickBtn('수락'); await clickBtn('해 봤어요'); await clickBtn('완료했어요'); await p.locator('.modal .btn', { hasText: '평가 없이 계속' }).click();
   const tp1 = (await S()).tp;
   const again = await ev(() => [AU.G.setMissionState('m_p1', 'done'), AU.G.setMissionState('m_p1', 'accept'), AU.G.setMissionState('m_p1', 'retry'), AU.G.ms('m_p1').rewarded]);
   const tp2 = (await S()).tp;
