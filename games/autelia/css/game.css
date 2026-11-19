@@ -775,3 +775,27 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
  .room-left,.room-right {max-height:none; overflow:visible;}
  .room-center .personalroom {min-height:320px;}
 }
+
+
+/* Detailed hand-painted gallery: place real player memories on the reserved blank wall. */
+.room-center .personalroom {
+  background-image:url("../assets/bg/personal_gallery_room.svg");
+  background-position:center;
+  background-repeat:no-repeat;
+  background-size:cover;
+  box-shadow: inset 0 0 34px rgba(93,61,39,.14);
+}
+.room-center .roomframes { width:57%; margin-left:24%; gap:7px; align-items:center; justify-content:space-between; }
+.room-center .roomframe { flex:1 1 0; min-width:0; height:148px; max-width:none; border-radius:3px; padding:5px; background:linear-gradient(135deg,#f3d9a4 0%,#865332 30%,#c18b4f 52%,#6e492f 75%,#eac78e 100%); }
+.room-center .roomframein { background:#f7ebce; border:1px solid #dfc99e; }
+.room-center .roomdecors { right:7%; bottom:2%; }
+.room-decor-set { filter:drop-shadow(1px 2px 3px rgba(53,35,24,.32)); }
+.room-recent, .room-panel {
+  background-image:linear-gradient(155deg,rgba(255,251,236,.94),rgba(242,218,178,.86));
+}
+.roommemory-art { border-color:#bc996c; }
+.room-a-heading { background:linear-gradient(110deg,#fcf1d5,#f5dfb6); }
+@media (max-width:780px) {
+  .room-center .roomframes {width:62%; margin-left:23%; }
+  .room-center .roomframe {height:132px;}
+}
