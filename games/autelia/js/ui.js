@@ -260,6 +260,7 @@ window.AU = window.AU || {};
       AU.Input.held.clear();
     },
     close() {
+      if (AU.main && AU.main.galleryOnly && this.curName === "gallery") { AU.main.exitGame(); return; }
       this.resetPending(); this.cur = null; this.curName = null; this.listening = null; AU.G.shop = null; this.winEl.classList.add("hidden"); this.winEl.innerHTML = ""; if (AU.Guide) AU.Guide.closed();
       AU.Input.held.clear(); AU.G.save("menu-close");
     },
@@ -375,6 +376,16 @@ window.AU = window.AU || {};
   R.gallery = function (b) {
     const g = AU.G.galleryState(), items = AU.G.galleryItems(), unlocked = new Set(g.unlocked), selected = new Set(g.selected);
     const today = AU.dateStr(), attended = g.attendance.includes(today);
+    if (AU.main && AU.main.galleryOnly) {
+      b.append(h("div", { class: "roomstandalone" },
+        h("p", { class: "note", text: "게임을 실행하지 않은 독립 이용 모드입니다. 전투와 이동은 시작되지 않습니다. 아래 캐릭터의 개인 기록을 보여줍니다." }),
+        h("div", { class: "choices" },
+          ...AU.main.SLOTS.map(n => {
+            const info = AU.main.slotInfo(n);
+            return btn(n + "번 " + (info ? info.name : "(새 캐릭터)") + (n === AU.main.slot ? " · 선택됨" : ""), n === AU.main.slot ? "on" : "mini", () => { if (n !== AU.main.slot) AU.main.setSlot(n); }, { disabled: n === AU.main.slot ? "" : null });
+          })),
+        btn("나만의 공간에서 나가기", "", () => AU.main.exitGame())));
+    }
     const logs = AU.G.S.missions.log.filter(x => x.state === "done").slice().reverse();
     b.append(h("div", { class: "roomtop" },
       h("div", null, h("h3", { text: "나만의 공간" }), h("p", { class: "note", text: "현실에서 시도한 경험이 전시되는 개인 공간입니다. 이곳의 장식은 전투 능력이나 스토리 진행에 영향을 주지 않습니다." })),
