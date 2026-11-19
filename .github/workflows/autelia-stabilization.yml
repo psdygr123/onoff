@@ -42,7 +42,7 @@ jobs:
         run: |
           set -uo pipefail
           overall=0
-          for test in tests/regression_main.js tests/fatigue.js tests/survey_pss.js tests/survey_perma.js tests/act1_hideout.js tests/feedback_tests.js tests/reality_growth_v2.js tests/prologue_resume_smoke.js; do
+          for test in tests/regression_main.js tests/fatigue.js tests/survey_pss.js tests/survey_perma.js tests/act1_hideout.js tests/feedback_tests.js tests/reality_growth_v2.js tests/gallery_room.js tests/prologue_resume_smoke.js; do
             echo "::group::$test"
             node "games/autelia/$test" > /tmp/one-test.log 2>&1
             code=$?
