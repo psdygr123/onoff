@@ -410,7 +410,7 @@ OnOff.Views = (function () {
               <div><button class="btn sm" type="submit">저장</button></div></form>
           </section>
 
-          <section class="panel" id="sec-games" aria-labelledby="h-games"><h2 id="h-games">이용 중인 게임</h2><div>${rows}</div>
+          <section class="panel" id="sec-games" aria-labelledby="h-games"><h2 id="h-games">이용 중인 게임</h2><p class="note">모험을 시작하지 않고도 나만의 공간에서 현실 활동과 갤러리 기록을 관리할 수 있습니다.</p><a class="btn" href="#space-autelia">나만의 공간 열기</a><div>${rows}</div>
             <p style="color:var(--ink-2);font-size:var(--fs-xs)">게임별 진행 기록은 서로 독립적으로 저장됩니다.</p></section>
 
           <section class="panel" id="sec-records" aria-labelledby="h-records"><h2 id="h-records">내 플레이 기록 내려받기</h2>
@@ -562,6 +562,32 @@ OnOff.Views = (function () {
     unmount() { if (disposeBridge) { disposeBridge(); disposeBridge = null; } }
   };
 
+  /* ---------- 독립형 나만의 공간: RPG 진행 없이 기존 갤러리로 접근 ---------- */
+  let disposeSpaceBridge = null;
+  const space = {
+    render(ctx) {
+      const g = GAMES.find(x => x.id === ctx.param);
+      if (!g || g.id !== "autelia" || !OnOff.Device.canPlay(g)) return notfound.render();
+      return `<div class="wrap page">
+        <div class="play-bar"><h1>나만의 공간 · 아우텔리아</h1><button class="btn ghost sm" type="button" data-action="go" data-to="mypage">마이페이지로 돌아가기</button></div>
+        <p class="note">RPG를 플레이하지 않아도 이 공간에서 오늘의 방문을 기록하거나 갤러리를 꾸밀 수 있습니다. 게임 안에서 열어도 같은 캐릭터 기록이 유지됩니다.</p>
+        <div class="stage" id="space-stage"></div>
+        <p class="bridge-log" id="space-log" role="status"></p>
+      </div>`;
+    },
+    mount(root, ctx) {
+      const g = GAMES.find(x => x.id === ctx.param);
+      if (!g || g.id !== "autelia" || !OnOff.Device.canPlay(g)) return;
+      const stage = root.querySelector("#space-stage"), log = root.querySelector("#space-log");
+      OnOff.Bridge.mount(stage, g, {
+        entryOverride: "games/autelia/index.html?space=1",
+        onLog: msg => { log.textContent = msg; },
+        onExit: () => { toast("나만의 공간을 종료했습니다."); go("mypage"); }
+      }).then(dispose => { disposeSpaceBridge = dispose; });
+    },
+    unmount() { if (disposeSpaceBridge) { disposeSpaceBridge(); disposeSpaceBridge = null; } }
+  };
+
   /* ---------- 정책·문의·없는 화면 ---------- */
   /* 시연용 안내문: 법적 효력이 있는 정식 문서가 아닙니다. 정식 문서가 정해지면 이 부분만 교체합니다. */
   const doc = (title, lead, sections) => ({
@@ -590,5 +616,5 @@ OnOff.Views = (function () {
   ]);
   const notfound = { render() { return `<div class="wrap page"><div class="page-narrow"><div class="panel"><h1>찾을 수 없는 화면입니다</h1><p>주소가 바뀌었거나 아직 없는 화면입니다.</p><div><button class="btn" type="button" data-action="go" data-to="home">홈으로</button></div></div></div></div>`; } };
 
-  return { home, games, about, login, reset, signup, mypage, intro, play, terms, privacy, contact, notfound, GATED: { mypage: true } };
+  return { home, games, about, login, reset, signup, mypage, intro, play, space, terms, privacy, contact, notfound, GATED: { mypage: true } };
 })();
