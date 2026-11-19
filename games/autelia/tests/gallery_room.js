@@ -56,6 +56,14 @@ const { chromium } = require('playwright');
       width:image.naturalWidth,height:image.naturalHeight,bytes,mime,src};
   });
   test('ROOM12 generated PNG loads as real raster (not vector)',mural.loaded&&mural.bytes>100000&&mural.src.endsWith('.png'),mural);
+  const paintings = await p.evaluate(async () => {
+    const paths = ['assets/gallery/painting_01.webp','assets/gallery/painting_02.webp'];
+    return Promise.all(paths.map(async src => { const im = new Image(); im.src = src;
+      try { await im.decode(); return {src,ok:im.naturalWidth >= 100 && im.naturalHeight >= 100}; }
+      catch (e) { return {src,ok:false,error:String(e)}; }
+    }));
+  });
+  test('ROOM13 two original watercolor gallery paintings decode',paintings.every(x=>x.ok),paintings);
       await p.screenshot({path:(process.env.SHOTS||'/tmp/autelia-shots')+'/gallery_layout_corrected.png'});
 
 
