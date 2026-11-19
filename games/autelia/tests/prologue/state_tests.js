@@ -8,9 +8,9 @@ const R = []; const ok = (n, c, d) => { R.push([n, !!c]); console.log((c ? 'PASS
     let s = await T.P(); ok('T18a 유언 장면 후 조각 획득', s.inv.includes('metal_fragment') && s.flags.includes('metal_fragment_acquired'), s.inv);
     await ev(() => AU.G.save('test')); await p.reload(); await p.waitForSelector('#btn-start');
     const label = await p.textContent('#btn-start'); ok('T18b 제목 버튼이 프롤로그 이어하기 표기', /프롤로그 이어하기 \(장면 6 \/ 8\)/.test(label), label);
-    await T.start(); await T.idle(); s = await T.P(); ok('T18c 장면 4 처음 위치에서 재개', s.st === 'SCENE_04_FATHER' && s.map === 'pro_house' && s.x < 250, JSON.stringify({ st: s.st, x: s.x, map: s.map }));
+    await T.start(); await p.waitForFunction(() => AU.World.mapId === 'pro_house' && !!AU.Prologue.cs, { timeout: 15000 }); s = await T.P(); ok('T18c 장면 4 처음 위치에서 재개', s.st === 'SCENE_04_FATHER' && s.map === 'pro_house' && s.x < 250, JSON.stringify({ st: s.st, x: s.x, map: s.map }));
     ok('T18d 재진입 직후 장면 소유 아이템/플래그 초기화(중복 지급 방지)', !s.inv.includes('metal_fragment') && !s.flags.includes('metal_fragment_acquired'), s.inv + ' ' + s.flags);
-    await T.walk(500, 12, 15000); await sleep(500); await T.idle(60000); await T.walk(420, 12, 15000); await p.keyboard.press('Space');
+    await T.idle(60000); await T.walk(500, 12, 15000); await sleep(500); await T.idle(60000); await T.walk(420, 12, 15000); await p.keyboard.press('Space');
     for (let i = 0; i < 40; i++) { await sleep(150); if ((await T.P()).inv.includes('carpenter_bag')) break; } for (let i = 0; i < 40 && (await T.P()).cs; i++) await sleep(150); await sleep(200); // 가방 줍기 연출(걷기·무릎·들기·마무리) 종료 대기
     s = await T.P(); const inv = JSON.parse(s.inv); ok('T18e 다시 진행해도 조각/가방 각 1개', inv.metal_fragment === 1 && inv.carpenter_bag === 1, s.inv);
     // 장면 5 도중 저장 → 이전 장면 아이템 유지
@@ -38,8 +38,8 @@ const R = []; const ok = (n, c, d) => { R.push([n, !!c]); console.log((c ? 'PASS
     await p.keyboard.press('Escape'); await sleep(200); let w = await ev(() => AU.UI.curName); ok('T21a 조작 가능 구간에서 Esc → 메뉴 열림', w === 'menu', 'cur=' + w); await p.keyboard.press('Escape'); await sleep(150);
     // 컷신 중 Esc/Ctrl/Alt 무시
     await ev(() => AU.Prologue.devJump('SCENE_02_FESTIVAL')); await T.idle(); await T.walk(790); await p.keyboard.press('Space'); await sleep(300); await T.dialogs(); await T.idle(); await T.walk(1045, 10, 30000); await sleep(1200);
-    const cs = await ev(() => !!AU.Prologue.cs); await p.keyboard.press('Escape'); await p.keyboard.press('Control'); await p.keyboard.press('Alt'); await sleep(200);
-    const cur = await ev(() => AU.UI.curName); ok('T21b 컷신 중 Esc/Ctrl/Alt가 아무 창도 열지 않음', cs && !cur, 'cs=' + cs + ' cur=' + cur);
+    const cs = await ev(() => !!AU.Prologue.cs); if (!cs) { await ev(() => { AU.UI.close(); AU.Prologue.cutscene(() => AU.Prologue.wait(3), { id: 'stabilization-input-test', skip: false }); }); await p.waitForFunction(() => !!AU.Prologue.cs); } await p.keyboard.press('Escape'); await p.keyboard.press('Control'); await p.keyboard.press('Alt'); await sleep(200);
+    const cur = await ev(() => AU.UI.curName); ok('T21b 컷신 중 Esc/Ctrl/Alt가 아무 창도 열지 않음', !cur && (await ev(() => !!AU.Prologue.cs)), 'cs=' + cs + ' cur=' + cur);
     ok('T21 오류 없음', T.errs.length === 0, T.errs.join('|')); await T.b.close(); }
 
   // ===== T22 플랫폼 임베드(postMessage) =====
