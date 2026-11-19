@@ -1,6 +1,6 @@
 /* 아우텔리아 화면 스타일 v2: 따뜻한 아이보리 바탕의 차분한 패널, 얇은 선, 낮은 채도의 포인트 색.
    (v1의 두꺼운 테두리·입체 그림자·원색 계열은 "유치하다"는 의견으로 정리함.)
-   [참고] 사용자가 고른 1안 이미지는 아직 받지 못해, 요청서의 문장 설명을 기준으로 한 임시 디자인입니다. */
+   나만의 공간은 사용자가 선택한 1안(따뜻한 기억 갤러리) 기준으로 별도 확대·일러스트 스타일을 적용합니다. */
 :root {
   --paper: #FBF7EE; --paper2: #F3ECDD; --line: rgba(110, 88, 58, .28); --line-s: rgba(110, 88, 58, .16);
   --ink: #3E352C; --ink2: #7B6F61; --gold: #B98B45; --gold-d: #946B2C; --sage: #4F7D6E; --sage-d: #3C6659; --sage-l: #E4EFE9;
@@ -662,3 +662,86 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
 .room-center .roomfloor { background:transparent; border-top:0; }
 .room-center .roomcrest { display:none; }
 .room-center .roomframe { box-shadow:0 5px 13px rgba(47,30,20,.28); }
+
+
+/* ==== 나만의 공간: 화면 확대 + 게임풍 장식 일러스트 (2차 개선) ==== */
+.window.win-gallery {
+  width: min(1262px, calc(100% - 10px));
+  height: min(710px, calc(100% - 10px));
+  max-height: min(710px, calc(100% - 10px));
+}
+.window.win-gallery .wtitle { padding: 8px 18px 7px 22px; min-height: 38px; font-size: 19px; }
+.window.win-gallery .wbody { padding: 7px 10px 10px; }
+.room-a-layout { gap: 7px; }
+.room-a-columns {
+  grid-template-columns: minmax(214px, .98fr) minmax(480px, 2.3fr) minmax(236px, 1.03fr);
+  gap: 9px;
+  min-height: 525px;
+}
+.room-a-heading { padding: 3px 14px 5px; min-height: 42px; gap: 10px; }
+.room-a-heading h2 { font-size: 25px; }
+.gallery-heading-art { width: 44px; height: 44px; object-fit: contain; flex:none; }
+.room-a-heading > div { flex:1; }
+.room-a-tag { font-size: 12px; }
+.room-panel { padding: 11px 12px; }
+.room-section-title { font-size: 17px !important; }
+.room-left .room-greeting { font-size: 14px; }
+.roomactivity { padding: 11px 7px; }
+.roomactivity-text strong { font-size: 13px; }
+.roomactivity-text small { font-size: 11px; }
+.roomactivity-icon { display:grid;place-items:center;background:#f7ebcf; width:39px; height:39px; border:1px solid #d5be92; }
+.gallery-mission-img { width:34px; height:34px; object-fit:contain; }
+.gallery-panel-head-art { width:54px; height:46px; display:block; object-fit:contain; margin:-2px auto -1px; }
+.room-left .gallery-panel-head-art { width:65px; height:56px; }
+.room-center { grid-template-rows: minmax(347px, 1fr) minmax(146px, auto); }
+.room-center .personalroom { min-height: 348px; }
+.room-center .roomwall { height: 77%; }
+.room-center .roomframes { margin-left:65px; gap:13px; }
+.room-center .roomframe { width:30%; max-width:155px; height:158px; padding:7px; }
+.room-center .roomframein { justify-content:flex-start; padding:4px; }
+.room-center .roomframein strong { font-size:11px; line-height:1.35; -webkit-line-clamp:2; }
+.gallery-frame-landscape, .gallery-frame-placeholder {
+  width:100%; height:88px; display:block; object-fit:cover;
+  border:1px solid #d8c09c; border-radius:2px; flex:none; background:#f7ead1;
+}
+.gallery-frame-placeholder {object-fit:contain;padding:11px;box-sizing:border-box;opacity:.78;}
+.room-center .roomframein small { font-size:10px; }
+.room-center .roomdecors { bottom:0; display:flex; align-items:flex-end; gap:7px; }
+.room-decor-set { display:block; filter:drop-shadow(1px 3px 3px rgba(60,43,29,.3)); }
+.gallery-decor-img { display:block; width:53px;height:66px;object-fit:contain; }
+.room-center .roomrug { font-size: 11px; }
+.room-recent { padding:9px 11px; }
+.room-recent h3 { display:flex;align-items:center;gap:5px;font-size:17px !important; }
+.gallery-inline-art { width:25px; height:25px;object-fit:contain; }
+.room-recent > .note { margin:1px 0 6px; }
+.roommemory-art { height:88px; overflow:hidden; }
+.gallery-memory-landscape { display:block; width:100%; height:100%;object-fit:cover; }
+.gallery-placeholder {display:block;width:78%;height:100%;object-fit:contain;opacity:.7;}
+.roommemory strong { font-size:11px; }
+.roommemory small { font-size:10px; }
+.roommemory-state { top:8px;right:8px; }
+.room-radar svg { height:165px; max-width:260px; margin:auto; }
+.room-perma-row { font-size:12px; }
+.room-perma-meter { font-size:11px; }
+.room-counter-grid .room-panel {padding:8px 5px; text-align:center; }
+.gallery-counter-icon { display:block;width:32px;height:32px;object-fit:contain;margin:0 auto -2px; }
+.room-counter-grid .room-big-number {font-size:17px;}
+.room-counter-grid small {font-size:11px;}
+.room-decor-icons { gap:7px; margin:4px 0; }
+.room-decor-icons span { flex:1; display:flex;justify-content:center; }
+.gallery-decor-preview {width:55px;height:56px;object-fit:contain;}
+.roomshopitem .roomicon {display:block;width:60px;height:58px;object-fit:contain;}
+.room-a-actions { margin:0; padding:3px; gap:10px; }
+.room-a-actions .btn { min-width:130px; font-size:14px;padding:8px 16px; }
+@media (max-width:1050px) {
+ .room-a-columns {grid-template-columns:minmax(175px, .85fr) minmax(360px, 1.65fr) minmax(185px, .95fr);}
+ .room-center .roomframe {height:142px;}
+ .gallery-frame-landscape,.gallery-frame-placeholder {height:73px;}
+ .room-radar svg {height:140px;}
+}
+@media (max-width:780px) {
+ .room-a-columns { grid-template-columns: minmax(190px, 1fr) minmax(310px, 1.5fr);}
+ .room-right {grid-column:1/-1;display:grid;grid-template-columns:1.5fr 1fr;align-items:start;}
+ .room-growth {grid-row:span 3;}
+ .room-center .personalroom {min-height:320px;}
+}
