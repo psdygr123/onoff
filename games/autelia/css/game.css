@@ -653,3 +653,12 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
   .room-growth {grid-row:span 3;}
   .room-center .personalroom {min-height:280px;}
 }
+
+
+/* Gallery concept A: original illustrated room under interactive frames */
+.room-center .personalroom { background: #e8d4ac url("../assets/bg/personal_gallery_room.svg") center / cover no-repeat; }
+.room-center .roomwall { background:transparent; }
+.room-center .roomwindow { opacity:0; pointer-events:none; }
+.room-center .roomfloor { background:transparent; border-top:0; }
+.room-center .roomcrest { display:none; }
+.room-center .roomframe { box-shadow:0 5px 13px rgba(47,30,20,.28); }
