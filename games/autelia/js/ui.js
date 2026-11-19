@@ -384,7 +384,7 @@ window.AU = window.AU || {};
         h("div", { class: "roomcrest", text: "✦" }),
         h("div", { class: "roomframes" }, ...[0,1,2].map(i => {
           const entry = logs[i], m = entry && AU.G.mission(entry.id);
-          return h("div", { class: "roomframe" }, entry ? h("div", { class: "roomframein" }, h("span", { class: "symbol", text: ({P:"☀",E:"✦",R:"♡",M:"✧",A:"★"})[entry.perma] || "✦" }), h("strong", { text: m ? m.title : "나의 활동" }), h("small", { text: entry.t })) : h("div", { class: "roomframein emptyframe", text: "새로운 경험을 기다리는 액자" });
+          return h("div", { class: "roomframe" }, entry ? h("div", { class: "roomframein" }, h("span", { class: "symbol", text: ({P:"☀",E:"✦",R:"♡",M:"✧",A:"★"})[entry.perma] || "✦" }), h("strong", { text: m ? m.title : "나의 활동" }), h("small", { text: entry.t })) : h("div", { class: "roomframein emptyframe", text: "새로운 경험을 기다리는 액자" }));
         })),
         h("div", { class: "roomdecors" }, ...items.filter(item => selected.has(item.id)).map(item => h("span", { title: item.name, text: item.icon })))) ,
       h("div", { class: "roomfloor" }, h("div", { class: "roomrug", text: "MY GALLERY" }))));
