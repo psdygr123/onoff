@@ -779,7 +779,7 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
 
 /* Detailed hand-painted gallery: place real player memories on the reserved blank wall. */
 .room-center .personalroom {
-  background-image:url("../assets/bg/personal_gallery_room.svg");
+  background-image:url("../assets/bg/personal_gallery_room.png");
   background-position:center;
   background-repeat:no-repeat;
   background-size:cover;
