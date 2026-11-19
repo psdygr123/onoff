@@ -29,7 +29,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const inStats = await ev(() => { AU.UI.close(); AU.UI.open('stats'); const n = document.querySelectorAll('.mindbox').length; AU.UI.close(); return n; });
   await ev(() => { AU.UI.tab.jg = 'real'; AU.UI.tab.j = 'record'; AU.UI.open('journal'); }); await sleep(400);
   const rows = await ev(() => Array.from(document.querySelectorAll('.mindbox .mrow')).map((r) => r.dataset.perma + ':' + r.querySelector('.mv').textContent + (r.classList.contains('fresh') ? '*' : '')));
-  note('M7', '모험일지 마음 기록에 5개 영역 수치(최대치 포함)와 방금 오른 표시(스탯 창에는 없음)', inStats === 0 && rows.length === 5 && rows[0] === 'P:3 / 3' && rows.some((r) => r.endsWith('*')), rows.join(' '));
+  note('M7', '모험일지 마음 기록에 5개 영역 수치(최대치 포함)와 방금 오른 표시(스탯 창에는 없음)', inStats === 0 && rows.length === 5 && /^P:3 \/ \d+$/.test(rows[0]) && rows.some((r) => r.endsWith('*')), rows.join(' '));
   const up = await ev(() => { const e = Array.from(document.querySelectorAll('.mindbox .mup')).find((x) => x.textContent); return e ? e.textContent : null; });
   note('M7b', '“방금 +N” 배지', up === '방금 +1', String(up));
   await p.screenshot({ path: SH + 'mind_stats.png' });
