@@ -34,12 +34,16 @@ jobs:
           done
           cat /tmp/autelia-http.log
           exit 1
+      - name: Check JS syntax
+        run: |
+          for file in games/autelia/js/*.js games/autelia/tests/gallery_room.js; do node --check "$file" || exit 1; done
       - name: Browser regression suite
         env:
           GAME_URL: http://localhost:8801
           SHOTS: /tmp/autelia-shots
         shell: bash
         run: |
+          set +e
           set -uo pipefail
           overall=0
           for test in tests/regression_main.js tests/fatigue.js tests/survey_pss.js tests/survey_perma.js tests/act1_hideout.js tests/feedback_tests.js tests/reality_growth_v2.js tests/gallery_room.js tests/prologue_resume_smoke.js; do
