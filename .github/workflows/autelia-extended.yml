@@ -19,7 +19,7 @@ jobs:
           - group: prologue-state
             tests: tests/prologue/state_tests.js tests/prologue/profile_tests.js tests/prologue/skip_tests.js tests/prologue/obstacle_tests.js tests/prologue/optional_npc.js
           - group: core-progression
-            tests: tests/quest_kinds.js tests/drops.js tests/mind_stats.js tests/stat_gate.js
+            tests: tests/current_quest_integrity.js tests/drops.js tests/mind_stats.js tests/stat_gate.js
           - group: story-and-tutorial
             tests: tests/tutorial.js tests/act1_story.js
     runs-on: ubuntu-latest
@@ -46,6 +46,7 @@ jobs:
           TESTS: ${{ matrix.tests }}
         shell: bash
         run: |
+          set +e
           set -uo pipefail
           overall=0
           for test in $TESTS; do
