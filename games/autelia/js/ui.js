@@ -376,7 +376,7 @@ window.AU = window.AU || {};
   /* 나만의 공간 — 선택된 시안 A: 따뜻한 기억 갤러리, 실제 저장 데이터를 사용 */
   R.gallery = function (b) {
     const S = AU.G.S, g = AU.G.galleryState(), items = AU.G.galleryItems();
-    const galleryRaster = { memory_P: "painting_01", memory_E: "painting_02", memory_R: "painting_03", memory_M: "painting_04", memory_A: "painting_05" };
+    const galleryRaster = { memory_P: "painting_01", memory_E: "painting_02", memory_R: "painting_03", memory_M: "painting_04", memory_A: "painting_05", frame: "frame", plant: "plant", lamp: "lamp", banner: "banner", mission: "mission", journal: "journal", memory: "memory", token: "token", rest: "rest", attempt: "attempt" };
     const galleryArt = (name, cls, label) => h("img", { class: cls || "gallery-asset", src: "assets/gallery/" + (galleryRaster[name] || name) + (galleryRaster[name] ? ".webp" : ".svg"), alt: label || "", loading: "lazy", draggable: "false" });
     const permaArt = (k, cls) => galleryArt("memory_" + (["P","E","R","M","A"].includes(k) ? k : "P"), cls || "gallery-memory-landscape", "");
     const unlocked = new Set(g.unlocked), selected = new Set(g.selected);

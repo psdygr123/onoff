@@ -64,6 +64,22 @@ const { chromium } = require('playwright');
     }));
   });
   test('ROOM13 all five original watercolor gallery paintings decode',paintings.every(x=>x.ok),paintings);
+
+  const icons = await p.evaluate(async () => {
+    const names = ['frame','plant','lamp','banner','mission','journal','memory','token','rest','attempt'];
+    return Promise.all(names.map(async name => {
+      const src = 'assets/gallery/' + name + '.webp', im = new Image();
+      im.src = src;
+      try { await im.decode(); return {name, ok:im.naturalWidth === 48 && im.naturalHeight === 48}; }
+      catch(error) { return {name, ok:false, error:String(error)}; }
+    }));
+  });
+  test('ROOM14 ten gallery object and icon raster assets decode', icons.every(x => x.ok), icons);
+  const iconRefs = await p.evaluate(() => Array.from(document.querySelectorAll('.win-gallery img'))
+    .filter(el => /assets\/gallery\/(?:frame|plant|lamp|banner|mission|journal|memory|token|rest)\./.test(el.getAttribute('src') || ''))
+    .map(el => el.getAttribute('src')));
+  test('ROOM15 gallery uses raster icons in visible UI', iconRefs.length >= 4 && iconRefs.every(p => p.endsWith('.webp')), iconRefs);
+
       await p.screenshot({path:(process.env.SHOTS||'/tmp/autelia-shots')+'/gallery_layout_corrected.png'});
 
 
