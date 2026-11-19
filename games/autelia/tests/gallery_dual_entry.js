@@ -17,6 +17,7 @@ const { chromium } = require('playwright');
     const beforeRpg = await page.evaluate(() => ({ token: AU.G.galleryState().tokens, date: AU.G.galleryState().attendance.at(-1), galleryMode: AU.main.galleryOnly }));
     check('DUAL3 same save is visible from RPG entry', beforeRpg.token === saved.token && beforeRpg.date === saved.date && !beforeRpg.galleryMode, beforeRpg);
     await page.click('#btn-start');
+    for (let i = 0; i < 2 && await page.$('#job-next'); i++) { await page.click('#job-next'); }
     if (await page.locator('#charsetup').isVisible()) {
       await page.click('#sg-m'); await page.fill('#sname', '검사자'); await page.click('#setup-ok');
     }
