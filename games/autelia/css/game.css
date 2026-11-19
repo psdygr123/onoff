@@ -745,3 +745,69 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
  .room-growth {grid-row:span 3;}
  .room-center .personalroom {min-height:320px;}
 }
+
+
+/* Gallery layout correction: keep the action row visible inside the 720px stage. */
+.window.win-gallery .wbody { min-height:0; overflow:hidden; }
+.room-a-layout { display:flex; flex-direction:column; height:100%; min-height:0; gap:6px; }
+.room-a-heading { flex:0 0 auto; min-height:40px; }
+.room-a-columns { flex:1 1 auto; min-height:0; height:auto; max-height:100%; }
+.room-left, .room-right { min-height:0; max-height:100%; overflow-y:auto; scrollbar-width:thin; }
+.room-center { min-height:0; grid-template-rows:minmax(0,1fr) 143px; }
+.room-center .personalroom { min-height:0; height:100%; }
+.room-recent { min-height:0; overflow:hidden; }
+.room-recent-grid { min-height:0; }
+.room-a-actions { flex:0 0 auto; min-height:40px; margin:0; padding:2px 4px 3px; }
+.room-a-actions .btn { padding:7px 12px; }
+.roomstandalone { flex:0 0 auto; }
+.room-shop-panel { flex:0 0 auto; max-height:160px; overflow-y:auto; }
+.room-perma-bars { display:none; } /* radar + numeric legend already convey same information */
+.room-radar svg { height:145px; }
+.room-right .room-panel { padding:9px; }
+.room-counter-grid .room-panel { padding:6px; }
+.room-right .room-section-title {margin-bottom:6px!important;}
+.room-center .roomframes { height:100%; }
+.room-center .roomframe { height:148px; }
+@media (max-width:780px) {
+ .window.win-gallery .wbody {overflow-y:auto;}
+ .room-a-layout {height:auto;min-height:100%;}
+ .room-a-columns {height:auto;min-height:0;}
+ .room-left,.room-right {max-height:none; overflow:visible;}
+ .room-center .personalroom {min-height:320px;}
+}
+
+
+/* Detailed hand-painted gallery: place real player memories on the reserved blank wall. */
+.room-center .personalroom {
+  background-image:url("../assets/bg/personal_gallery_room.svg");
+  background-position:center;
+  background-repeat:no-repeat;
+  background-size:cover;
+  box-shadow: inset 0 0 34px rgba(93,61,39,.14);
+}
+.room-center .roomframes { width:57%; margin-left:24%; gap:7px; align-items:center; justify-content:space-between; }
+.room-center .roomframe { flex:1 1 0; min-width:0; height:148px; max-width:none; border-radius:3px; padding:5px; background:linear-gradient(135deg,#f3d9a4 0%,#865332 30%,#c18b4f 52%,#6e492f 75%,#eac78e 100%); }
+.room-center .roomframein { background:#f7ebce; border:1px solid #dfc99e; }
+.room-center .roomdecors { right:7%; bottom:2%; }
+.room-decor-set { filter:drop-shadow(1px 2px 3px rgba(53,35,24,.32)); }
+.room-recent, .room-panel {
+  background-image:linear-gradient(155deg,rgba(255,251,236,.94),rgba(242,218,178,.86));
+}
+.roommemory-art { border-color:#bc996c; }
+.room-a-heading { background:linear-gradient(110deg,#fcf1d5,#f5dfb6); }
+@media (max-width:780px) {
+  .room-center .roomframes {width:62%; margin-left:23%; }
+  .room-center .roomframe {height:132px;}
+}
+
+
+/* Visual screenshot review: keep the complete recent memories visible above footer. */
+.room-center { grid-template-rows: minmax(0,1fr) 168px; }
+.room-recent { overflow:hidden; }
+.room-recent-grid { height:118px; align-items:stretch; }
+.roommemory { overflow:hidden; gap:2px; padding:4px; }
+.roommemory-art { height:72px; flex:none; }
+.roommemory strong { font-size:10px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; line-height:1.25; }
+.roommemory small { font-size:9px; }
+.roommemory-state { top:7px;right:7px; }
+@media (max-width:780px) { .room-center { grid-template-rows:minmax(0,1fr) 168px; } }
