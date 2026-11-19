@@ -779,7 +779,7 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
 
 /* Detailed hand-painted gallery: place real player memories on the reserved blank wall. */
 .room-center .personalroom {
-  background-image:url("../assets/bg/personal_gallery_room.svg");
+  background-image:url("../assets/bg/personal_gallery_room.png");
   background-position:center;
   background-repeat:no-repeat;
   background-size:cover;
@@ -811,3 +811,10 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
 .roommemory small { font-size:9px; }
 .roommemory-state { top:7px;right:7px; }
 @media (max-width:780px) { .room-center { grid-template-rows:minmax(0,1fr) 168px; } }
+
+
+/* Keep memory titles and dates visible in the expanded gallery. */
+.room-recent-grid { height:110px; }
+.roommemory-art { height:52px; }
+.roommemory strong {font-size:10px;line-height:1.22;max-height:2.44em;}
+.roommemory small {font-size:9px;}
