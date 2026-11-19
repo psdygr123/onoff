@@ -18,7 +18,7 @@ const { chromium } = require('playwright');
     check('DUAL3 same save is visible from RPG entry', beforeRpg.token === saved.token && beforeRpg.date === saved.date && !beforeRpg.galleryMode, beforeRpg);
     await page.click('#btn-start');
     if (await page.locator('#charsetup').isVisible()) {
-      await page.fill('#sname', '검사자'); await page.click('#setup-ok');
+      await page.click('#sg-m'); await page.fill('#sname', '검사자'); await page.click('#setup-ok');
     }
     await page.waitForFunction(() => AU.main.running);
     await page.evaluate(() => AU.UI.open('gallery'));
