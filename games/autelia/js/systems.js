@@ -375,12 +375,16 @@ window.AU = window.AU || {};
     ms(id) { return this.S.missions.states[id] || { state: "locked", rewarded: false, tries: 0 }; },
     initMissions() {
       const M = this.S.missions;
-      for (const m of AU.MISSIONS) if (!M.states[m.id]) M.states[m.id] = { state: "locked", rewarded: false, tries: 0 };
+      for (const m of AU.MISSIONS) {
+        if (!M.states[m.id]) M.states[m.id] = { state: "locked", rewarded: false, tries: 0 };
+        // 신규 활동 및 구 저장의 미완료/잠금 미션도 안내 이후 자유롭게 선택 가능.
+        if (this.S.flags.missionsUnlocked && this.S.flags.guideMet && M.states[m.id].state === "locked") M.states[m.id].state = "available";
+      }
     },
     discoverMissions() {
       const S = this.S; if (!S.flags.missionsUnlocked) return false;
       S.flags.guideMet = true; this.initMissions();
-      for (const m of AU.MISSIONS) { const r = S.missions.states[m.id]; if (r.state === "locked" && (!m.pre || this.ms(m.pre).state === "done")) r.state = "available"; }
+      for (const m of AU.MISSIONS) { const r = S.missions.states[m.id]; if (r.state === "locked") r.state = "available"; }
       this.save("mission"); this.changed(); return true;
     },
     setMissionState(id, next, feedback) {
@@ -396,7 +400,15 @@ window.AU = window.AU || {};
       let points = 0, capped = false, gained = 0, earnedTokens = 0;
       if (next === "accept") r.state = "accepted";
       else if (next === "attempt") { r.state = "attempted"; r.tries++; }
-      else if (next === "partial") { r.state = "partial"; points = C.missions.partialPoints; }
+      else if (next === "partial") {
+        r.state = "partial"; points = C.missions.partialPoints;
+        // 일부 시도도 한 번 기록하고 소규모 꾸미기 보상 제공. 동일 미션 중복 지급 방지.
+        if (!r.partialRewarded) {
+          const g = this.galleryState(); g.fragments = (Number.isInteger(g.fragments) && g.fragments >= 0 ? g.fragments : 0) + 1;
+          if (g.fragments >= 3) { g.tokens += Math.floor(g.fragments / 3); g.fragments %= 3; }
+          r.partialRewarded = true;
+        }
+      }
       else if (next === "skip") r.state = "skipped";
       else if (next === "retry") r.state = "accepted";
       else if (next === "done") {
@@ -437,6 +449,7 @@ window.AU = window.AU || {};
       const g = S.gallery;
       g.tokens = Number.isFinite(g.tokens) && g.tokens >= 0 ? Math.floor(g.tokens) : 0;
       for (const k of ['unlocked', 'selected', 'attendance']) if (!Array.isArray(g[k])) g[k] = [];
+      if (!Number.isInteger(g.fragments) || g.fragments < 0) g.fragments = 0;
       return g;
     },
     galleryCheckin() {

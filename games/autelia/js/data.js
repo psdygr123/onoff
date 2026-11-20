@@ -401,6 +401,38 @@ AU.MISSIONS = [
     guide: { kind: "timer", secs: 300, intro: ["미뤄 둔 작은 일을 하나 골라 시작해 보세요.", "5분 타이머가 끝나면 ‘해 봤어요’를 누를 수 있습니다."] } },
   { id: "m_a2", perma: "A", d: 2, points: 2, title: "목표 하나 정하고 시작해 보기", desc: "이번 주에 해 볼 작은 목표를 하나 정하고 첫 걸음을 뗍니다.", pre: "m_a1" }
 ];
+
+// 신규 활동 20종: 기존 10개 미션 ID와 저장 기록은 유지합니다.
+AU.MISSION_FUNCTION_AREAS = {"self_care":"자기돌봄","leisure":"취미·여가","learning":"학습·탐색","relationships":"사회적 관계","self_understanding":"자기이해","planning":"계획·목표","daily_living":"생활 관리"};
+const _originalMissions = AU.MISSIONS;
+const _legacyMeta = {"m_p1":["leisure",1,3],"m_p2":["leisure",2,5],"m_e1":["learning",3,10],"m_e2":["leisure",3,30],"m_r1":["relationships",2,5],"m_r2":["relationships",3,15],"m_m1":["relationships",2,5],"m_m2":["self_understanding",3,20],"m_a1":["daily_living",2,5],"m_a2":["planning",2,5]};
+_originalMissions.forEach(m => {
+  const [functionArea, difficulty, minutes] = _legacyMeta[m.id];
+  Object.assign(m, { functionArea, difficulty, minutes, optional: true, legacy: true });
+});
+AU.MISSIONS.push(
+  {"id":"m_p3","perma":"P","d":1,"points":1,"title":"주변에서 마음에 드는 것 하나 찾기","desc":"창밖이나 가까운 곳에서 마음에 드는 것 하나를 찾아봅니다.","functionArea":"self_care","difficulty":1,"minutes":2,"optional":true},
+  {"id":"m_p4","perma":"P","d":2,"points":2,"title":"좋아하는 음료나 간식 즐기기","desc":"가능한 범위에서 좋아하는 음료나 간식을 잠깐 즐겨 봅니다.","functionArea":"leisure","difficulty":2,"minutes":5,"optional":true},
+  {"id":"m_p5","perma":"P","d":3,"points":3,"title":"편안한 장소에서 잠시 쉬기","desc":"편안한 장소를 골라 쉬어 봅니다. 중간에 멈춰도 괜찮습니다.","functionArea":"self_care","difficulty":3,"minutes":10,"optional":true},
+  {"id":"m_p6","perma":"P","d":3,"points":3,"title":"좋아하는 취미활동 즐기기","desc":"원하는 취미를 가볍게 해 봅니다. 꼭 시간을 채울 필요는 없습니다.","functionArea":"leisure","difficulty":3,"minutes":15,"optional":true},
+  {"id":"m_e3","perma":"E","d":1,"points":1,"title":"좋아하는 글이나 그림 살펴보기","desc":"관심 있는 글이나 그림 한 부분을 살펴봅니다.","functionArea":"leisure","difficulty":1,"minutes":2,"optional":true},
+  {"id":"m_e4","perma":"E","d":1,"points":1,"title":"관심 있는 주제 하나 찾아보기","desc":"궁금한 주제나 좋아하는 분야에서 한 가지 정보를 찾아봅니다.","functionArea":"learning","difficulty":1,"minutes":3,"optional":true},
+  {"id":"m_e5","perma":"E","d":2,"points":2,"title":"간단한 그림이나 낙서 그리기","desc":"종이나 화면에 자유롭게 선이나 그림을 그려 봅니다.","functionArea":"leisure","difficulty":2,"minutes":5,"optional":true},
+  {"id":"m_e6","perma":"E","d":3,"points":3,"title":"배우고 싶었던 것 하나 연습하기","desc":"배워 보고 싶었던 활동의 작은 부분을 연습해 봅니다.","functionArea":"learning","difficulty":3,"minutes":15,"optional":true},
+  {"id":"m_r3","perma":"R","d":1,"points":1,"title":"고마웠던 사람이나 순간 떠올리기","desc":"편한 관계나 고마웠던 순간을 떠올려 봅니다. 연락할 필요는 없습니다.","functionArea":"relationships","difficulty":1,"minutes":2,"optional":true},
+  {"id":"m_r4","perma":"R","d":1,"points":1,"title":"소중한 사람과의 좋은 추억 떠올리기","desc":"편안하게 느껴지는 좋은 기억 하나를 떠올려 봅니다.","functionArea":"relationships","difficulty":1,"minutes":3,"optional":true},
+  {"id":"m_r5","perma":"R","d":2,"points":2,"title":"고마운 마음을 짧게 적어 보기","desc":"고마움을 짧게 적어 봅니다. 상대에게 보내지 않아도 됩니다.","functionArea":"relationships","difficulty":2,"minutes":5,"optional":true},
+  {"id":"m_r6","perma":"R","d":3,"points":3,"title":"원하는 사람과 관심사 나누기","desc":"안전하고 편한 상대가 있다면 관심사를 조금 나눠 봅니다. 다른 활동을 골라도 됩니다.","functionArea":"relationships","difficulty":3,"minutes":10,"optional":true},
+  {"id":"m_m3","perma":"M","d":1,"points":1,"title":"자신이 좋아하는 것 하나 떠올리기","desc":"좋아하는 것 한 가지를 떠올려 봅니다.","functionArea":"self_understanding","difficulty":1,"minutes":2,"optional":true},
+  {"id":"m_m4","perma":"M","d":1,"points":1,"title":"오늘 중요하게 생각하는 일 선택하기","desc":"오늘 스스로 중요하다고 느끼는 작은 일 하나를 정해 봅니다.","functionArea":"planning","difficulty":1,"minutes":3,"optional":true},
+  {"id":"m_m5","perma":"M","d":2,"points":2,"title":"최근 의미 있었던 경험 적기","desc":"최근 자신에게 의미 있던 순간을 한 줄로 남겨 봅니다.","functionArea":"self_understanding","difficulty":2,"minutes":5,"optional":true},
+  {"id":"m_m6","perma":"M","d":3,"points":3,"title":"자신이 소중하게 생각하는 가치 3가지 고르기","desc":"자신에게 중요한 가치들을 골라 봅니다. 답은 바뀌어도 괜찮습니다.","functionArea":"self_understanding","difficulty":3,"minutes":10,"optional":true},
+  {"id":"m_a3","perma":"A","d":1,"points":1,"title":"물건 하나 제자리에 놓기","desc":"가까운 물건 한 개만 제자리에 놓아봅니다.","functionArea":"daily_living","difficulty":1,"minutes":1,"optional":true},
+  {"id":"m_a4","perma":"A","d":1,"points":1,"title":"오늘 할 수 있는 작은 일 정하기","desc":"부담 없는 오늘의 할 일을 하나 정해 봅니다.","functionArea":"planning","difficulty":1,"minutes":3,"optional":true},
+  {"id":"m_a5","perma":"A","d":2,"points":2,"title":"생활 공간 한 구역 정리하기","desc":"책상이나 방의 작은 구역을 정리해 봅니다. 일부만 해도 괜찮습니다.","functionArea":"daily_living","difficulty":2,"minutes":5,"optional":true},
+  {"id":"m_a6","perma":"A","d":3,"points":3,"title":"간단한 생활 과제 하나 수행하기","desc":"스스로 고른 작은 생활 과제를 시도해 봅니다.","functionArea":"daily_living","difficulty":3,"minutes":10,"optional":true}
+);
+// 활동 경험 점수는 심리검사 점수와 별개입니다.
 /* 선택형 '쉼' 현실 미션: 피로도를 줄이는 짧은 휴식 활동(PERMA 마음 스탯과는 별개). 수치·목록은 임시, 하루에 같은 미션은 한 번 */
 AU.REST_MISSIONS = [
   { id: "r_breath", title: "3분 호흡 가다듬기", desc: "편한 자세로 앉아 숨을 천천히 들이쉬고 내쉬며 3분을 보냅니다.", recover: 25,
