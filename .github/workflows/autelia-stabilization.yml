@@ -7,6 +7,7 @@ on:
       - feat/gallery-raster-original-art-20261119
       - fix/gallery-visual-layout-20261119
       - feat/gallery-immersive-art-20261119
+      - fix/gallery-thumbnails-and-fragments-20261121
       - feat/optional-perma-missions-30-20261121
   workflow_dispatch:
 
