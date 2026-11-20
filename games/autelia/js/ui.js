@@ -912,7 +912,7 @@ window.AU = window.AU || {};
       const M = S.missions;
       const currentCategory = UI.tab.missionArea || "all";
       const currentDifficulty = UI.tab.missionDifficulty || "all";
-      b.append(h("div", { class: "msummary" }, h("span", { text: "갤러리 토큰 " }), h("b", { text: AU.G.galleryState().tokens }), h("span", { text: " · 마음 성장과 개인 공간 꾸미기에 사용합니다." }), btn("나만의 공간 보기", "mini", () => UI.open("gallery"))),
+      b.append(h("div", { class: "msummary" }, h("span", { text: "갤러리 토큰 " }), h("b", { text: AU.G.galleryState().tokens }), h("span", { text: " · 장식 조각 " + AU.G.galleryState().fragments + "/3 · 개인 공간 꾸미기에 사용합니다." }), btn("나만의 공간 보기", "mini", () => UI.open("gallery"))),
         h("p", { class: "note", text: "현실 미션은 선택 사항이며 언제든 바꿀 수 있습니다. 일부 시도도 기록됩니다. 하지 않아도 모험은 계속됩니다." }));
       const areaOptions = [["all", "전체"], ...Object.entries(AU.MISSION_FUNCTION_AREAS)];
       b.append(h("div", { class: "tabs mission-areas" }, ...areaOptions.map(([k,label]) => btn(label, currentCategory === k ? "on" : "", () => { UI.tab.missionArea = k; UI.renderWin(); }))));
