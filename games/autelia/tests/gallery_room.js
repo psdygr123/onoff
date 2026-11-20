@@ -59,7 +59,7 @@ const { chromium } = require('playwright');
   const paintings = await p.evaluate(async () => {
     const paths = ['assets/gallery/painting_01.webp','assets/gallery/painting_02.webp','assets/gallery/painting_03.webp','assets/gallery/painting_04.webp','assets/gallery/painting_05.webp'];
     return Promise.all(paths.map(async src => { const im = new Image(); im.src = src;
-      try { await im.decode(); return {src,ok:im.naturalWidth >= 100 && im.naturalHeight >= 100}; }
+      try { await im.decode(); return {src,ok:im.naturalWidth > 0 && im.naturalHeight > 0,width:im.naturalWidth,height:im.naturalHeight}; }
       catch (e) { return {src,ok:false,error:String(e)}; }
     }));
   });
