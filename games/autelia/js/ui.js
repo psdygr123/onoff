@@ -910,14 +910,21 @@ window.AU = window.AU || {};
       if (!un) { b.append(h("div", { class: "missions preview" }, AU.MISSIONS.map((m) => h("div", { class: "mission st-locked" }, h("div", { class: "mh" }, h("span", { class: "tag perma", text: m.perma + " · " + AU.PERMA[m.perma] }), h("span", { class: "tag", text: "🔒 잠김" }), h("span", { class: "pts", text: "갤러리 토큰 +1" })), h("b", { text: m.title }), h("p", { text: m.desc }))))); return; }
       if (!S.flags.guideMet) { b.append(h("div", { class: "lockbox" }, h("h3", { text: "새로운 이야기를 기다리고 있어요" }), h("p", { text: "포르투 노바의 알렉시오스과 이야기를 나누면 이곳에 내용이 나타납니다." }))); return; }
       const M = S.missions;
+      const currentCategory = UI.tab.missionArea || "all";
+      const currentDifficulty = UI.tab.missionDifficulty || "all";
       b.append(h("div", { class: "msummary" }, h("span", { text: "갤러리 토큰 " }), h("b", { text: AU.G.galleryState().tokens }), h("span", { text: " · 마음 성장과 개인 공간 꾸미기에 사용합니다." }), btn("나만의 공간 보기", "mini", () => UI.open("gallery"))),
-        h("p", { class: "note", text: "현실 미션은 선택 사항입니다. 하지 않아도 모험을 계속할 수 있고, 수행 여부는 직접 기록하는 방식입니다." }));
+        h("p", { class: "note", text: "현실 미션은 선택 사항이며 언제든 바꿀 수 있습니다. 일부 시도도 기록됩니다. 하지 않아도 모험은 계속됩니다." }));
+      const areaOptions = [["all", "전체"], ...Object.entries(AU.MISSION_FUNCTION_AREAS)];
+      b.append(h("div", { class: "tabs mission-areas" }, ...areaOptions.map(([k,label]) => btn(label, currentCategory === k ? "on" : "", () => { UI.tab.missionArea = k; UI.renderWin(); }))));
+      b.append(h("div", { class: "tabs mission-difficulties" }, ...[["all","모든 난이도"],["1","쉬움"],["2","보통"],["3","확장"]].map(([k,label]) => btn(label, currentDifficulty === k ? "on" : "", () => { UI.tab.missionDifficulty = k; UI.renderWin(); }))));
       const grid = h("div", { class: "missions" });
       for (const m of AU.MISSIONS) {
+        if (currentCategory !== "all" && m.functionArea !== currentCategory) continue;
+        if (currentDifficulty !== "all" && m.difficulty !== Number(currentDifficulty)) continue;
         const r = M.states[m.id]; if (!r || r.state === "locked") continue;
         const acts = { available: [["수락", "primary", "accept"], ["건너뛰기", "", "skip"]], accepted: [["해 봤어요", "primary", "attempt"], ["건너뛰기", "", "skip"]], attempted: [["완료했어요", "primary", "done"], ["일부만 했어요", "", "partial"], ["건너뛰기", "", "skip"]],
           partial: [["완료했어요", "primary", "done"], ["다시 도전", "", "retry"], ["건너뛰기", "", "skip"]], skipped: [["다시 도전", "", "retry"]], done: [] }[r.state] || [];
-        grid.append(h("div", { class: "mission st-" + r.state }, h("div", { class: "mh" }, h("span", { class: "tag perma", text: m.perma + " · " + AU.PERMA[m.perma] }), h("span", { class: "tag", text: AU.MISSION_STATES[r.state] }), h("span", { class: "pts", text: r.rewarded ? "지급 완료" : "갤러리 토큰 +1" })),
+        grid.append(h("div", { class: "mission st-" + r.state }, h("div", { class: "mh" }, h("span", { class: "tag perma", text: m.perma + " · " + AU.PERMA[m.perma] }), h("span", { class: "tag", text: (AU.MISSION_FUNCTION_AREAS[m.functionArea] || "일상 활동") + " · " + (["","쉬움","보통","확장"][m.difficulty] || "선택") + " · 약 " + m.minutes + "분" }), h("span", { class: "tag", text: AU.MISSION_STATES[r.state] }), h("span", { class: "pts", text: r.rewarded ? "지급 완료" : "갤러리 토큰 +1" })),
           h("b", { text: m.title }), h("p", { text: m.desc }), acts.length ? h("div", { class: "macts" }, acts.map(([l, c, a]) => btn(l, c, () => ((a === "done" || a === "partial") ? UI.missionReview(m, a, (feedback) => AU.G.setMissionState(m.id, a, feedback)) : (m.guide && a === "attempt" ? UI.guided(m.title, m.guide, () => AU.G.setMissionState(m.id, a)) : AU.G.setMissionState(m.id, a)))))) : null));
       }
       b.append(grid);
