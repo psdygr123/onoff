@@ -130,6 +130,7 @@ window.AU = window.AU || {};
       const w = AU.World; if (w) { w.virt = null; if (w.player) { w.player.pose = null; } }
     },
     cancelAll() {
+      if (AU.RealBridge && AU.RealBridge.dismiss) AU.RealBridge.dismiss();
       for (const r of Array.from(this.rejects)) { try { r.rej(CANCEL); } catch (e) { /* 무시 */ } } this.rejects.clear(); this.timers = []; this.tweens = []; this.walk = null;
       if (this.dialogOpen) { const U = AU.UI; U.dialog = null; U.dlgEl.classList.add("hidden"); U.dlgEl.innerHTML = ""; this.dialogOpen = false; }
       this.cardRes = null; this.cardsEl.classList.remove("on", "show"); this.cardsEl.innerHTML = "";
@@ -188,7 +189,7 @@ window.AU = window.AU || {};
     devPrepare(i) { i = this.devIdx(i); const st = this.st(); for (let j = 0; j < i; j++) for (const f of OWN[j].flags) st.flags[f] = true; if (i > ORDER.indexOf("SCENE_04_FATHER") && !this.replay) { AU.G.S.inv.metal_fragment = 1; AU.G.S.inv.carpenter_bag = 1; } },
     devJump(i) { i = this.devIdx(i); if (this.isDone() && !this.replay) { const S = AU.G.S; this.replay = true; this.rs = { state: "NOT_STARTED", flags: {}, seen: {} }; this.ret = { map: S.map, x: S.x }; } this.devPrepare(i); this.on = true; this.beginScene(i); },
     debugComplete(mapId) {
-      const S = AU.G.S; this.cancelAll(); this.replay = false; this.rs = null; this.on = false; this.setHud(false); this.resetMapRuntime(); this.fadeS = { a: 0, color: "#000" }; this.holdFade = false; this.endEl.classList.add("hidden"); Au.stopAll();
+      const S = AU.G.S; this.cancelAll(); this.gen++; this.replay = false; this.rs = null; this.on = false; this.setHud(false); this.resetMapRuntime(); this.fadeS = { a: 0, color: "#000" }; this.holdFade = false; this.endEl.classList.add("hidden"); Au.stopAll();
       const st = S.prologue; st.state = "COMPLETED"; for (const o of OWN) for (const f of o.flags) st.flags[f] = true;
       AU.G.unlockRealMissions(false);
       if (!S.inv.potion) S.inv.potion = 2; const id = mapId || "porto"; S.visited[id] = true; AU.World.enterMap(id, AU.MAPS[id].start || 200, true); AU.UI.dialog = null; AU.UI.dlgEl.classList.add("hidden"); AU.G.changed(); return true;
@@ -400,7 +401,7 @@ window.AU = window.AU || {};
       if (L.max != null && p.x > L.max) { p.x = L.max; p.vx = 0; hit = true; } if (L.min != null && p.x < L.min) { p.x = L.min; p.vx = 0; hit = true; }
       if (hit && L.msg) this.hintOnce(L.msg);
     },
-    allowWin(name) { return name === "inventory" || name === "keysettings"; },
+    allowWin(name) { return name === "inventory" || name === "keysettings" || name === "journal"; },
     heroKey(sheet) { return "pc_player_" + (AU.PRO_GENDER || "m") + "_" + sheet; },
     heroArt() { return AU.Img.has(this.heroKey("actions")) && AU.Img.has(this.heroKey("locomotion")); },
     /* 주인공 정식 그림: 동작 시트(대기·망치·무릎·으쓱·뒤돌아보기) + 이동 시트(걷기 4·점프 2). 프레임 이름은 artmeta.js 기준 */

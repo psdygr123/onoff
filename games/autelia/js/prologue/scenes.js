@@ -165,6 +165,7 @@ window.AU = window.AU || {};
   SC.SCENE_00_MORNING = { name: "아침의 아르케아", async enter(P) {
     const g = P.gen; P.room("pro_road", LAY.road.m.start, (P) => setupMorning(P)); P.amb("birds", true);
     await P.cutscene(async () => { await P.wait(0.9); P.amb("birds", false); await P.introVideo(T.cards); P.amb("birds", true); await P.fade(0, 1.8); await P.caption(T.cap1, 3.4); }, { id: "cs00a", skip: true });
+    if (!live(P, g)) return; if (AU.RealBridge) await AU.RealBridge.intro();
     if (!live(P, g)) return; P.obj(OBJ.s0_walk); const k = P.keys(); P.hint("좌우 방향키(" + k.move + ")로 걸어 보세요.", 9, true);
   } };
 
@@ -209,7 +210,9 @@ window.AU = window.AU || {};
     const poles = B.poles.map((x, i) => P.addEnt({ id: "pole" + i, x, f: 0, ci: i % 3, col: cols[i % 3], range: 90, layer: "mid", draw: drawPole, interact: { label: "깃발 달기", off: true, fn: () => hang(poles[i]) } }));
     elder.interact = { label: "대화: 나이 든 주민", fn: async () => {
       if (!st.talk) { st.talk = true; await P.cutscene(async () => { await P.say(T.s1b_elder); }); elder.mark = false; P.limits = { max: B.poles[2] + 130, msg: "먼저 깃발을 달아 주세요." };
-        poles.forEach((q) => { q.interact.off = false; q.mark = true; }); P.obj(OBJ.s1b_flags.replace("{n}", 0)); return; }
+        poles.forEach((q) => { q.interact.off = false; q.mark = true; }); P.obj(OBJ.s1b_flags.replace("{n}", 0));
+        if (AU.RealBridge) await AU.RealBridge.offer("prologue-banners", "m_a4");
+        return; }
       await P.cutscene(async () => { await P.say(T.s1b_elder2); }); } };
     async function hang(q) {
       if (q.hung) return; q.hung = true; q.mark = false; q.interact.off = true;
