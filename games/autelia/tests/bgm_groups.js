@@ -12,7 +12,7 @@ const note = (id, name, ok, ev) => { ok ? pass++ : fail++; console.log((ok ? 'PA
   const files = await ev(() => Object.values(AU.Bgm.tracks)); const missing = [];
   for (const f of files) { const r = await ev(async (u) => (await fetch(u, { method: 'HEAD' })).ok, f); if (!r) missing.push(f); }
   note('A1', '모든 곡 파일이 있음', missing.length === 0, missing.join(','));
-  note('A2', '프롤로그 중에는 아르케아(회상) 곡, 도입 영상 중에는 기본 곡', (await ev(() => (AU.Prologue.introOn = false, AU.Bgm.pick().key))) === 'arkea' && (await ev(() => (AU.Prologue.introOn = true, AU.Bgm.pick().key))) === 'main' && (await ev(() => (AU.Prologue.introOn = false, 1))));
+  note('A2', '프롤로그 중에는 아르케아(회상) 곡, 도입 영상 중에는 도입 영상 전용 곡', (await ev(() => (AU.Prologue.introOn = false, AU.Bgm.pick().key))) === 'arkea' && (await ev(() => (AU.Prologue.introOn = true, AU.Bgm.pick().key))) === 'intro' && (await ev(() => (AU.Prologue.introOn = false, 1))));
   await ev(() => AU.Prologue.debugComplete('porto')); await sleep(200);
   const at = async (map) => { await ev((m) => AU.World.enterMap(m, AU.MAPS[m].start || 200, true), map); await sleep(80); return ev(() => AU.Bgm.pick()); };
   const t = await at('porto'); note('B1', '포르투 노바: 마을 묶음은 도착곡(모험)부터(1117)', t.g === 'town' && t.key === 'adventure', JSON.stringify(t));
