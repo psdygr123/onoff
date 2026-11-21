@@ -320,7 +320,7 @@ AU.QUESTS = {
     reward: { exp: 250, silver: 50, items: [["potion", 2]] }
   },
   q_a1_variant: {
-    title: "변형의 흔적", type: "main", giver: "porto_foreman", minLevel: 5, pre: ["q_guild_rats"],
+    title: "변형의 흔적", type: "main", giver: "porto_foreman", minLevel: 5, pre: ["q_guild_talk"],
     area: "harbor_road", desc: "변형된 몬스터에게서 검은 결정 3개를 구해 십장에게 가져갑니다.", objectives: [{ kind: "collect", item: "black_crystal", count: 3 }],
     offer: ["이제 제법 성장하였으니, 그대에게도 어려운 의뢰를 맡겨야겠군.", "최근 이 일대 몬스터들이 이상하게 변하고 있네. 몇 가지 확인할 것이 있어.", "변형된 놈들의 몸에서 검은 결정이 나온다는 말이 있네. 그 결정 세 개를 구해 와 주게. 숲길의 짐승이든 항구 길의 쥐든 상관없네."],
     reminder: ["검은 결정은 변형된 몬스터를 쓰러뜨리면 나올 걸세. 세 개를 모아 오게."],
@@ -358,10 +358,12 @@ AU.QUESTS = {
    화면 표시(NPC 머리 위 표시·미니맵·월드맵·퀘스트 창·목표창·알림)는 모두 이 표를 기준으로 합니다.
    종류를 바꾸려면 위 퀘스트의 type 값("main" 또는 "sub")만 바꾸면 됩니다. */
 AU.QKIND = {
-  main: { label: "메인", icon: "★", color: "#B98B45", colorLight: "#FFD978" },
-  sub: { label: "서브", icon: "!", color: "#4C8DC6", colorLight: "#8EC5F2" },
-  real: { label: "현실", icon: "♥", color: "#8A78B0", colorLight: "#C9BBE6" }
+  main: { label: "메인", icon: "★", color: "#B98B45", colorDark: "#946B2C", colorLight: "#FFD978", bg: "#F6E8C6" },
+  sub: { label: "서브", icon: "!", color: "#4C8DC6", colorDark: "#2F6A9C", colorLight: "#8EC5F2", bg: "#DCEAF6" },
+  real: { label: "현실", icon: "♥", color: "#8A78B0", colorDark: "#6B5A92", colorLight: "#C9BBE6", bg: "#ECE7F5" }
 };
+// 색의 원본은 위 표 한 곳: CSS 변수(--qk-종류, -d, -l, -bg)로 내보내 화면 스타일이 같은 값을 씁니다.
+(() => { const r = document.documentElement.style; for (const [k, v] of Object.entries(AU.QKIND)) { r.setProperty("--qk-" + k, v.color); r.setProperty("--qk-" + k + "-d", v.colorDark); r.setProperty("--qk-" + k + "-l", v.colorLight); r.setProperty("--qk-" + k + "-bg", v.bg); } })();
 AU.questKind = (id) => { const q = AU.QUESTS[id]; return q && q.type === "sub" ? "sub" : "main"; };
 // NPC가 지금 줄 수 있는/받을 수 있는 퀘스트 표시: { mark: "?"(완료 가능)|"★"|"!", kind } 또는 null. 완료 가능이 새 의뢰보다, 메인이 서브보다 먼저 보입니다.
 AU.npcQuestMark = (npcId) => {

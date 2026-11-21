@@ -25,7 +25,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     check('Q2a 새 메인 의뢰 NPC는 ★/main', m1 && m1.mark === '★' && m1.kind === 'main', m1);
     await done(['q_s1_silver', 'q_s1_test', 'q_first', 'q_forest', 'q_guild_talk']); await ev(() => { AU.G.S.level = 5; });
     const m2 = await ev(() => ({ guild: AU.npcQuestMark('porto_guild'), foreman: AU.npcQuestMark('porto_foreman') }));
-    check('Q2b 새 서브 의뢰만 있는 NPC는 !/sub', m2.guild && m2.guild.mark === '!' && m2.guild.kind === 'sub' && m2.foreman && m2.foreman.mark === '!' && m2.foreman.kind === 'sub', m2);
+    check('Q2b 길드 접수원(서브만)은 !/sub, 십장(변형의 흔적 메인 가능)은 ★', m2.guild && m2.guild.mark === '!' && m2.guild.kind === 'sub' && m2.foreman && m2.foreman.mark === '★' && m2.foreman.kind === 'main', m2);
     await done(['q_guild_rats']);
     const m3 = await ev(() => AU.npcQuestMark('porto_foreman'));
     check('Q2c 메인+서브가 함께 있으면 메인 ★ 우선', m3 && m3.mark === '★' && m3.kind === 'main', m3);
@@ -71,6 +71,20 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     await ev(() => { AU.World.enterMap('guild_hall', 300, true); }); await sleep(900);
     await p.screenshot({ path: (process.env.SHOTS || '/tmp') + '/qs_guild.png' });
     check('Q8 길드 홀 렌더(NPC 표시·미니맵) 오류 없음', errs.length === 0, errs);
+
+    // Q10 메인 체인은 서브를 거치지 않음: 선행 퀘스트에 서브가 없고, 서브를 건너뛰고 Lv9로 올려도 변형→창고→전언→정찰→제페토가 차례로 열림
+    const chain = await ev(() => { const bad = []; for (const [id, q] of Object.entries(AU.QUESTS)) if (q.type === 'main') for (const x of q.pre) if (AU.QUESTS[x].type !== 'main') bad.push(id + '<-' + x); return bad; });
+    check('Q10a 메인 퀘스트의 선행은 모두 메인', chain.length === 0, chain);
+    await ev(() => { AU.G.S.quests = {}; for (const id of ['q_s1_silver', 'q_s1_test', 'q_first', 'q_forest', 'q_guild_talk']) AU.G.S.quests[id] = { state: 'done', prog: [], spots: {} }; AU.G.S.level = 9; });
+    const seq = [];
+    for (const id of ['q_a1_variant', 'q_a1_traces', 'q_a2_secret', 'q_a3_scout', 'q_a3_jepeto']) { if (id === 'q_a3_jepeto') await ev(() => { AU.G.S.level = 10; }); const st0 = await ev((id) => AU.G.questStatus(id), id); seq.push(id + ':' + st0); await ev((id) => { AU.G.S.quests[id] = { state: 'done', prog: [], spots: {} }; }, id); }
+    check('Q10b 서브(쥐 소탕) 없이 Lv9(제페토 의뢰는 Lv10 조건)에서 메인 체인이 차례로 열림', seq.every((x) => x.endsWith(':available')), seq);
+
+    // Q11 선택된 서브 항목의 왼쪽 띠가 종류 색을 유지, 색 변수가 AU.QKIND에서 주입됨
+    await ev(() => { AU.G.S.quests = { q_a1_parcel: { state: 'active', prog: [0], spots: {} } }; AU.UI.open('quests'); }); await sleep(250);
+    const bc = await ev(() => { const e = document.querySelector('.window .qitem.sel.qk-sub'); return e ? [getComputedStyle(e).borderLeftColor, getComputedStyle(document.documentElement).getPropertyValue('--qk-sub').trim(), AU.QKIND.sub.color] : null; });
+    check('Q11 선택된 서브 항목 왼쪽 띠 = 파란색, CSS 변수 = QKIND', !!bc && bc[0] === 'rgb(76, 141, 198)' && bc[1].toLowerCase() === bc[2].toLowerCase(), bc);
+    await ev(() => AU.UI.closeAll && AU.UI.closeAll());
 
     // Q9 해금 문구 보정
     check('Q9 Lv4 해금 문구가 길드 접수대 안내', await ev(() => { const u = AU.UNLOCKS.find((x) => x.level === 4); return !!u && /접수대/.test(u.text) && !/찾아보세요/.test(u.text); }), await ev(() => (AU.UNLOCKS.find((x) => x.level === 4) || {}).text));
