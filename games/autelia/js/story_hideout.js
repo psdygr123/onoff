@@ -13,9 +13,9 @@ window.AU = window.AU || {};
 
   /* ---------- 적 ---------- */
   Object.assign(AU.MONSTERS, {
-    hide_guard:  { name: "아지트 경비병", lv: 11, hp: 320, atk: 38, speed: 85, chase: 230, sight: 330, w: 60, h: 112, exp: 190, silver: [9, 18], silverRate: 0.17, drops: [["iron_scrap", 0.15, 1, 2], ["potion", 0.05]], color: "#3A3340", motion: "swing", sprite: "mon_hide_guard", sw: 72 },
-    hide_beast:  { name: "실험체 늑대", lv: 12, hp: 380, atk: 42, speed: 118, chase: 250, w: 88, h: 54, exp: 230, silver: [10, 19], silverRate: 0.18, drops: [["wolf_pelt", 0.15, 1, 2], ["black_crystal", 0.3], ["potion", 0.05]], color: "#4A3A52", ear: true, motion: "leap", sprite: "mon_hide_beast", sw: 140 },
-    hide_keeper: { name: "연구소 감시병", lv: 13, hp: 440, atk: 46, speed: 92, chase: 240, sight: 340, w: 60, h: 112, exp: 270, silver: [12, 20], silverRate: 0.19, drops: [["iron_scrap", 0.15, 1, 3], ["black_crystal", 0.25], ["potion", 0.05]], color: "#35303E", motion: "swing", sprite: "mon_hide_keeper", sw: 52 },
+    hide_guard:  { name: "아지트 경비병", lv: 11, hp: 320, atk: 38, speed: 85, chase: 230, sight: 330, w: 60, h: 112, exp: 280, silver: [9, 18], silverRate: 0.17, drops: [["iron_scrap", 0.15, 1, 2], ["potion", 0.05]], color: "#3A3340", motion: "swing", sprite: "mon_hide_guard", sw: 72 },
+    hide_beast:  { name: "실험체 늑대", lv: 12, hp: 380, atk: 42, speed: 118, chase: 250, w: 88, h: 54, exp: 330, silver: [10, 19], silverRate: 0.18, drops: [["wolf_pelt", 0.15, 1, 2], ["black_crystal", 0.3], ["potion", 0.05]], color: "#4A3A52", ear: true, motion: "leap", sprite: "mon_hide_beast", sw: 140 },
+    hide_keeper: { name: "연구소 감시병", lv: 13, hp: 440, atk: 46, speed: 92, chase: 240, sight: 340, w: 60, h: 112, exp: 390, silver: [12, 20], silverRate: 0.19, drops: [["iron_scrap", 0.15, 1, 3], ["black_crystal", 0.25], ["potion", 0.05]], color: "#35303E", motion: "swing", sprite: "mon_hide_keeper", sw: 52 },
     umbra_boss:  { name: "움브라", lv: 15, hp: 3000, atk: 56, cd: 2.8, cdRage: 1.9, patterns: ["lunge", "slam", "wave"], ragePatterns: ["chain", "slam"], slamR: 210, speed: 80, chase: 520, w: 240, h: 150, exp: 1500, silver: [120, 160], silverRate: 1, drops: [["black_crystal", 1, 2, 3], ["potion", 1, 2, 3]], color: "#9B7FD1", boss: true, motion: "swing",
       sprite: "mon_umbra_base", sw: 300, refW: 345, poses: { idle: "mon_umbra_base", walkA: "mon_umbra_walkA", walkB: "mon_umbra_walkB", windup: "mon_umbra_windup", attack: "mon_umbra_attack", hurt: "mon_umbra_hurt", down: "mon_umbra_down" } }
   });
