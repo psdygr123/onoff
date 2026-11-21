@@ -18,7 +18,7 @@ async function begin(p, url) {
   note('V2', '처음 보는 사람에게는 건너뛰기 버튼 없음', !a.skip, String(a.skip));
   await sleep(1500);
   const sub = await p.evaluate(() => ({ show: document.querySelector('.introsub').classList.contains('show'), txt: document.querySelector('.introsub').textContent }));
-  note('V3', '자막이 영상 시간에 맞춰 나옴', sub.show && /하나의 신이 세상을/.test(sub.txt), JSON.stringify(sub));
+  note('V3', '자막이 영상 시간에 맞춰 나옴', sub.show && /빛과 어둠을 두었다/.test(sub.txt), JSON.stringify(sub));
   await p.keyboard.press('Enter'); await sleep(400);
   note('V4', '처음 보는 사람은 Enter로도 못 건너뜀', await p.evaluate(() => !!document.querySelector('.introv') && !document.querySelector('.introv video').paused), 'still playing');
   // 끝 근처로 이동해 끝까지 재생 → 본 기록 저장
