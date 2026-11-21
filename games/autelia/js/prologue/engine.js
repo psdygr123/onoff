@@ -263,7 +263,7 @@ window.AU = window.AU || {};
         const sub = document.createElement("div"); sub.className = "introsub"; box.append(v, sub);
         let skipBtn = null; if (seen) { skipBtn = document.createElement("button"); skipBtn.type = "button"; skipBtn.className = "btn introskip"; skipBtn.innerHTML = "건너뛰기 <em>Enter</em>"; box.append(skipBtn); }
         const mkSrc = (src, type) => { const s = document.createElement("source"); s.src = src; s.type = type; return s; };
-        v.append(mkSrc("assets/video/intro.webm", 'video/webm; codecs="vp9"'), mkSrc("assets/video/intro.mp4", 'video/mp4; codecs="avc1.42E01E"'));
+        v.append(mkSrc("assets/video/intro.webm?v=4", 'video/webm; codecs="vp9"'), mkSrc("assets/video/intro.mp4?v=4", 'video/mp4; codecs="avc1.42E01E"'));
         let done = false, started = false, raf = 0, lastKey = -1;
         this.introOn = true; // 도입 영상 중에는 기본 곡(bgm.js)
         const finish = (played, completed) => {
