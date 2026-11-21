@@ -709,7 +709,37 @@ window.AU = window.AU || {};
     iv = setInterval(tick, 250); tick();
   };
 
-  /* 짧은 자기평가: 점수는 응답의 긍정성 자체가 아니라 평가 참여 여부만 반영합니다. */
+  /* 짧은 자기평가: 답변 여부에 따른 가산점 없음. */
+  UI.missionPlanLabel = function(p) {
+    if(!p)return "자유 수행";
+    if(p.mode==="weekly_count")return "주 "+p.count+"회";
+    if(p.mode==="weekdays")return "요일 "+p.days.map(d=>["일","월","화","수","목","금","토"][d]).join("·");
+    if(p.mode==="interval")return p.interval+"일마다";
+    return ({free:"자유 수행",daily:"매일",paused:"일시 중지"})[p.mode]||"자유 수행";
+  };
+  UI.missionPlanEditor = function(m) {
+    const wrap=UI.modalEl;UI.modal=true;wrap.classList.remove("hidden");wrap.innerHTML="";
+    const p=AU.G.missionPlan(m.id),mode=h("select",{"aria-label":"수행 주기"}),details=h("div");
+    for(const [v,label] of [["free","자유 수행"],["daily","매일"],["weekly_count","주간 횟수"],["weekdays","요일 지정"],["interval","일정 간격"],["paused","일시 중지"]])mode.append(h("option",{value:v,text:label}));
+    mode.value=p.mode;
+    const count=h("select",{"aria-label":"주간 횟수"}),interval=h("select",{"aria-label":"일정 간격"});
+    for(let i=1;i<=7;i++)count.append(h("option",{value:String(i),text:i+"회"}));
+    for(let i=2;i<=30;i++)interval.append(h("option",{value:String(i),text:i+"일"}));
+    count.value=String(p.count||3);interval.value=String(p.interval||3);
+    const days=["일","월","화","수","목","금","토"].map((name,i)=>h("label",{class:"note"},h("input",{type:"checkbox",value:String(i)}),name));
+    days.forEach(x=>x.querySelector("input").checked=(p.days||[1,3,5]).includes(Number(x.querySelector("input").value)));
+    const remind=h("input",{type:"checkbox"});remind.checked=!!p.remind;
+    const show=()=>{details.replaceChildren();
+      if(mode.value==="weekly_count")details.append(h("label",{class:"note"},"일주일에 ",count));
+      if(mode.value==="weekdays")details.append(h("div",{class:"choices"},...days));
+      if(mode.value==="interval")details.append(h("label",{class:"note"},"며칠마다 ",interval));
+      if(!["free","paused"].includes(mode.value))details.append(h("label",{class:"note"},remind,"게임 내 오늘의 활동 표시 (푸시 알림 아님)"));
+    };
+    mode.addEventListener("change",show);show();
+    const close=()=>{UI.modal=false;wrap.classList.add("hidden");wrap.innerHTML="";};
+    const save=()=>{const x={mode:mode.value,count:Number(count.value),interval:Number(interval.value),days:days.filter(x=>x.querySelector("input").checked).map(x=>Number(x.querySelector("input").value)),remind:remind.checked};if(AU.G.setMissionPlan(m.id,x))close();else AU.G.toast("요일을 한 개 이상 선택해 주세요.","warn")};
+    wrap.append(h("div",{class:"panel modal restnote"},h("h3",{text:m.title+" · 나의 수행 주기"}),h("p",{class:"note",text:"계획 변경은 자유롭습니다. 미수행 불이익과 출석 연속 기록은 없습니다."}),mode,details,h("div",{class:"choices"},btn("저장","primary",save),btn("취소","",close))));
+  };
   UI.missionReview = function (m, next, onSubmit) {
     const wrap = UI.modalEl; UI.modal = true; wrap.classList.remove("hidden"); wrap.innerHTML = "";
     const evidencePanel = AU.MissionEvidence.panel(m);
@@ -934,6 +964,8 @@ window.AU = window.AU || {};
         }
         rec.append(cards); b.append(rec);
       }
+      const scheduled=AU.MISSIONS.filter(m=>AU.G.ms(m.id).state==="done"&&AU.G.missionPlanDue(m.id));
+      if(scheduled.length)b.append(h("div",{class:"msummary"},h("b",{text:"오늘의 자율 활동 계획 · "+scheduled.length+"종"}),h("p",{class:"note",text:scheduled.slice(0,8).map(m=>m.title).join(" · ")+" · 미수행 불이익은 없습니다."})));
       const currentCategory = UI.tab.missionArea || "all";
       const currentDifficulty = UI.tab.missionDifficulty || "all";
       b.append(h("div", { class: "msummary" }, h("span", { text: "갤러리 토큰 " }), h("b", { text: AU.G.galleryState().tokens }), h("span", { text: " · 장식 조각 " + AU.G.galleryState().fragments + "/3 · 개인 공간 꾸미기에 사용합니다." }), btn("나만의 공간 보기", "mini", () => UI.open("gallery"))),
@@ -946,10 +978,15 @@ window.AU = window.AU || {};
         if (currentCategory !== "all" && m.functionArea !== currentCategory) continue;
         if (currentDifficulty !== "all" && m.difficulty !== Number(currentDifficulty)) continue;
         const r = M.states[m.id]; if (!r || r.state === "locked") continue;
+        const hist=r.state==="done"?AU.G.missionRepeatStats(m.id):null;
         const acts = { available: [["수락", "primary", "accept"], ["건너뛰기", "", "skip"]], accepted: [["해 봤어요", "primary", "attempt"], ["건너뛰기", "", "skip"]], attempted: [["완료했어요", "primary", "done"], ["일부만 했어요", "", "partial"], ["건너뛰기", "", "skip"]],
           partial: [["완료했어요", "primary", "done"], ["다시 도전", "", "retry"], ["건너뛰기", "", "skip"]], skipped: [["다시 도전", "", "retry"]], done: [] }[r.state] || [];
         grid.append(h("div", { class: "mission st-" + r.state }, h("div", { class: "mh" }, h("span", { class: "tag perma", text: m.perma + " · " + AU.PERMA[m.perma] }), h("span", { class: "tag", text: (AU.MISSION_FUNCTION_AREAS[m.functionArea] || "일상 활동") + " · " + (["","쉬움","보통","확장"][m.difficulty] || "선택") + " · 약 " + m.minutes + "분" }), h("span", { class: "tag", text: AU.MISSION_STATES[r.state] }), h("span", { class: "pts", text: r.rewarded ? "지급 완료" : "갤러리 토큰 +1" })),
-          h("b", { text: m.title }), h("p", { text: m.desc }), acts.length ? h("div", { class: "macts" }, acts.map(([l, c, a]) => btn(l, c, () => ((a === "done" || a === "partial") ? UI.missionReview(m, a, (feedback,evidence) => AU.G.setMissionState(m.id, a, feedback,evidence)) : AU.G.setMissionState(m.id, a))))) : null));
+          h("b", { text: m.title }), h("p", { text: m.desc }),
+          hist?h("p",{class:"note",text:"누적 "+hist.count+"회 · 최근 "+(hist.last||"—")+" · 평균 만족도 "+(hist.satisfaction==null?"미평가":hist.satisfaction+"/5")+" · 평균 의미 "+(hist.meaning==null?"미평가":hist.meaning+"/5")+" · 평균 도전 "+(hist.challenge==null?"미평가":hist.challenge+"/5")}):null,
+          hist?h("p",{class:"note",text:"수행 주기: "+UI.missionPlanLabel(AU.G.missionPlan(m.id))+(AU.G.missionPlanDue(m.id)?" · 오늘의 계획":"")}):null,
+          hist?h("div",{class:"macts"},btn("다시 수행 기록","primary",()=>UI.missionReview(m,"done",(f,e)=>AU.G.repeatMission(m.id,f,e))),btn("주기 설정","",()=>UI.missionPlanEditor(m))):null,
+          acts.length ? h("div", { class: "macts" }, acts.map(([l, c, a]) => btn(l, c, () => ((a === "done" || a === "partial") ? UI.missionReview(m, a, (feedback,evidence) => AU.G.setMissionState(m.id, a, feedback,evidence)) : AU.G.setMissionState(m.id, a))))) : null));
       }
       b.append(grid);
     } else if (tab === "rest" && !un) {
