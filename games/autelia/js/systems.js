@@ -180,7 +180,9 @@ window.AU = window.AU || {};
       if (AU.Guide) AU.Guide.trigger("quest");
       for (const [it, n] of q.startItems || []) this.giveItem(it, n);   // 전달 퀘스트: 수락할 때 맡는 물건
       this.log("퀘스트 수락: " + q.title); this.toast("퀘스트 수락: " + q.title, "quest");
-      this.refreshQuest(id); this.save("quest"); this.changed(); return true;
+      this.refreshQuest(id);
+      if (AU.RealBridge) AU.RealBridge.questEvent(id, "start");
+      this.save("quest"); this.changed(); return true;
     },
     refreshQuest(id) {
       const rec = this.qs(id), q = AU.QUESTS[id]; if (!rec || rec.state === "done") return;
@@ -274,6 +276,7 @@ window.AU = window.AU || {};
       if (r.exp) this.gainExp(r.exp, q.title);
       if (r.levelTo) { let g = 0; while (this.S.level < r.levelTo && g++ < 20) this.gainExp(Math.max(1, AU.expToNext(this.S.level) - this.S.exp), q.title); }
       if (q.awaken) this.awaken();
+      if (AU.RealBridge) AU.RealBridge.questEvent(id, "done");
       this.save("quest"); this.changed(); return true;
     },
     bossActive() { const r = this.qs("q_job"); return !!r && (r.state === "active"); },

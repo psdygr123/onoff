@@ -18,7 +18,13 @@ window.AU = window.AU || {};
       "prologue-temple-complete": { missionId: "m_a3", moment: "신전 건축 완료", mode: "journal", story: "신전을 완성하고 작업을 마무리했습니다." },
       "prologue-banners": { missionId: "m_a4", moment: "축제 깃발 설치 시작", mode: "prompt", story: "축제를 위해 깃발 세 개를 달기로 했습니다." },
       "prologue-festival": { missionId: "m_r3", moment: "축제 주민과 대화", mode: "journal", story: "축제에서 주민들과 이야기를 나누었습니다." },
-      "prologue-arrival": { missionId: "m_p5", moment: "포르투 노바 도착", mode: "journal", story: "긴 여정 끝에 포르투 노바에 도착했습니다." }
+      "prologue-arrival": { missionId: "m_p5", moment: "포르투 노바 도착", mode: "journal", story: "긴 여정 끝에 포르투 노바에 도착했습니다." },
+      "act1-q_s1_silver-start": {"missionId":"m_m3","moment":"항구도시의 첫걸음","story":"새로운 도시에서 모험의 첫걸음을 내디뎠습니다.","mode":"journal","questId":"q_s1_silver","phase":"start"},
+      "act1-q_guild_talk-done": {"missionId":"m_e6","moment":"길드 정식 등록","story":"입단 시험을 마치고 정식 모험가가 되었습니다.","mode":"journal","questId":"q_guild_talk","phase":"done"},
+      "act1-q_a1_variant-start": {"missionId":"m_e4","moment":"변형의 흔적","story":"이상한 결정의 정체를 알아보기로 했습니다.","mode":"journal","questId":"q_a1_variant","phase":"start"},
+      "act1-q_a2_secret-done": {"missionId":"m_m6","moment":"바르샤의 전언","story":"새로운 정보를 얻고 앞으로 나아갈 방향을 찾았습니다.","mode":"journal","questId":"q_a2_secret","phase":"done"},
+      "act1-q_a3_jepeto-start": {"missionId":"m_m1","moment":"제페토의 부탁","story":"제페토의 부탁을 받아 새로운 조사에 나섭니다.","mode":"journal","questId":"q_a3_jepeto","phase":"start"},
+      "act1-q_h1-done": {"missionId":"m_m4","moment":"1막 완료 · 제페토에게 보고","story":"긴 조사를 마치고 다음 여정을 준비할 시간이 되었습니다.","mode":"journal","questId":"q_h1","phase":"done"}
     }),
     suggestions() {
       const flags = AU.G && AU.G.S && AU.G.S.flags;
@@ -26,15 +32,28 @@ window.AU = window.AU || {};
     },
     queue(key, missionId) {
       const P = AU.Prologue;
-      if (!P || !P.on || P.replay || !this.activate()) return false;
-      const cfg = this.PLACEMENTS[key];
-      if (!cfg || cfg.missionId !== missionId || !AU.G.mission(missionId)) return false;
-      const S = AU.G.S;
+      const cfg = this.PLACEMENTS[key], G = AU.G, S = G && G.S;
+      if (!S || !cfg || cfg.missionId !== missionId || !G.mission(missionId)) return false;
+      if (cfg.questId) {
+        if (P && P.on || !S.prologue || S.prologue.state !== "COMPLETED") return false;
+        const q = AU.QUESTS[cfg.questId], rec = G.qs(cfg.questId);
+        if (!q || q.type !== "main" || !rec || (cfg.phase === "done" ? rec.state !== "done" : !["active","ready","done"].includes(rec.state))) return false;
+      } else if (!P || !P.on || P.replay) return false;
+      if (!this.activate()) return false;
       if (!S.flags.realBridgeSuggestions || typeof S.flags.realBridgeSuggestions !== "object") S.flags.realBridgeSuggestions = {};
       if (S.flags.realBridgeSuggestions[key]) return false;
       S.flags.realBridgeSuggestions[key] = { missionId, moment: cfg.moment, story: cfg.story };
       AU.G.save("real-bridge-queue");
       return true;
+    },
+    questEvent(id, phase) {
+      const key = "act1-" + id + "-" + phase, cfg = this.PLACEMENTS[key];
+      if (!cfg) return false;
+      const added = this.queue(key, cfg.missionId);
+      if (added && AU.G.ms(cfg.missionId).state === "available") {
+        AU.G.toast("모험일지에 선택형 현실 활동을 추천했습니다.", "info");
+      }
+      return added;
     },
     acceptSuggested(key) {
       const s = this.suggestions()[key];
