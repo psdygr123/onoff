@@ -44,8 +44,9 @@ const {chromium}=require('playwright');
   check('BRIDGE5 chapter-end suggestions register once without starting real missions',
     quiet.a&&!quiet.again&&quiet.b&&quiet.c&&quiet.keys.length>=3&&quiet.states.every(x=>x==="available"),quiet);
   await p.evaluate(()=>{AU.UI.tab.jg='real';AU.UI.tab.j='missions';AU.UI.open('journal')});
-  const journal=await p.evaluate(()=>({count:document.querySelectorAll('[data-real-bridge="suggestions"] .mission').length,text:document.querySelector('[data-real-bridge="suggestions"]')?.textContent.slice(0,220)}));
+  const journal=await p.evaluate(()=>({count:document.querySelectorAll('[data-real-bridge="suggestions"] .mission').length,text:document.querySelector('[data-real-bridge="suggestions"]')?.textContent.slice(0,2000)}));
   check('BRIDGE6 suggested tasks are visible in journal',journal.count>=3&&/신전 건축/.test(journal.text),journal);
+  await p.screenshot({path:(process.env.SHOTS||'/tmp')+'/real_bridge_journal.png'});
   await p.getByRole('button',{name:'이 활동도 수락'}).first().click();
   const acceptedQuiet=await p.evaluate(()=>({states:['m_a3','m_r3','m_p5'].map(id=>AU.G.ms(id).state),flag:AU.Prologue.flag('banners_done')}));
   check('BRIDGE7 accepting suggested task leaves game objective unchanged',
