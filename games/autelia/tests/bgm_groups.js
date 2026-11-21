@@ -6,7 +6,7 @@ const note = (id, name, ok, ev) => { ok ? pass++ : fail++; console.log((ok ? 'PA
 (async () => {
   const b = await chromium.launch(); const p = await (await b.newContext({ viewport: { width: 1280, height: 720 } })).newPage(); const errs = [];
   p.on('pageerror', (e) => errs.push(e.message)); const ev = (fn, a) => p.evaluate(fn, a);
-  await p.goto(URL); await ev(() => localStorage.clear()); await p.goto(URL); await p.waitForSelector('#btn-start'); await p.click('#btn-start'); await sleep(300);
+  await p.goto(URL); await ev(() => localStorage.clear()); await p.goto(URL); await p.waitForSelector('#btn-start'); note('A0', '제목·캐릭터 만들기 화면에서는 엔딩 곡(title 묶음)', (await ev(() => AU.Bgm.pick().g)) === 'title' && (await ev(() => AU.Bgm.tracks.title)) === (await ev(() => AU.Bgm.tracks.ending))); await p.click('#btn-start'); await sleep(300);
   for (let i = 0; i < 2 && await p.$('#job-next'); i++) { await p.click('#job-next'); await sleep(200); }
   if (await p.$('#charsetup')) { await p.fill('#sname', '시험용'); await p.click('#setup-ok'); await sleep(300); }
   const files = await ev(() => Object.values(AU.Bgm.tracks)); const missing = [];

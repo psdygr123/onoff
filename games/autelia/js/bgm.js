@@ -9,11 +9,11 @@ window.AU = window.AU || {};
   const TRACKS = { main: "assets/audio/light_through_the_blinds.mp3", harbor: "assets/audio/harbor.mp3", adventure: "assets/audio/adventure.mp3",
     arkea: BG + "arkea.mp3", porto1: BG + "porto1.mp3", porto2: BG + "porto2.mp3", porto3: BG + "porto3.mp3", store_a: BG + "store_a.mp3", store_b: BG + "store_b.mp3",
     guild: BG + "guild.mp3", inn: BG + "inn.mp3", warehouse: BG + "warehouse.mp3", east_road: BG + "east_road.mp3", field1: BG + "field1.mp3", field2: BG + "field2.mp3",
-    ship1: BG + "ship1.mp3", ship2: BG + "ship2.mp3", boss: BG + "boss.mp3", escort: BG + "escort.mp3", breath: BG + "breath.mp3", ending: BG + "ending.mp3" };
+    ship1: BG + "ship1.mp3", ship2: BG + "ship2.mp3", boss: BG + "boss.mp3", escort: BG + "escort.mp3", breath: BG + "breath.mp3", ending: BG + "ending.mp3", title: BG + "ending.mp3" };
   /* 곡 묶음(그룹): 같은 묶음 안에서는 곡이 끝나면 다음 곡으로 이어지고, 묶음 안의 다른 지역으로 옮겨도 끊기지 않고 계속 이어집니다.
      oneShot은 한 번만 재생하고 끝납니다. 예: 포르투 노바 1·2·3번이 차례로 이어지고, 숲길·항구 길·선창 외곽은 사냥터 1·2번이 이어집니다. */
   const GROUPS = { main: ["main"], arkea: ["arkea"], adventure: ["adventure"], town: ["adventure", "porto1", "porto2", "porto3"], store_a: ["store_a"], store_b: ["store_b"], guild: ["guild"], inn: ["inn"], warehouse: ["warehouse"],
-    field: ["field1", "field2"], east_road: ["east_road"], ship: ["ship1", "ship2"], boss: ["boss"], escort: ["escort"], breath: ["breath"], ending: ["ending"] };
+    field: ["field1", "field2"], east_road: ["east_road"], ship: ["ship1", "ship2"], boss: ["boss"], escort: ["escort"], breath: ["breath"], ending: ["ending"], title: ["title"] };
   const ONE_SHOT = { ending: true };
   const MAP_GROUP = { porto: "town", general_store: "store_a", weapon_store: "store_b", guild_hall: "guild", warehouse: "warehouse", forest: "field", harbor_road: "field", docks: "field", hide_outer: "adventure", hide_tunnel: "adventure", hide_lab: "adventure" };
   const GAIN = { harbor: 1.7 };   // 원본 소리가 작은 곡 보정(새 곡들은 소리 크기를 맞춰 두었음)
@@ -42,11 +42,14 @@ window.AU = window.AU || {};
     return st in SCENE_MULT ? SCENE_MULT[st] : 1;
   };
 
-  /* 장면에 맞는 곡 고르기. 프롤로그: 도입 영상 구간=기본 곡(11-17 사용자 지시), 항구로 가는 마지막 장면=모험, 끝 화면=엔딩, 그 밖=아르케아(회상) 곡.
+  /* 장면에 맞는 곡 고르기. 제목·캐릭터 만들기=엔딩 곡(반복). 프롤로그: 도입 영상 구간=기본 곡(11-17 사용자 지시), 항구로 가는 마지막 장면=모험, 끝 화면=엔딩, 그 밖=아르케아(회상) 곡.
      본편: 보스가 있으면 보스 곡, 호흡 가이드가 열려 있으면 호흡 곡, 그 밖에는 지역별 곡 묶음. 반환: { g: 묶음, key: 곡 } */
   B.endShown = function () { const P = AU.Prologue; return !!(P && P.on && P.endEl && !P.endEl.classList.contains("hidden")); };
+  /* 제목 화면(직업·캐릭터 만들기 포함)이 떠 있는 동안 = 프롤로그 시작 전. 이때는 엔딩 곡(PROLOGUE COMPLETE 화면의 곡)을 반복 재생(11-21 사용자 지시) */
+  B.titleShown = function () { const t = document.getElementById("title"); return !!(t && !t.classList.contains("hidden") && t.childElementCount > 0); };
   B.pickGroup = function () {
     const P = AU.Prologue;
+    if (!(P && P.on) && !(AU.main && AU.main.running) && B.titleShown()) return "title";
     if (P && P.on) { if (P.introOn) return "main"; if (B.endShown()) return "ending"; const st = AU.G && AU.G.S && AU.G.S.prologue && AU.G.S.prologue.state; return st === "SCENE_06_PORT_VIEW" ? "adventure" : "arkea"; }
     const me = AU.UI && AU.UI.modalEl; if (me && !me.classList.contains("hidden") && me.querySelector(".guided")) return "breath";
     const W = AU.World, m = W && W.map; if (!m) return "main";
@@ -61,7 +64,7 @@ window.AU = window.AU || {};
   /* 매 프레임 호출(main.js 반복 처리) */
   B.tick = function (dt) {
     const main = AU.main, S = AU.UI && AU.UI.settings;
-    const want = !!(main && main.running && S && !S.mute && !document.hidden);
+    const want = !!(main && (main.running || B.titleShown()) && S && !S.mute && !document.hidden);
     let target = 0; const pk = B.pick(); B.track = pk.key; if (pk.g !== B.group) { B.group = pk.g; B.silentG = null; if (B.el) B.el.loop = GROUPS[pk.g].length === 1 && !ONE_SHOT[pk.g]; }
     if (B.el && B.track !== B.cur) { // 곡이 바뀌면 지금 곡을 서서히 줄인 뒤 새 곡으로 교체
       if (B.vol > 0.002) { want && (B.vol = Math.max(0, B.vol - 0.9 * dt * CFG.vol)); B.el.volume = Math.max(0, Math.min(1, B.vol)); return; }
