@@ -70,13 +70,13 @@ window.AU = window.AU || {};
     raider: { name: "습격자", portrait: "pt_pro_raider" },
     father: { name: "아버지", portrait: "pt_pro_father", alt: "pt_smith" },
     fatherS: { name: "아버지", portrait: "pt_pro_father_smile", alt: "pt_smith" },                // 미소
-    vendor: { name: "빵을 나누는 주민", portrait: "pt_pro_baker", alt: "pt_baker" },
-    child:  { name: "축제 어린이", portrait: "pt_pro_child", alt: "pt_villager_b" },
-    elder:  { name: "나이 든 주민", portrait: "pt_pro_elder", alt: "pt_villager_a" },
+    vendor: { name: "소피아", portrait: "pt_pro_baker", alt: "pt_baker" },
+    child:  { name: "야니스", portrait: "pt_pro_child", alt: "pt_villager_b" },
+    elder:  { name: "마노스", portrait: "pt_pro_elder", alt: "pt_villager_a" },
     traveler: { name: "먼 마을에서 온 할머니", portrait: "pt_pro_traveler", alt: "pt_villager_a" },   // 광장 전용 인물(그림 도착 전에는 기존 주민 얼굴로 대체)
     florist:  { name: "꽃 심부름 온 사내아이", portrait: "pt_pro_florist", alt: "pt_villager_b" },
     stele:  { name: "기념비", portrait: "po_monument" },
-    farmer: { name: "젊은 농부", portrait: "pt_pro_farmer" }, priest: { name: "신관", portrait: "pt_pro_priest" }, musician: { name: "악사", portrait: "pt_pro_musician" }, scribe: { name: "서기", portrait: "pt_pro_scribe" },
+    farmer: { name: "스타브로스", portrait: "pt_pro_farmer" }, priest: { name: "신관", portrait: "pt_pro_priest" }, musician: { name: "악사", portrait: "pt_pro_musician" }, scribe: { name: "서기", portrait: "pt_pro_scribe" },
     resA:   { name: "주민", portrait: "pt_villager_a" },
     resB:   { name: "주민", portrait: "pt_villager_b" },
     resC:   { name: "주민", portrait: "pt_baker" }
@@ -110,8 +110,8 @@ window.AU = window.AU || {};
     will_brand: [["father", "이 조각은... 천 년 전, 우리 선조들이 어둠을 봉인할 때 쓰인 봉인석의 조각이다."], ["hero", "봉인...석? 선조라니, 아버지, 그게 무슨..."], ["father", "우리는... 다섯 용사의 피를 이은 후예다. 내 손목에 새겨진 이 검은 고리 낙인이 그 증거다."], ["father", "천 년을 숨어 살았는데... 그들이 끝내 우리를 찾아냈구나. 미안하다... 숨기지 못해서."]],
     will2: [["father", "도망쳐라..."], ["hero", "그런 말 하지 마세요."], ["father", "이 조각을 들고..."], ["father", "빛도 어둠도 닿지 않는 중립 구역으로 가야... 안전해..."], ["hero", "아버지, 제발..."]],
     will3: [["hero", "...아버지?"]],
-    brand_hero: [["hero", "...어? 손목이..."], ["hero", "(희미한 검은 고리가 비친다. 아버지 손목에 있던 고리와 같다.)"], ["hero", "...나한테도 있었던 거야?"]],
-    last: [["hero", "...여기서부터 시작이야."]]
+    brand_hero: [["hero", "(...어? 손목이...)"], ["hero", "(희미한 검은 고리가 비친다. 아버지 손목에 있던 고리와 같다.)"], ["hero", "(...나한테도 있었던 거야?)"]],
+    last: [["hero", "(...여기서부터 시작이야.)"]]
   };
 
   /* ---------- 목표 문구 ---------- */
