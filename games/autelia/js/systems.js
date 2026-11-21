@@ -423,7 +423,7 @@ window.AU = window.AU || {};
           earnedTokens = 1;
           S.gallery.tokens += earnedTokens;
           S.missions.weekPoints += points; r.rewarded = true;
-          gained = this.gainMind(m.perma, m.points + (review ? 1 : 0)); // 기본 실천 점수 + 평가 참여 1점. 높은 만족도 자체에는 가산하지 않음
+          gained = this.gainMind(m.perma, m.points); // 평가 응답 여부 및 점수와 무관하게 동일 보상
         }
         for (const n of AU.MISSIONS) { const nr = S.missions.states[n.id]; if (n.pre === id && nr.state === "locked" && S.flags.guideMet) nr.state = "available"; }
       }
@@ -493,7 +493,7 @@ window.AU = window.AU || {};
       return n;
     },
     // 영역별 현재 목록에서 얻을 수 있는 최대치(막대 길이 기준). 미션이 늘면 자동으로 늘어남
-    mindMax(k) { return AU.MISSIONS.filter((m) => m.perma === k).reduce((a, m) => a + m.points + 1, 0); },
+    mindMax(k) { return AU.MISSIONS.filter((m) => m.perma === k).reduce((a, m) => a + m.points, 0); },
     // 영역별(PERMA) 주간 완료 횟수: 마음 기록 화면용
     permaCounts() {
       const out = {}; for (const k of Object.keys(AU.PERMA)) out[k] = 0;

@@ -1,4 +1,4 @@
-/* Optional reality missions: self-assessment bonus, low-friction rest, saved data and non-coercive allocation. */
+/* Optional reality missions: reward parity regardless of reflection, low-friction rest, saved data and non-coercive allocation. */
 const { chromium } = require('playwright');
 (async () => {
  const browser = await chromium.launch(); let failed=0;
@@ -17,23 +17,28 @@ const { chromium } = require('playwright');
    G.setMissionState(first.id,'accept');G.setMissionState(first.id,'attempt');
    const rejected=!G.validMissionFeedback(bad), valid=G.validMissionFeedback(good);
    const done=G.setMissionState(first.id,'done',good);
-   const growth=S.mindStats[first.perma],expected=first.points+1;
+   const growth=S.mindStats[first.perma],expected=first.points;
    const repeated=G.setMissionState(first.id,'done',good)===false&&S.mindStats[first.perma]===growth;
    const refl=S.missions.log.at(-1).reflection;
+   const other=AU.MISSIONS.find(m=>m.perma!==first.perma&&m.points===first.points);
+   const prior=S.mindStats[other.perma]||0, tokens=G.galleryState().tokens;
+   G.setMissionState(other.id,'accept'); G.setMissionState(other.id,'done');
+   const parity=(S.mindStats[other.perma]-prior===growth&&G.galleryState().tokens===tokens+1&&S.missions.log.at(-1).reflection===null);
+   // 기존 복원 검사를 위해 평가 기록을 마지막에 조회할 수 있도록 ID로 찾습니다.
    S.skills.unlocked=['strike'];S.fatigue=50;
    const restBad=G.doRestMission('r_breath',{feeling:'invalid'})===false;
    const restOk=G.doRestMission('r_breath',{feeling:'same',note:''});
    const restLog=S.rest.log.at(-1);
    G.save('test');
-   return {canAllocate,rejected,valid,done,growth,expected,repeated,reflect:refl,restBad,restOk,restLog,perma:first.perma};
+   return {parity,firstId:first.id,canAllocate,rejected,valid,done,growth,expected,repeated,reflect:refl,restBad,restOk,restLog,perma:first.perma};
   });
   check('V1 basic stat points usable without mission',s.canAllocate,s.canAllocate);
   check('V2 feedback range validation',s.rejected&&s.valid,s);
-  check('V3 reflective reward not tied to positive ratings',s.done&&s.growth===s.expected&&s.repeated,s);
+  check('V3 reflective reward not tied to positive ratings',s.done&&s.growth===s.expected&&s.repeated&&s.parity,s);
   check('V4 structured activity reflection captured',s.reflect&&s.reflect.meaning===1&&s.reflect.satisfaction===1,s.reflect);
   check('V5 rest check-in accepts non-improvement and optional note',s.restBad&&s.restOk&&s.restLog.feeling==='same'&&s.restLog.note==='',s.restLog);
   await page.reload();await page.waitForSelector('#title:not(.hidden) #btn-start'); await page.click('#btn-start');
-  const recovered=await page.evaluate((k)=>({mind:AU.G.S.mindStats[k],reflection:AU.G.S.missions.log.at(-1).reflection,rest:AU.G.S.rest.log.at(-1)}),s.perma);
+  const recovered=await page.evaluate(({k,id})=>({mind:AU.G.S.mindStats[k],reflection:AU.G.S.missions.log.find(e=>e.id===id&&e.state==='done')?.reflection,rest:AU.G.S.rest.log.at(-1)}),{k:s.perma,id:s.firstId});
   check('V6 feedback and growth survive reload',recovered.mind===s.growth&&recovered.reflection?.challenge===4&&recovered.rest?.feeling==='same',recovered);
  } finally {await browser.close();}
  process.exit(failed?1:0);
