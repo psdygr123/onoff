@@ -7,6 +7,7 @@ window.AU = window.AU || {};
   Object.assign(AU.ASSETS, {
     alley:  { path: "assets/bg/alley.webp", optional: true },
     valley: { path: "assets/bg/valley.webp", optional: true },
+    bg_barsha_shop: { path: "assets/bg/weapon_store.webp", optional: true },   // 정보상 공방 실내(임시: 무기점 그림 재사용. 정식 그림이 오면 이 경로만 바꿈)
     gorge:  { path: "assets/bg/gorge.webp", optional: true },
     barsha:  { path: "assets/char/barsha.webp", optional: true },
     jepeto:  { path: "assets/char/jepeto.webp", optional: true },
@@ -58,20 +59,32 @@ window.AU = window.AU || {};
     name: "잔다리 골목", bg: "alley", width: 1500, safe: true,
     platforms: [{ x: 0, y: 590, w: 1500 }], ropes: [],
     portals: [{ x: 40, to: "porto", toX: 260, label: "포르투 노바" },
+              { x: 960, to: "jandari_shop", toX: 200, label: "정보상의 공방(문)", door: true },
               { x: 1460, to: "valley", toX: 90, label: "북쪽 경계(검은 골짜기)", reqQuest: "q_a3_scout", reqIn: ["active", "ready", "done"], reqText: "정보상에게 아직 들을 이야기가 남아 있습니다." }],
-    npcs: [{ id: "barsha", x: 820 }],
+    npcs: [],
+    spots: [],
+    spawns: [], start: 90,
+    area: { x: 66, y: 52, desc: "포르투 노바 하층민 구역의 좁은 골목입니다. 정보상의 공방 문이 있습니다." }
+  };
+  /* 정보상의 공방 내부: 골목 막다른 쪽 아치문 안쪽. 탁자(작업대) 위의 물건을 조사하는 장면은 여기서 일어납니다 */
+  AU.MAPS.jandari_shop = {
+    name: "정보상의 공방", bg: "bg_barsha_shop", width: 1500, safe: true, interior: true, parent: "jandari",
+    platforms: [{ x: 0, y: 590, w: 1500 }], ropes: [],
+    portals: [{ x: 70, to: "jandari", toX: 960, label: "나가기(문)", door: true }],
+    npcs: [{ id: "barsha", x: 940, npcY: 462 }],
+    fgSlice: [625, 425, 640, 175],   // 작업대: 정보상보다 앞에 다시 그려 탁자 뒤에 서 있게 함
     spots: [
-      { id: "barsha_lens", img: "", x: 640, kind: "investigate", label: "탁자 위의 검은 결정 조각", lines: [
+      { id: "barsha_lens", img: "", x: 730, kind: "investigate", label: "작업대 위의 검은 결정 조각", lines: [
         L(B(), "길드가 보낸 것과 같은 결이다. 자연에서 이만큼 순하게 굳은 결정은 나오지 않아."),
         L(B(), "누군가 일부러 만들어 내고 있다는 뜻이지. 그리고 그 재료는 짐승의 몸이야. 몸에 닿은 어둠이 굳어서 이렇게 된다."),
         L(HERO, "(몬스터 몸에서 나온 검은 결정... 누군가 몬스터를 일부러 어둠에 물들이고 있다는 말이다.)")] },
-      { id: "barsha_map", img: "", x: 1010, kind: "investigate", label: "구겨진 양피지 지도", lines: [
+      { id: "barsha_map", img: "", x: 1150, kind: "investigate", label: "구겨진 양피지 지도", lines: [
         L(B(), "북쪽 경계 너머 검은 골짜기에 붉은 점이 찍혀 있지. 블랙 웨이브 상단이 쓰는 비밀 중계소야."),
         L(B(), "매달 우리 짝이 그리로 실려 간다. 짐승을 가둬 둘 우리, 그리고 검은 결정 원석이지."),
         L(B(), "상단은 심부름꾼일 뿐이야. 누가 시키는지, 어디로 가는지는 직접 보고 와야 알 수 있네.")] }
     ],
-    spawns: [], start: 90,
-    area: { x: 66, y: 52, desc: "포르투 노바 하층민 구역의 좁은 골목입니다. 정보상의 공방이 있습니다." }
+    spawns: [], start: 200,
+    area: { x: 66, y: 52, desc: "정보상 바르샤의 공방 안입니다. 작업대 위에 길드 장부에 없는 물건들이 놓여 있습니다." }
   };
   AU.MAPS.valley = {
     name: "검은 골짜기", bg: "valley", width: 3200, safe: false,
@@ -107,7 +120,8 @@ window.AU = window.AU || {};
     spawns: [{ type: "wolf", x: 900 }, { type: "wolf", x: 1180 }, { type: "wolf", x: 1350 }, { type: "wolf", x: 600 }],
     area: { x: 90, y: 16, desc: "검은 골짜기 너머 협곡의 바위틈입니다. 변형된 짐승이 출몰합니다." }
   };
-  AU.AREA_LINKS.push(["porto", "jandari"], ["jandari", "valley"], ["valley", "gorge"]);
+  AU.AREA_LINKS.push(["porto", "jandari"], ["jandari", "jandari_shop"], ["jandari", "valley"], ["valley", "gorge"]);
+  { const r = AU.WORLD_REGIONS.find((x) => x.id === "south"); if (r && r.maps.indexOf("jandari_shop") < 0) r.maps.push("jandari_shop"); }
   // 포르투 노바 → 잔다리 골목 출입구
   AU.MAPS.porto.portals.push({ x: 215, to: "jandari", toX: 90, label: "잔다리 골목" });
 
@@ -116,10 +130,10 @@ window.AU = window.AU || {};
   Object.assign(AU.QUESTS, {
     q_a2_secret: {
       title: "바르샤의 전언", type: "main", giver: "barsha", minLevel: 7, pre: ["q_a1_traces"],
-      area: "jandari", desc: "잔다리 골목의 바르샤를 만나 길드가 모르는 정보를 전달받습니다. 탁자 위 결정 조각과 지도를 살펴봅니다.",
+      area: "jandari_shop", desc: "잔다리 골목 안쪽, 정보상 바르샤의 공방으로 들어가 길드가 모르는 정보를 전달받습니다. 작업대 위의 결정 조각과 지도를 살펴봅니다.",
       objectives: [{ kind: "investigate", targets: ["barsha_lens", "barsha_map"] }],
-      offer: ["...테오도로스가 보냈군. 들어오게. 문은 닫고.", "내가 하는 일을 길드 장부에서 찾을 순 없네. 길드의 뒷세계에서 소식을 모으는 일을 하지. 쉽게 말해 비밀 요원일세.", "자네가 가져온 검은 결정에 대해 알려 주겠네. 탁자 위의 물건들을 직접 보면서 들어 주게."],
-      reminder: ["탁자 위의 결정 조각과 지도를 살펴보게. 눈으로 보는 게 빠르지."],
+      offer: ["...테오도로스가 보냈군. 문 닫히는 소리가 났으니 됐네. 이쪽으로 오게.", "내가 하는 일을 길드 장부에서 찾을 순 없네. 길드의 뒷세계에서 소식을 모으는 일을 하지. 쉽게 말해 비밀 요원일세.", "자네가 가져온 검은 결정에 대해 알려 주겠네. 작업대 위의 물건들을 직접 보면서 들어 주게."],
+      reminder: ["작업대 위의 결정 조각과 지도를 살펴보게. 눈으로 보는 게 빠르지."],
       done: ["들었나? 몬스터를 일부러 어둠에 물들이는 자들이 있네. 이 도시 주변의 이상한 짐승들은 그 부산물이야.", "지도의 붉은 점이 그들의 중계소일세. 가 보려면 레벨 8은 되어야 하네. 들키면 칼을 뽑게 될 테니."],
       reward: { exp: 700, silver: 60, items: [["barsha_map", 1]] }
     },

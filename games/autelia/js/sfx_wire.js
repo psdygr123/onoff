@@ -17,7 +17,7 @@ window.AU = window.AU || {};
 
   /* ---- 이동: 발걸음·착지 ---- */
   let stepAcc = 0;
-  const surface = () => { const id = W && W.mapId || ""; if (/house|storage|dock|temple/.test(id)) return "step_wood"; if (/porto|plaza|town|port/.test(id)) return "step_stone"; return "step_dirt"; };
+  const surface = () => { const id = W && W.mapId || ""; if (/house|storage|dock|temple|shop/.test(id)) return "step_wood"; if (/porto|plaza|town|port/.test(id)) return "step_stone"; return "step_dirt"; };
   wrap(W, "update", function () { const p = this.player; return p ? { og: p.onGround, vy: p.vy, x: p.x } : null; }, function (b) {
     const p = this.player; if (!b || !p || p.dead) return;
     if (!b.og && p.onGround && b.vy > 260) play("land");
@@ -38,7 +38,7 @@ window.AU = window.AU || {};
   wrap(W, "hurtPlayer", function () { const p = this.player; return p ? p.invuln : 0; }, function (b) { const p = this.player; if (p && b <= 0 && p.invuln > 0 && p.flash > 0.2) play("hurt"); });
   const SKILL_SND = { strike: "skill_strike", spin: "skill_spin", focus: "skill_focus" };   // 스킬별 정식 음원(없으면 기존 합성음 "skill")
   wrap(W, "useSkillSlot", function (i) { const p = this.player; this._skId = G && G.S && G.S.skills ? G.S.skills.slots[i] : null; return p ? p.atkT : 0; }, function (b) { const p = this.player; if (p && p.atkT > b + 0.05) play(SKILL_SND[this._skId] || "skill"); });
-  wrap(W, "travel", null, () => play("mapchange"));
+  wrap(W, "travel", function () { const pt = this.nearPortal; return pt && pt.door && !this.trans ? 1 : 0; }, (door) => { play(door ? "door" : "mapchange"); });   // 문(door:true) 포털은 문 소리, 나머지는 지도 이동음
 
   /* ---- 성장·아이템 ---- */
   if (Ev) {
