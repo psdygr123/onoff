@@ -13,7 +13,7 @@ const { chromium } = require('playwright');
     const data=await page.evaluate(()=>{
       const G=AU.G,S=G.S;
       const all=AU.MISSIONS,counts=Object.fromEntries('PERMA'.split('').map(k=>[k,all.filter(m=>m.perma===k).length]));
-      const unique=new Set(all.map(m=>m.id)).size===all.length;
+      const unique=new Set(all.map(m=>m.id)).size===all.length; const rest=AU.REST_MISSIONS; const restOk=rest.length===30&&new Set(rest.map(m=>m.id)).size===30&&Object.keys(AU.REST_CATEGORIES).every(k=>rest.filter(m=>m.category===k).length===5);
       const hasMeta=all.every(m=>AU.MISSION_FUNCTION_AREAS[m.functionArea]&&[1,2,3].includes(m.difficulty)&&m.minutes>0&&m.points>0);
       // Simulate a legacy save: old mission IDs, completed record, no fragments key, old locked mission.
       S.flags.missionsUnlocked=true;S.flags.guideMet=true;
@@ -32,10 +32,10 @@ const { chromium } = require('playwright');
       const done=G.setMissionState('m_a3','done');
       const once=G.setMissionState('m_a3','done')===false;
       G.save('test');
-      return {count:all.length,counts,unique,hasMeta,preserved,unlocked,hasFragmentDefault,first,fragments,noDup,done,once,log:S.missions.log.length};
+      return {count:all.length,counts,restOk,unique,hasMeta,preserved,unlocked,hasFragmentDefault,first,fragments,noDup,done,once,log:S.missions.log.length};
     });
-    check('M30-1 all 30 missions, six per PERMA',data.count===30&&Object.values(data.counts).every(n=>n===6),data);
-    check('M30-2 unique ids and complete metadata',data.unique&&data.hasMeta,data);
+    check('M30-1 all 100 missions, twenty per PERMA',data.count===100&&Object.values(data.counts).every(n=>n===20),data);
+    check('M30-2 unique ids and complete metadata',data.unique&&data.hasMeta&&data.restOk,data);
     check('M30-3 old progress survives and missions unlock freely',data.preserved&&data.unlocked&&data.hasFragmentDefault,data);
     check('M30-4 partial attempt has one-time fragment reward',data.first&&data.fragments===1&&data.noDup,data);
     check('M30-5 completing after partial rewards only once',data.done&&data.once,data);

@@ -958,9 +958,11 @@ window.AU = window.AU || {};
       b.append(h("div", { class: "lockbox lockband" }, h("b", { text: "🔒 스킬을 배우면 열립니다 (Lv.10)" }), h("p", { text: "피로도는 스킬을 쓸 때 쌓이는 수치입니다. 스킬을 배우는 시점에 설명과 회복 방법을 알려 드립니다." })));
     } else if (tab === "rest") {
       b.append(h("p", { class: "note", text: "쉼 미션은 선택입니다. 같은 미션은 하루 한 번 가능하며, 실천 후 느낀 상태만 선택하면 됩니다. 자유 소감은 선택입니다." }), UI.fatigueMeter(S, false));
+      const selectedRest = UI.tab.restCategory || "all";
+      b.append(h("div",{class:"tabs mission-areas"}, ...[["all","전체"],...Object.entries(AU.REST_CATEGORIES)].map(([k,label])=>btn(label,selectedRest===k?"on":"",()=>{UI.tab.restCategory=k;UI.renderWin()}))));
       const grid = h("div", { class: "missions" });
-      for (const m of AU.REST_MISSIONS) { const ok = AU.G.restMissionAvailable(m.id);
-        grid.append(h("div", { class: "mission st-" + (ok ? "available" : "done") }, h("div", { class: "mh" }, h("span", { class: "tag", text: "쉼 · 피로도 −" + m.recover }), h("span", { class: "tag", text: ok ? "오늘 가능" : "오늘 완료" })), h("b", { text: m.title }), h("p", { text: m.desc }),
+      for (const m of AU.REST_MISSIONS) { if(selectedRest!=="all"&&m.category!==selectedRest)continue; const ok = AU.G.restMissionAvailable(m.id);
+        grid.append(h("div", { class: "mission st-" + (ok ? "available" : "done") }, h("div", { class: "mh" }, h("span", { class: "tag", text: "쉼 · 피로도 −" + m.recover }), h("span", { class: "tag", text: ok ? "오늘 가능" : "오늘 완료" }), h("span",{class:"tag",text:(AU.REST_CATEGORIES[m.category]||"쉼")+" · 약 "+m.minutes+"분"})), h("b", { text: m.title }), h("p", { text: m.desc }),
           ok ? h("div", { class: "macts" }, btn(m.guide ? "시작하기 (" + Math.round(m.guide.secs / 60 * 10) / 10 + "분)" : "해 봤어요", "primary", () => (m.guide ? UI.guided(m.title, m.guide, () => UI.restNote(m, (t) => AU.G.doRestMission(m.id, t))) : UI.restNote(m, (t) => AU.G.doRestMission(m.id, t))))) : null)); }
       b.append(grid);
     } else if (tab === "record") {

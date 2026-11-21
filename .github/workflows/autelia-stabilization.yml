@@ -14,6 +14,7 @@ on:
       - feat/reality-reward-neutral-20261121
       - feat/mission-evidence-20261121
       - feat/act1-real-bridge-20261121
+      - feat/activity-catalog-130-20261121
   workflow_dispatch:
 
 permissions:
