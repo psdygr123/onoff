@@ -189,7 +189,7 @@ window.AU = window.AU || {};
     devPrepare(i) { i = this.devIdx(i); const st = this.st(); for (let j = 0; j < i; j++) for (const f of OWN[j].flags) st.flags[f] = true; if (i > ORDER.indexOf("SCENE_04_FATHER") && !this.replay) { AU.G.S.inv.metal_fragment = 1; AU.G.S.inv.carpenter_bag = 1; } },
     devJump(i) { i = this.devIdx(i); if (this.isDone() && !this.replay) { const S = AU.G.S; this.replay = true; this.rs = { state: "NOT_STARTED", flags: {}, seen: {} }; this.ret = { map: S.map, x: S.x }; } this.devPrepare(i); this.on = true; this.beginScene(i); },
     debugComplete(mapId) {
-      const S = AU.G.S; this.cancelAll(); this.replay = false; this.rs = null; this.on = false; this.setHud(false); this.resetMapRuntime(); this.fadeS = { a: 0, color: "#000" }; this.holdFade = false; this.endEl.classList.add("hidden"); Au.stopAll();
+      const S = AU.G.S; this.cancelAll(); this.gen++; this.replay = false; this.rs = null; this.on = false; this.setHud(false); this.resetMapRuntime(); this.fadeS = { a: 0, color: "#000" }; this.holdFade = false; this.endEl.classList.add("hidden"); Au.stopAll();
       const st = S.prologue; st.state = "COMPLETED"; for (const o of OWN) for (const f of o.flags) st.flags[f] = true;
       AU.G.unlockRealMissions(false);
       if (!S.inv.potion) S.inv.potion = 2; const id = mapId || "porto"; S.visited[id] = true; AU.World.enterMap(id, AU.MAPS[id].start || 200, true); AU.UI.dialog = null; AU.UI.dlgEl.classList.add("hidden"); AU.G.changed(); return true;

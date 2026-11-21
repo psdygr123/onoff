@@ -53,6 +53,7 @@ window.AU = window.AU || {};
       });
     },
     async intro() {
+      if (!AU.Prologue || !AU.Prologue.on) return false;
       if (!this.activate()) return false;
       const S = AU.G.S;
       if (S.flags.realBridgeIntroSeen || (AU.Prologue && AU.Prologue.replay)) return false;
@@ -71,6 +72,7 @@ window.AU = window.AU || {};
       return true;
     },
     async offer(key, missionId) {
+      if (!AU.Prologue || !AU.Prologue.on) return "inactive";
       if (!this.activate()) return "later";
       const S = AU.G.S, P = AU.Prologue;
       if (P && P.replay) return "replay";
