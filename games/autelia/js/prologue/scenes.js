@@ -303,6 +303,7 @@ window.AU = window.AU || {};
       father.mark = false; P.limits = null; P.obj(OBJ.s1_exit); father.working = false;
       // 마지막 대사 이후, 스토리를 멈추지 않고 모험일지에만 활동 제안 남김.
       if (AU.RealBridge) AU.RealBridge.queue("prologue-temple-complete", "m_a3");
+      if (AU.JournalTour) await AU.JournalTour.offer();   // "모험일지를 열어 볼까요?" → 단계별 안내(거절해도 이야기는 그대로 진행)
       P.trigger({ id: "s1exit", goal: L.exit, test: (p) => p.x >= L.exit, fn: () => { P.frozen = true; P.advance(); } });
     }
   }

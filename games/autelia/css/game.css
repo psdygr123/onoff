@@ -834,3 +834,22 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
 .dlgbox .dback { margin-right: 0; }
 .dlgbox .dnext .btn, .dlgbox .choices .dback { padding: 2px 10px; font-size: 12px; line-height: 1.35; min-height: 0; opacity: .8; }
 .dlgbox .dnext .btn:hover, .dlgbox .choices .dback:hover { opacity: 1; }
+
+/* 모험일지 단계별 안내(투어) */
+.jt-shade { position: absolute; inset: 0; z-index: 90; pointer-events: auto; background: transparent; }
+.jt-spot { position: absolute; z-index: 91; display: none; pointer-events: none; border-radius: 10px; border: 2px solid #f0d890; box-shadow: 0 0 0 9999px rgba(12, 10, 8, .66), 0 0 16px 2px rgba(240, 216, 144, .6); transition: left .25s, top .25s, width .25s, height .25s; }
+.jt-card { position: absolute; z-index: 92; width: 400px; pointer-events: auto; padding: 14px 18px 12px; box-sizing: border-box; }
+.jt-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.jt-prog { font-size: 12px; font-weight: 700; color: #8a5a1a; letter-spacing: .08em; }
+.jt-skip { padding: 2px 10px; font-size: 12px; opacity: .8; }
+.jt-title { display: block; font-size: 19px; margin: 2px 0 6px; color: #5a3a10; }
+.jt-body p { margin: 3px 0; font-size: 16px; line-height: 1.55; color: #3a2d1d; }
+.jt-extra { margin-top: 8px; }
+.jt-steps { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 4px; background: #fff6dc; border: 1px solid #e2c987; border-radius: 8px; }
+.jt-step { display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 84px; }
+.jt-step i { width: 26px; height: 26px; line-height: 26px; text-align: center; border-radius: 50%; background: linear-gradient(#b98b45, #8d6425); color: #fff8e6; font-style: normal; font-weight: 700; font-size: 14px; }
+.jt-step b { font-size: 14px; color: #5a3a10; } .jt-arrow { color: #a8793a; font-size: 18px; font-weight: 700; }
+.jt-recap { padding: 8px 12px; background: #fff6dc; border: 1px solid #e2c987; border-radius: 8px; font-size: 14px; color: #4a3410; }
+.jt-recap b { display: block; margin-bottom: 2px; color: #8a5a1a; } .jt-recap ol { margin: 2px 0 0; padding-left: 20px; } .jt-recap li { margin: 2px 0; }
+.jt-nav { display: flex; justify-content: space-between; gap: 8px; margin-top: 10px; }
+.jt-again-row { display: flex; justify-content: flex-end; margin: 2px 0 6px; } .jt-again { font-size: 12px; padding: 2px 10px; }
