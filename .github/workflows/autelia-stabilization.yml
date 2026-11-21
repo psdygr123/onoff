@@ -60,7 +60,7 @@ jobs:
           set +e
           set -uo pipefail
           overall=0
-          for test in tests/regression_main.js tests/fatigue.js tests/survey_pss.js tests/survey_perma.js tests/act1_hideout.js tests/feedback_tests.js tests/reality_growth_v2.js tests/missions_30.js tests/prologue_real_bridge.js tests/mission_evidence.js tests/mission_repeat_schedule.js tests/act1_real_bridge.js tests/gallery_room.js tests/gallery_dual_entry.js tests/platform_gallery_entry.js tests/prologue_resume_smoke.js tests/journal_overhaul.js tests/intro_video.js tests/bgm_groups.js tests/npc_drag.js; do
+          for test in tests/regression_main.js tests/fatigue.js tests/survey_pss.js tests/survey_perma.js tests/act1_hideout.js tests/feedback_tests.js tests/reality_growth_v2.js tests/missions_30.js tests/prologue_real_bridge.js tests/mission_evidence.js tests/mission_repeat_schedule.js tests/act1_real_bridge.js tests/gallery_room.js tests/gallery_dual_entry.js tests/platform_gallery_entry.js tests/prologue_resume_smoke.js tests/journal_overhaul.js tests/intro_video.js tests/bgm_groups.js tests/npc_drag.js tests/window_drag.js; do
             echo "::group::$test"
             node "games/autelia/$test" > /tmp/one-test.log 2>&1
             code=$?

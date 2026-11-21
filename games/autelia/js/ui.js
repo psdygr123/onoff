@@ -273,7 +273,22 @@ window.AU = window.AU || {};
       R.call(this, body);
       { const gb = AU.Guide && AU.Guide.winBox(name); if (gb) body.prepend(gb); }
       const box = h("div", { class: "window panel win-" + name }, title, body);
-      this.winEl.innerHTML = ""; this.winEl.append(box); body.scrollTop = prevScroll;
+      this.winEl.innerHTML = ""; this.winEl.append(box); body.scrollTop = prevScroll; this.makeDraggable(box, title, name);
+    },
+    /* 창 제목 줄을 끌어서 위치 조정. 창 종류별로 마지막 위치를 기억(이 브라우저), 제목 줄 더블클릭 = 가운데로 되돌리기. 제목 줄이 화면 밖으로 나가지 않게 제한 */
+    makeDraggable(box, title, name) {
+      const store = () => AU.Store.get("autelia.winPos") || {}; const W0 = 1280, H0 = 720;
+      const clamp = (dx, dy) => { const w = box.offsetWidth, hh = box.offsetHeight, bl = (W0 - w) / 2, bt = (H0 - hh) / 2;
+        return { x: Math.round(Math.max(-(w - 120) - bl, Math.min(W0 - 120 - bl, dx))), y: Math.round(Math.max(-bt, Math.min(H0 - 44 - bt, dy))) }; };
+      const set = (o) => { box.style.transform = o.x || o.y ? "translate(" + o.x + "px," + o.y + "px)" : ""; };
+      const saved = store()[name]; let cur = saved ? clamp(saved.x, saved.y) : { x: 0, y: 0 }; set(cur);
+      title.style.cursor = "move"; title.style.touchAction = "none"; title.title = "끌어서 위치 이동 · 더블클릭: 가운데로";
+      let d = null;
+      title.addEventListener("pointerdown", (e) => { if (e.target.closest("button") || e.button > 0) return; const sc = box.getBoundingClientRect().width / box.offsetWidth || 1; d = { sx: e.clientX, sy: e.clientY, ox: cur.x, oy: cur.y, sc }; title.setPointerCapture(e.pointerId); e.preventDefault(); });
+      title.addEventListener("pointermove", (e) => { if (!d) return; cur = clamp(d.ox + (e.clientX - d.sx) / d.sc, d.oy + (e.clientY - d.sy) / d.sc); set(cur); });
+      const end = () => { if (!d) return; d = null; const o = store(); o[name] = cur; AU.Store.set("autelia.winPos", o); };
+      title.addEventListener("pointerup", end); title.addEventListener("pointercancel", end);
+      title.addEventListener("dblclick", (e) => { if (e.target.closest("button")) return; cur = { x: 0, y: 0 }; set(cur); const o = store(); delete o[name]; AU.Store.set("autelia.winPos", o); });
     },
     winKeyHint(name) { const id = WIN_KEYS[name]; return id ? "[" + keyOf(id) + "]" : ""; },
 
