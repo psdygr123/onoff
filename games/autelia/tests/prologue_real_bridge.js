@@ -22,13 +22,13 @@ const {chromium}=require('playwright');
   await p.getByRole('button',{name:'게임만 진행하기'}).click();
   const afterSkip=await p.evaluate(()=>({flag:AU.Prologue.flag('banners_done'),mission:AU.G.ms('m_a4').state,shown:AU.G.S.flags.realBridgeOffers['bridge-test-later'],unlocked:AU.G.S.flags.missionsUnlocked}));
   check('BRIDGE2 decline never completes or blocks game story',afterSkip.shown&&afterSkip.unlocked&&!afterSkip.flag&&afterSkip.mission==='available',afterSkip);
-  await p.evaluate(()=>AU.RealBridge.offer('bridge-test-accept','m_a4'));
+  await p.evaluate(()=>{ void AU.RealBridge.offer('bridge-test-accept','m_a4'); });
   await p.waitForSelector('.modalwrap [role="dialog"]');
   await p.getByRole('button',{name:'현실 미션도 수락'}).click();
   const accepted=await p.evaluate(()=>({mission:AU.G.ms('m_a4').state,flag:AU.Prologue.flag('banners_done'),st:AU.G.S.prologue.state}));
   check('BRIDGE3 accepting reality mission does not change story objective',accepted.mission==='accepted'&&!accepted.flag&&accepted.st==='SCENE_01B_BANNERS',accepted);
   await p.evaluate(()=>AU.G.save('bridge-test'));
-  await p.reload();await p.click('#btn-start');
+  await p.reload();await p.waitForSelector('#btn-start');await p.click('#btn-start');
   const resumed=await p.evaluate(()=>({mission:AU.G.ms('m_a4').state,shown:AU.G.S.flags.realBridgeOffers['bridge-test-accept']}));
   check('BRIDGE4 independent choice survives save and reload',resumed.mission==='accepted'&&resumed.shown,resumed);
  }finally{await browser.close();}
