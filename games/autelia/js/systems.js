@@ -387,7 +387,7 @@ window.AU = window.AU || {};
       for (const m of AU.MISSIONS) { const r = S.missions.states[m.id]; if (r.state === "locked") r.state = "available"; }
       this.save("mission"); this.changed(); return true;
     },
-    setMissionState(id, next, feedback) {
+    setMissionState(id, next, feedback, evidence) {
       const S = this.S; if (!S.flags.missionsUnlocked) return false;
       this.initMissions();
       const r = S.missions.states[id], m = this.mission(id); if (!r || !m) return false;
@@ -427,8 +427,9 @@ window.AU = window.AU || {};
         }
         for (const n of AU.MISSIONS) { const nr = S.missions.states[n.id]; if (n.pre === id && nr.state === "locked" && S.flags.guideMet) nr.state = "available"; }
       }
-      // 수행 상태(state)와 인증 자료(proof)는 따로 기록. 지금은 자기보고만 있음
-      S.missions.log.push({ t: AU.dateStr(), id, perma: m.perma, state: r.state, points, capped, reflection: review, mindGained: gained, galleryTokens: earnedTokens, proof: "self_report" });
+      // 자기보고와 선택적인 보조 기록을 분리. 사진 원본은 저장 파일에 포함하지 않음.
+      const supplementary = (next === "done" || next === "partial") && AU.MissionEvidence ? AU.MissionEvidence.clean(evidence, m) : null;
+      S.missions.log.push({ t: AU.dateStr(), id, perma: m.perma, state: r.state, points, capped, reflection: review, mindGained: gained, galleryTokens: earnedTokens, proof: "self_report", supplementary });
       if (next === "done") {
         this.log("현실 미션 완료: " + m.title);
         const mindTxt = gained ? " · 마음 [" + AU.PERMA[m.perma] + "] +" + gained : "";

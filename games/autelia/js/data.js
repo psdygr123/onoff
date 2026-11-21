@@ -432,6 +432,9 @@ AU.MISSIONS.push(
   {"id":"m_a5","perma":"A","d":2,"points":2,"title":"생활 공간 한 구역 정리하기","desc":"책상이나 방의 작은 구역을 정리해 봅니다. 일부만 해도 괜찮습니다.","functionArea":"daily_living","difficulty":2,"minutes":5,"optional":true},
   {"id":"m_a6","perma":"A","d":3,"points":3,"title":"간단한 생활 과제 하나 수행하기","desc":"스스로 고른 작은 생활 과제를 시도해 봅니다.","functionArea":"daily_living","difficulty":3,"minutes":10,"optional":true}
 );
+// 보조 기록은 선택이며 모든 활동은 자기보고로 완료할 수 있습니다.
+const evidenceGroups={timer:["m_p1","m_p5","m_p6","m_e1","m_e2","m_e6"],record:["m_e4","m_r5","m_m3","m_m4","m_m5","m_m6","m_a2","m_a4"],photo:["m_e5","m_a3","m_a5","m_a6"]};
+for(const m of AU.MISSIONS) m.evidence=Object.keys(evidenceGroups).find(k=>evidenceGroups[k].includes(m.id))||"self_report";
 // 활동 경험 점수는 심리검사 점수와 별개입니다.
 /* 선택형 '쉼' 현실 미션: 피로도를 줄이는 짧은 휴식 활동(PERMA 마음 스탯과는 별개). 수치·목록은 임시, 하루에 같은 미션은 한 번 */
 AU.REST_MISSIONS = [
