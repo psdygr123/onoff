@@ -378,6 +378,7 @@ window.AU = window.AU || {};
     ms(id) { return this.S.missions.states[id] || { state: "locked", rewarded: false, tries: 0 }; },
     initMissions() {
       const M = this.S.missions;
+      if (!M.plans || typeof M.plans !== "object" || Array.isArray(M.plans)) M.plans = {};
       for (const m of AU.MISSIONS) {
         if (!M.states[m.id]) M.states[m.id] = { state: "locked", rewarded: false, tries: 0 };
         // 신규 활동 및 구 저장의 미완료/잠금 미션도 안내 이후 자유롭게 선택 가능.
@@ -439,6 +440,47 @@ window.AU = window.AU || {};
         this.toast("현실 미션 완료! 갤러리 토큰 +" + earnedTokens + mindTxt, "good");
       }
       this.save("mission"); this.changed(); return true;
+    },
+    repeatMission(id,feedback,evidence) {
+      const S=this.S,m=this.mission(id),r=S.missions.states[id];
+      if(!S.flags.missionsUnlocked||!m||!r||r.state!=="done")return false;
+      const reflection=this.validMissionFeedback(feedback)?{challenge:feedback.challenge,meaning:feedback.meaning,satisfaction:feedback.satisfaction,note:String(feedback.note||"").trim().slice(0,200)}:null;
+      const supplementary=AU.MissionEvidence?AU.MissionEvidence.clean(evidence,m):null;
+      S.missions.log.push({t:AU.dateStr(),id,perma:m.perma,state:"done",repeat:true,points:0,capped:false,reflection,mindGained:0,galleryTokens:0,proof:"self_report",supplementary});
+      this.log("현실 미션 반복 수행: "+m.title);this.toast("반복 수행 기록 완료 · 추가 점수와 토큰은 없습니다.","info");
+      this.save("mission-repeat");this.changed();return true;
+    },
+    missionRepeatStats(id){
+      const rows=this.S.missions.log.filter(e=>e.id===id&&e.state==="done");
+      const reviews=rows.map(e=>e.reflection).filter(x=>x&&Number.isFinite(x.satisfaction)&&Number.isFinite(x.meaning)&&Number.isFinite(x.challenge));
+      const avg=k=>reviews.length?Math.round(reviews.reduce((n,x)=>n+x[k],0)/reviews.length*10)/10:null;
+      return {count:rows.length,repeats:rows.filter(x=>x.repeat).length,last:rows.length?rows[rows.length-1].t:null,satisfaction:avg("satisfaction"),meaning:avg("meaning"),challenge:avg("challenge")};
+    },
+    missionPlan(id){this.initMissions();return this.S.missions.plans[id]||{mode:"free"};},
+    setMissionPlan(id,p){
+      if(!this.mission(id)||!this.S.missions.states[id]||this.S.missions.states[id].state!=="done"||!p)return false;
+      if(!["free","daily","weekly_count","weekdays","interval","paused"].includes(p.mode))return false;
+      const x={mode:p.mode};
+      if(p.mode==="weekly_count"){if(!Number.isInteger(p.count)||p.count<1||p.count>7)return false;x.count=p.count;}
+      if(p.mode==="weekdays"){if(!Array.isArray(p.days)||!p.days.length||p.days.some(n=>!Number.isInteger(n)||n<0||n>6))return false;x.days=[...new Set(p.days)].sort((a,b)=>a-b);}
+      if(p.mode==="interval"){if(!Number.isInteger(p.interval)||p.interval<2||p.interval>30)return false;x.interval=p.interval;x.anchor=AU.dateStr();}
+      x.remind=!!p.remind&&!["free","paused"].includes(p.mode);
+      this.initMissions();this.S.missions.plans[id]=x;this.save("mission-plan");this.changed();return true;
+    },
+    missionPlanDue(id,day){
+      const p=this.missionPlan(id),today=day||AU.dateStr();
+      if(["free","paused"].includes(p.mode))return false;
+      if(p.mode==="daily")return true;
+      const date=new Date(today+"T12:00:00");if(!Number.isFinite(date.getTime()))return false;
+      if(p.mode==="weekdays")return p.days.includes(date.getDay());
+      if(p.mode==="interval"){const a=new Date(p.anchor+"T12:00:00"),n=Math.floor((date-a)/86400000);return Number.isFinite(n)&&n>=0&&n%p.interval===0;}
+      if(p.mode==="weekly_count"){
+        const monday=new Date(date);monday.setDate(date.getDate()-(date.getDay()+6)%7);
+        const key=x=>x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0");
+        const begin=key(monday),n=this.S.missions.log.filter(e=>e.id===id&&e.state==="done"&&e.t>=begin&&e.t<=today).length;
+        return n<p.count;
+      }
+      return false;
     },
     validMissionFeedback(x) { return !!(x && typeof x === 'object' && ['challenge','meaning','satisfaction'].every(k => Number.isInteger(x[k]) && x[k] >= 1 && x[k] <= 5)); },
     /* ---------- 개인 공간: 활동의 기록을 수집하되, 메인 스토리나 전투 성장에 영향 없음 ---------- */
