@@ -338,14 +338,23 @@ window.AU = window.AU || {};
     },
 
     /* ---------- 적 AI: 순찰 → 추적 → 준비 동작(!) → 돌진 ---------- */
-    updateNpcs(dt) { // 오가는 주민: patrol:[왼끝,오른끝]이 있으면 천천히 걷는다(플레이어가 가까우면 멈춰 선다)
-      const map = AU.MAPS[AU.G.S.map]; if (!map || !map.npcs) return;
-      for (const n of map.npcs) {
-        if (!n.patrol) continue; n._f = n._f || 1; n._t = (n._t || 0) + dt;
-        n._walk = Math.abs(this.player.x - n.x) > 130;
-        if (!n._walk) continue; n.x += n._f * (n.speed || 38) * dt;
-        if (n.x > n.patrol[1]) { n.x = n.patrol[1]; n._f = -1; } else if (n.x < n.patrol[0]) { n.x = n.patrol[0]; n._f = 1; }
-      }
+    updateNpcs(dt) { // 오가는 주민: patrol:[왼끝,오른끝] 안에서 목적지를 골라 천천히 가속·감속하며 걷고, 도착하면 잠시 쉬며 가끔 반대쪽을 둘러본다. 플레이어가 가까우면 멈춰 선다
+      const map = AU.MAPS[AU.G.S.map]; if (!map || !map.npcs) return; const px = this.player.x;
+      map.npcs.forEach((n, i) => {
+        if (!n.patrol || this.npcEdit) { if (n.patrol) n._walk = false; return; } n._f = n._f || 1; n._t = (n._t || 0) + dt;
+        if (n._v == null) { n._v = 0; n._go = false; n._wt = 0.5 + ((i * 7) % 5); n._step = 0; n._sp = (n.speed || 38) * (0.8 + ((i * 3) % 5) * 0.1); }   // 걷는 속도는 주민마다 조금씩 다르게
+        const near = Math.abs(px - n.x) < 130, lo = n.patrol[0], hi = n.patrol[1];
+        if (near) { n._walk = false; n._v = 0; return; }
+        if (n._go) {
+          const d = n._tx - n.x, ad = Math.abs(d), want = n._sp * Math.min(1, 0.3 + ad / 60);   // 출발·도착 때 느리게
+          n._v += (want - n._v) * Math.min(1, dt * 3.5); const st = Math.min(ad, n._v * dt); n.x += Math.sign(d) * st; n._step += st; n._f = Math.sign(d) || n._f;
+          if (ad <= 1.5) { n._go = false; n._v = 0; n._wt = 2 + Math.random() * 5; }
+        } else {
+          n._wt -= dt; if (Math.random() < dt * 0.12) n._f = -n._f;   // 쉬는 동안 가끔 반대쪽을 봄
+          if (n._wt <= 0) { let t = lo + Math.random() * (hi - lo); if (Math.abs(t - n.x) < 80) t = n.x < (lo + hi) / 2 ? hi - Math.random() * 60 : lo + Math.random() * 60; n._tx = Math.max(lo, Math.min(hi, t)); n._go = true; }
+        }
+        n._walk = n._go && n._v > 3;
+      });
     },
     updateMonsters(dt) {
       const p = this.player;
@@ -504,19 +513,39 @@ window.AU = window.AU || {};
         ctx.fillStyle = "rgba(30,22,15,.7)"; this.rr(ctx, p.x - bw / 2 - 3, p.y - 176, bw + 6, 16, 8); ctx.fill(); ctx.fillStyle = "#9BE0B4"; this.rr(ctx, p.x - bw / 2, p.y - 173, Math.max(6, bw * k), 10, 5); ctx.fill();
       }
     },
+    /* NPC 위치 덮어쓰기: 키 = 맵:순번:NPC id. 원래 위치(data)는 건드리지 않고 이 브라우저에만 저장 */
+    npcKey(mid, i, n) { return mid + ":" + i + ":" + n.id; },
+    applyNpcPos() {
+      const o = AU.Store.get("autelia.npcPos") || {};
+      for (const mid of Object.keys(AU.MAPS)) (AU.MAPS[mid].npcs || []).forEach((n, i) => { const v = o[this.npcKey(mid, i, n)]; if (!v) return; const dx = v.x - n.x; n.x = v.x; if (v.y != null) n.npcY = v.y; if (n.patrol) n.patrol = [n.patrol[0] + dx, n.patrol[1] + dx]; });
+    },
+    saveNpcPos(n) {
+      const mid = this.mapId, i = (AU.MAPS[mid].npcs || []).indexOf(n); if (i < 0) return;
+      const o = AU.Store.get("autelia.npcPos") || {}; o[this.npcKey(mid, i, n)] = { x: n.x, y: n.npcY }; AU.Store.set("autelia.npcPos", o);
+    },
+    npcPosReport() { const o = AU.Store.get("autelia.npcPos") || {}; return JSON.stringify(o, null, 1); },
+    resetNpcPos() { AU.Store.set("autelia.npcPos", {}); location.reload(); },
     bindClick() { // 마우스 클릭으로 NPC와 대화
       if (this._clickBound) return; const cv = document.getElementById("cv"); if (!cv) return; this._clickBound = true;
       cv.style.cursor = "default";
       const hit = (e) => { const r = cv.getBoundingClientRect(), x = (e.clientX - r.left) / r.width * 1280 + Math.round(this.camX), y = (e.clientY - r.top) / r.height * 720;
         for (const n of (this.map && this.map.npcs) || []) { const ny = n.npcY || GROUND; if (Math.abs(x - n.x) < 55 && y > ny - 190 && y < ny + 30) return n; } return null; };
-      cv.addEventListener("mousemove", (e) => { cv.style.cursor = (!AU.UI.anyOpen() && hit(e)) ? "pointer" : "default"; });
+      this.applyNpcPos();
+      // NPC 배치 편집(개발 도구 → "NPC 배치 편집"): 끌어서 위치를 옮기면 이 브라우저에 저장되고, "좌표 복사"로 데이터에 반영할 값을 뽑을 수 있다
+      let drag = null; const pos = (e) => { const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width * 1280 + this.camX, y: (e.clientY - r.top) / r.height * 720 }; };
+      cv.addEventListener("pointerdown", (e) => { if (!this.npcEdit || AU.UI.anyOpen() || (AU.Prologue && AU.Prologue.on)) return; const n = hit(e); if (!n) return; const q = pos(e); drag = { n, gx: n.x - q.x, gy: (n.npcY || GROUND) - q.y }; cv.setPointerCapture(e.pointerId); e.preventDefault(); });
+      cv.addEventListener("pointermove", (e) => { if (!drag) return; const q = pos(e), n = drag.n, nx = Math.round(q.x + drag.gx), ny = Math.max(GROUND - 150, Math.min(GROUND + 20, Math.round(q.y + drag.gy))), dx = nx - n.x;
+        n.x = nx; n.npcY = ny; if (n.patrol) n.patrol = [n.patrol[0] + dx, n.patrol[1] + dx]; n._go = false; });
+      const endDrag = () => { if (drag) { this.saveNpcPos(drag.n); drag = null; } }; cv.addEventListener("pointerup", endDrag); cv.addEventListener("pointercancel", endDrag);
+      cv.addEventListener("mousemove", (e) => { cv.style.cursor = (!AU.UI.anyOpen() && hit(e)) ? (this.npcEdit ? "grab" : "pointer") : "default"; });
       cv.addEventListener("click", (e) => {
-        if (AU.UI.anyOpen() || (AU.Prologue && AU.Prologue.on)) return; const n = hit(e); if (!n) return;
+        if (this.npcEdit || AU.UI.anyOpen() || (AU.Prologue && AU.Prologue.on)) return; const n = hit(e); if (!n) return;
         if (Math.abs(this.player.x - n.x) < 160) AU.UI.talkNpc(n.id); else AU.UI.toast(AU.NPCS[n.id].name + "에게 조금 더 가까이 가세요.", "info");
       });
     },
     drawNpc(ctx, n) {
-      const d = AU.NPCS[n.id], y = n.npcY || GROUND, face = n.patrol && n._walk ? n._f : (this.player.x < n.x ? -1 : 1), bob = n.patrol && n._walk ? Math.abs(Math.sin(n._t * 7)) * 3 : 0;
+      if (this.npcEdit) { const ny = n.npcY || GROUND; ctx.save(); ctx.setLineDash([6, 4]); ctx.lineWidth = 2; ctx.strokeStyle = "#FFE08A"; ctx.strokeRect(n.x - 55, ny - 190, 110, 220); ctx.setLineDash([]); ctx.font = "700 14px 'Noto Sans KR', sans-serif"; ctx.textAlign = "center"; ctx.fillStyle = "rgba(30,22,15,.8)"; ctx.fillRect(n.x - 52, ny + 34, 104, 20); ctx.fillStyle = "#FFE08A"; ctx.fillText(Math.round(n.x) + " , " + Math.round(ny), n.x, ny + 49); ctx.restore(); }
+      const d = AU.NPCS[n.id], y = n.npcY || GROUND, face = n.patrol && n._walk ? n._f : (this.player.x < n.x ? -1 : 1), bob = n.patrol && n._walk ? Math.abs(Math.sin((n._step || 0) * 0.11)) * 3 * Math.min(1, n._v / 20) : 0;
       if (!this.sprite(ctx, d.sprite, n.x, y - bob, 150, face, 0)) { ctx.fillStyle = "#C9B8A0"; this.rr(ctx, n.x - 30, y - 130, 60, 130, 20); ctx.fill(); ctx.fillStyle = "#5B4636"; ctx.font = "14px sans-serif"; ctx.textAlign = "center"; ctx.fillText("이미지 없음", n.x, y - 60); }
     },
     npcRole(id) { // 역할별 구분(글자·색): 상점/전직/안내/의뢰
