@@ -712,6 +712,7 @@ window.AU = window.AU || {};
   /* 짧은 자기평가: 점수는 응답의 긍정성 자체가 아니라 평가 참여 여부만 반영합니다. */
   UI.missionReview = function (m, next, onSubmit) {
     const wrap = UI.modalEl; UI.modal = true; wrap.classList.remove("hidden"); wrap.innerHTML = "";
+    const evidencePanel = AU.MissionEvidence.panel(m);
     const ratings = {}, labels = [["challenge", "얼마나 도전적이었나요?"], ["meaning", "나에게 얼마나 의미 있었나요?"], ["satisfaction", "활동 후 얼마나 만족스러웠나요?"]];
     const fields = labels.map(([key, label]) => {
       const sel = h("select", { "aria-label": label });
@@ -720,19 +721,21 @@ window.AU = window.AU || {};
       ratings[key] = sel; return h("label", { class: "note" }, label, sel);
     });
     const ta = h("textarea", { class: "memo", maxlength: "200", rows: "3", placeholder: "선택: 어떤 경험이었는지 자유롭게 적어 주세요." });
-    const close = () => { UI.modal = false; wrap.classList.add("hidden"); wrap.innerHTML = ""; };
+    const close = () => { evidencePanel.dispose(); UI.modal = false; wrap.classList.add("hidden"); wrap.innerHTML = ""; };
+    let busy=false;
+    const finish = async (review) => { if(busy)return; busy=true; try { const evidence=await evidencePanel.value(); close(); onSubmit(review,evidence); } catch(e) { busy=false; AU.G.toast(e.message||"보조 기록 저장 실패. 첨부를 제거하고 다시 시도하세요.","info"); } };
     const submit = () => {
       const review = Object.fromEntries(labels.map(([key]) => [key, Number(ratings[key].value)]));
       review.note = ta.value;
       if (!AU.G.validMissionFeedback(review)) return;
-      close(); onSubmit(review);
+      finish(review);
     };
     const yes = btn(next === "partial" ? "시도 기록하기" : "평가하고 완료하기", "primary", submit, { disabled: "" });
     const upd = () => { if (labels.every(([key]) => ratings[key].value)) yes.removeAttribute("disabled"); else yes.setAttribute("disabled", ""); };
     for (const s of Object.values(ratings)) s.addEventListener("change", upd);
     wrap.append(h("div", { class: "panel modal restnote" }, h("h3", { text: m.title + " · 활동 돌아보기" }),
       h("p", { class: "note", text: "세 항목은 정답이 없습니다. 어려움·낮은 만족도도 그대로 기록해 주세요. 소감 글쓰기는 선택입니다." }),
-      ...fields, ta, h("div", { class: "choices" }, yes, btn("평가 없이 계속", "", () => { close(); onSubmit(null); }), btn("취소", "", close))));
+      evidencePanel.root, ...fields, ta, h("div", { class: "choices" }, yes, btn("평가 없이 계속", "", () => finish(null)), btn("취소", "", close))));
     upd();
   };
 
@@ -946,7 +949,7 @@ window.AU = window.AU || {};
         const acts = { available: [["수락", "primary", "accept"], ["건너뛰기", "", "skip"]], accepted: [["해 봤어요", "primary", "attempt"], ["건너뛰기", "", "skip"]], attempted: [["완료했어요", "primary", "done"], ["일부만 했어요", "", "partial"], ["건너뛰기", "", "skip"]],
           partial: [["완료했어요", "primary", "done"], ["다시 도전", "", "retry"], ["건너뛰기", "", "skip"]], skipped: [["다시 도전", "", "retry"]], done: [] }[r.state] || [];
         grid.append(h("div", { class: "mission st-" + r.state }, h("div", { class: "mh" }, h("span", { class: "tag perma", text: m.perma + " · " + AU.PERMA[m.perma] }), h("span", { class: "tag", text: (AU.MISSION_FUNCTION_AREAS[m.functionArea] || "일상 활동") + " · " + (["","쉬움","보통","확장"][m.difficulty] || "선택") + " · 약 " + m.minutes + "분" }), h("span", { class: "tag", text: AU.MISSION_STATES[r.state] }), h("span", { class: "pts", text: r.rewarded ? "지급 완료" : "갤러리 토큰 +1" })),
-          h("b", { text: m.title }), h("p", { text: m.desc }), acts.length ? h("div", { class: "macts" }, acts.map(([l, c, a]) => btn(l, c, () => ((a === "done" || a === "partial") ? UI.missionReview(m, a, (feedback) => AU.G.setMissionState(m.id, a, feedback)) : (m.guide && a === "attempt" ? UI.guided(m.title, m.guide, () => AU.G.setMissionState(m.id, a)) : AU.G.setMissionState(m.id, a)))))) : null));
+          h("b", { text: m.title }), h("p", { text: m.desc }), acts.length ? h("div", { class: "macts" }, acts.map(([l, c, a]) => btn(l, c, () => ((a === "done" || a === "partial") ? UI.missionReview(m, a, (feedback,evidence) => AU.G.setMissionState(m.id, a, feedback,evidence)) : AU.G.setMissionState(m.id, a))))) : null));
       }
       b.append(grid);
     } else if (tab === "rest" && !un) {
@@ -966,9 +969,9 @@ window.AU = window.AU || {};
       if (AU.Survey && AU.Survey.enabled() && UI.surveyPanel) b.append(UI.surveyPanel());
       b.append(h("div", { class: "permabar" }, Object.entries(AU.PERMA).map(([k, n]) => h("div", { class: "pc" }, h("b", { text: k }), h("span", { text: n }), h("em", { text: cnt[k] + "회" })))));
       const rows = S.missions.log.slice().reverse();
-      b.append(h("p", { class: "note", text: "인증 방식은 아직 정해지지 않아 모두 ‘직접 기록’입니다." }));
+      b.append(h("p", { class: "note", text: "모든 수행은 자기보고이며 보조 기록은 선택 사항입니다." }));
       if (!rows.length) b.append(h("p", { class: "empty", text: "아직 기록이 없습니다." }));
-      else b.append(h("div", { class: "logs" }, rows.map((e) => { const m = AU.G.mission(e.id); return h("div", { class: "logrow" }, h("span", { text: e.t }), h("span", { class: "tag perma", text: e.perma }), h("b", { text: (m ? m.title : e.id) }), h("span", { class: "tag", text: AU.MISSION_STATES[e.state] }), e.state === "done" ? h("span", { class: "pts", text: e.points ? "+" + e.points + "P" : (e.capped ? "주간 한도" : "") }) : null); })));
+      else b.append(h("div", { class: "logs" }, rows.map((e) => { const m = AU.G.mission(e.id); return h("div", { class: "logrow" }, h("span", { text: e.t }), h("span", { class: "tag perma", text: e.perma }), h("b", { text: (m ? m.title : e.id) }), h("span", { class: "tag", text: AU.MISSION_STATES[e.state] }), e.state === "done" ? h("span", { class: "pts", text: e.points ? "+" + e.points + "P" : (e.capped ? "주간 한도" : "") }) : null, AU.MissionEvidence.display(e)); })));
     }
   };
 
