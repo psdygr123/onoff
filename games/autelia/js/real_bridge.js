@@ -13,6 +13,36 @@ window.AU = window.AU || {};
       if (!S.flags.guideMet) G.discoverMissions();
       return true;
     },
+    // 이야기의 특정 지점을 현실 활동과 연결하되 스토리 완료 조건에 영향을 주지 않습니다.
+    PLACEMENTS: Object.freeze({
+      "prologue-temple-complete": { missionId: "m_a3", moment: "신전 건축 완료", mode: "journal", story: "신전을 완성하고 작업을 마무리했습니다." },
+      "prologue-banners": { missionId: "m_a4", moment: "축제 깃발 설치 시작", mode: "prompt", story: "축제를 위해 깃발 세 개를 달기로 했습니다." },
+      "prologue-festival": { missionId: "m_r3", moment: "축제 주민과 대화", mode: "journal", story: "축제에서 주민들과 이야기를 나누었습니다." },
+      "prologue-arrival": { missionId: "m_p5", moment: "포르투 노바 도착", mode: "journal", story: "긴 여정 끝에 포르투 노바에 도착했습니다." }
+    }),
+    suggestions() {
+      const flags = AU.G && AU.G.S && AU.G.S.flags;
+      return flags && flags.realBridgeSuggestions && typeof flags.realBridgeSuggestions === "object" ? flags.realBridgeSuggestions : {};
+    },
+    queue(key, missionId) {
+      const P = AU.Prologue;
+      if (!P || !P.on || P.replay || !this.activate()) return false;
+      const cfg = this.PLACEMENTS[key];
+      if (!cfg || cfg.missionId !== missionId || !AU.G.mission(missionId)) return false;
+      const S = AU.G.S;
+      if (!S.flags.realBridgeSuggestions || typeof S.flags.realBridgeSuggestions !== "object") S.flags.realBridgeSuggestions = {};
+      if (S.flags.realBridgeSuggestions[key]) return false;
+      S.flags.realBridgeSuggestions[key] = { missionId, moment: cfg.moment, story: cfg.story };
+      AU.G.save("real-bridge-queue");
+      return true;
+    },
+    acceptSuggested(key) {
+      const s = this.suggestions()[key];
+      if (!s || !this.activate()) return false;
+      const state = AU.G.ms(s.missionId).state;
+      if (state !== "available") return false;
+      return AU.G.setMissionState(s.missionId, "accept");
+    },
     visibleInDev() { return !/[?&]dev=1(?:&|$)/.test(location.search) || /[?&]realguide=1(?:&|$)/.test(location.search); },
     prompt(title, description, options) {
       const UI = AU.UI;
@@ -30,7 +60,10 @@ window.AU = window.AU || {};
         card.setAttribute("aria-modal", "true");
         card.setAttribute("aria-label", title);
         const heading = document.createElement("h3"); heading.textContent = title;
-        const body = document.createElement("p"); body.className = "note"; body.textContent = description;
+        const body = document.createElement("div"); body.className = "note";
+        for (const paragraph of description.split("\\n\\n")) {
+          const p = document.createElement("p"); p.textContent = paragraph; body.append(p);
+        }
         const actions = document.createElement("div"); actions.className = "choices";
         const finish = (value) => {
           R.dismiss = null;
@@ -80,10 +113,11 @@ window.AU = window.AU || {};
       if (S.flags.realBridgeOffers[key]) return "seen";
       const m = AU.G.mission(missionId);
       if (!m) return "missing";
+      this.queue(key, missionId);
       let answer = "later";
       if (this.visibleInDev()) {
         answer = await this.prompt("메인 퀘스트와 함께하는 현실 활동",
-          "게임 목표: 축제 깃발 3개를 달아 마을의 축제 준비를 돕습니다.\n\n함께 해볼 수 있는 선택형 현실 미션: " + m.title + " (약 " + m.minutes + "분). " + m.desc + "\n\n현실 미션을 하지 않아도 깃발 올리기와 이후 메인 스토리는 그대로 진행됩니다.",
+          (this.PLACEMENTS[key] ? this.PLACEMENTS[key].story : "메인 스토리 퀘스트를 시작했습니다.") + "\n\n함께 해볼 수 있는 선택형 현실 미션: " + m.title + " (약 " + m.minutes + "분). " + m.desc + "\n\n현실 미션을 하지 않아도 메인 스토리는 그대로 진행됩니다.",
           [{text:"현실 미션도 수락",value:"accept",primary:true},{text:"게임만 진행하기",value:"later"}]);
       }
       if (answer === "accept") {

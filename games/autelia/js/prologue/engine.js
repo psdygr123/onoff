@@ -161,6 +161,8 @@ window.AU = window.AU || {};
       this.beginScene(i + 1);
     },
     finish() {
+      // 프롤로그 종료 후에도 현실 활동 완료 여부와 관계없이 본편으로 진입합니다.
+      if (AU.RealBridge) AU.RealBridge.queue("prologue-arrival", "m_p5");
       const S = AU.G.S, st = this.st(); this.setFlag("porto_nova_reached"); this.setFlag("prologue_completed");
       if (!this.replay) { st.state = "COMPLETED"; S.map = "porto"; S.x = AU.MAPS.porto.start; S.visited.porto = true; AU.G.save("prologue-complete"); }
       this.frozen = true; this.holdFade = true; Au.stopAll(); this.showEnd();

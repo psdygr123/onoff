@@ -910,6 +910,27 @@ window.AU = window.AU || {};
       if (!un) { b.append(h("div", { class: "missions preview" }, AU.MISSIONS.map((m) => h("div", { class: "mission st-locked" }, h("div", { class: "mh" }, h("span", { class: "tag perma", text: m.perma + " · " + AU.PERMA[m.perma] }), h("span", { class: "tag", text: "🔒 잠김" }), h("span", { class: "pts", text: "갤러리 토큰 +1" })), h("b", { text: m.title }), h("p", { text: m.desc }))))); return; }
       if (!S.flags.guideMet) { b.append(h("div", { class: "lockbox" }, h("h3", { text: "현실 활동 안내" }), h("p", { text: "프롤로그에서 현실 활동의 기록 방법을 안내받으면 이곳의 미션을 선택할 수 있습니다." }))); return; }
       const M = S.missions;
+      // 메인 스토리에서 자연스럽게 소개된 일상 활동을 별도로 표시한다.
+      const linked = AU.RealBridge ? Object.entries(AU.RealBridge.suggestions()) : [];
+      if (linked.length) {
+        const rec = h("div", { class: "msummary", "data-real-bridge": "suggestions" },
+          h("h3", { text: "모험에서 이어진 현실 활동" }),
+          h("p", { class: "note", text: "메인 스토리와 관련된 선택 활동입니다. 수행하지 않아도 게임을 계속할 수 있습니다." }));
+        const cards = h("div", { class: "missions" });
+        for (const [key, suggestion] of linked.slice().reverse()) {
+          const m = AU.G.mission(suggestion.missionId);
+          if (!m) continue;
+          const state = AU.G.ms(m.id).state;
+          cards.append(h("div", { class: "mission" },
+            h("div", { class: "mh" }, h("span", { class: "tag", text: suggestion.moment || "스토리 연계" }), h("span", { class: "tag perma", text: m.perma + " · " + AU.PERMA[m.perma] }), h("span", { class: "tag", text: AU.MISSION_STATES[state] || state })),
+            h("b", { text: m.title }),
+            h("p", { text: suggestion.story || "" }), h("p", { class: "note", text: m.desc }),
+            state === "available"
+              ? h("div", { class: "macts" }, btn("이 활동도 수락", "primary", () => { AU.RealBridge.acceptSuggested(key); UI.renderWin(); }), btn("나중에", "", () => { UI.tab.missionArea = "all"; UI.renderWin(); }))
+              : h("p", { class: "note", text: "기록과 완료는 아래 현실 미션 목록에서 진행할 수 있습니다." })));
+        }
+        rec.append(cards); b.append(rec);
+      }
       const currentCategory = UI.tab.missionArea || "all";
       const currentDifficulty = UI.tab.missionDifficulty || "all";
       b.append(h("div", { class: "msummary" }, h("span", { text: "갤러리 토큰 " }), h("b", { text: AU.G.galleryState().tokens }), h("span", { text: " · 장식 조각 " + AU.G.galleryState().fragments + "/3 · 개인 공간 꾸미기에 사용합니다." }), btn("나만의 공간 보기", "mini", () => UI.open("gallery"))),

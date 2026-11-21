@@ -301,6 +301,8 @@ window.AU = window.AU || {};
         P.setFlag("father_final_conversation_complete");
       }, { id: "cs01b", skip: true, bars: true });
       father.mark = false; P.limits = null; P.obj(OBJ.s1_exit); father.working = false;
+      // 마지막 대사 이후, 스토리를 멈추지 않고 모험일지에만 활동 제안 남김.
+      if (AU.RealBridge) AU.RealBridge.queue("prologue-temple-complete", "m_a3");
       P.trigger({ id: "s1exit", goal: L.exit, test: (p) => p.x >= L.exit, fn: () => { P.frozen = true; P.advance(); } });
     }
   }
@@ -345,6 +347,8 @@ window.AU = window.AU || {};
         joy();
         await P.cutscene(async () => { await P.say(P.flag("met_baker_morning") && P.flag("met_baker_evening") ? T.vendor2 : (P.flag("met_baker_morning") || P.flag("met_baker_evening")) ? T.vendor1 : T.vendor); });   // 이미 만난 횟수에 따라 첫인사를 달리함 if (P.flag("festival_interaction_complete")) return;
         P.setFlag("festival_interaction_complete"); vendor.mark = false; P.limits = { min: 40, max: null, msg: "마을길로는 돌아갈 수 없습니다. 광장 중앙으로 가 보세요." }; P.obj(OBJ.s2_center);
+        // 습격 직전 팝업은 피하고, 평화로운 축제 경험만 일지에 기록.
+        if (AU.RealBridge) AU.RealBridge.queue("prologue-festival", "m_r3");
         P.trigger({ id: "center", goal: L.center, test: (p) => p.x >= L.center, fn: () => centerEvent() }); } } });
       void elder; void child;
     } else { // BG-V02 광장 습격 상태
