@@ -35,9 +35,13 @@
   AU.NPCS.npc_housewife = { name: "조에", title: "주민", sprite: "npc_housewife", portrait: "pt_npc_housewife", idle: ["빨래가 마르기 좋은 날이에요.", "우리 동네는 조용해서 좋아요. 부두 쪽은 늘 시끄럽지만요."] };
   AU.NPCS.npc_townsman = { name: "니칸드로스", title: "주민", sprite: "npc_townsman", portrait: "pt_npc_townsman", idle: ["이 우물물이 마을에서 제일 시원하지.", "젊은이, 길드에 들렀나? 일거리는 거기 다 있다네."] };
 
+  // 같은 그림을 쓰는 두 번째 인물: 이름·직업·말투를 따로 두고 키를 조금 달리해 같은 사람이 복제된 것처럼 보이지 않게 함(정식 새 그림이 오면 sprite·portrait만 바꿈)
+  AU.NPCS.npc_sailor2 = { name: "리산드로스", title: "갑판장", sprite: "npc_sailor", portrait: "pt_npc_sailor", scale: 0.94, idle: ["밧줄 매듭이 느슨하면 배가 먼저 말해 주지. 꼭 확인하게.", "조선소 쪽 소리가 크지? 새 배가 올라가는 중이라네."] };
+  AU.NPCS.npc_porter2 = { name: "아리스토스", title: "부두 짐꾼", sprite: "npc_porter", portrait: "pt_npc_porter", scale: 1.06, idle: ["이쪽 길은 짐수레가 많으니 조심하시오.", "창고로 가는 짐이라면 저쪽 큰 목조 건물이오."] };
+
   const add = (id, x, extra) => P.npcs.push(Object.assign({ id, x }, extra || {}));
-  add("npc_housewife", 420); add("npc_townsman", 1180, L(900, 1500)); add("npc_housewife", 1500, L(1380, 1620));
-  add("npc_fishwife", 1950); add("npc_fishwife", 2500, L(2350, 2750)); add("npc_fisher", 2980, L(2800, 3200));
-  add("npc_sailor", 3600, L(3450, 4000)); add("npc_porter", 4250, L(4050, 4850)); add("npc_sailor", 4700, L(4500, 4900));
-  add("npc_porter", sh(2689) + 300, L(sh(2689) + 150, sh(2689) + 900)); add("npc_sailor", sh(2689) + 1250, L(sh(2689) + 1000, sh(2689) + 1550));
+  add("npc_housewife", 420); add("npc_townsman", 1180, L(900, 1500));
+  add("npc_fishwife", 2500, L(2350, 2750)); add("npc_fisher", 2980, L(2800, 3200));
+  add("npc_sailor", 3600, L(3450, 4000)); add("npc_porter", 4250, L(4050, 4850));
+  add("npc_porter2", sh(2689) + 300, L(sh(2689) + 150, sh(2689) + 900)); add("npc_sailor2", sh(2689) + 1250, L(sh(2689) + 1000, sh(2689) + 1550));
 })();

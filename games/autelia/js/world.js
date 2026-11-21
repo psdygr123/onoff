@@ -606,13 +606,12 @@ window.AU = window.AU || {};
     drawNpc(ctx, n) {
       if (this.npcEdit) { const ny = n.npcY || GROUND; ctx.save(); ctx.setLineDash([6, 4]); ctx.lineWidth = 2; ctx.strokeStyle = "#FFE08A"; ctx.strokeRect(n.x - 55, ny - 190, 110, 220); ctx.setLineDash([]); ctx.font = "700 14px 'Noto Sans KR', sans-serif"; ctx.textAlign = "center"; ctx.fillStyle = "rgba(30,22,15,.8)"; ctx.fillRect(n.x - 52, ny + 34, 104, 20); ctx.fillStyle = "#FFE08A"; ctx.fillText(Math.round(n.x) + " , " + Math.round(ny), n.x, ny + 49); ctx.restore(); }
       const d = AU.NPCS[n.id], y = n.npcY || GROUND, face = n.patrol && n._walk ? n._f : (this.player.x < n.x ? -1 : 1), bob = n.patrol && n._walk ? Math.abs(Math.sin((n._step || 0) * 0.11)) * 3 * Math.min(1, n._v / 20) : 0;
-      if (!this.sprite(ctx, d.sprite, n.x, y - bob, 150, face, 0)) { ctx.fillStyle = "#C9B8A0"; this.rr(ctx, n.x - 30, y - 130, 60, 130, 20); ctx.fill(); ctx.fillStyle = "#5B4636"; ctx.font = "14px sans-serif"; ctx.textAlign = "center"; ctx.fillText("이미지 없음", n.x, y - 60); }
+      if (!this.sprite(ctx, d.sprite, n.x, y - bob, 150 * (d.scale || 1), face, 0)) { ctx.fillStyle = "#C9B8A0"; this.rr(ctx, n.x - 30, y - 130, 60, 130, 20); ctx.fill(); ctx.fillStyle = "#5B4636"; ctx.font = "14px sans-serif"; ctx.textAlign = "center"; ctx.fillText("이미지 없음", n.x, y - 60); }
     },
     npcRole(id) { // 역할별 구분(글자·색): 상점/전직/안내/의뢰
       const d = AU.NPCS[id];
       if (d.shop) return { t: "상점", c: "#C58A1E", bg: "rgba(120,80,10,.78)" };
-      if (id === "job_npc") return { t: "전직", c: "#B04A4A", bg: "rgba(110,36,36,.78)" };
-      if (d.special === "missionGuide") return { t: "안내", c: "#2F8F83", bg: "rgba(20,84,78,.78)" };
+            if (d.special === "missionGuide") return { t: "안내", c: "#2F8F83", bg: "rgba(20,84,78,.78)" };
       if ((d.quests || []).length) return { t: "의뢰", c: "#3F6FB5", bg: "rgba(28,56,110,.78)" };
       return { t: d.title || "주민", c: "#7A7A72", bg: "rgba(62,62,58,.78)", plain: true };
     },
