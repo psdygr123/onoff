@@ -4,6 +4,7 @@ window.AU = window.AU || {};
   "use strict";
   const R = AU.RealBridge = {
     active: false,
+    dismiss: null,
     // 프롤로그 처음부터 기록할 수 있게 기존 미션 시스템만 조기에 공개한다.
     activate() {
       const G = AU.G, S = G && G.S;
@@ -32,6 +33,7 @@ window.AU = window.AU || {};
         const body = document.createElement("p"); body.className = "note"; body.textContent = description;
         const actions = document.createElement("div"); actions.className = "choices";
         const finish = (value) => {
+          R.dismiss = null;
           wrap.classList.add("hidden"); wrap.innerHTML = "";
           UI.modal = wasModal;
           if (P) P.frozen = oldFrozen;
@@ -45,6 +47,7 @@ window.AU = window.AU || {};
           b.onclick = () => finish(option.value);
           actions.append(b);
         }
+        R.dismiss = () => finish("cancelled");
         card.append(heading, body, actions); wrap.append(card);
         const first = actions.querySelector("button"); if(first) first.focus();
       });
@@ -57,10 +60,12 @@ window.AU = window.AU || {};
         await this.prompt("모험과 일상을 함께 기록해 보세요",
           "아우텔리아의 메인 스토리에는 선택형 현실 활동이 함께 소개됩니다. 실제 활동은 원할 때만 진행하고, 모험일지(J)의 '현실 활동'에서 수락·시도·완료를 기록할 수 있습니다. 하지 않아도 모든 메인 스토리를 진행할 수 있습니다.",
           [{text:"조작법 알아보기",value:"next",primary:true},{text:"안내 건너뛰기",value:"skip"}]);
+        if (!AU.Prologue || !AU.Prologue.on) return false;
         await this.prompt("기본 조작 안내",
           "좌우 방향키로 이동하고 Space로 NPC와 상호작용합니다. J를 누르면 모험일지가 열립니다. 안내받은 현실 활동은 언제든 모험일지에서 확인하고, '조금 해봤어요' 또는 '완료했어요'로 기록할 수 있습니다.",
           [{text:"모험 시작하기",value:"start",primary:true}]);
       }
+      if (!AU.Prologue || !AU.Prologue.on) return false;
       S.flags.realBridgeIntroSeen = true;
       AU.G.save("real-bridge-intro");
       return true;

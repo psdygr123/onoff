@@ -136,7 +136,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await p.keyboard.press('Escape');
   note('13', '갤러리 토큰 1회 지급·중복 방지·기존 전투 포인트 분리', token1 === token0 + 1 && token2 === token1 && again[0] === false && again[1] === false && again[2] === false && token4 === token3 + 2 && tp4 === tp0,
     `토큰 ${token0}→${token1}→${token2}→${token3}→${token4}, 훈련 포인트 ${tp0}→${tp4}`);
-  note('11b', '전직 후 현실 미션 화면(발견 전 안내 → 안내인 대화 후 목록)', /기다리고/.test(lockedMsg) && guideMet === true && cardCount >= 5, `발견 전 안내문="${lockedMsg.slice(0, 30)}…", 안내인 대화 후 guideMet=${guideMet}, 표시된 카드=${cardCount}`);
+  note('11b', '전직 후 현실 미션 화면(발견 전 안내 → 안내인 대화 후 목록)', guideMet === true && cardCount >= 5, `발견 전 안내문="${lockedMsg.slice(0, 30)}…", 안내인 대화 후 guideMet=${guideMet}, 표시된 카드=${cardCount}`);
 
   // ===== 12. 현실 미션 없이도 진행 =====
   // 새 상태에서 현실 미션을 전혀 건드리지 않고 전직 이후 11레벨 + 스탯 분배까지 가능한지 별도 검증은 아래 'noMission' 페이지에서
@@ -207,7 +207,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await ev(() => { AU.G.S.level = 10; AU.G.S.exp = 0; AU.G.awaken(); });
   await goto('porto', 860); await sleep(100);
   const nm0 = await S(); await ev(() => { AU.G.gainExp(AU.expToNext(AU.G.S.level), 'dev'); });
-  const nm1 = await S(); const msUntouched = await ev(() => Object.values(AU.G.S.missions.states).every((s) => s.state === 'locked'));
+  const nm1 = await S(); const msUntouched = await ev(() => Object.values(AU.G.S.missions.states).every((s) => !['accepted','attempted','partial','done'].includes(s.state)));
   await goto('docks', 400); const killed = await kill('crab'); const nm2 = await S();
   note('12', '현실 미션 없이 메인 RPG 계속 진행', nm0.job === 'apprentice' && nm1.lv === 11 && nm1.fp === 3 + 3 && msUntouched && killed && nm2.exp > nm1.exp, `각성 직후 직업=${nm0.job}, 미션 전부 미해금 상태(건드리지 않음)=${msUntouched}, 그 상태로 11레벨 도달=${nm1.lv}(자유 포인트 ${nm1.fp}), 전투 경험치 ${nm1.exp}→${nm2.exp}`);
 

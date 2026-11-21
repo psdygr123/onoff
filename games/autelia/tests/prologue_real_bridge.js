@@ -8,7 +8,7 @@ const {chromium}=require('playwright');
   await p.goto((process.env.GAME_URL||'http://localhost:8801')+'/index.html?dev=1&intro=cards&realguide=1');
   await p.evaluate(()=>localStorage.clear());await p.reload();await p.click('#btn-start');
   for(let i=0;i<2&&await p.$('#job-next');i++)await p.click('#job-next');
-  if(await p.$('#charsetup')){await p.fill('#sname','연계 검증');await p.click('#setup-ok');}
+  if(await p.$('#charsetup')){await p.fill('#sname','연계검증');await p.click('#setup-ok');}
   await p.evaluate(()=>AU.Prologue.devJump('SCENE_01B_BANNERS'));
   await p.waitForFunction(()=>AU.Prologue.sceneIdx===2&&!AU.Prologue.cs,null,{timeout:20000});
   const a=await p.evaluate(async()=>{

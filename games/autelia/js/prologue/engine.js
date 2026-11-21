@@ -130,6 +130,7 @@ window.AU = window.AU || {};
       const w = AU.World; if (w) { w.virt = null; if (w.player) { w.player.pose = null; } }
     },
     cancelAll() {
+      if (AU.RealBridge && AU.RealBridge.dismiss) AU.RealBridge.dismiss();
       for (const r of Array.from(this.rejects)) { try { r.rej(CANCEL); } catch (e) { /* 무시 */ } } this.rejects.clear(); this.timers = []; this.tweens = []; this.walk = null;
       if (this.dialogOpen) { const U = AU.UI; U.dialog = null; U.dlgEl.classList.add("hidden"); U.dlgEl.innerHTML = ""; this.dialogOpen = false; }
       this.cardRes = null; this.cardsEl.classList.remove("on", "show"); this.cardsEl.innerHTML = "";
