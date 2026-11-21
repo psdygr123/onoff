@@ -61,8 +61,9 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   // 3: 처치→경험치
   const exp0 = (await S()).exp;
   const k1 = await kill('fox'); const afterK = await S();
+  const AU_FOX_EXP = await ev(() => AU.MONSTERS.fox.exp);
   const expGain = (afterK.lv - pre.lv) * 0 + (afterK.exp - exp0);
-  note('3', '적 처치 시 경험치 획득', k1 && afterK.exp === exp0 + 34, `처치=${k1}, EXP ${exp0} → ${afterK.exp} (들여우 EXP 34), 은화 ${pre.silver}→${afterK.silver}`);
+  note('3', '적 처치 시 경험치 획득', k1 && afterK.exp === exp0 + AU_FOX_EXP, `처치=${k1}, EXP ${exp0} → ${afterK.exp} (들여우 EXP ${AU_FOX_EXP}), 은화 ${pre.silver}→${afterK.silver}`);
   // 4: 레벨업(실전)
   for (let i = 0; i < 6 && (await S()).lv < 2; i++) await kill('fox');
   const afterLv = await S(); const hud = await ev(() => document.querySelector('.lvbadge').textContent);
