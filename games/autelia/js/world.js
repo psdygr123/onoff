@@ -25,7 +25,7 @@ window.AU = window.AU || {};
       const p = this.player; p.x = x; p.y = GROUND; p.vx = 0; p.vy = 0; p.rope = null; p.onGround = true;
       this.camX = Math.max(0, Math.min(m.width - W, x - W / 2));
       if (m.stealth && this.mapId !== this._lastStealth) this.spotted = false; this._lastStealth = m.stealth ? this.mapId : null;
-      this.monsters = []; this.fx = []; this.floaters = []; this.drops = []; this.nearDrop = null; this.work = null; this.nearSpot = null;
+      this.monsters = []; this.projs = []; this.fx = []; this.floaters = []; this.drops = []; this.nearDrop = null; this.work = null; this.nearSpot = null;
       (m.spawns || []).forEach((sp, i) => this.spawn(sp.type, sp.x, sp.y, sp.min, sp.max, "s" + i));
       this.bossCheckT = 0; this.syncBoss();
       if (!silent) { AU.G.save("map"); AU.Ev.emit("mapchange", { id }); }
@@ -237,9 +237,11 @@ window.AU = window.AU || {};
     },
     hurtMonster(m, mult, kbDir, kb) {
       if (!m.alive) return;
-      const r = this.rollDamage(mult); m.hp -= r.dmg; m.flash = 0.18; m.kb = (kbDir || this.player.dir) * (kb || 120);
+      const r = this.rollDamage(mult); m.hp -= r.dmg; m.flash = 0.18;
+      // 공격 중(준비·돌진·타격)인 몬스터는 맞아도 동작이 끊기거나 밀려나지 않고 그대로 진행한다(예전에는 맞을 때마다 준비가 취소돼 영원히 공격이 안 나갔음). 걷는 중일 때만 밀려남, 보스는 거의 밀리지 않음.
+      const busy = m.state === "windup" || m.state === "lunge" || m.state === "strike";
+      m.kb = busy ? 0 : (kbDir || this.player.dir) * (kb || 120) * (m.d.boss ? 0.15 : 1);
       this.floater(m.x, m.y - m.d.h - 10, String(r.dmg), r.crit ? "#FFD23F" : "#FFFFFF");
-      if (m.state === "windup") { m.state = "chase"; m.st = 0; } // 맞으면 준비 동작이 끊김
       if (m.hp <= 0) this.killMonster(m);
     },
     killMonster(m) {
@@ -325,13 +327,14 @@ window.AU = window.AU || {};
       }
       AU.G.changed();
     },
-    hurtPlayer(m) {
+    hurtPlayer(m, pm) {
       const p = this.player, S = AU.G.S; if (p.invuln > 0 || p.dead) return;
       this.work = null;
       const d = AU.G.d();
       p.invuln = C.combat.invuln;
       if (Math.random() * 100 < d.dodge) { this.floater(p.x, p.y - 130, "MISS", "#9FD6F5"); return; }
-      const dmg = Math.max(1, Math.round(m.d.atk * rnd(0.9, 1.1)));
+      let dmg = Math.max(1, Math.round(m.d.atk * (pm || 1) * rnd(0.9, 1.1)));
+      if (m.d.boss) dmg = Math.min(dmg, Math.round(d.maxHp * 0.4)); // 보스 한 방에 쓰러지지 않도록 최대 HP의 40%로 제한
       S.hp -= dmg; p.flash = 0.25; p.vx = sign(p.x - m.x) * C.combat.knockback; p.vy = -180; p.onGround = false; p.rope = null;
       this.floater(p.x, p.y - 130, "-" + dmg, "#FF6B6B");
       if (S.hp <= 0) { S.hp = 0; p.dead = true; this.deadT = 0; AU.Ev.emit("dead"); }
@@ -373,7 +376,7 @@ window.AU = window.AU || {};
           else { m.state = "patrol"; }
           if (m.state === "chase") {
             if (dist > m.d.w / 2 + 40) m.x += m.dir * m.d.speed * dt;
-            else if (m.cd <= 0) { m.state = "windup"; m.st = 0; }
+            else if (m.cd <= 0) this.startAttack(m);
           } else if (m.pause > 0) m.pause -= dt;
           else {
             m.x += m.dir * m.d.speed * 0.5 * dt;
@@ -381,14 +384,69 @@ window.AU = window.AU || {};
             if (m.x > m.max) { m.x = m.max; m.dir = -1; m.pause = rnd(0.3, 1.2); }
           }
         } else if (m.state === "windup") {
-          m.st += dt; m.dir = sign(dx) || m.dir;
-          if (m.st >= 0.5) { m.state = "lunge"; m.st = 0; }
+          m.st += dt; if (m.pat !== "wave" && m.pat !== "slam") m.dir = sign(dx) || m.dir; else if (m.st < 0.2) m.dir = sign(dx) || m.dir; // 내려치기·충격파는 시작 직후에만 방향을 잡음
+          if (m.st >= (m.wt || 0.5)) { if (m.pat === "slam" || m.pat === "wave") { m.state = "strike"; m.st = 0; m.did = false; } else { m.state = "lunge"; m.st = 0; } }
+        } else if (m.state === "strike") {
+          m.st += dt;
+          if (!m.did) { m.did = true; this.bossStrike(m); }
+          if (m.st >= (m.pat === "wave" && m.rage ? 0.75 : 0.4)) { m.state = "chase"; m.cd = this.attackCd(m); m.st = 0; }
+          if (m.pat === "wave" && m.rage && !m.did2 && m.st >= 0.35) { m.did2 = true; this.bossStrike(m); }
         } else if (m.state === "lunge") {
           m.st += dt; m.x += m.dir * m.d.speed * 3 * dt;
-          if (Math.abs(p.x - m.x) < m.d.w / 2 + C.player.halfW && Math.abs(p.y - m.y) < m.d.h + 30) this.hurtPlayer(m);
-          if (m.st >= 0.28) { m.state = "chase"; m.cd = m.d.boss ? 1.6 : 1.3; m.st = 0; }
+          if (Math.abs(p.x - m.x) < m.d.w / 2 + C.player.halfW && Math.abs(p.y - m.y) < m.d.h + 30) this.hurtPlayer(m, m.pat === "chain" ? 0.9 : 1);
+          if (m.st >= 0.28) {
+            if (m.pat === "chain" && m.chain < 1) { m.chain++; m.state = "windup"; m.wt = 0.4; m.st = 0; m.dir = sign(dx) || m.dir; } // 연속 돌진: 두 번째는 짧은 예고
+            else { m.state = "chase"; m.cd = this.attackCd(m); m.st = 0; }
+          }
         }
         m.x = Math.max(m.d.w / 2, Math.min(this.map.width - m.d.w / 2, m.x));
+      }
+      this.updateProjs(dt);
+    },
+    /* ---------- 보스 패턴: 돌진(lunge) · 내려치기(slam, 바닥 경고 후 범위 타격) · 충격파(wave, 바닥을 훑고 옴 → 점프로 회피) · 연속 돌진(chain, 체력 50% 이하) ---------- */
+    attackCd(m) { return m.d.boss ? (m.rage ? (m.d.cdRage || 1.5) : (m.d.cd || 2.2)) : 1.3; }, // 보스 공격 사이 대기(초): 2페이즈에서 짧아짐
+    startAttack(m) {
+      const d = m.d, rage = !!(d.boss && m.hp <= m.maxHp * 0.5); let pat = "lunge";
+      if (d.patterns) { const pool = d.patterns.filter((k) => k !== m.lastPat || d.patterns.length === 1); if (rage && d.ragePatterns) pool.push(...d.ragePatterns, ...d.ragePatterns); pat = pool[Math.floor(Math.random() * pool.length)]; }
+      const W = { lunge: 0.5, chain: 0.6, slam: 0.8, wave: 0.7 }; // 모든 패턴은 0.5초 이상 예고
+      m.lastPat = pat; m.pat = pat; m.rage = rage; m.chain = 0; m.did2 = false;
+      m.wt = Math.max(0.5, (W[pat] || 0.5) * (rage ? 0.85 : 1));
+      m.state = "windup"; m.st = 0;
+    },
+    slamRadius(m) { return m.d.slamR || 190; },
+    bossStrike(m) {
+      const p = this.player;
+      if (m.pat === "slam") {
+        const R = this.slamRadius(m);
+        this.fx.push({ kind: "ring", x: m.x, y: m.y - 4, t: 0, dur: 0.45, r: R, color: "#C9A7F5" }, { kind: "wave", x: m.x, y: m.y - 6, t: 0, dur: 0.4, r: R, color: "#EBD9FF" });
+        if (Math.abs(p.x - m.x) < R + C.player.halfW && p.y >= m.y - 70) this.hurtPlayer(m, 1.2); // 높이 점프하면 피함
+      } else if (m.pat === "wave") {
+        this.projs.push({ x: m.x + m.dir * (m.d.w / 2), y: m.y, dir: m.dir, vx: m.dir * 330, t: 0, life: 2.0, owner: m, mult: 0.75 });
+      }
+    },
+    updateProjs(dt) {
+      const p = this.player;
+      for (const q of this.projs) {
+        q.t += dt; q.x += q.vx * dt;
+        if (!p.dead && Math.abs(p.x - q.x) < 34 + C.player.halfW && p.y >= q.y - 60) { this.hurtPlayer(q.owner, q.mult); q.t = q.life; }
+        if (q.x < 0 || q.x > this.map.width) q.t = q.life;
+      }
+      this.projs = this.projs.filter((q) => q.t < q.life);
+    },
+    drawBossWarn(ctx, m) {
+      if (m.state !== "windup" || !m.d.boss) return;
+      const k = Math.min(1, m.st / (m.wt || 0.5)), pulse = 0.5 + 0.5 * Math.sin(m.st * 28);
+      ctx.save();
+      if (m.pat === "slam") { const R = this.slamRadius(m); ctx.fillStyle = "rgba(255,70,60," + (0.14 + 0.2 * k * pulse) + ")"; ctx.strokeStyle = "rgba(255,120,100,.85)"; ctx.lineWidth = 4; ctx.beginPath(); ctx.ellipse(m.x, m.y - 4, R, 26, 0, 0, 7); ctx.fill(); ctx.stroke(); }
+      else if (m.pat === "wave") { const L = 420; ctx.fillStyle = "rgba(255,70,60," + (0.12 + 0.18 * pulse) + ")"; ctx.fillRect(m.dir > 0 ? m.x : m.x - L, m.y - 26, L, 30); }
+      else { const L = 230; ctx.fillStyle = "rgba(255,70,60," + (0.12 + 0.18 * pulse) + ")"; ctx.fillRect(m.dir > 0 ? m.x : m.x - L, m.y - 14, L, 16); }
+      ctx.restore();
+    },
+    drawProjs(ctx) {
+      for (const q of this.projs) {
+        ctx.save(); ctx.translate(q.x, q.y - 6); ctx.scale(q.dir, 1);
+        ctx.fillStyle = "rgba(190,150,245,.85)"; ctx.strokeStyle = "#EBD9FF"; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.moveTo(-26, 0); ctx.quadraticCurveTo(-8, -58, 26, -4); ctx.quadraticCurveTo(0, -18, -26, 0); ctx.fill(); ctx.stroke(); ctx.restore();
       }
     },
 
@@ -412,7 +470,9 @@ window.AU = window.AU || {};
         const L = m.d.sight, g = ctx.createLinearGradient(m.x, 0, m.x + m.dir * L, 0); g.addColorStop(0, "rgba(255,70,60,.32)"); g.addColorStop(1, "rgba(255,70,60,0)");
         ctx.save(); ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(m.x, m.y - 70); ctx.lineTo(m.x + m.dir * L, m.y - 4); ctx.lineTo(m.x + m.dir * L, m.y + 6); ctx.lineTo(m.x, m.y - 40); ctx.closePath(); ctx.fill(); ctx.restore();
       }
+      for (const m of this.monsters) if (m.alive) this.drawBossWarn(ctx, m);
       for (const m of this.monsters) if (m.alive) this.drawMonster(ctx, m);
+      this.drawProjs(ctx);
       this.drawDrops(ctx);
       if (pro) PR.drawLayer(ctx, "mid");
       this.drawPlayer(ctx, p);
@@ -694,7 +754,7 @@ window.AU = window.AU || {};
       const sp = !!(d.sprite && AU.Img.has(d.sprite)); let th = d.h;
       if (sp && d.poses) { // 여러 동작 그림(보스): 상태에 맞는 그림을 골라 그림. 코드 늘림 없이 그림 자체가 동작
         const P = d.poses, step = Math.floor(this.time / 0.22 + x * 0.01) % 2 === 0 ? "walkA" : "walkB";
-        let key = P.idle; if (m.flash > 0) key = P.hurt; else if (m.state === "lunge") key = P.attack; else if (m.state === "windup") key = P.windup; else if (m.state === "chase" || m.state === "patrol") key = P[step];
+        let key = P.idle; if (m.flash > 0) key = P.hurt; else if (m.state === "lunge" || m.state === "strike") key = P.attack; else if (m.state === "windup") key = P.windup; else if (m.state === "chase" || m.state === "patrol") key = P[step];
         const im = AU.Img.get(AU.Img.has(key) ? key : d.sprite), dw = d.sw * im.naturalWidth / (d.refW || im.naturalWidth), dh = dw * im.naturalHeight / im.naturalWidth;
         const lunge = m.state === "lunge" ? Math.min(1, m.st / 0.28) : 0;
         ctx.save(); ctx.translate(x + (m.dir < 0 ? -1 : 1) * 14 * lunge, y - (m.state === "chase" || m.state === "patrol" ? Math.abs(Math.sin(this.time * 7)) * 3 : 0)); ctx.scale(m.dir < 0 ? -1 : 1, 1);
@@ -713,7 +773,7 @@ window.AU = window.AU || {};
           else if (m.state === "chase") { rot += 0.035 * Math.sin(tt * 13 + ph); sy += 0.025 * Math.sin(tt * 13 + ph + 1); }     // 기본: 달려드는 흔들림
         }
         if (m.state === "windup") {
-          const k = Math.min(1, m.st / 0.5);
+          const k = Math.min(1, m.st / (m.wt || 0.5));
           if (mo === "coil") { sy = 1 + 0.18 * k; sx = 1 - 0.12 * k; rot = -0.28 * k; ox = -10 * k; }                              // 뱀: 머리를 뒤로 쳐듦
           else if (mo === "scurry") { sx = 1 + 0.04 * Math.sin(m.st * 60); sy = 1 - 0.1 * k; ox = -5 * k + 2.5 * Math.sin(m.st * 70); } // 쥐: 몸을 떨며 움츠림
           else if (mo === "sidestep") { sy = 1 + 0.12 * k; sx = 1 + 0.1 * k; rot = -0.08 * k; up = 4 * k; }                          // 게: 집게를 번쩍 들어 올림

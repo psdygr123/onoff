@@ -171,7 +171,7 @@ AU.MONSTERS = {
   snake: { motion: "coil", name: "뱀", lv: 3, hp: 88, atk: 14, speed: 85, chase: 150, w: 90, h: 34, exp: 62, silver: [2, 7], silverRate: 0.12, drops: [["snake_skin", 0.15], ["snake_fang", 0.07], ["black_crystal", 0.3, 1, 1, "q_a1_variant"], ["potion", 0.05], ["snake_ring", 0]], color: "#7DBE6B", snake: true, sprite: "mon_snake", sw: 128 },
   rat:   { motion: "scurry", name: "부두 쥐", lv: 5, hp: 144, atk: 21, speed: 100, chase: 160, w: 70, h: 46, exp: 90, silver: [3, 10], silverRate: 0.14, drops: [["rat_tooth", 0.15, 1, 2], ["black_crystal", 0.4, 1, 1, "q_a1_variant"], ["potion", 0.05]], color: "#A79C94", ear: true, sprite: "mon_rat", sw: 88 },
   crab:  { motion: "sidestep", name: "집게 게", lv: 8, hp: 272, atk: 36, speed: 60, chase: 150, w: 92, h: 56, exp: 132, silver: [5, 14], silverRate: 0.16, drops: [["crab_claw", 0.15, 1, 2], ["crab_shell", 0.07], ["potion", 0.06], ["crab_vest", 0]], color: "#E9777A", crab: true, sprite: "mon_crab", sw: 116 },
-  trial_boss: { name: "움브라", lv: 10, hp: 700, atk: 40, speed: 75, chase: 420, w: 240, h: 150, exp: 600, silver: [60, 80], silverRate: 1, drops: [], color: "#9B7FD1", boss: true, motion: "swing",
+  trial_boss: { name: "움브라", lv: 10, hp: 1500, atk: 40, patterns: ["lunge", "slam", "wave"], ragePatterns: ["chain"], slamR: 180, cd: 2.2, cdRage: 1.5, speed: 75, chase: 420, w: 240, h: 150, exp: 600, silver: [60, 80], silverRate: 1, drops: [], color: "#9B7FD1", boss: true, motion: "swing",
     sprite: "mon_umbra_base", sw: 300, refW: 345, poses: { idle: "mon_umbra_base", walkA: "mon_umbra_walkA", walkB: "mon_umbra_walkB", windup: "mon_umbra_windup", attack: "mon_umbra_attack", hurt: "mon_umbra_hurt", down: "mon_umbra_down" } }
 };
 
