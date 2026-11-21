@@ -29,7 +29,7 @@
   // 새 주민: 오가며 일하는 사람들(patrol)과 말을 걸 수 있는 주민
   const L = (a, b) => ({ patrol: [a, b], speed: 34 });
   AU.NPCS.npc_fisher = { name: "마르코스", title: "어부", sprite: "npc_fisher", portrait: "pt_npc_fisher", idle: ["오늘은 청어가 잘 든다네.", "새벽 물때를 놓치면 하루 허탕이지.", "요즘 선창 외곽 쪽에서 이상한 소리가 들린다던데, 바다 일이나 잘 해야지."] };
-  AU.NPCS.npc_sailor = { name: "야니스", title: "선원", sprite: "npc_sailor", portrait: "pt_npc_sailor", idle: ["다음 물때에 출항이오. 남쪽 항로는 파도가 거칠지.", "육지는 좋은데 오래 있으면 다리가 근질거려서 말이오."] };
+  AU.NPCS.npc_sailor = { name: "카리스", title: "선원", sprite: "npc_sailor", portrait: "pt_npc_sailor", idle: ["다음 물때에 출항이오. 남쪽 항로는 파도가 거칠지.", "육지는 좋은데 오래 있으면 다리가 근질거려서 말이오."] };
   AU.NPCS.npc_porter = { name: "스텔리오스", title: "짐꾼", sprite: "npc_porter", portrait: "pt_npc_porter", idle: ["비켜 주시오, 무거운 짐이오!", "하루에 통을 쉰 개는 나르지. 어깨가 남아나질 않아."] };
   AU.NPCS.npc_fishwife = { name: "에피", title: "생선 장수", sprite: "npc_fishwife", portrait: "pt_npc_fishwife", idle: ["싱싱한 생선이 왔어요! 오늘 아침 배에서 막 내렸답니다.", "손님, 한 마리 어때요? 소금 간은 서비스예요."] };
   AU.NPCS.npc_housewife = { name: "조에", title: "주민", sprite: "npc_housewife", portrait: "pt_npc_housewife", idle: ["빨래가 마르기 좋은 날이에요.", "우리 동네는 조용해서 좋아요. 부두 쪽은 늘 시끄럽지만요."] };
