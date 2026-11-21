@@ -826,3 +826,11 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
 .mission .mh { align-items: center; } .reco-why { margin: 6px 0 2px; padding: 6px 8px; font-size: 13px; color: #3f6a5c; background: rgba(79,125,110,.1); border-radius: 8px; }
 .planfree { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; } .planrow { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 10px; background: #fff; border: 1px solid var(--line-s); border-radius: 8px; font-size: 14px; }
 .actlog .logrow { align-items: flex-start; } .actlog .logrow > div p { margin: 2px 0 0; }
+
+/* 대화창: 이전·다음 버튼은 작게 오른쪽 아래로 모으고, 대사가 더 크고 넓게 보이게 함 */
+.dlgbox .dline { font-size: 22px; line-height: 1.6; }
+#stage.pro .dlgbox .dline { font-size: 22px; line-height: 1.55; }
+.dlgbox .dnext { margin-top: 0; gap: 6px; }
+.dlgbox .dback { margin-right: 0; }
+.dlgbox .dnext .btn, .dlgbox .choices .dback { padding: 2px 10px; font-size: 12px; line-height: 1.35; min-height: 0; opacity: .8; }
+.dlgbox .dnext .btn:hover, .dlgbox .choices .dback:hover { opacity: 1; }
