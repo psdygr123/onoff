@@ -167,10 +167,10 @@ AU.AREA_LINKS = [["forest", "harbor_road"], ["harbor_road", "porto"], ["porto", 
 // sprite/sw: 정식 그림(assets/monster/*.webp, 투명 배경, 오른쪽을 보는 옆모습 1장)이 있으면 그 그림을 sw(가로 px)로 그리고, 없으면 임시 도형으로 표시합니다.
 // 이전 아스텔리아 기획의 사냥터 구성(들짐승→부두 쥐→게→거대 적)을 규칙으로만 재사용. 모두 임시 수치.
 AU.MONSTERS = {
-  fox:   { motion: "pounce", name: "들여우", lv: 1, hp: 51, atk: 8, speed: 70, chase: 130, w: 72, h: 50, exp: 34, silver: [1, 4], silverRate: 0.1, drops: [["fur", 0.15, 1, 2], ["fox_tail", 0.07], ["black_crystal", 0.2, 1, 1, "q_a1_variant"], ["potion", 0.04], ["fox_scarf", 0]], color: "#F5A25D", ear: true, sprite: "mon_fox", sw: 92 },
-  snake: { motion: "coil", name: "뱀", lv: 3, hp: 88, atk: 14, speed: 85, chase: 150, w: 90, h: 34, exp: 62, silver: [2, 7], silverRate: 0.12, drops: [["snake_skin", 0.15], ["snake_fang", 0.07], ["black_crystal", 0.3, 1, 1, "q_a1_variant"], ["potion", 0.05], ["snake_ring", 0]], color: "#7DBE6B", snake: true, sprite: "mon_snake", sw: 128 },
-  rat:   { motion: "scurry", name: "부두 쥐", lv: 5, hp: 144, atk: 21, speed: 100, chase: 160, w: 70, h: 46, exp: 90, silver: [3, 10], silverRate: 0.14, drops: [["rat_tooth", 0.15, 1, 2], ["black_crystal", 0.4, 1, 1, "q_a1_variant"], ["potion", 0.05]], color: "#A79C94", ear: true, sprite: "mon_rat", sw: 88 },
-  crab:  { motion: "sidestep", name: "집게 게", lv: 8, hp: 272, atk: 36, speed: 60, chase: 150, w: 92, h: 56, exp: 132, silver: [5, 14], silverRate: 0.16, drops: [["crab_claw", 0.15, 1, 2], ["crab_shell", 0.07], ["potion", 0.06], ["crab_vest", 0]], color: "#E9777A", crab: true, sprite: "mon_crab", sw: 116 },
+  fox:   { motion: "pounce", name: "들여우", lv: 1, hp: 51, atk: 8, speed: 70, chase: 130, w: 72, h: 50, exp: 50, silver: [1, 4], silverRate: 0.1, drops: [["fur", 0.15, 1, 2], ["fox_tail", 0.07], ["black_crystal", 0.2, 1, 1, "q_a1_variant"], ["potion", 0.04], ["fox_scarf", 0]], color: "#F5A25D", ear: true, sprite: "mon_fox", sw: 92 },
+  snake: { motion: "coil", name: "뱀", lv: 3, hp: 88, atk: 14, speed: 85, chase: 150, w: 90, h: 34, exp: 100, silver: [2, 7], silverRate: 0.12, drops: [["snake_skin", 0.15], ["snake_fang", 0.07], ["black_crystal", 0.3, 1, 1, "q_a1_variant"], ["potion", 0.05], ["snake_ring", 0]], color: "#7DBE6B", snake: true, sprite: "mon_snake", sw: 128 },
+  rat:   { motion: "scurry", name: "부두 쥐", lv: 5, hp: 144, atk: 21, speed: 100, chase: 160, w: 70, h: 46, exp: 170, silver: [3, 10], silverRate: 0.14, drops: [["rat_tooth", 0.15, 1, 2], ["black_crystal", 0.4, 1, 1, "q_a1_variant"], ["potion", 0.05]], color: "#A79C94", ear: true, sprite: "mon_rat", sw: 88 },
+  crab:  { motion: "sidestep", name: "집게 게", lv: 8, hp: 272, atk: 36, speed: 60, chase: 150, w: 92, h: 56, exp: 260, silver: [5, 14], silverRate: 0.16, drops: [["crab_claw", 0.15, 1, 2], ["crab_shell", 0.07], ["potion", 0.06], ["crab_vest", 0]], color: "#E9777A", crab: true, sprite: "mon_crab", sw: 116 },
   trial_boss: { name: "움브라", lv: 10, hp: 1500, atk: 40, patterns: ["lunge", "slam", "wave"], ragePatterns: ["chain"], slamR: 180, cd: 2.2, cdRage: 1.5, speed: 75, chase: 420, w: 240, h: 150, exp: 600, silver: [60, 80], silverRate: 1, drops: [], color: "#9B7FD1", boss: true, motion: "swing",
     sprite: "mon_umbra_base", sw: 300, refW: 345, poses: { idle: "mon_umbra_base", walkA: "mon_umbra_walkA", walkB: "mon_umbra_walkB", windup: "mon_umbra_windup", attack: "mon_umbra_attack", hurt: "mon_umbra_hurt", down: "mon_umbra_down" } }
 };
@@ -275,7 +275,7 @@ AU.QUESTS = {
     offer: ["두 번째 시험일세. 요즘 숲길의 짐승들이 항구 쪽으로 내려와 방책과 창고를 갉아먹네.", "이번엔 들여우 세 마리를 쫓아내 주게. 한 마리보다 정신없을 걸세."],
     reminder: ["공격은 {attack}, 점프는 {jump}, 말 걸기·줍기는 {interact}라네.", "항구 길을 따라 왼쪽으로 쭉 가면 숲길일세. 들여우에게 가까이 가 공격 키를 눌러 보게."],
     done: ["벌써 해냈나. 수고했네. 이건 보수일세.", "마지막 시험이 남았네."],
-    reward: { exp: 80, silver: 30, items: [] }
+    reward: { exp: 100, silver: 30, items: [] }
   },
   q_forest: {
     title: "입단 시험 3: 숲길 정리", type: "main", giver: "porto_foreman", minLevel: 2, pre: ["q_first"],
@@ -283,28 +283,28 @@ AU.QUESTS = {
     area: "forest",
     offer: ["마지막 시험일세. 숲길 안쪽의 뱀 다섯 마리를 상대해 보게.", "가는 길에도 뱀이 있으니 조심하게. 포션을 아끼지 말고."],
     done: ["고생했네. 이로써 시험은 모두 끝났네. 합격일세.", "작업복이 낡았더군. 이거라도 걸치게."],
-    reward: { exp: 300, silver: 60, items: [["cloth_a", 1]] }
+    reward: { exp: 400, silver: 60, items: [["cloth_a", 1]] }
   },
   q_guild_talk: {
     title: "정식 등록", type: "main", giver: "porto_foreman", turnIn: "porto_guild", minLevel: 3, pre: ["q_forest"],
     area: "guild_hall", desc: "접수의 다프네에게 가서 길드 장부에 이름을 올립니다.", objectives: [{ kind: "talk", target: "porto_guild" }],
     offer: ["이제 자네도 선창 길드의 일원일세. 접수의 다프네에게 가서 장부에 정식으로 이름을 올리게."],
     done: ["어서 오세요. 테오도로스 님께 이야기 들었어요. 정식 등록을 도와드릴게요.", "이 장부에 이름이 올라가면 길드 의뢰를 받을 수 있어요. 의뢰를 마치면 은화로 보수가 나가요. 은화는 포르투 노바에서 장비와 물건을 사고파는 데 쓰는 돈이에요.", "그리고 모험가들은 모험일지에 마음에 남은 일을 적어 둔답니다. 일지에는 몸과 마음을 돌보는 작은 활동도 소개돼 있어요. 해 볼지는 자유예요.", "등록을 축하해요. 이제 정식 모험가세요!"],
-    reward: { exp: 150, silver: 20, items: [["rcp_fox_scarf", 1]] }
+    reward: { exp: 250, silver: 20, items: [["rcp_fox_scarf", 1]] }
   },
   q_guild_rats: {
     title: "부두 쥐 소탕", type: "sub", giver: "porto_guild", minLevel: 4, pre: ["q_guild_talk"],
     area: "harbor_road", desc: "항구 길의 부두 쥐를 8마리 처치합니다.", objectives: [{ kind: "kill", target: "rat", count: 8 }],
     offer: ["선창 길드의 의뢰입니다. 항구 길의 쥐를 8마리 줄여 주세요."],
     done: ["확인했습니다. 보수와 증표를 드립니다."],
-    reward: { exp: 600, silver: 120, items: [["charm_a", 1], ["guild_token", 1], ["rcp_snake_ring", 1]] }
+    reward: { exp: 800, silver: 120, items: [["charm_a", 1], ["guild_token", 1], ["rcp_snake_ring", 1]] }
   },
   q_guild_crabs: {
     title: "집게 게 퇴치", type: "sub", giver: "porto_guild", minLevel: 7, pre: ["q_guild_rats"],
     area: "docks", desc: "선창 외곽의 집게 게를 5마리 처치합니다.", objectives: [{ kind: "kill", target: "crab", count: 5 }],
     offer: ["선창 외곽의 집게 게가 짐을 상하게 합니다. 5마리를 부탁합니다."],
     done: ["수고하셨습니다. 이번 보수입니다."],
-    reward: { exp: 1200, silver: 200, items: [["rcp_crab_vest", 1]] }
+    reward: { exp: 2000, silver: 200, items: [["rcp_crab_vest", 1]] }
   },
   q_a1_parcel: {
     title: "길드 짐 전하기", type: "sub", giver: "porto_foreman", minLevel: 5, pre: ["q_guild_talk"],
@@ -314,7 +314,7 @@ AU.QUESTS = {
     reminder: ["꾸러미는 잡화상인에게 전하면 되네."],
     deliver: { porto_general: ["선창 길드에서 온 꾸러미군요. 기다리고 있었어요. 고맙습니다.", "(꾸러미를 건넸습니다.)"] },
     done: ["전했나? 수고했네. 수고비일세."],
-    reward: { exp: 250, silver: 50, items: [["potion", 2]] }
+    reward: { exp: 500, silver: 50, items: [["potion", 2]] }
   },
   q_a1_variant: {
     title: "변형의 흔적", type: "main", giver: "porto_foreman", minLevel: 5, pre: ["q_guild_rats"],
@@ -322,7 +322,7 @@ AU.QUESTS = {
     offer: ["이제 제법 성장하였으니, 그대에게도 어려운 의뢰를 맡겨야겠군.", "최근 이 일대 몬스터들이 이상하게 변하고 있네. 몇 가지 확인할 것이 있어.", "변형된 놈들의 몸에서 검은 결정이 나온다는 말이 있네. 그 결정 세 개를 구해 와 주게. 숲길의 짐승이든 항구 길의 쥐든 상관없네."],
     reminder: ["검은 결정은 변형된 몬스터를 쓰러뜨리면 나올 걸세. 세 개를 모아 오게."],
     done: ["...이게 검은 결정인가. 만져 보니 차갑고, 안쪽에 붉은 줄이 비치는군.", "자연히 생기는 물건이 아니야. 누군가 일부러 몬스터를 변형시키고 있다는 뜻이지.", "길드가 따로 알아보겠네. 자네에게 맡길 일이 또 있을 걸세."],
-    reward: { exp: 700, silver: 80, items: [] }
+    reward: { exp: 1000, silver: 80, items: [] }
   },
   q_a1_traces: {
     title: "창고의 흔적", type: "main", giver: "porto_foreman", minLevel: 6, pre: ["q_a1_variant"],
@@ -338,7 +338,7 @@ AU.QUESTS = {
       ]
     },
     done: ["수고했네. 자네 덕에 창고 일이 한결 분명해졌어.", "이건 길드가 풀 수 있는 일이 아닌 것 같네. 잔다리 골목에 길드 뒷일을 맡는 자가 있으니 찾아가 보게. 내가 보냈다고 하게."],
-    reward: { exp: 800, silver: 100, items: [] }
+    reward: { exp: 1600, silver: 100, items: [] }
   },
   q_job: {
     title: "전직 시험", type: "main", giver: "job_npc", minLevel: 99, pre: [],
