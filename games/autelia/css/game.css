@@ -818,3 +818,11 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
 .roommemory-art { height:52px; }
 .roommemory strong {font-size:10px;line-height:1.22;max-height:2.44em;}
 .roommemory small {font-size:9px;}
+
+.tabs.real-tabs, .tabs.mission-filter, .tabs.mission-areas, .tabs.mission-difficulties { flex-wrap: wrap; }
+.tabs.mission-filter .btn, .tabs.mission-areas .btn, .tabs.mission-difficulties .btn { padding: 4px 10px; font-size: 13px; }
+.msearchrow { display: flex; align-items: center; gap: 10px; margin: 8px 0; } .msearch { flex: 1; box-sizing: border-box; border: 1px solid #cfd8d1; border-radius: 8px; padding: 8px 10px; font: inherit; } .mcount { white-space: nowrap; }
+.mission { position: relative; } .mission .mh { padding-right: 30px; } .favbtn { position: absolute; top: 8px; right: 10px; border: 0; background: transparent; font-size: 22px; line-height: 1; cursor: pointer; color: #b9a98a; padding: 0 2px; } .favbtn.on { color: #d9a21b; } .favbtn:hover { transform: scale(1.12); }
+.mission .mh { align-items: center; } .reco-why { margin: 6px 0 2px; padding: 6px 8px; font-size: 13px; color: #3f6a5c; background: rgba(79,125,110,.1); border-radius: 8px; }
+.planfree { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; } .planrow { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 10px; background: #fff; border: 1px solid var(--line-s); border-radius: 8px; font-size: 14px; }
+.actlog .logrow { align-items: flex-start; } .actlog .logrow > div p { margin: 2px 0 0; }
