@@ -567,7 +567,7 @@ window.AU = window.AU || {};
       if (p.invuln > 0 && Math.floor(this.time * 20) % 2 === 0 && !p.dead) ctx.globalAlpha = 0.45;
       if (p.dead) ctx.globalAlpha = 0.5;
       const gk = AU.Profile.gender() === "f" ? ["player_female", "player_male"] : ["player_male", "player_female"], key = AU.Img.has(gk[0]) ? gk[0] : gk[1], moving = Math.abs(p.vx) > 20 && p.onGround;
-      const frame = moving ? Math.floor(this.time * 9) % 4 : (p.rope ? Math.floor(p.anim) % 2 : 0);
+      const frame = moving ? Math.floor(p.anim * 9 * 22 / C.move.speed) % 4 : (p.rope ? Math.floor(p.anim) % 2 : 0);
       const lean = p.atkT > 0 ? p.dir * 6 : 0, PR = AU.Prologue, pro = !!(PR && PR.on), pose = pro ? PR.poseOf(p) : null;
       let skm = null; if (p.sk && !pro && !AU.Img.has("pc_player_" + AU.Profile.gender() + "_combat")) { const q = p.sk.t / p.sk.dur, e = Math.sin(Math.min(1, q) * Math.PI); skm = p.sk.id === "strike" ? { dx: p.dir * 16 * e, rot: p.dir * (q < 0.35 ? -0.1 * (q / 0.35) : 0.2 * e), sx: 1 + 0.06 * e, sy: 1 - 0.04 * e } : p.sk.id === "spin" ? { dx: 0, rot: 0, sx: Math.cos(q * Math.PI * 4), sy: 1 + 0.03 * e } : { dx: 0, rot: 0, sx: 1 + 0.03 * e, sy: 1 - 0.07 * e }; if (Math.abs(skm.sx) < 0.12) skm.sx = skm.sx < 0 ? -0.12 : 0.12; }
       if (skm) { ctx.save(); ctx.translate(p.x + skm.dx, p.y); ctx.rotate(skm.rot); ctx.scale(skm.sx, skm.sy); ctx.translate(-p.x, -p.y); }
