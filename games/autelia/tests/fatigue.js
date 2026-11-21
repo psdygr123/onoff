@@ -40,7 +40,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await ev(() => { AU.UI.tab.jg = 'real'; AU.UI.tab.j = 'rest'; AU.UI.open('journal'); }); await sleep(300);
   const restCards = await ev(() => Array.from(document.querySelectorAll('.window .mission')).map((e) => e.querySelector('b').textContent + ':' + (e.querySelector('button') ? '가능' : '완료')));
   await p.screenshot({ path: SH + 'fatigue_rest.png' });
-  note('A10', '모험일지 쉼 탭에 4개 미션(완료한 것은 표시)', restCards.length === 4 && restCards[0].endsWith('완료') && restCards[3].endsWith('가능'), restCards.join(' / '));
+  note('A10', '모험일지 쉼 탭에 30개 미션(완료한 것은 표시)', restCards.length === 30 && restCards[0].endsWith('완료') && restCards[3].endsWith('가능') && restCards[29].endsWith('가능'), restCards.join(' / '));
   await ev(() => AU.UI.close());
   const wk = await ev(() => { AU.G.setFatigue(70); AU.G.S.fatigueWeek = '2000-01-03'; const r = AU.G.refreshWeekly(false); return [r, AU.G.S.fatigue]; });
   note('A11', '새 주가 되면 피로도 초기화(막다른 길 방지)', wk[0] === true && wk[1] === 0, JSON.stringify(wk));
