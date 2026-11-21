@@ -103,7 +103,12 @@ window.AU = window.AU || {};
       c.strokeStyle = "rgba(255,255,255,.55)"; c.lineWidth = 1.5; c.strokeRect(X(W.camX), oy + .75, C.W * sx, mh - 1.5); // 지금 화면에 보이는 범위
       const dot = (x, y, col, r) => { c.fillStyle = col; c.strokeStyle = "rgba(20,28,40,.85)"; c.lineWidth = 1.5; c.beginPath(); c.arc(X(x), Y(y), r, 0, 7); c.fill(); c.stroke(); };
       for (const pt of m.portals || []) { c.fillStyle = "#FFFFFF"; c.strokeStyle = "rgba(20,28,40,.85)"; c.lineWidth = 1.5; const px = X(pt.x), py = Y(C.GROUND - 40); c.beginPath(); c.moveTo(px, py - 12); c.lineTo(px + 9, py + 4); c.lineTo(px - 9, py + 4); c.closePath(); c.fill(); c.stroke(); }
-      for (const n of m.npcs || []) dot(n.x, C.GROUND - 40, "#FFD978", 6);
+      for (const n of m.npcs || []) { // 의뢰가 있는 NPC는 종류별로: 메인 금색 ★ / 서브 파란 !
+        const qm = AU.npcQuestMark(n.id);
+        if (!qm) { dot(n.x, C.GROUND - 40, "#E9E4D6", 5); continue; }
+        dot(n.x, C.GROUND - 40, AU.QKIND[qm.kind].color, 9);
+        c.font = "700 12px 'Noto Sans KR', sans-serif"; c.textAlign = "center"; c.textBaseline = "middle"; c.fillStyle = "#FFFFFF"; c.fillText(qm.mark, X(n.x), Y(C.GROUND - 40) + 1); c.textBaseline = "alphabetic";
+      }
       for (const q of W.monsters) if (q.alive) dot(q.x, q.y - 20, q.d.boss ? "#B070E8" : "#E9776D", q.d.boss ? 8 : 5);
       c.strokeStyle = "#fff"; c.lineWidth = 3; c.fillStyle = "#4AA3FF"; c.beginPath(); c.arc(X(p.x), Y(p.y - 40), 7, 0, 7); c.fill(); c.stroke();
     },
@@ -177,7 +182,7 @@ window.AU = window.AU || {};
     },
     nextGoals() { // 진행 중인 퀘스트가 모자랄 때 알려 주는 다음 목표(최대 2줄)
       const S = AU.G.S, out = [];
-      for (const id of Object.keys(AU.QUESTS)) { if (AU.G.questStatus(id) === "available") { const q = AU.QUESTS[id], mp = this.npcMap(q.giver); out.push("새 의뢰: " + q.title.replace(" (임시)", "") + " — " + AU.NPCS[q.giver].name.replace(" (임시)", "") + (mp ? " (" + this.areaName(mp) + ")" : "")); break; } }
+      for (const id of Object.keys(AU.QUESTS)) { if (AU.G.questStatus(id) === "available") { const q = AU.QUESTS[id], mp = this.npcMap(q.giver); out.push(AU.QKIND[AU.questKind(id)].icon + " 새 의뢰: " + q.title.replace(" (임시)", "") + " — " + AU.NPCS[q.giver].name.replace(" (임시)", "") + (mp ? " (" + this.areaName(mp) + ")" : "")); break; } }
       if (out.length < 2) { const lockedLv = Object.keys(AU.QUESTS).map((id) => [id, AU.QUESTS[id]]).filter(([id, q]) => !S.quests[id] && q.pre.every((x) => AU.G.questStatus(x) === "done") && S.level < q.minLevel && id !== "q_job").sort((a, b) => a[1].minLevel - b[1].minLevel)[0];
         if (lockedLv) out.push("Lv." + lockedLv[1].minLevel + "이 되면 새 의뢰: " + lockedLv[1].title.replace(" (임시)", "")); }
       if (out.length < 2 && !AU.G.awakened() && S.level < 10) out.push("Lv.10까지 레벨을 올리세요 (지금 Lv." + S.level + ") — 사냥터: 항구 길·선창 외곽");
@@ -189,11 +194,11 @@ window.AU = window.AU || {};
       const picks = this.anyOpen() || (PR && PR.on) ? [] : list.slice(0, 3);
       const goals = picks.length < 2 && !this.anyOpen() && !(PR && PR.on) ? this.nextGoals() : [];
       if (!picks.length && !goals.length) { T.style.display = "none"; this.hud.cache.trk = null; this._trkDirs = []; return; }
-      const key = picks.map(([id, r]) => id + r.state + JSON.stringify(r.prog)).join("|") + "|" + AU.G.count("fur") + "|" + goals.join("/");
+      const key = picks.map(([id, r]) => id + AU.questKind(id) + r.state + JSON.stringify(r.prog)).join("|") + "|" + AU.G.count("fur") + "|" + goals.join("/");
       if (this.hud.cache.trk !== key) {
         this.hud.cache.trk = key; t.innerHTML = ""; this._trkDirs = []; for (const k of Object.keys(this.hud.cache)) if (k.indexOf("trkd") === 0) delete this.hud.cache[k];
         picks.forEach(([id, rec]) => {
-          const q = AU.QUESTS[id]; const box = h("div", { class: "tq" }); box.append(h("div", { class: "tt" }, q.title.replace(" (임시)", "")));
+          const q = AU.QUESTS[id], qk = AU.questKind(id); const box = h("div", { class: "tq qk-" + qk }); box.append(h("div", { class: "tt" }, h("span", { class: "qki", text: AU.QKIND[qk].icon }), h("span", { class: "qkl", text: AU.QKIND[qk].label }), q.title.replace(" (임시)", "")));
           if (rec.state === "ready") box.append(h("div", { class: "to ok" }, ((q.turnIn && q.turnIn !== q.giver) ? "보고하러 가기: " : "의뢰인에게 돌아가기: ") + AU.NPCS[q.turnIn || q.giver].name.replace(" (임시)", "")));
           else q.objectives.forEach((o, i) => box.append(h("div", { class: "to" + (AU.G.objectiveDone(q, rec, i) ? " ok" : "") }, this.objText(o, rec, i))));
           const dir = h("div", { class: "td" }); box.append(dir); this._trkDirs.push({ el: dir, id }); t.append(box);
@@ -227,7 +232,7 @@ window.AU = window.AU || {};
       if (o.kind === "kill") return AU.MONSTERS[o.target].name.replace(" (임시)", "") + " 처치 (" + prog + "/" + o.count + ")";
       if (o.kind === "collect") return AU.ITEMS[o.item].name + " 수집 (" + prog + "/" + o.count + ")";
       if (o.kind === "repair" || o.kind === "investigate") { const n = rec && rec.spots ? o.targets.filter((t) => rec.spots[t]).length : 0; return (o.kind === "repair" ? "방책 수리 " : "흔적 조사 ") + "(" + n + "/" + o.targets.length + ")"; }
-      if (o.kind === "deliver") return AU.ITEMS[o.item].name.replace(" (임시)", "") + "을(를) " + AU.NPCS[o.target].name.replace(" (임시)", "") + "에게 전하기 (" + (rec ? (rec.prog[i] || 0) : 0) + "/1)";
+      if (o.kind === "deliver") return ((w) => { const c = w.charCodeAt(w.length - 1) - 0xAC00; return w + (c >= 0 && c < 11172 ? (c % 28 ? "을" : "를") : "을(를)"); })(AU.ITEMS[o.item].name.replace(" (임시)", "")) + " " + AU.NPCS[o.target].name.replace(" (임시)", "") + "에게 전하기 (" + (rec ? (rec.prog[i] || 0) : 0) + "/1)";
       if (o.kind === "choice") return AU.NPCS[o.target].name.replace(" (임시)", "") + "에게 결과를 알리기 (" + (rec ? (rec.prog[i] || 0) : 0) + "/1)";
       return AU.NPCS[o.target].name.replace(" (임시)", "") + "에게 말 걸기 (" + prog + "/1)";
     },
@@ -838,9 +843,10 @@ window.AU = window.AU || {};
   R.worldmap = function (b) {
     if (UI.tab.wm === "continent") return R.worldContinent(b);
     const S = AU.G.S, cur0 = AU.World.mapId, cur = (AU.MAPS[cur0] && AU.MAPS[cur0].parent) || cur0, sel = UI.selected.map || cur; UI.selected.map = sel;
-    const dest = new Set();
+    const destKind = {}; let curKind = "sub"; // 월드맵 목적지 표시: 메인(금색 ★)이 서브(파란 !)보다 우선
+    const dest = { add: (m) => { if (m && destKind[m] !== "main") destKind[m] = curKind; }, has: (m) => !!destKind[m] };
     for (const [id, rec] of Object.entries(S.quests)) {
-      if (rec.state === "done") continue; const q = AU.QUESTS[id];
+      if (rec.state === "done") continue; const q = AU.QUESTS[id]; curKind = AU.questKind(id);
       const mapOfNpc = (nid) => { const f = Object.keys(AU.MAPS).find((m) => !AU.MAPS[m].prologue && (!AU.MAPS[m].hidden || S.visited[m]) && (AU.MAPS[m].npcs || []).some((n) => n.id === nid)); return f && AU.MAPS[f].parent ? AU.MAPS[f].parent : f; };
       if (rec.state === "ready") { dest.add(mapOfNpc(q.turnIn || q.giver)); continue; }
       q.objectives.forEach((o, i) => { if (AU.G.objectiveDone(q, rec, i)) return;
@@ -860,32 +866,34 @@ window.AU = window.AU || {};
       if (m.prologue || m.interior || (m.hidden && !S.visited[id])) continue; // 프롤로그 맵과 가지 못하는 지역은 월드맵에 표시하지 않음
       const seen = !!S.visited[id];
       map.append(h("button", { type: "button", class: "node" + (id === cur ? " here" : "") + (seen ? "" : " unseen") + (id === sel ? " sel" : ""), style: "left:" + m.area.x + "%;top:" + m.area.y + "%", onclick: () => { UI.selected.map = id; UI.renderWin(); } },
-        h("i", { text: seen ? (id === cur ? "●" : "○") : "?" }), h("span", { text: seen ? m.name.replace(" (임시 명칭)", "") : "미발견" }), dest.has(id) ? h("u", { text: "★" }) : null));
+        h("i", { text: seen ? (id === cur ? "●" : "○") : "?" }), h("span", { text: seen ? m.name.replace(" (임시 명칭)", "") : "미발견" }), dest.has(id) ? h("u", { class: "dk-" + destKind[id], text: AU.QKIND[destKind[id]].icon, title: AU.QKIND[destKind[id]].label + " 퀘스트 목적지" }) : null));
     }
     const m = AU.MAPS[sel], seen = !!S.visited[sel];
     const mons = [...new Set((m.spawns || []).map((s) => s.type))].map((t) => AU.MONSTERS[t]);
     const info = h("div", { class: "detail" }, h("h3", { text: seen ? m.name : "아직 발견하지 못한 지역" }),
-      h("div", { class: "tags" }, h("span", { class: "tag", text: sel === cur ? "현재 위치" : seen ? "방문함" : "미발견" }), dest.has(sel) ? h("span", { class: "tag star", text: "★ 퀘스트 목적지" }) : null, seen ? h("span", { class: "tag", text: m.safe ? "안전 지역" : "전투 지역" }) : null),
+      h("div", { class: "tags" }, h("span", { class: "tag", text: sel === cur ? "현재 위치" : seen ? "방문함" : "미발견" }), dest.has(sel) ? h("span", { class: "tag dk-" + destKind[sel], text: AU.QKIND[destKind[sel]].icon + " " + AU.QKIND[destKind[sel]].label + " 퀘스트 목적지" }) : null, seen ? h("span", { class: "tag", text: m.safe ? "안전 지역" : "전투 지역" }) : null),
       h("p", { text: seen ? m.area.desc : "이 지역은 아직 가 보지 않았습니다. 길을 따라 이동하면 발견됩니다." }),
       seen && mons.length ? h("p", { class: "note", text: "출현: " + mons.map((x) => x.name + " Lv." + x.lv).join(", ") }) : null,
       ...(seen ? mons.map((x) => h("p", { class: "note", text: x.name + " 처치 시 드롭: " + [...(x.silver ? ["은화 " + Math.round((x.silverRate == null ? 0.5 : x.silverRate) * 100) + "%"] : []), ...(x.drops || []).map(([id, rate]) => (AU.ITEMS[id] ? AU.ITEMS[id].name.replace(" (임시)", "") : id) + " " + (rate * 100).toFixed(rate * 100 % 1 ? 1 : 0) + "%")].join(" · ") })) : []));
-    b.append(h("div", { class: "split map" }, map, info), h("p", { class: "note", text: "● 현재 위치 · ○ 방문한 지역 · ? 미발견 · ★ 진행 중인 퀘스트 목적지" }));
+    b.append(h("div", { class: "split map" }, map, info), h("p", { class: "note", text: "● 현재 위치 · ○ 방문한 지역 · ? 미발견 · ★ 메인 퀘스트 목적지 · ! 서브 퀘스트 목적지" }));
   };
 
   R.quests = function (b) {
-    const S = AU.G.S, tab = UI.tab.q || "active"; const TYPE = { main: "메인", sub: "서브", real: "현실" };
+    const S = AU.G.S, tab = UI.tab.q || "active"; const TYPE = { main: AU.QKIND.main.label, sub: AU.QKIND.sub.label, real: AU.QKIND.real.label }; const QORD = { main: 0, sub: 1, real: 2 }; const tagText = (t) => AU.QKIND[t].icon + " " + TYPE[t];
     const rows = [];
     for (const [id, rec] of Object.entries(S.quests)) { const q = AU.QUESTS[id]; rows.push({ key: id, title: q.title, type: q.type, done: rec.state === "done", q, rec }); }
     if (S.flags.missionsUnlocked && S.flags.guideMet) for (const m of AU.MISSIONS) { const r = S.missions.states[m.id]; if (r && ["accepted", "attempted", "partial", "done"].includes(r.state)) rows.push({ key: m.id, title: m.title, type: "real", done: r.state === "done", m, r }); }
-    const list = rows.filter((r) => (tab === "done") === r.done);
+    const list = rows.filter((r) => (tab === "done") === r.done).sort((a, b) => QORD[a.type] - QORD[b.type]); // 메인 → 서브 → 현실 순으로 묶어 보여 줌
     const sel = list.find((r) => r.key === UI.selected.q) || list[0];
     const tabs = h("div", { class: "tabs" }, btn("진행 중 (" + rows.filter((r) => !r.done).length + ")", tab === "active" ? "on" : "", () => { UI.tab.q = "active"; UI.renderWin(); }), btn("완료 (" + rows.filter((r) => r.done).length + ")", tab === "done" ? "on" : "", () => { UI.tab.q = "done"; UI.renderWin(); }));
     const ul = h("div", { class: "qlist" }); if (!list.length) ul.append(h("p", { class: "empty", text: tab === "done" ? "완료한 퀘스트가 아직 없습니다." : "진행 중인 퀘스트가 없습니다. NPC에게 말을 걸어 보세요." }));
-    list.forEach((r) => ul.append(h("button", { type: "button", class: "qitem" + (sel && sel.key === r.key ? " sel" : ""), onclick: () => { UI.selected.q = r.key; UI.renderWin(); } }, h("span", { class: "tag t-" + r.type, text: TYPE[r.type] }), h("span", { text: r.title.replace(" (임시)", "") }), r.rec && r.rec.state === "ready" ? h("em", { text: "완료 가능" }) : null)));
+    let lastType = null;
+    list.forEach((r) => { if (r.type !== lastType) { lastType = r.type; ul.append(h("div", { class: "qsec qk-" + r.type }, h("span", { class: "qki", text: AU.QKIND[r.type].icon }), TYPE[r.type] + (r.type === "real" ? " 미션" : " 퀘스트") + " (" + list.filter((x) => x.type === r.type).length + ")")); }
+    ul.append(h("button", { type: "button", class: "qitem qk-" + r.type + (sel && sel.key === r.key ? " sel" : ""), onclick: () => { UI.selected.q = r.key; UI.renderWin(); } }, h("span", { class: "tag t-" + r.type, text: tagText(r.type) }), h("span", { text: r.title.replace(" (임시)", "") }), r.rec && r.rec.state === "ready" ? h("em", { text: "완료 가능" }) : null)); });
     const det = h("div", { class: "detail" });
     if (sel && sel.q) {
       const q = sel.q, rec = sel.rec;
-      det.append(h("h3", { text: q.title }), h("div", { class: "tags" }, h("span", { class: "tag", text: TYPE[q.type] }), h("span", { class: "tag", text: rec.state === "done" ? "완료" : rec.state === "ready" ? "의뢰인에게 돌아가기" : "진행 중" })), h("p", { text: q.desc }),
+      det.append(h("h3", { text: q.title }), h("div", { class: "tags" }, h("span", { class: "tag t-" + q.type, text: tagText(q.type) }), h("span", { class: "tag", text: rec.state === "done" ? "완료" : rec.state === "ready" ? "의뢰인에게 돌아가기" : "진행 중" })), h("p", { text: q.desc }),
         h("h4", { text: "수행 조건" }), ...q.objectives.map((o, i) => h("div", { class: "obj" + (AU.G.objectiveDone(q, rec, i) ? " ok" : "") }, (AU.G.objectiveDone(q, rec, i) ? "✔ " : "□ ") + UI.objText(o, rec, i))),
         h("h4", { text: "보상" }), h("p", { text: rewardText(q.reward) }), h("p", { class: "note", text: "의뢰인: " + AU.NPCS[q.giver].name }));
     } else if (sel && sel.m) {

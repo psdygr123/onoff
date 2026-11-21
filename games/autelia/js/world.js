@@ -567,12 +567,11 @@ window.AU = window.AU || {};
       }
       if (st === "B" && role) { const by = y - 172; ctx.font = "700 13px 'Noto Sans KR', sans-serif"; const w = ctx.measureText(role.t).width + 16; ctx.save(); ctx.fillStyle = role.c; ctx.strokeStyle = "#FFFFFF"; ctx.lineWidth = 2; this.rr(ctx, n.x - w / 2, by - 11, w, 22, 6); ctx.fill(); ctx.stroke(); ctx.fillStyle = "#FFFFFF"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(role.t, n.x, by + 1); ctx.restore(); }
       // 퀘스트 표시: 받을 수 있으면 !, 완료 가능하면 ?
-      let mark = "";
-      for (const id of d.quests || []) { const s = AU.G.questStatus(id); if (s === "ready" && (AU.QUESTS[id].turnIn || AU.QUESTS[id].giver) === n.id) { mark = "?"; break; } if (s === "available" && !mark) mark = "!"; }
-      if (d.special === "missionGuide" && AU.G.S.flags.missionsUnlocked && !AU.G.S.flags.guideMet) mark = "!";
+      const qm = AU.npcQuestMark(n.id); let mark = qm ? qm.mark : "", kind = qm ? qm.kind : "main"; // 메인=금색 ★, 서브=파란 !, 완료 가능=같은 색의 ?
+      if (!mark && d.special === "missionGuide" && AU.G.S.flags.missionsUnlocked && !AU.G.S.flags.guideMet) { mark = AU.QKIND.real.icon; kind = "real"; }
       if (mark) { // 둥근 배지: 배경이 복잡해도 눈에 띄게
         const by = y - 200 + Math.sin(this.time * 4) * 3;
-        ctx.beginPath(); ctx.arc(n.x, by, 15, 0, 7); ctx.fillStyle = mark === "?" ? "#4F7D6E" : "#B98B45"; ctx.fill(); ctx.lineWidth = 2.5; ctx.strokeStyle = "#FFFFFF"; ctx.stroke();
+        ctx.beginPath(); ctx.arc(n.x, by, 15, 0, 7); ctx.fillStyle = AU.QKIND[kind].color; ctx.fill(); ctx.lineWidth = 2.5; ctx.strokeStyle = "#FFFFFF"; ctx.stroke();
         ctx.font = "700 20px 'Noto Sans KR', sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillStyle = "#FFFFFF"; ctx.fillText(mark, n.x, by + 2); ctx.textBaseline = "alphabetic";
       }
     },
