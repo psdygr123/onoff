@@ -55,29 +55,43 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   note('B2', '포르투 노바에 잔다리 골목 출입구', pp === 'jandari', String(pp));
   await key('ArrowUp'); await sleep(1500);
   note('B3', '위 키로 잔다리 골목에 도착', (await ev(() => AU.World.mapId)) === 'jandari', await ev(() => AU.World.mapId));
+  // 잔다리 골목 → 공방 문 → 공방 안
+  await ev(() => { AU.World.player.x = 960; AU.World.player.vx = 0; AU.World.scan(); }); await sleep(100);
+  const door = await ev(() => AU.World.nearPortal && AU.World.nearPortal.to);
+  note('B3b', '골목에 정보상 공방 문(포털)이 있음', door === 'jandari_shop', String(door));
+  await key('ArrowUp'); await sleep(1500);
+  note('B3c', '문으로 들어가면 정보상의 공방 안에 도착', (await ev(() => AU.World.mapId)) === 'jandari_shop', await ev(() => AU.World.mapId));
   // 바르샤: 정보 구매 없음, 바로 수락
   await ev(() => { AU.G.S.silver = 0; });
+  await ev(() => { AU.World.player.x = 940; AU.World.player.vx = 0; AU.World.scan(); });
   await accept('barsha');
   const sv = await ev(() => AU.G.S.silver);
   note('B4', '은화 없이도 바르샤의 전언을 수락(정보 구매 폐지)', (await st('q_a2_secret')) === 'active' && sv === 0, (await st('q_a2_secret')) + ' silver=' + sv);
   // 지점 조사
-  await ev(() => { AU.World.player.x = 640; AU.World.player.vx = 0; AU.World.scan(); }); await sleep(100);
+  await ev(() => { AU.World.player.x = 730; AU.World.player.vx = 0; AU.World.scan(); }); await sleep(100);
   const ns = await ev(() => { AU.World.scan(); return AU.World.nearSpot && AU.World.nearSpot.id; });
-  note('B6', '돋보기 앞에서 조사 안내', ns === 'barsha_lens', String(ns));
+  note('B6', '작업대 앞에서 결정 조각 조사 안내', ns === 'barsha_lens', String(ns));
   await key('Space'); await sleep(200); for (let i = 0; i < 8 && (await ev(() => !!AU.UI.dialog)); i++) { await key('Space'); await sleep(100); }
-  await ev(() => { AU.World.player.x = 1010; AU.World.player.vx = 0; AU.World.scan(); }); await sleep(100);
+  await ev(() => { AU.World.player.x = 1150; AU.World.player.vx = 0; AU.World.scan(); }); await sleep(100);
   await key('Space'); await sleep(200); for (let i = 0; i < 8 && (await ev(() => !!AU.UI.dialog)); i++) { await key('Space'); await sleep(100); }
   note('B7', '두 곳 조사 → 보고 가능', (await st('q_a2_secret')) === 'ready', await st('q_a2_secret'));
-  // 보고 전에는 북쪽 포털이 닫혀 있음
+  // 보고 전에는 골목 북쪽 포털이 닫혀 있음(문으로 나가서 확인)
+  await ev(() => { AU.World.player.x = 70; AU.World.player.vx = 0; AU.World.scan(); }); await sleep(100);
+  await key('ArrowUp'); await sleep(1500);
+  note('B7b', '나가기(문)로 골목에 돌아와 문 앞에 섬', (await ev(() => AU.World.mapId + ':' + Math.round(AU.World.player.x))) === 'jandari:960', await ev(() => AU.World.mapId + ':' + Math.round(AU.World.player.x)));
   await ev(() => { AU.World.player.x = 1460; AU.World.player.vx = 0; AU.World.scan(); }); await sleep(100);
   const po = await ev(() => AU.World.portalOpen(AU.World.nearPortal));
   note('B8', '정찰 퀘스트를 받기 전에는 북쪽 포털 닫힘', po === false, String(po));
+  await ev(() => AU.World.enterMap('jandari_shop', 940, true)); await sleep(200);
   await talk('barsha');
   note('B9', '보고하면 완료 + 양피지 지도', (await st('q_a2_secret')) === 'done' && (await ev(() => AU.G.count('barsha_map'))) === 1, await st('q_a2_secret'));
   await accept('barsha');
   note('B10', '정찰 퀘스트 수락(레벨 8 이상)', (await st('q_a3_scout')) === 'active', await st('q_a3_scout'));
-  const po2 = await ev(() => AU.World.portalOpen(AU.World.nearPortal));
-  note('B11', '수락 후 북쪽 포털 열림', po2 === true, String(po2));
+  const po2 = true;
+  // 수락 후 골목 북쪽 포털 확인(공방에서 나와 이동)
+  await ev(() => AU.World.enterMap('jandari', 1460, true)); await sleep(200); await ev(() => AU.World.scan());
+  const po3 = await ev(() => AU.World.portalOpen(AU.World.nearPortal));
+  note('B11', '수락 후 북쪽 포털 열림', po3 === true, String(po3));
   // 검은 골짜기
   await ev(() => { AU.World.enterMap('valley', 500, true); AU.World.monsters = []; AU.World.spawn = () => null; }); await sleep(300);
   const sp1 = await ev(() => { AU.World.scan(); return AU.World.nearSpot && AU.World.nearSpot.id; });
