@@ -908,7 +908,7 @@ window.AU = window.AU || {};
       b.append(logBox(logOf(null)));
     } else if (tab === "missions") {
       if (!un) { b.append(h("div", { class: "missions preview" }, AU.MISSIONS.map((m) => h("div", { class: "mission st-locked" }, h("div", { class: "mh" }, h("span", { class: "tag perma", text: m.perma + " · " + AU.PERMA[m.perma] }), h("span", { class: "tag", text: "🔒 잠김" }), h("span", { class: "pts", text: "갤러리 토큰 +1" })), h("b", { text: m.title }), h("p", { text: m.desc }))))); return; }
-      if (!S.flags.guideMet) { b.append(h("div", { class: "lockbox" }, h("h3", { text: "새로운 이야기를 기다리고 있어요" }), h("p", { text: "포르투 노바의 알렉시오스과 이야기를 나누면 이곳에 내용이 나타납니다." }))); return; }
+      if (!S.flags.guideMet) { b.append(h("div", { class: "lockbox" }, h("h3", { text: "현실 활동 안내" }), h("p", { text: "프롤로그에서 현실 활동의 기록 방법을 안내받으면 이곳의 미션을 선택할 수 있습니다." }))); return; }
       const M = S.missions;
       const currentCategory = UI.tab.missionArea || "all";
       const currentDifficulty = UI.tab.missionDifficulty || "all";

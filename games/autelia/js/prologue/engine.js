@@ -400,7 +400,7 @@ window.AU = window.AU || {};
       if (L.max != null && p.x > L.max) { p.x = L.max; p.vx = 0; hit = true; } if (L.min != null && p.x < L.min) { p.x = L.min; p.vx = 0; hit = true; }
       if (hit && L.msg) this.hintOnce(L.msg);
     },
-    allowWin(name) { return name === "inventory" || name === "keysettings"; },
+    allowWin(name) { return name === "inventory" || name === "keysettings" || name === "journal"; },
     heroKey(sheet) { return "pc_player_" + (AU.PRO_GENDER || "m") + "_" + sheet; },
     heroArt() { return AU.Img.has(this.heroKey("actions")) && AU.Img.has(this.heroKey("locomotion")); },
     /* 주인공 정식 그림: 동작 시트(대기·망치·무릎·으쓱·뒤돌아보기) + 이동 시트(걷기 4·점프 2). 프레임 이름은 artmeta.js 기준 */
