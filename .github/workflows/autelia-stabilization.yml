@@ -11,6 +11,7 @@ on:
       - feat/optional-perma-missions-30-20261121
       - feat/prologue-real-bridge-20261121
       - feat/prologue-story-mission-placement-20261121
+      - feat/reality-reward-neutral-20261121
   workflow_dispatch:
 
 permissions:
