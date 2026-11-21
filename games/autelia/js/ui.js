@@ -938,6 +938,7 @@ window.AU = window.AU || {};
       tab = REAL_TABS.some(([k]) => k === UI.tab.j) ? UI.tab.j : "today";
       if (!un) b.append(h("div", { class: "lockbox lockband" }, h("b", { text: "🔒 아직 열리지 않았습니다" }), h("p", { text: "프롤로그를 마치면 열립니다." })));
       b.append(h("div", { class: "realband", text: "게임 속 이야기와는 별개인 현실 활동입니다. 하지 않아도 모험은 계속되고, 직접 해 보고 기록하는 방식입니다." }),
+        AU.JournalTour ? h("div", { class: "jt-again-row" }, btn("안내 다시 보기", "mini jt-again", () => AU.JournalTour.start({}))) : null,
         h("div", { class: "tabs real-tabs" }, REAL_TABS.map(([k, l]) => btn(l, tab === k ? "on" : "", () => { UI.tab.j = k; UI.renderWin(); }))));
     }
     const logOf = (act) => { const j = S.journal, arr = j.findIndex((e) => /포르투 노바에 도착/.test(e.text)); return j.map((e, i) => ({ e, a: e.a || (arr >= 0 && i <= arr ? "pro" : "a1") })).filter((x) => !act || x.a === act).map((x) => x.e).reverse(); };
