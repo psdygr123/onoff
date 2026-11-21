@@ -379,6 +379,12 @@ window.AU = window.AU || {};
     initMissions() {
       const M = this.S.missions;
       if (!M.plans || typeof M.plans !== "object" || Array.isArray(M.plans)) M.plans = {};
+      // 즐겨찾기·추천 취향·추천 제외 목록: 구 저장에 없으면 빈 값으로 만들 뿐, 기존 기록은 건드리지 않음
+      if (!Array.isArray(M.favorites)) M.favorites = [];
+      if (!M.prefs || typeof M.prefs !== "object" || Array.isArray(M.prefs)) M.prefs = { areas: [], maxMin: 0 };
+      if (!Array.isArray(M.prefs.areas)) M.prefs.areas = [];
+      if (!Number.isFinite(M.prefs.maxMin)) M.prefs.maxMin = 0;
+      if (!Array.isArray(M.recoHidden)) M.recoHidden = [];
       for (const m of AU.MISSIONS) {
         if (!M.states[m.id]) M.states[m.id] = { state: "locked", rewarded: false, tries: 0 };
         // 신규 활동 및 구 저장의 미완료/잠금 미션도 안내 이후 자유롭게 선택 가능.
@@ -482,6 +488,54 @@ window.AU = window.AU || {};
       }
       return false;
     },
+    /* ---------- 즐겨찾기 · 추천(설명 가능한 규칙 기반) ----------
+       즐겨찾기는 보상·진행과 무관한 개인 목록입니다. 추천은 이용자가 직접 고른 관심 영역·시간, 즐겨찾기, 이전에 스스로 매긴 평가만 쓰며
+       정신건강 상태를 추정하지 않고, 수행 횟수가 적다는 이유로 불리하게 보지 않습니다. 추천마다 이유를 함께 돌려줍니다. */
+    isFavorite(id) { this.initMissions(); return this.S.missions.favorites.includes(id); },
+    toggleFavorite(id) {
+      if (!this.S.flags.missionsUnlocked || !this.mission(id)) return false;
+      this.initMissions(); const f = this.S.missions.favorites, i = f.indexOf(id);
+      if (i >= 0) f.splice(i, 1); else f.push(id);
+      this.save("mission-fav"); this.changed(); return true;
+    },
+    recoPrefs() { this.initMissions(); return this.S.missions.prefs; },
+    setRecoPrefs(p) {
+      if (!p || !Array.isArray(p.areas) || p.areas.some((a) => !AU.MISSION_FUNCTION_AREAS[a]) || ![0, 3, 5, 10, 20].includes(p.maxMin)) return false;
+      this.initMissions(); this.S.missions.prefs = { areas: [...new Set(p.areas)], maxMin: p.maxMin }; this.save("mission-prefs"); this.changed(); return true;
+    },
+    hideReco(id, hide) {
+      if (!this.mission(id)) return false;
+      this.initMissions(); const h = this.S.missions.recoHidden, i = h.indexOf(id);
+      if (hide !== false && i < 0) h.push(id); else if (hide === false && i >= 0) h.splice(i, 1);
+      this.save("mission-reco-hide"); this.changed(); return true;
+    },
+    recommend(limit, offset) {
+      this.initMissions(); const M = this.S.missions, pr = M.prefs, A = AU.MISSION_FUNCTION_AREAS, favAreas = new Set(M.favorites.map((id) => (this.mission(id) || {}).functionArea).filter(Boolean));
+      const liked = new Set(); // 이용자가 직접 만족도·의미를 4 이상으로 평가한 활동의 PERMA 영역
+      for (const e of M.log) { const r = e.reflection; if (r && Number.isInteger(r.satisfaction) && (r.satisfaction >= 4 || r.meaning >= 4)) liked.add(e.perma); }
+      const tried = {}; for (const m of AU.MISSIONS) if (M.states[m.id] && M.states[m.id].state === "done") tried[m.perma] = (tried[m.perma] || 0) + 1;
+      const rows = [];
+      for (const m of AU.MISSIONS) {
+        const st = (M.states[m.id] || {}).state; if (st === "done" || M.recoHidden.includes(m.id) || M.favorites.includes(m.id)) continue;
+        let sc = 0; const why = [];
+        if (pr.areas.includes(m.functionArea)) { sc += 3; why.push("직접 고르신 관심 영역 '" + A[m.functionArea] + "'"); }
+        if (pr.maxMin && m.minutes <= pr.maxMin) { sc += 2; why.push("권장 시간 " + m.minutes + "분 — 선택하신 " + pr.maxMin + "분 이내"); }
+        if (favAreas.has(m.functionArea)) { sc += 2; why.push("즐겨찾기한 활동과 같은 '" + A[m.functionArea] + "' 영역"); }
+        if (liked.has(m.perma)) { sc += 2; why.push("스스로 높게 평가한 '" + AU.PERMA[m.perma] + "' 영역"); }
+        if (!tried[m.perma]) { sc += 1; why.push("아직 해 보지 않은 '" + AU.PERMA[m.perma] + "' 영역"); }
+        if (m.difficulty === 1) { sc += 1; why.push("부담이 적은 쉬운 활동"); }
+        rows.push({ m, score: sc, reasons: why.length ? why : ["가볍게 시작해 볼 수 있는 활동"] });
+      }
+      rows.sort((a, b) => b.score - a.score || a.m.id.localeCompare(b.m.id));
+      const out = [], per = {}, n = Math.max(1, limit || 3), cut = Math.max(n * 4, 12), pool = rows.slice(0, cut), rest = rows.slice(cut); // 점수 상위 묶음을 돌려 가며 보여 줌
+      const start = pool.length ? ((offset || 0) * n) % pool.length : 0, ordered = pool.slice(start).concat(pool.slice(0, start), rest);
+      for (const r of ordered) { if ((per[r.m.perma] || 0) >= 2) continue; per[r.m.perma] = (per[r.m.perma] || 0) + 1; out.push(r); if (out.length >= n) break; } // 같은 PERMA 영역은 2개까지
+      if (out.length < n) for (const r of ordered) { if (out.length >= n) break; if (!out.includes(r)) out.push(r); } // 후보가 모자랄 때만 한도를 넘겨 채움
+      return out;
+    },
+    // 오늘의 활동: 이용자가 직접 정한 수행 계획 중 오늘 해당하는 것(완료한 활동만 계획 가능). 하지 않아도 불이익 없음
+    todayPlanned() { return AU.MISSIONS.filter((m) => this.ms(m.id).state === "done" && this.missionPlanDue(m.id) && !this.S.missions.log.some((e) => e.id === m.id && e.t === AU.dateStr() && e.state === "done")); },
+    todayDone() { return this.S.missions.log.filter((e) => e.t === AU.dateStr() && e.state === "done").length; },
     validMissionFeedback(x) { return !!(x && typeof x === 'object' && ['challenge','meaning','satisfaction'].every(k => Number.isInteger(x[k]) && x[k] >= 1 && x[k] <= 5)); },
     /* ---------- 개인 공간: 활동의 기록을 수집하되, 메인 스토리나 전투 성장에 영향 없음 ---------- */
     galleryItems() { return [
