@@ -39,6 +39,7 @@ window.AU = window.AU || {};
   B.sceneMult = function () {
     const P = AU.Prologue; if (!(P && P.on)) return 1;
     const st = AU.G && AU.G.S && AU.G.S.prologue && AU.G.S.prologue.state;
+    if (st === "SCENE_04_FATHER" && P.v && P.v.brawl) return 0.85;   // 습격에서 이어지는 간부와의 대치·격투는 습격 곡을 그대로 이어서 재생, 격투가 끝나 유언이 시작되면 작게(11-22 사용자 지시)
     return st in SCENE_MULT ? SCENE_MULT[st] : 1;
   };
 
@@ -50,7 +51,7 @@ window.AU = window.AU || {};
   B.pickGroup = function () {
     const P = AU.Prologue;
     if (!(P && P.on) && !(AU.main && AU.main.running) && B.titleShown()) return "title";
-    if (P && P.on) { if (P.introOn) return "intro"; if (B.endShown()) return "ending"; const st = AU.G && AU.G.S && AU.G.S.prologue && AU.G.S.prologue.state; return st === "SCENE_03_ATTACK" ? "raid" : st === "SCENE_06_PORT_VIEW" ? "adventure" : "arkea"; }
+    if (P && P.on) { if (P.introOn) return "intro"; if (B.endShown()) return "ending"; const st = AU.G && AU.G.S && AU.G.S.prologue && AU.G.S.prologue.state; return st === "SCENE_03_ATTACK" || (st === "SCENE_04_FATHER" && P.v && P.v.brawl) ? "raid" : st === "SCENE_06_PORT_VIEW" ? "adventure" : "arkea"; }
     const me = AU.UI && AU.UI.modalEl; if (me && !me.classList.contains("hidden") && me.querySelector(".guided")) return "breath";
     const W = AU.World, m = W && W.map; if (!m) return "main";
     if ((W.monsters || []).some((q) => q.alive && q.d && q.d.boss)) return "boss";
