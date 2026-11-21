@@ -25,7 +25,7 @@ window.AU = window.AU || {};
         ctx.save(); ctx.globalAlpha = e.alpha == null ? (A.has("pc_raider_actions") ? 1 : 0.78) : e.alpha; ctx.translate(e.x, e.y - bob); ctx.rotate(sway * e.face + (e.tilt || 0) * e.face); ctx.translate(-e.x, -e.y);
         const wsh = moving && (e.id === "off" ? (!e.pose || e.pose === "ready") && "pc_raider_officer_walk" : "pc_" + e.wk + "_walk"), WF = ["walk1", "pass1", "walk2", "pass2"];   // 4프레임 걷기 시트가 있으면 사용(간부는 검 동작 자세가 아닐 때만)
         if (wsh && A.has(wsh)) A.spr(ctx, wsh, WF[Math.floor(e.step / 18) % 4], e.x, e.y, e.face, e.s / 0.5);
-        else if (e.pose && A.has("pc_raider_officer")) A.spr(ctx, "pc_raider_officer", e.pose, e.x, e.y, e.face, e.s / 0.5);   // 간부의 검 동작(준비·치켜듦·내리침)
+        else if (e.pose && A.has("pc_raider_officer")) A.spr(ctx, "pc_raider_officer", e.pose, e.x, e.y, -e.face, e.s / 0.5);   // 간부의 검 동작(준비·치켜듦·내리침)
         else if (!A.spr(ctx, "pc_" + (A.has("pc_" + e.wk) ? e.wk : "raider_actions"), fr, e.x, e.y, e.face, e.s / 0.5)) A.raider(ctx, e.x, e.y, e.s, P.time, e.face); ctx.restore();
         } });
   }
@@ -408,7 +408,7 @@ window.AU = window.AU || {};
           const rs = Math.max(0, Math.min(1, e.rise == null ? 1 : e.rise));
           if (A.has("pc_father_down") && rs < 1) { ctx.save(); ctx.globalAlpha = 1 - rs; A.pic(ctx, "pc_father_down", LAY.house.father, G + 4, 42, -1); ctx.restore(); }
           ctx.save(); ctx.globalAlpha = rs; const rot = e.fpose === "guard" ? (1 - rs) * -1.25 : 0; ctx.translate(e.x, G); ctx.rotate(rot * (e.face || -1) * -1); ctx.translate(-e.x, -G);
-          A.spr(ctx, "pc_father_hit", e.fpose, e.x + (e.shk || 0), G, e.face === 1 ? 1 : -1); ctx.restore(); return; }
+          A.spr(ctx, "pc_father_hit", e.fpose, e.x + (e.shk || 0), G, e.face === 1 ? -1 : 1); ctx.restore(); return; }
         if (A.has("pc_father_down")) { // 쓰러진 아버지(머리가 왼쪽): 팔이 뻗은 한 장 그림만 사용(팔 조각을 따로 겹치면 손만 잘려 보여서 제거). 손이 앞으로 내민 쪽에 조각을 쥔 표시만 겹침
           A.pic(ctx, "pc_father_down", e.x, G + 4, 42, -1);
           const tipX = e.x - 96, tipY = G - 6;
@@ -476,14 +476,17 @@ window.AU = window.AU || {};
       await P.say(T.officer.slice(1, 2));   // 주인공의 외침
       const p = AU.World.player, off = ent("off"), r1 = ent("rg1"), r2 = ent("rg2"), fa = ent("father");
       // 아버지가 쓰러지는 것을 본 주인공이 충격으로 굳었다가 → 외치고 → 곧바로 달려가 곁에 주저앉음 → 그제야 간부가 반응
-      await P.walkTo(660, 2.2); P.pose("kneel"); await P.wait(0.5);
+      await P.walkTo(fx - 95, 2.2); P.pose("kneel"); await P.wait(0.5);
       await P.say(T.officer.slice(2));      // 간부의 선언(아버지 곁에 무릎 꿇은 주인공을 향해)
       walkTo(r1, fx + 165, 70); walkTo(r2, fx + 260, 70);            // 부하들이 무기를 든 채 한 걸음씩 다가옴
-      await walkTo(off, fx + 115, 80); off.pose = "raise"; P.sfx("hammer"); await P.wait(0.5); await P.say(T.officer2);   // 간부가 검을 치켜듦
+      await walkTo(off, fx + 105, 80); off.pose = "raise"; P.sfx("hammer"); await P.wait(0.5); await P.say(T.officer2);   // 간부가 검을 치켜듦
       // 아버지가 마지막 힘으로 일어나 주인공 앞을 막아섬
-      fa.fpose = "guard"; fa.face = 1; fa.rise = 0; P.sfx("slump"); await P.tween(fa, { rise: 1, x: fx - 30 }, 0.7, (k) => k * (2 - k)); await P.say(T.officer2b);
+      fa.fpose = "guard"; fa.face = 1; fa.rise = 0; P.sfx("slump"); await P.tween(fa, { rise: 1, x: fx - 6 }, 0.7, (k) => k * (2 - k)); await P.say(T.officer2b);
       // 내리치는 순간 — 아버지가 대신 맞음
-      off.pose = "slash"; await P.tween(off, { x: off.x - 16 }, 0.1, (k) => k); fa.fpose = "hit"; P.sfx("thud"); P.shake(14, 0.5); await P.flash("#ffd9a0", 0.28); P.burst("dust", fa.x, G - 70, 8); await P.wait(0.45);
+      off.pose = "slash"; const t0 = P.time; P.addEnt({ id: "slasharc", x: off.x, range: 0, layer: "front", draw(ctx, e, Q) { const k = (Q.time - t0) / 0.3; if (k > 1) { Q.ents = Q.ents.filter((q) => q !== e); return; }
+        const sx = off.x - 20, sy = G - 215, ex = fa.x + 10, ey = G - 95; ctx.save(); ctx.globalAlpha = (1 - k) * 0.9; ctx.lineCap = "round"; ctx.strokeStyle = "#fff4d0"; ctx.shadowColor = "#ffb454"; ctx.shadowBlur = 16; ctx.lineWidth = 7 * (1 - k) + 2;
+        ctx.beginPath(); ctx.moveTo(sx, sy); ctx.quadraticCurveTo(sx - 70, sy + 20 + 40 * k, sx + (ex - sx) * Math.min(1, k * 2.2 + 0.25), sy + (ey - sy) * Math.min(1, k * 2.2 + 0.25)); ctx.stroke(); ctx.restore(); } });
+      await P.tween(off, { x: off.x - 26 }, 0.1, (k) => k); fa.fpose = "hit"; P.sfx("thud"); P.shake(14, 0.5); await P.flash("#ffd9a0", 0.28); P.burst("dust", fa.x, G - 70, 8); await P.wait(0.45);
       fa.fpose = "fall"; P.sfx("slump"); await P.wait(0.5);
       await P.tween(fa, { rise: 0, x: fx }, 0.5, (k) => k); fa.fpose = null; fa.rise = null; await P.wait(0.5);   // 쓰러져 누운 자리(유언 장면 위치)로
       off.pose = "ready"; await P.say(T.officer3);
