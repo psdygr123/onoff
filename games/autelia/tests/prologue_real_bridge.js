@@ -31,6 +31,27 @@ const {chromium}=require('playwright');
   await p.reload();await p.waitForSelector('#btn-start');await p.click('#btn-start');
   const resumed=await p.evaluate(()=>({mission:AU.G.ms('m_a4').state,shown:AU.G.S.flags.realBridgeOffers['bridge-test-accept']}));
   check('BRIDGE4 independent choice survives save and reload',resumed.mission==='accepted'&&resumed.shown,resumed);
+  const quiet=await p.evaluate(()=>{
+    const G=AU.G, B=AU.RealBridge;
+    const a=B.queue("prologue-temple-complete","m_a3");
+    const again=B.queue("prologue-temple-complete","m_a3");
+    const b=B.queue("prologue-festival","m_r3");
+    const c=B.queue("prologue-arrival","m_p5");
+    const flags=G.S.flags.realBridgeSuggestions;
+    const before=G.S.prologue.state, o=G.S.missions.states;
+    return {a,again,b,c,keys:Object.keys(flags),before,states:[o.m_a3.state,o.m_r3.state,o.m_p5.state]};
+  });
+  check('BRIDGE5 chapter-end suggestions register once without starting real missions',
+    quiet.a&&!quiet.again&&quiet.b&&quiet.c&&quiet.keys.length>=3&&quiet.states.every(x=>x==="available"),quiet);
+  await p.evaluate(()=>{AU.UI.tab.jg='real';AU.UI.tab.j='missions';AU.UI.open('journal')});
+  const journal=await p.evaluate(()=>({count:document.querySelectorAll('[data-real-bridge="suggestions"] .mission').length,text:document.querySelector('[data-real-bridge="suggestions"]')?.textContent.slice(0,220)}));
+  check('BRIDGE6 suggested tasks are visible in journal',journal.count>=3&&/신전 건축/.test(journal.text),journal);
+  await p.getByRole('button',{name:'이 활동도 수락'}).first().click();
+  const acceptedQuiet=await p.evaluate(()=>({states:['m_a3','m_r3','m_p5'].map(id=>AU.G.ms(id).state),flag:AU.Prologue.flag('banners_done')}));
+  check('BRIDGE7 accepting suggested task leaves game objective unchanged',
+   acceptedQuiet.states.includes('accepted')&&!acceptedQuiet.flag,acceptedQuiet);
+  await p.evaluate(()=>AU.UI.close());
+
  }finally{await browser.close();}
  process.exit(fails?1:0);
 })().catch(e=>{console.error('FAIL',e);process.exit(1)});
