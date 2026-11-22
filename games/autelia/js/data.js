@@ -238,9 +238,9 @@ AU.JOB_TIERS = [
 
 /* ---------- 스킬 (전사, 임시) ---------- */
 AU.SKILLS = {
-  strike: { name: "강타", cost: 8, cd: 3, mult: 2.2, range: 135, desc: "정면의 적에게 온 힘을 실어 강하게 내려칩니다. (공격력 220%)" },
-  spin:   { name: "회전 베기", cost: 14, cd: 6, mult: 1.5, radius: 150, desc: "몸을 크게 돌려 주변 양쪽의 적을 한꺼번에 벱니다. (공격력 150%)" },
-  focus:  { name: "응급 치유", cost: 12, cd: 10, heal: 0.35, desc: "숨을 고르며 상처를 치유해 최대 HP의 35%를 회복합니다." }
+  strike: { name: "스매시 크러셔", cost: 8, cd: 3, mult: 2.2, range: 135, desc: "정면의 적에게 온 힘을 실어 강하게 내려칩니다. (공격력 220%)" },
+  spin:   { name: "크로스 슬래시", cost: 14, cd: 6, mult: 1.5, radius: 150, desc: "몸을 크게 돌려 주변 양쪽의 적을 한꺼번에 벱니다. (공격력 150%)" },
+  focus:  { name: "바이탈 버스트", cost: 12, cd: 10, heal: 0.35, desc: "숨을 고르며 상처를 치유해 최대 HP의 35%를 회복합니다." }
 };
 AU.WARRIOR_SKILLS = ["strike", "spin", "focus"];
 

@@ -164,7 +164,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await ev(() => AU.G.setFatigue(100)); await sleep(3200); await p.keyboard.press('1'); await sleep(150); const rF = (await S()).res;
   const round1 = (n) => Math.round(n * 10) / 10;
   note('14', '스킬 사용 시 피로도 증가·가득 차면 제한', rBasic === rA && round1(rB - rA) === c1[0] && rC === rB && round1(rD - rB) === c1[1] && round1(c1[0] + c1[1] + c1[2] - sE.res) === 0 && sE.hp > 10 && rF === 100,
-    `실제 증가량(의지 효율 적용) 강타=${c1[0]}, 회전 베기=${c1[1]}, 숨 고르기=${c1[2]} / 기본공격 후 ${rA}→${rBasic}(변화 없음), 강타 ${rA}→${rB}, 쿨다운 중 재입력 ${rB}→${rC}, 회전 베기 →${rD}, 숨 고르기 후 피로도 ${sE.res}·HP 10→${sE.hp}, 피로도 100일 때 강타 입력 후 ${rF}(증가 없음)`);
+    `실제 증가량(의지 효율 적용) 스매시 크러셔=${c1[0]}, 크로스 슬래시=${c1[1]}, 바이탈 버스트=${c1[2]} / 기본공격 후 ${rA}→${rBasic}(변화 없음), 강타 ${rA}→${rB}, 쿨다운 중 재입력 ${rB}→${rC}, 회전 베기 →${rD}, 숨 고르기 후 피로도 ${sE.res}·HP 10→${sE.hp}, 피로도 100일 때 강타 입력 후 ${rF}(증가 없음)`);
 
   // ===== 9. 키보드 설정 =====
   await p.keyboard.press('\\'); await sleep(120);

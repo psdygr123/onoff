@@ -697,13 +697,13 @@ window.AU = window.AU || {};
         ctx.strokeStyle = f.color; ctx.lineWidth = 8; ctx.beginPath(); ctx.ellipse(f.x, f.y, f.r * (0.3 + k * 0.7), f.r * (0.2 + k * 0.4), 0, 0, Math.PI * 2); ctx.stroke();
       } else if (f.kind === "wave") { // 바닥을 훑는 충격파
         ctx.strokeStyle = f.color; ctx.lineWidth = 5 * (1 - k); ctx.beginPath(); ctx.ellipse(f.x, f.y, f.r * (0.2 + k * 0.8), 9 * (0.5 + k * 0.7), 0, 0, Math.PI * 2); ctx.stroke();
-      } else if (f.kind === "whirl") { // 몸을 도는 칼날 궤적(회전 베기)
+      } else if (f.kind === "whirl") { // 몸을 도는 칼날 궤적(크로스 슬래시)
         ctx.translate(f.x, f.y); ctx.scale(1, 0.55); ctx.strokeStyle = f.color; ctx.lineCap = "round";
         for (let i = 0; i < 3; i++) { const a0 = k * 9 + i * 2.094; ctx.lineWidth = 9 * (1 - k * 0.7); ctx.beginPath(); ctx.arc(0, 0, f.r * (0.55 + k * 0.45), a0, a0 + 1.5); ctx.stroke(); }
       } else if (f.kind === "sparks") { // 사방으로 튀는 불꽃
         ctx.fillStyle = f.color;
         for (let i = 0; i < f.n; i++) { const a = -1.2 + (i / (f.n - 1)) * 2.4 + (i % 2 ? 0.15 : -0.1), d = f.spread * (0.3 + k) * (0.6 + (i % 3) * 0.25); ctx.beginPath(); ctx.arc(f.x + Math.cos(a) * d * f.dir, f.y + Math.sin(a) * d * 0.8 + k * 20, 4 * (1 - k * 0.7), 0, 7); ctx.fill(); }
-      } else if (f.kind === "motes") { // 떠오르는 빛 알갱이(응급 치유)
+      } else if (f.kind === "motes") { // 떠오르는 빛 알갱이(바이탈 버스트)
         ctx.fillStyle = f.color;
         for (let i = 0; i < f.n; i++) { const ox = Math.sin(i * 12.9) * 46, sp = 0.6 + (i % 4) * 0.2; ctx.beginPath(); ctx.arc(f.x + ox + Math.sin(this.time * 5 + i) * 5, f.y - 20 - k * 120 * sp, 3.5 * (1 - k * 0.5), 0, 7); ctx.fill(); }
       } else if (f.kind === "pillar") { // 은은한 빛기둥
