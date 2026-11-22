@@ -11,7 +11,8 @@ const note = (id, name, ok, ev) => { ok ? pass++ : fail++; console.log((ok ? 'PA
   if (await p.$('#charsetup')) { await p.fill('#sname', '시험용'); await p.click('#setup-ok'); await sleep(300); }
   const files = await ev(() => Object.values(AU.Bgm.tracks)); const missing = [];
   for (const f of files) { const r = await ev(async (u) => (await fetch(u, { method: 'HEAD' })).ok, f); if (!r) missing.push(f); }
-  note('A1', '모든 곡 파일이 있음', missing.length === 0, missing.join(','));
+  const required = missing.filter((f) => !/elegy\.mp3/.test(f));   // elegy(아버지 사후 장면)는 선택 곡: 파일이 있을 때만 사용
+  note('A1', '모든 곡 파일이 있음(선택 곡 elegy 제외)', required.length === 0, required.join(','));
   note('A2', '프롤로그 중에는 아르케아(회상) 곡, 도입 영상 중에는 도입 영상 전용 곡', (await ev(() => (AU.Prologue.introOn = false, AU.Bgm.pick().key))) === 'arkea' && (await ev(() => (AU.Prologue.introOn = true, AU.Bgm.pick().key))) === 'intro' && (await ev(() => (AU.Prologue.introOn = false, 1))));
   note('A3', '습격(03)과 이어지는 격투(04, brawl)는 raid, 격투 후 유언(04)은 아르케아 곡', (await ev(() => { AU.G.S.prologue.state = 'SCENE_03_ATTACK'; return AU.Bgm.pick().key; })) === 'raid' && (await ev(() => { AU.G.S.prologue.state = 'SCENE_04_FATHER'; AU.Prologue.v.brawl = true; return AU.Bgm.pick().key; })) === 'raid' && (await ev(() => { AU.Prologue.v.brawl = false; return AU.Bgm.pick().key; })) === 'arkea' && (await ev(() => AU.Bgm.tracks.raid.indexOf('raid.mp3') >= 0)));
   await ev(() => AU.Prologue.debugComplete('porto')); await sleep(200);
