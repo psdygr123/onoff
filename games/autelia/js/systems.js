@@ -163,7 +163,6 @@ window.AU = window.AU || {};
       if (rec) return rec.state;
       if (q.pre.some((p) => this.questStatus(p) !== "done")) return "locked";
       if (this.S.level < q.minLevel) return "locked";
-      if (id === "q_job" && this.S.jobChanged) return "locked";
       return "available";
     },
     objectiveDone(q, rec, i) {
@@ -286,7 +285,6 @@ window.AU = window.AU || {};
       if (AU.RealBridge) AU.RealBridge.questEvent(id, "done");
       this.save("quest"); this.changed(); return true;
     },
-    bossActive() { const r = this.qs("q_job"); return !!r && (r.state === "active"); },
 
     /* ---------- 힘의 각성(Lv10, 제페토): 전직 없이 스킬이 열리고, 피로도·쉼 미션이 시작됨 ---------- */
     awakened() { return !!(this.S.jobChanged || this.S.flags.awakened); },
@@ -650,6 +648,7 @@ window.AU = window.AU || {};
       } else merged.mindStats = Object.assign(base.mindStats, raw.mindStats);
       merged.profile = AU.Profile ? AU.Profile.clean(raw.profile) : { name: "", gender: "" };
       merged.v = C.save.version; merged.inv = raw.inv || {}; merged.quests = raw.quests || {}; merged.visited = raw.visited || { arche: true };
+      delete merged.quests.q_job;   // 전직 시험 폐지: 이전 저장의 기록 제거
       // 프롤로그 추가 전(v1) 저장: 이미 시작한 본편 진행을 그대로 유지하고 프롤로그는 '완료'로 간주(필요하면 제목 화면에서 다시 볼 수 있음)
       merged.prologue = raw.prologue && typeof raw.prologue === "object" ? raw.prologue : { state: "COMPLETED", flags: {}, seen: {}, legacy: true };
       return merged;

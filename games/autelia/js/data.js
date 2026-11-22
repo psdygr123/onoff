@@ -94,7 +94,7 @@ AU.MAPS = {
     platforms: [{ x: 0, y: 590, w: 2689 }], ropes: [],
     portals: [{ x: 40, to: "harbor_road", toX: 2330, label: "뱀길" }, { x: 2620, to: "docks", toX: 90, label: "선창 외곽" }, { x: 2430, to: "general_store", toX: 90, label: "해풍 잡화점" }, { x: 370, to: "weapon_store", toX: 90, label: "철파도 무기점" },
               { x: 1736, to: "guild_hall", toX: 110, label: "선창 길드" }, { x: 2080, to: "warehouse", toX: 110, label: "부두 창고" }],
-    npcs: [{ id: "porto_dock", x: 600 }, { id: "job_npc", x: 900 }, { id: "guide_npc", x: 1250 }],
+    npcs: [{ id: "porto_dock", x: 600 }, { id: "guide_npc", x: 1250 }],
     spots: [],
     spawns: [], start: 160,
     area: { x: 78, y: 40, desc: "중립 항구도시입니다. 선창 길드와 부두 창고, 상점이 모여 있습니다." }
@@ -150,7 +150,6 @@ AU.MAPS = {
     spots: [
     ],
     spawns: [{ type: "rat", x: 250 }, { type: "rat", x: 430 }, { type: "rat", x: 620 }, { type: "rat", x: 780 }, { type: "crab", x: 920 }, { type: "crab", x: 1060 }, { type: "crab", x: 1190 }],
-    boss: { type: "trial_boss", x: 980 },     // 전직 시험 중에만 등장
     area: { x: 90, y: 64, desc: "항구 바깥 선창 지대입니다. 입구 쪽에는 부두 쥐가, 안쪽에는 집게 게가 삽니다. 길드 의뢰의 사냥터입니다." }
   }
 };
@@ -346,15 +345,6 @@ AU.QUESTS = {
     },
     done: ["수고했네. 자네 덕에 창고 일이 한결 분명해졌어.", "이건 길드가 풀 수 있는 일이 아닌 것 같네. 길드 뒷일을 맡는 자가 있으니 그쪽에 넘겨야겠어.", "자네가 본 것을 내 장부에 옮겨 보고서로 정리했네. 내 서신과 함께 봉해 두었으니 직접 전해 주게.", "(카시안이 봉인된 서신과 보고서를 건넸다.)", "상대는 바르샤라는 정보상일세. 포르투 노바 왼쪽 잔다리 골목, 그 안쪽 공방에 있네. 낯을 가리는 사람이니 서신부터 보여 주게.", "다만 그 사람은 위험한 일을 맡기는 터라, 그 전에 실력부터 보여야 하네. 멧돼지 숲에 굶주린 늑대가 늘었다니 먼저 그쪽을 정리하고 오게."],
     reward: { exp: 1600, silver: 100, items: [["teodoros_letter", 1]] }
-  },
-  q_job: {
-    title: "전직 시험", type: "main", giver: "job_npc", minLevel: 99, pre: [],
-    area: "docks", desc: "선창 외곽에 나타나는 움브라를 처치합니다.",
-    objectives: [{ kind: "kill", target: "trial_boss", count: 1 }],
-    offer: ["10레벨이 되었군요. 전직 시험을 치르겠습니까? 선창 외곽에 움브라가 나타납니다."],
-    done: ["시험을 통과했습니다. 이제 전사의 길로 들어섭니다."],
-    reward: { exp: 0, silver: 100, items: [] },
-    jobChange: "warrior"
   }
 };
 
@@ -391,8 +381,6 @@ AU.NPCS = {
     idle: ["창고 일은 자네 덕에 한시름 놨네.", "바닷바람이 거세니 몸조심하게."] },
   porto_guild: { name: "다프네", sprite: "villager_b", portrait: "pt_villager_b", quests: ["q_guild_talk", "q_guild_rats", "q_guild_crabs"],
     idle: ["선창 길드입니다. 의뢰가 필요하면 말씀하세요.", "오늘은 부두가 조용하군요."] },
-  job_npc: { name: "레오니다스", sprite: "smith", portrait: "pt_smith", quests: ["q_job"],
-    idle: ["쇠는 두드릴수록 단단해지지. 사람도 마찬가지일세.", "무리하지 말고 한 걸음씩 단련하게."] },
   porto_armor: { name: "이리스", title: "점원", sprite: "porto_armor", portrait: "pt_porto_armor", quests: [],
     idle: ["방어구는 몸에 맞는 게 제일이에요. 천천히 구경하세요.", "무기점 주인이 망치를 잡으면 저는 갑옷을 손봅니다."] },
   porto_general: { name: "페넬로페", sprite: "porto_general", portrait: "pt_porto_general", shop: "general",
