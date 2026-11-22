@@ -84,7 +84,7 @@ window.AU = window.AU || {};
       // 전환 연출
       if (this.trans) {
         const t = this.trans; t.t += dt;
-        if (!t.swapped && t.t >= t.dur / 2) { t.swapped = true; this.enterMap(t.to, t.x); }
+        if (!t.swapped && t.t >= t.dur / 2) { t.swapped = true; this.enterMap(t.to, t.x); if (t.caught) this.onCaught(); }
         if (t.t >= t.dur) this.trans = null;
       }
       // 사망 처리
@@ -122,7 +122,8 @@ window.AU = window.AU || {};
       const virt = this.virt; // 컷신이 주인공을 걷게 할 때(프롤로그)는 키 입력 대신 가상 입력을 씀
       const left = virt ? virt.dir < 0 : !blocked && I.isHeld("left"), right = virt ? virt.dir > 0 : !blocked && I.isHeld("right"), up = !blocked && I.isHeld("up"), down = !blocked && I.isHeld("down");
       const mv = (right ? 1 : 0) - (left ? 1 : 0);
-      this.nearNpc = null; this.nearPortal = null; if (this.work) this.updateWork(dt, blocked);
+      if (p.hidden) { p.hideT -= dt; if (mv !== 0 || p.hideT <= 0 || blocked || p.dead) p.hidden = false; else p.vx = 0; } // 숨는 중: 움직이면 풀림, 최대 시간 뒤 자동 해제
+      this.nearNpc = null; this.nearHide = null; this.nearPortal = null; if (this.work) this.updateWork(dt, blocked);
 
       if (p.rope) {
         const r = p.rope; p.x = r.x; p.vx = 0; p.vy = 0;
@@ -182,11 +183,39 @@ window.AU = window.AU || {};
       for (const d of this.drops) if (Math.abs(p.x - d.x) < 64 && Math.abs(p.y - d.y) < 110 && d.vy > -50) { if (!this.nearDrop || Math.abs(p.x - d.x) < Math.abs(p.x - this.nearDrop.x)) this.nearDrop = d; }
       for (const n of map.npcs || []) if (Math.abs(p.x - n.x) < 90) { if (!this.nearNpc || Math.abs(p.x - n.x) < Math.abs(p.x - this.nearNpc.x)) this.nearNpc = n; }
       for (const pt of map.portals || []) if (Math.abs(p.x - pt.x) < 70 && p.onGround) this.nearPortal = pt;
+      if (this.stealthOn()) for (const hs of map.hideSpots || []) if (Math.abs(p.x - hs.x) < 60 && p.onGround) this.nearHide = hs;
       for (const sp of map.spots || []) if (Math.abs(p.x - sp.x) < 70 && p.onGround && AU.G.spotObjective(sp.id) && (!sp.needFlag || AU.G.S.flags[sp.needFlag])) this.nearSpot = sp;   // 진행 중인 조사·수리 목표가 있는 지점만
       this.prompt = this.work ? "수리 중… (움직이면 멈춥니다)" : this.nearDrop ? "Space 줍기: " + AU.ITEMS[this.nearDrop.id].name.replace(" (임시)", "") + (this.nearDrop.n > 1 ? " ×" + this.nearDrop.n : "") : this.nearSpot ? "Space " + (this.nearSpot.kind === "repair" ? "수리" : "조사") + ": " + this.nearSpot.label : this.nearNpc ? "Space 대화: " + AU.NPCS[this.nearNpc.id].name : this.nearPortal ? "↑ 이동: " + this.nearPortal.label : "";
+      if (this.nearHide && !this.work && !p.dead) this.prompt = p.hidden ? "숨는 중… (움직이거나 Space로 나오기)" : "Space 숨기"; else if (p.hidden) this.prompt = "숨는 중… (움직이거나 Space로 나오기)";
       if (AU.Prologue && AU.Prologue.on) AU.Prologue.scan(this);
     },
 
+    /* ---------- 잠입 임무(map.stealthMission): 들키면 구역 입구에서 다시 시작. 숨는 상자(hideSpots)·시야를 막는 구조물(blockers) ---------- */
+    stealthOn() { const sm = this.map && this.map.stealthMission; return !!sm && AU.G.questStatus(sm.quest) === "active" && !AU.G.S.flags[sm.flag]; },
+    stealthTries() { const sm = this.map && this.map.stealthMission; return sm ? (AU.G.S.flags["stealth_tries_" + this.mapId] || 0) : 0; },
+    sightMul() { return this.stealthOn() && this.stealthTries() >= 3 ? 0.8 : 1; }, // 3번 이상 들키면 경비 시야가 조금 약해짐(도움)
+    sightBlocked(gx, px) { const lo = Math.min(gx, px), hi = Math.max(gx, px); return (this.map.blockers || []).some((b) => b.x > lo && b.x < hi); },
+    caught(m) {
+      if (this.trans || this.player.dead) return;
+      this.floater(m.x, m.y - m.d.h - 30, "!", "#FF5A4D");
+      this.trans = { t: 0, dur: 1.0, to: this.mapId, x: this.map.stealthMission.start, swapped: false, caught: true };
+    },
+    onCaught() {
+      const S = AU.G.S, k = "stealth_tries_" + this.mapId, n = (S.flags[k] || 0) + 1; S.flags[k] = n;
+      S.hp = AU.G.d().maxHp; this.player.hidden = false; this.player.invuln = 1;
+      AU.G.toast("들켰습니다! 입구에서 다시 시도합니다. (" + n + "번째 도전, 불이익 없음)", "warn");
+      if (n === 3) AU.G.toast("도움: 경비의 시야가 조금 약해졌습니다. 상자 앞에서 Space로 숨을 수 있어요.", "info");
+      AU.G.save && AU.G.save("map");
+    },
+    drawStealthProps(ctx) {
+      const m = this.map; if (!m || (!m.hideSpots && !m.blockers)) return; const y = GROUND, on = this.stealthOn();
+      for (const b of m.blockers || []) { ctx.fillStyle = "#2F2B27"; ctx.fillRect(b.x - 20, y - 230, 40, 230); ctx.fillStyle = "rgba(255,255,255,.08)"; ctx.fillRect(b.x - 20, y - 230, 7, 230); ctx.fillStyle = "#3F3934"; ctx.fillRect(b.x - 26, y - 238, 52, 12); }
+      for (const hs of m.hideSpots || []) {
+        ctx.fillStyle = "#5B4632"; ctx.fillRect(hs.x - 38, y - 66, 76, 66); ctx.strokeStyle = "#2E2216"; ctx.lineWidth = 3; ctx.strokeRect(hs.x - 38, y - 66, 76, 66);
+        ctx.beginPath(); ctx.moveTo(hs.x - 38, y - 44); ctx.lineTo(hs.x + 38, y - 44); ctx.moveTo(hs.x - 38, y - 22); ctx.lineTo(hs.x + 38, y - 22); ctx.stroke();
+        if (on && this.player && !this.player.hidden) { ctx.fillStyle = "rgba(255,243,205,.85)"; ctx.font = "700 13px 'Noto Sans KR', sans-serif"; ctx.textAlign = "center"; ctx.fillText("숨는 곳", hs.x, y - 76); }
+      }
+    },
     /* ---------- 이동기: Lv.5부터. 충전 최대 3, 대기시간 없이 연속 사용, 10초마다 1충전 ---------- */
     dash() {
       const p = this.player, D = AU.CONFIG.dash, S = AU.G.S;
@@ -200,6 +229,7 @@ window.AU = window.AU || {};
     /* ---------- 입력 이벤트(눌렀을 때 한 번) ---------- */
     onAction(id) {
       if (this.isBlocked()) return;
+      if (this.player.hidden && id !== "interact") this.player.hidden = false; // 숨은 채로 다른 행동을 하면 먼저 나옴
       const PR = AU.Prologue;
       if (PR && PR.on) { if (id === "interact") { PR.interactNear(); return; } if (id === "attack" || id.startsWith("skill")) return; } // 프롤로그에서는 전투·스킬 없음
       if (id === "potion" || id === "scroll") { AU.G.quickUse(id); return; }
@@ -215,7 +245,9 @@ window.AU = window.AU || {};
       } else if (id === "interact") {
         if (this.nearDrop) { this.pickupNear(); return; }
         if (this.nearSpot) { this.useSpot(this.nearSpot); return; }
-        if (this.nearNpc) { AU.UI.talkNpc(this.nearNpc.id); }
+        if (this.nearNpc) { AU.UI.talkNpc(this.nearNpc.id); return; }
+        if (p.hidden) { p.hidden = false; return; }
+        if (this.nearHide) { p.hidden = true; p.hideT = 8; p.vx = 0; }
       } else if (id === "up") {
         if (this.nearPortal && !p.rope) { const pt = this.nearPortal; if (pt.lock) { AU.UI.toast(pt.lock, "info"); return; } if (!this.portalOpen(pt)) { AU.UI.toast(pt.reqText || "아직 갈 수 없습니다.", "warn"); return; } this.travel(pt.to, pt.toX); }
       } else if (id.startsWith("skill")) this.useSkillSlot(+id.slice(5) - 1);
@@ -380,9 +412,10 @@ window.AU = window.AU || {};
         if (Math.abs(m.kb) > 4) { m.x += m.kb * dt; m.kb *= Math.pow(0.02, dt); } else m.kb = 0;
         const dx = p.x - m.x, dist = Math.abs(dx);
         let near = !p.dead && dist < m.d.chase && Math.abs(p.y - m.y) < 160;
-        if (m.d.sight && m.state === "patrol") { // 경비: 바라보는 쪽 시야 안에 들어왔을 때만 발견(등 뒤·시야 밖은 못 봄)
-          near = !p.dead && dist < m.d.sight && sign(dx) === m.dir && Math.abs(p.y - m.y) < 160;
-          if (near) { this.spotted = true; this.floater(m.x, m.y - m.d.h - 30, "!", "#FF5A4D"); }
+        if (m.d.sight && m.state === "chase" && this.stealthOn()) { this.caught(m); return; } // 잠입 임무 중에는 경비가 쫓아오는 일 자체가 실패
+        if (m.d.sight && m.state === "patrol") { // 경비: 바라보는 쪽 시야 안에 들어왔을 때만 발견(등 뒤·시야 밖·숨은 상태·시야를 막는 구조물 뒤는 못 봄)
+          near = !p.dead && !p.hidden && dist < m.d.sight * this.sightMul() && sign(dx) === m.dir && Math.abs(p.y - m.y) < 160 && !this.sightBlocked(m.x, p.x);
+          if (near) { this.spotted = true; if (this.stealthOn()) { this.caught(m); return; } this.floater(m.x, m.y - m.d.h - 30, "!", "#FF5A4D"); }
         } else if (m.d.sight && m.state === "chase") near = !p.dead && dist < m.d.chase * 1.3 && Math.abs(p.y - m.y) < 160;
         if (m.state === "patrol" || m.state === "chase") {
           if (near) { m.state = "chase"; m.dir = sign(dx) || m.dir; }
@@ -485,7 +518,7 @@ window.AU = window.AU || {};
         const im = AU.Img.get(map.bg), k = H / im.naturalHeight, f = map.fgSlice; ctx.drawImage(im, f[0], f[1], f[2], f[3], f[0] * k, f[1] * k, f[2] * k, f[3] * k);
       }
       for (const n of map.npcs || []) this.drawNpcOverlay(ctx, n);
-      this.drawSpots(ctx);
+      this.drawSpots(ctx); this.drawStealthProps(ctx);
       for (const m of this.monsters) if (m.alive && m.d.sight && m.state === "patrol") { // 경비 시야(붉은 부채꼴)
         const L = m.d.sight, g = ctx.createLinearGradient(m.x, 0, m.x + m.dir * L, 0); g.addColorStop(0, "rgba(255,70,60,.32)"); g.addColorStop(1, "rgba(255,70,60,0)");
         ctx.save(); ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(m.x, m.y - 70); ctx.lineTo(m.x + m.dir * L, m.y - 4); ctx.lineTo(m.x + m.dir * L, m.y + 6); ctx.lineTo(m.x, m.y - 40); ctx.closePath(); ctx.fill(); ctx.restore();
@@ -508,7 +541,8 @@ window.AU = window.AU || {};
       if (pro) PR.drawOverlay(ctx);
       if (this.trans) {
         const t = this.trans, a = t.t < t.dur / 2 ? t.t / (t.dur / 2) : 1 - (t.t - t.dur / 2) / (t.dur / 2);
-        ctx.fillStyle = "rgba(255,248,232," + Math.max(0, Math.min(1, a)) + ")"; ctx.fillRect(0, 0, W, H);
+        ctx.fillStyle = (t.caught ? "rgba(110,22,22," : "rgba(255,248,232,") + Math.max(0, Math.min(1, a)) + ")"; ctx.fillRect(0, 0, W, H);
+        if (t.caught) { ctx.font = "800 44px 'Noto Sans KR', sans-serif"; ctx.textAlign = "center"; ctx.fillStyle = "rgba(255,225,200," + Math.max(0, Math.min(1, a * 1.4)) + ")"; ctx.fillText("들켰다!", W / 2, H / 2); }
       }
     },
     drawBackground(ctx, cx) {
@@ -674,6 +708,7 @@ window.AU = window.AU || {};
     },
     drawPlayer(ctx, p) {
       if (p.invuln > 0 && Math.floor(this.time * 20) % 2 === 0 && !p.dead) ctx.globalAlpha = 0.45;
+      if (p.hidden) ctx.globalAlpha = 0.3;
       if (p.dead) ctx.globalAlpha = 0.5;
       const gk = AU.Profile.gender() === "f" ? ["player_female", "player_male"] : ["player_male", "player_female"], key = AU.Img.has(gk[0]) ? gk[0] : gk[1], moving = Math.abs(p.vx) > 20 && p.onGround;
       const frame = moving ? Math.floor(p.anim * 9 * 22 / C.move.speed) % 4 : (p.rope ? Math.floor(p.anim) % 2 : 0);

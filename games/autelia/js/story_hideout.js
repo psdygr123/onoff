@@ -30,6 +30,7 @@ window.AU = window.AU || {};
   const AREA = (x, y, d) => ({ x, y, desc: d });
   AU.MAPS.hide_outer = {
     name: "검은 아지트 외곽", bg: "bg_hideout_outer_1", bgs: ["bg_hideout_outer_1", "bg_hideout_outer_2"], width: 2558, safe: false, stealth: true,
+    stealthMission: { quest: "q_h1", flag: "hide_outer_clear", start: 120 }, hideSpots: [{ x: 960 }, { x: 1490 }, { x: 2030 }], blockers: [{ x: 1260 }, { x: 1800 }],
     platforms: [FLOOR], ropes: [],
     portals: [{ x: 40, to: "gorge", toX: 1400, label: "협곡 바위틈" },
               { x: 2510, to: "hide_tunnel", toX: 90, label: "갱도 입구", reqQuest: "q_h1", reqIn: ["active", "ready", "done"], reqText: "제페토의 부탁을 받아야 안으로 들어갈 수 있습니다." }],
@@ -45,7 +46,7 @@ window.AU = window.AU || {};
         L(HERO, "(이 수가 전부 안쪽으로 들어갔다는 뜻이다. 서둘러야 한다.)")] }
     ],
     spawns: [{ type: "hide_guard", x: 560, min: 450, max: 900 }, { type: "hide_guard", x: 1180, min: 1020, max: 1420 }, { type: "hide_guard", x: 1700, min: 1560, max: 1950 }, { type: "hide_guard", x: 2230, min: 2100, max: 2420 }],
-    area: AREA(88, 6, "협곡 안쪽 깊은 곳에 숨은 검은 아지트의 바깥 구역입니다. 경비의 시선을 피해 지나가면 싸움을 줄일 수 있습니다.")
+    area: AREA(88, 6, "협곡 안쪽 깊은 곳에 숨은 검은 아지트의 바깥 구역입니다. 경비에게 들키면 입구에서 다시 시작합니다. 상자 앞에서 Space로 숨고, 기둥 뒤로 시선을 피하세요.")
   };
   AU.MAPS.hide_tunnel = {
     name: "검은 아지트 갱도", bg: "bg_hideout_tunnel", width: 1280, safe: false,
@@ -119,7 +120,7 @@ window.AU = window.AU || {};
       { kind: "kill", target: "umbra_boss", count: 1 },
       { kind: "investigate", targets: ["faustos_flee"] }],
     offer: [L(J(), "때가 되었네. 협곡 안쪽의 길을 열었네. 저 바위 너머가 어둠 세력의 아지트일세."),
-            L(J(), "바깥은 경비병이 지키고 있네. 눈에 띄지 않게 시선을 피해 가면 싸움을 줄일 수 있지. 들켜도 되돌아갈 필요는 없지만, 숫자가 많으니 조심하게."),
+            L(J(), "바깥은 경비병이 지키고 있네. 붉은 시선에 걸리면 잡히니, 입구로 돌려보내질 걸세. 상자 앞에서 Space를 눌러 숨고, 기둥 뒤로 지나가게. 몇 번을 다시 해도 잃는 건 없네."),
             L(J(), "안쪽 갱도와 실험 구역에서는 싸울 각오를 하게. 그리고 무엇을 만드는지, 누가 책임자인지 꼭 눈으로 확인하고 오게.")],
     reminder: ["아지트는 협곡 안쪽 길 끝일세. 장부와 우리, 갱도 기록, 실험 기록을 살피고 책임자를 확인하게."],
     done: [L(J(), "...돌아왔군. 다친 데는 없나."),
@@ -144,8 +145,11 @@ window.AU = window.AU || {};
   // 외곽에서 안 들키고 갱도에 도착하면 보너스(한 번만)
   H.onTravel = function (W, to) {
     if (W.mapId !== "hide_outer" || to !== "hide_tunnel") return;
-    const S = AU.G.S; if (W.spotted || S.flags.hide_sneak_bonus) return;
-    S.flags.hide_sneak_bonus = true; AU.G.gainSilver(100); AU.G.giveItem("potion", 3, true);
-    AU.G.toast("들키지 않고 외곽을 통과했습니다! 보너스: 은화 100, 물약 3", "good");
+    const S = AU.G.S; if (!AU.G.questStatus || S.flags.hide_outer_clear) return;
+    S.flags.hide_outer_clear = true; // 외곽 잠입 구간 통과: 이후 경비는 평소처럼 행동
+    if (!(S.flags.stealth_tries_hide_outer > 0) && !S.flags.hide_sneak_bonus) {
+      S.flags.hide_sneak_bonus = true; AU.G.gainSilver(100); AU.G.giveItem("potion", 3, true);
+      AU.G.toast("한 번도 들키지 않고 외곽을 통과했습니다! 보너스: 은화 100, 물약 3", "good");
+    } else AU.G.toast("외곽을 통과했습니다. 갱도로 들어갑니다.", "good");
   };
 })();
