@@ -52,6 +52,7 @@ window.AU = window.AU || {};
       this.toast("레벨 업! Lv." + S.level, "good");
       if (S.level > C.levels.autoGrowthUntil) this.toast("스탯 포인트 +" + C.levels.freePointsPerLevel + " (S 키)", "info");
       for (const u of AU.UNLOCKS) if (u.level === S.level) this.toast(u.text, "info");
+      this.syncSkills(true);
     },
 
     /* ---------- 재화·아이템 ---------- */
@@ -290,14 +291,25 @@ window.AU = window.AU || {};
       this.save("quest"); this.changed(); return true;
     },
 
+    /* 레벨에 맞게 스킬을 열고 빈 슬롯에 순서대로 배치(각성·전직 이후에만). announce=true면 새 스킬을 알림 */
+    syncSkills(announce) {
+      const S = this.S; if (!this.awakened()) return;
+      const want = AU.skillsForLevel(S.level), fresh = want.filter((id) => !S.skills.unlocked.includes(id));
+      S.skills.unlocked = want.slice();
+      S.skills.slots = [0, 1, 2].map((i) => (want.includes(S.skills.slots[i]) ? S.skills.slots[i] : null));
+      for (const id of want) if (!S.skills.slots.includes(id)) { const i = S.skills.slots.indexOf(null); if (i >= 0) S.skills.slots[i] = id; }
+      if (announce) for (const id of fresh) if (id !== "strike" || S.level > AU.SKILL_UNLOCK_LV.strike) this.toast("새 스킬 '" + AU.SKILLS[id].name + "'을(를) 배웠습니다! (" + (S.skills.slots.indexOf(id) + 1) + "번 키, K 키)", "good");
+    },
+
     /* ---------- 힘의 각성(Lv10, 제페토): 전직 없이 스킬이 열리고, 피로도·쉼 미션이 시작됨 ---------- */
     awakened() { return !!(this.S.jobChanged || this.S.flags.awakened); },
     awaken() {
       const S = this.S; if (S.flags.awakened || S.jobChanged) return false;
       S.flags.awakened = true; S.freePoints += C.levels.freePointsOnJobChange;
-      S.skills.unlocked = AU.WARRIOR_SKILLS.slice(); S.skills.slots = AU.WARRIOR_SKILLS.slice(0, 3); S.hp = this.d().maxHp;
+      this.syncSkills(false); S.hp = this.d().maxHp;
       this.unlockRealMissions(false); this.log("용사의 힘이 깨어났습니다.");
-      this.toast("힘이 깨어났습니다! 스킬이 열렸습니다 (1·2·3 키, K 키)", "good");
+      this.toast("힘이 깨어났습니다! 첫 스킬 '" + AU.SKILLS.strike.name + "'이 열렸습니다 (1번 키, K 키)", "good");
+      this.toast("2번 스킬은 Lv." + AU.SKILL_UNLOCK_LV.spin + ", 3번 스킬은 Lv." + AU.SKILL_UNLOCK_LV.focus + "에 열립니다", "info");
       this.toast("스탯 포인트 +" + C.levels.freePointsOnJobChange + ". 스킬을 쓰면 피로도가 쌓이며, 모험일지의 '쉼'에서 줄일 수 있습니다", "info");
       AU.Ev.emit("awaken", {}); return true;
     },
@@ -307,12 +319,12 @@ window.AU = window.AU || {};
       const S = this.S; if (S.jobChanged) return;
       S.job = job; S.jobChanged = true;
       S.freePoints += C.levels.freePointsOnJobChange;
-      S.skills.unlocked = AU.WARRIOR_SKILLS.slice(); S.skills.slots = AU.WARRIOR_SKILLS.slice(0, 3);
+      this.syncSkills(false);
       this.unlockRealMissions(false);
       S.hp = this.d().maxHp;
       this.log("전직: " + AU.JOBS[job].name);
       this.toast("전직했습니다: " + AU.JOBS[job].name, "good");
-      this.toast("전사 스킬이 활성화되었습니다 (1·2·3 키, K 키)", "info");
+      this.toast("전사 스킬이 활성화되었습니다. 레벨에 따라 하나씩 열립니다 (K 키)", "info");
       this.toast("스탯 포인트 +" + C.levels.freePointsOnJobChange + ". 모험일지(J)의 '쉼' 미션으로 피로도를 줄일 수 있습니다", "info");
       AU.Ev.emit("jobchange", { job });
     },
@@ -650,6 +662,7 @@ window.AU = window.AU || {};
         merged.mindStats = { P: 0, E: 0, R: 0, M: 0, A: 0 };
         for (const m of AU.MISSIONS) { const r = merged.missions.states[m.id]; if (r && r.rewarded && merged.mindStats[m.perma] != null) merged.mindStats[m.perma] += m.points; }
       } else merged.mindStats = Object.assign(base.mindStats, raw.mindStats);
+      if (merged.jobChanged || (merged.flags && merged.flags.awakened)) { const w = AU.skillsForLevel(merged.level); merged.skills.unlocked = w.slice(); merged.skills.slots = [0, 1, 2].map((i) => (w.includes(merged.skills.slots[i]) ? merged.skills.slots[i] : null)); for (const id of w) if (!merged.skills.slots.includes(id)) { const i = merged.skills.slots.indexOf(null); if (i >= 0) merged.skills.slots[i] = id; } }   // 레벨별 스킬 개방 규칙 적용(이전 저장 보정)
       merged.profile = AU.Profile ? AU.Profile.clean(raw.profile) : { name: "", gender: "" };
       merged.v = C.save.version; merged.inv = raw.inv || {}; merged.quests = raw.quests || {}; merged.visited = raw.visited || { arche: true };
       delete merged.quests.q_job;
