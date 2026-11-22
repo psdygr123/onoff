@@ -666,6 +666,10 @@ window.AU = window.AU || {};
       merged.profile = AU.Profile ? AU.Profile.clean(raw.profile) : { name: "", gender: "" };
       merged.v = C.save.version; merged.inv = raw.inv || {}; merged.quests = raw.quests || {}; merged.visited = raw.visited || { arche: true };
       delete merged.quests.q_job;
+      // 현재 게임에 없는 아이템(삭제·이름 변경된 항목)이 가방·장비에 남아 있으면 인벤토리/장비창 그리기가 예외로 멈춰 창이 안 열림 → 불러올 때 정리
+      { const bad = []; for (const id of Object.keys(merged.inv)) { if (!AU.ITEMS[id] || !(merged.inv[id] > 0)) { bad.push(id); delete merged.inv[id]; } }
+        for (const sl of Object.keys(merged.equip)) { const id = merged.equip[sl]; if (id && !AU.ITEMS[id]) { bad.push(id); merged.equip[sl] = null; } }
+        if (bad.length) console.warn("[autelia] 알 수 없는 아이템 정리:", bad.join(", ")); }
       if (merged.quests.q_h1) AU.migrateHideout(merged);   // 아지트 퀘스트 6단계 분할: 이전 저장의 q_h1을 단계별 기록으로 옮김   // 전직 시험 폐지: 이전 저장의 기록 제거
       // 프롤로그 추가 전(v1) 저장: 이미 시작한 본편 진행을 그대로 유지하고 프롤로그는 '완료'로 간주(필요하면 제목 화면에서 다시 볼 수 있음)
       merged.prologue = raw.prologue && typeof raw.prologue === "object" ? raw.prologue : { state: "COMPLETED", flags: {}, seen: {}, legacy: true };

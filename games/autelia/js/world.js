@@ -339,7 +339,8 @@ window.AU = window.AU || {};
     },
     basicAttack() {
       const p = this.player;
-      if (!AU.G.S.equip.weapon) { if (AU.EquipTour) AU.EquipTour.blocked(); return; }   // 무기를 장착하지 않으면 공격 불가 p.atkCD = C.combat.attackCooldown; p.atkT = 0.22;
+      if (!AU.G.S.equip.weapon) { if (AU.EquipTour) AU.EquipTour.blocked(); return; }   // 무기를 장착하지 않으면 공격 불가
+      p.atkCD = C.combat.attackCooldown; p.atkT = 0.22;
       const x0 = p.dir > 0 ? p.x + 8 : p.x - 8 - C.combat.attackRange, x1 = x0 + C.combat.attackRange;
       this.fx.push({ kind: "slash", x: p.x + p.dir * 56, y: p.y - 64, dir: p.dir, t: 0, dur: 0.2, r: 60, color: "#FFF6CF" });
       for (const m of this.monsters) {
