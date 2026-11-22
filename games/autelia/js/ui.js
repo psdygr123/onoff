@@ -1121,7 +1121,7 @@ window.AU = window.AU || {};
   R.jobcard = function (b) {
     const S = AU.G.S;
     b.append(h("div", { class: "jobcard" }, h("h2", { text: "전사로 전직했습니다!" }), h("p", { text: "견습 모험가에서 전사가 되었습니다. 다음 기능이 열렸어요." }),
-      h("ul", null, h("li", { text: "스탯 분배: 포인트 " + S.freePoints + "점이 지급되었습니다. 스탯창(" + keyOf("stats") + ")에서 직접 나눠 보세요." }), h("li", { text: "전사 스킬: 1·2·3 슬롯에 배치되어 있습니다. 스킬창(" + keyOf("skills") + ")에서 바꿀 수 있습니다." }), h("li", { text: "피로도: 스킬을 쓸 때마다 쌓이며, 가득 차면 스킬을 쓸 수 없습니다(기본 공격은 가능). 휴식이나 쉼 미션으로 줄일 수 있고, 매주 월요일에 풀립니다." }),
+      h("ul", null, h("li", { text: "스탯 분배: 포인트 " + S.freePoints + "점이 지급되었습니다. 스탯창(" + keyOf("stats") + ")에서 직접 나눠 보세요." }), h("li", { text: "스킬: 지금은 1번 스킬(" + AU.SKILLS.strike.name + ")만 열렸고, 2번은 Lv." + AU.SKILL_UNLOCK_LV.spin + ", 3번은 Lv." + AU.SKILL_UNLOCK_LV.focus + "에 열립니다. 스킬창(" + keyOf("skills") + ")에서 바꿀 수 있습니다." }), h("li", { text: "피로도: 스킬을 쓸 때마다 쌓이며, 가득 차면 스킬을 쓸 수 없습니다(기본 공격은 가능). 휴식이나 쉼 미션으로 줄일 수 있고, 매주 월요일에 풀립니다." }),
         h("li", { text: "모험일지(" + keyOf("journal") + "): 현실 활동 미션이 열렸습니다. 선택 사항이며, 포르투 노바의 알렉시오스가 소개해 줍니다." }),
         h("li", { text: "다음 목표: " + AU.JOB_TIERS.slice(1).map((t) => "Lv." + t.level + " " + t.name).join(" / ") })),
       h("div", { class: "choices" }, btn("스탯 분배하러 가기", "primary", () => UI.open("stats")), btn("계속 모험하기", "", () => UI.close()))));
