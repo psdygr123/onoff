@@ -178,6 +178,7 @@ window.AU = window.AU || {};
       if (q.fee) { if (this.S.silver < q.fee) { this.toast("은화가 부족합니다. (필요 " + q.fee + ")", "warn"); return false; } this.S.silver -= q.fee; this.toast("은화 -" + q.fee, "info"); }   // 수락할 때 내는 값(정보료 등)
       this.S.quests[id] = { state: "active", prog: q.objectives.map(() => 0), spots: {} };
       if (AU.Guide) AU.Guide.trigger("quest");
+      for (const [it, n] of q.takeItems || []) { this.S.inv[it] = Math.max(0, (this.S.inv[it] || 0) - n); if (!this.S.inv[it]) delete this.S.inv[it]; }
       for (const [it, n] of q.startItems || []) this.giveItem(it, n);   // 전달 퀘스트: 수락할 때 맡는 물건
       const qk = AU.questKind(id), ql = AU.QKIND[qk]; this.log(ql.label + " 퀘스트 수락: " + q.title); this.toast(ql.icon + " " + ql.label + " 퀘스트 수락: " + q.title, "quest qk-" + qk);
       this.refreshQuest(id);
@@ -189,6 +190,12 @@ window.AU = window.AU || {};
       const all = q.objectives.every((o, i) => this.objectiveDone(q, rec, i));
       const next = all ? "ready" : "active";
       if (next === "ready" && rec.state !== "ready") this.toast("목표 달성: " + q.title + " (의뢰인에게 돌아가세요)", "quest");
+      // 조사·수리 지점을 모두 마쳤지만 보고가 남은 경우: 한 번 크게 알림
+      if (next === "active" && !rec.noted) {
+        const wk = q.objectives.findIndex((o) => (o.kind === "investigate" || o.kind === "repair") && this.objectiveDone(q, rec, q.objectives.indexOf(o)));
+        const rest = q.objectives.find((o, i) => !this.objectiveDone(q, rec, i));
+        if (wk >= 0 && rest && rest.target && AU.NPCS[rest.target]) { rec.noted = true; this.toast("✔ " + (q.objectives[wk].kind === "repair" ? "수리" : "조사") + " 완료! " + AU.NPCS[rest.target].name.replace(" (임시)", "") + "에게 가서 결과를 알리세요.", "quest"); }
+      }
       rec.state = next;
     },
     refreshCollectQuests() { for (const id of Object.keys(this.S.quests)) this.refreshQuest(id); },

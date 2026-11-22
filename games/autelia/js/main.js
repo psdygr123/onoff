@@ -154,7 +154,7 @@ window.AU = window.AU || {};
       if (main.running) { const paused = AU.UI.anyOpen(); AU.Prologue.update(dt, paused); if (!paused) AU.World.update(dt); else if (AU.Prologue.on) AU.World.updateCam(dt); }
       if (AU.Bgm) AU.Bgm.tick(dt);
       const ctx = document.getElementById("cv").getContext("2d");
-      ctx.clearRect(0, 0, C.W, C.H); AU.World.draw(ctx); AU.UI.updateHud(); if (AU.Tutorial && main.running) AU.Tutorial.tick(dt); else if (AU.Tutorial) AU.Tutorial.render(null);
+      ctx.clearRect(0, 0, C.W, C.H); AU.World.draw(ctx); AU.UI.updateHud();
     } catch (err) { console.error("[아우텔리아] 오류(게임은 계속 실행):", err); AU.main.lastError = String(err && err.stack || err); }
     requestAnimationFrame(loop);
   }

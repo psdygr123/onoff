@@ -26,10 +26,12 @@ window.AU = window.AU || {};
     bg_hideout_outer_1: BG("hideout_outer_1"), bg_hideout_outer_2: BG("hideout_outer_2"), bg_hideout_tunnel: BG("hideout_tunnel"),
     bg_hideout_lab_1: BG("hideout_lab_1"), bg_hideout_lab_2: BG("hideout_lab_2"), bg_hideout_boss: BG("hideout_boss")
   });
+  Object.assign(AU.MONSTERS, { ob_hide_crate: { path: "assets/object/hide_crate.webp", optional: true }, ob_hide_pillar: { path: "assets/object/hide_pillar.webp", optional: true } }); // 숨는 곳·시야 가림 기둥 그림(없으면 임시 도형)
   const FLOOR = { x: 0, y: 590, w: 2558 };
   const AREA = (x, y, d) => ({ x, y, desc: d });
   AU.MAPS.hide_outer = {
     name: "검은 아지트 외곽", bg: "bg_hideout_outer_1", bgs: ["bg_hideout_outer_1", "bg_hideout_outer_2"], width: 2558, safe: false, stealth: true,
+    stealthMission: { quest: "q_h1", flag: "hide_outer_clear", start: 120 }, hideSpots: [{ x: 960 }, { x: 1490 }, { x: 2030 }], blockers: [{ x: 1260 }, { x: 1800 }],
     platforms: [FLOOR], ropes: [],
     portals: [{ x: 40, to: "gorge", toX: 1400, label: "협곡 바위틈" },
               { x: 2510, to: "hide_tunnel", toX: 90, label: "갱도 입구", reqQuest: "q_h1", reqIn: ["active", "ready", "done"], reqText: "제페토의 부탁을 받아야 안으로 들어갈 수 있습니다." }],
@@ -45,7 +47,7 @@ window.AU = window.AU || {};
         L(HERO, "(이 수가 전부 안쪽으로 들어갔다는 뜻이다. 서둘러야 한다.)")] }
     ],
     spawns: [{ type: "hide_guard", x: 560, min: 450, max: 900 }, { type: "hide_guard", x: 1180, min: 1020, max: 1420 }, { type: "hide_guard", x: 1700, min: 1560, max: 1950 }, { type: "hide_guard", x: 2230, min: 2100, max: 2420 }],
-    area: AREA(88, 6, "협곡 안쪽 깊은 곳에 숨은 검은 아지트의 바깥 구역입니다. 경비의 시선을 피해 지나가면 싸움을 줄일 수 있습니다.")
+    area: AREA(88, 6, "협곡 안쪽 깊은 곳에 숨은 검은 아지트의 바깥 구역입니다. 경비에게 들키면 입구에서 다시 시작합니다. 상자 앞에서 Space로 숨고, 기둥 뒤로 시선을 피하세요.")
   };
   AU.MAPS.hide_tunnel = {
     name: "검은 아지트 갱도", bg: "bg_hideout_tunnel", width: 1280, safe: false,
@@ -79,10 +81,10 @@ window.AU = window.AU || {};
       { id: "lab_faustos", img: "", x: 1850, kind: "investigate", label: "실험실 안쪽의 인기척", lines: [
         "깨진 유리 용기 사이로 앞치마 차림의 백발 사내가 보입니다. 한쪽 눈에 겹 렌즈를 끼고, 검은 결정이 박힌 팔로 기록을 넘기며 혼잣말을 합니다.",
         L(FA, "오오, 문이 열려 있었군. 쥐가 한 마리 들어온 줄 알았는데... 그 손목, 낙인이 아닌가. 용사가 제 발로 찾아오다니!"),
-        L(FA_MAD, "내 소개를 하지. 파우스토스, 어둠의 세력의 실험 담당일세. 짐승에 어둠을 쌓는 일, 그게 내 연구야. 이 팔도 시험해 본 결과물이지. 훌륭하지 않나?"),
+        L(FA_MAD, "내 소개를 하지. 파우스토스, 어둠의 세력에서 실험을 맡고 있네. 짐승에 어둠을 쌓는 일, 그게 내 연구야. 이 팔도 시험해 본 결과물이지. 훌륭하지 않나?"),
         L(HERO, "그 짐승들에게 무슨 짓을 한 겁니까. 무엇을 만들려는 거죠."),
         L(FA_MAD, "그릇이야! 어둠을 담아 용사의 힘을 정면으로 받아낼 그릇. 오래 걸렸지만 드디어 완성했다. 이름은 움브라. 짐승 사백 마리의 어둠이 한 몸에 들어 있어."),
-        L(FA_SHOCK, "낙인을 가진 용사가 살아 있다면 시험하기에 더없이 좋은 기회로군. 이쪽 문 너머에서 움브라가 기다리고 있네. 나는 구경이나 하겠네, 용사여."),
+        L(FA_SHOCK, "낙인을 가진 용사가 제 발로 왔으니 시험하기에 더없이 좋은 기회로군. 이쪽 문 너머에서 움브라가 기다리고 있네. 나는 구경이나 하겠네, 용사여."),
         "파우스토스는 기록 몇 권을 품에 안고 안쪽 문 뒤의 어둠 속으로 물러납니다."] }
     ],
     spawns: [{ type: "hide_keeper", x: 520, min: 380, max: 700 }, { type: "hide_beast", x: 1000, min: 880, max: 1180 }, { type: "hide_keeper", x: 1320, min: 1160, max: 1520 }, { type: "hide_beast", x: 1560, min: 1420, max: 1700 }, { type: "hide_keeper", x: 2160, min: 2000, max: 2380 }],
@@ -119,10 +121,12 @@ window.AU = window.AU || {};
       { kind: "kill", target: "umbra_boss", count: 1 },
       { kind: "investigate", targets: ["faustos_flee"] }],
     offer: [L(J(), "때가 되었네. 협곡 안쪽의 길을 열었네. 저 바위 너머가 어둠 세력의 아지트일세."),
-            L(J(), "바깥은 경비병이 지키고 있네. 눈에 띄지 않게 시선을 피해 가면 싸움을 줄일 수 있지. 들켜도 되돌아갈 필요는 없지만, 숫자가 많으니 조심하게."),
+            L(J(), "바깥은 경비병이 지키고 있네. 붉은 시선에 걸리면 잡히니, 입구로 돌려보내질 걸세. 상자 앞에서 Space를 눌러 숨고, 기둥 뒤로 지나가게. 몇 번을 다시 해도 잃는 건 없네."),
             L(J(), "안쪽 갱도와 실험 구역에서는 싸울 각오를 하게. 그리고 무엇을 만드는지, 누가 책임자인지 꼭 눈으로 확인하고 오게.")],
     reminder: ["아지트는 협곡 안쪽 길 끝일세. 장부와 우리, 갱도 기록, 실험 기록을 살피고 책임자를 확인하게."],
-    done: [L(J(), "...돌아왔군. 다친 데는 없나. 그래, 파우스토스라는 자가 짐승으로 그릇을 만들고 있었다고."),
+    done: [L(J(), "...돌아왔군. 다친 데는 없나."),
+           L(HERO, "파우스토스라는 자가 짐승 사백 마리의 어둠으로 '그릇'을 만들고 있었어요. 이름은 움브라였고, 쓰러뜨렸지만 파우스토스는 달아났습니다."),
+           L(J(), "그래, 짐승으로 그릇을 만들고 있었단 말이지."),
            L(J(), "용사의 낙인이 풀리는 순간을 노리는 자들이라... 그자의 말대로 그릇이 하나뿐이 아니라면, 이 일은 이 협곡에서 끝나지 않네."),
            L(J(), "서쪽 땅 이야기를 해 주겠네. 옛 기록에는 다른 용사들의 흔적이 서부에 끊겨 있었네. 그곳에도 어둠이 손을 뻗었을 걸세."),
            L(HERO, "서쪽으로 가야 한다는 말씀이시군요."),
@@ -142,8 +146,11 @@ window.AU = window.AU || {};
   // 외곽에서 안 들키고 갱도에 도착하면 보너스(한 번만)
   H.onTravel = function (W, to) {
     if (W.mapId !== "hide_outer" || to !== "hide_tunnel") return;
-    const S = AU.G.S; if (W.spotted || S.flags.hide_sneak_bonus) return;
-    S.flags.hide_sneak_bonus = true; AU.G.gainSilver(100); AU.G.giveItem("potion", 3, true);
-    AU.G.toast("들키지 않고 외곽을 통과했습니다! 보너스: 은화 100, 물약 3", "good");
+    const S = AU.G.S; if (!AU.G.questStatus || S.flags.hide_outer_clear) return;
+    S.flags.hide_outer_clear = true; // 외곽 잠입 구간 통과: 이후 경비는 평소처럼 행동
+    if (!(S.flags.stealth_tries_hide_outer > 0) && !S.flags.hide_sneak_bonus) {
+      S.flags.hide_sneak_bonus = true; AU.G.gainSilver(100); AU.G.giveItem("potion", 3, true);
+      AU.G.toast("한 번도 들키지 않고 외곽을 통과했습니다! 보너스: 은화 100, 물약 3", "good");
+    } else AU.G.toast("외곽을 통과했습니다. 갱도로 들어갑니다.", "good");
   };
 })();

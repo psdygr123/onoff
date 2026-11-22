@@ -21,7 +21,7 @@ window.AU = window.AU || {};
       "prologue-arrival": { missionId: "m_p5", moment: "포르투 노바 도착", mode: "journal", story: "긴 여정 끝에 포르투 노바에 도착했습니다." },
       "act1-q_s1_silver-start": {"missionId":"m_m3","moment":"항구도시의 첫걸음","story":"새로운 도시에서 모험의 첫걸음을 내디뎠습니다.","mode":"journal","questId":"q_s1_silver","phase":"start"},
       "act1-q_guild_talk-done": {"missionId":"m_e6","moment":"길드 정식 등록","story":"입단 시험을 마치고 정식 모험가가 되었습니다.","mode":"journal","questId":"q_guild_talk","phase":"done"},
-      "act1-q_a1_variant-start": {"missionId":"m_e4","moment":"변형의 흔적","story":"이상한 결정의 정체를 알아보기로 했습니다.","mode":"journal","questId":"q_a1_variant","phase":"start"},
+      "act1-q_a1_variant-start": {"missionId":"m_e4","moment":"변형의 흔적","story":"검은 결정의 정체를 알아보기로 했습니다.","mode":"journal","questId":"q_a1_variant","phase":"start"},
       "act1-q_a2_secret-done": {"missionId":"m_m6","moment":"바르샤의 전언","story":"새로운 정보를 얻고 앞으로 나아갈 방향을 찾았습니다.","mode":"journal","questId":"q_a2_secret","phase":"done"},
       "act1-q_a3_jepeto-start": {"missionId":"m_m1","moment":"제페토의 부탁","story":"제페토의 부탁을 받아 새로운 조사에 나섭니다.","mode":"journal","questId":"q_a3_jepeto","phase":"start"},
       "act1-q_h1-done": {"missionId":"m_m4","moment":"1막 완료 · 제페토에게 보고","story":"긴 조사를 마치고 다음 여정을 준비할 시간이 되었습니다.","mode":"journal","questId":"q_h1","phase":"done"}

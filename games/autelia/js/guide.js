@@ -67,4 +67,7 @@ window.AU = window.AU || {};
   };
   AU.Ev.on("levelup", () => G.trigger("levelup"));
   AU.Ev.on("jobchange", () => G.trigger("skill"));
+  AU.Ev.on("levelup", (e) => { if (e && e.level === AU.CONFIG.dash.level) { AU.G.toast("이동기를 배웠습니다! [" + K("dash") + "] 키 — 최대 3번 충전, 10초마다 1번 충전", "good"); } });
+  AU.Ev.on("awaken", () => G.trigger("skill"));
+  AU.Ev.on("mapchange", () => { if (AU.G && AU.G.S && AU.G.S.map && AU.MAPS[AU.G.S.map] && !AU.MAPS[AU.G.S.map].safe) G.trigger("map"); });
 })();

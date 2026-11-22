@@ -84,7 +84,8 @@ window.AU = window.AU || {};
       this.hud.banner = h("div", { class: "banner" });
       this.hud.warn = h("div", { class: "storewarn" });
       this.hud.devBtn = btn("개발", "devbtn", () => this.toggleWin("dev"), { title: "개발 테스트 (F2)" });
-      R.append(this.hud.keyhint, panel, topleft, this.hud.menuBtn, h("div", { class: "slots" }, [...this.hud.quick, ...this.hud.slots]), this.hud.prompt, this.hud.mapName, this.hud.toasts, this.hud.save, this.hud.banner, this.hud.warn, this.hud.devBtn);
+      this.hud.dashEl = h("div", { class: "slot quick", title: "이동기: 최대 3번 충전, 10초마다 1번 충전", onclick: () => AU.World.onAction("dash") }, h("div", { class: "sk", text: "이동기" }), h("div", { class: "skey" }), h("div", { class: "scost" }));
+      R.append(this.hud.keyhint, panel, topleft, this.hud.menuBtn, h("div", { class: "slots" }, [...this.hud.quick, this.hud.dashEl, ...this.hud.slots]), this.hud.prompt, this.hud.mapName, this.hud.toasts, this.hud.save, this.hud.banner, this.hud.warn, this.hud.devBtn);
       this.hud.cache = {};
       this.winEl = h("div", { class: "winwrap hidden" }); this.dlgEl = h("div", { class: "dialog hidden" }); this.modalEl = h("div", { class: "modalwrap hidden" });
       R.append(this.winEl, this.dlgEl, this.modalEl);
@@ -136,6 +137,10 @@ window.AU = window.AU || {};
       this.setText(this.hud.ex.lastChild, "ext", atCap && !S.jobChanged ? "EXP 최대 레벨" : "EXP " + S.exp + " / " + need + " (" + (S.exp / need * 100).toFixed(1) + "%)");
       this.hud.quick.forEach((el, i) => { const k = i ? "scroll" : "potion", n = i ? AU.G.count("town_scroll") : Object.keys(S.inv).filter((x) => AU.ITEMS[x] && AU.ITEMS[x].type === "use" && AU.ITEMS[x].heal).reduce((a, x) => a + S.inv[x], 0);
         this.setText(el.querySelector(".skey"), "qkey" + i, keyOf(k)); this.setText(el.querySelector(".scost"), "qn" + i, "×" + n); el.classList.toggle("empty", n < 1); });
+      { const D = AU.CONFIG.dash, el = this.hud.dashEl, un = S.level >= D.level;
+        this.setText(el.querySelector(".skey"), "dkey", keyOf("dash"));
+        this.setText(el.querySelector(".scost"), "dn", un ? "●".repeat(p.dashN) + "○".repeat(D.max - p.dashN) + (p.dashN < D.max ? " " + Math.ceil(D.recharge - p.dashRt) + "s" : "") : "Lv." + D.level);
+        el.classList.toggle("empty", !un || p.dashN < 1); }
       // 스킬 슬롯
       this.hud.slots.forEach((el, i) => {
         const id = S.skills.slots[i], sk = id && AU.SKILLS[id], cd = id ? (p.cd[id] || 0) : 0;
@@ -171,7 +176,7 @@ window.AU = window.AU || {};
       }
       const hop = this.route(W.mapId, targetMap); if (!hop) return "";
       const pt = (m.portals || []).find((x) => x.to === hop); if (!pt) return "";
-      return this.areaName(targetMap) + " 방향: " + (pt.x > p.x ? "▶ 오른쪽" : "◀ 왼쪽") + " 끝의 '" + pt.label + "' 쪽으로";
+      return this.areaName(targetMap) + " 방향: " + (pt.x > p.x ? "▶ 오른쪽" : "◀ 왼쪽") + ((pt.x < 300 || pt.x > m.width - 300) ? " 끝의 '" : "의 '") + pt.label + "' 쪽으로";
     },
     questGuide(id) {
       const q = AU.QUESTS[id], rec = AU.G.S.quests[id]; if (!q || !rec) return "";
@@ -185,14 +190,14 @@ window.AU = window.AU || {};
       for (const id of Object.keys(AU.QUESTS)) { if (AU.G.questStatus(id) === "available") { const q = AU.QUESTS[id], mp = this.npcMap(q.giver); out.push(AU.QKIND[AU.questKind(id)].icon + " 새 의뢰: " + q.title.replace(" (임시)", "") + " — " + AU.NPCS[q.giver].name.replace(" (임시)", "") + (mp ? " (" + this.areaName(mp) + ")" : "")); break; } }
       if (out.length < 2) { const lockedLv = Object.keys(AU.QUESTS).map((id) => [id, AU.QUESTS[id]]).filter(([id, q]) => !S.quests[id] && q.pre.every((x) => AU.G.questStatus(x) === "done") && S.level < q.minLevel && id !== "q_job").sort((a, b) => a[1].minLevel - b[1].minLevel)[0];
         if (lockedLv) out.push("Lv." + lockedLv[1].minLevel + "이 되면 새 의뢰: " + lockedLv[1].title.replace(" (임시)", "")); }
-      if (out.length < 2 && !AU.G.awakened() && S.level < 10) out.push("Lv.10까지 레벨을 올리세요 (지금 Lv." + S.level + ") — 사냥터: 항구 길·선창 외곽");
+      if (out.length < 2 && !AU.G.awakened() && S.level < 10) out.push("Lv.10까지 레벨을 올리세요 (지금 Lv." + S.level + ") — 사냥터: 뱀길·멧돼지 숲·선창 외곽");
       return out.slice(0, 2);
     },
     updateTracker() {
       const S = AU.G.S, T = this.hud.tracker, t = this.hud.trackBody, PR = AU.Prologue;
       const list = Object.entries(S.quests).filter(([, r]) => r.state === "active" || r.state === "ready").sort((a, b) => (AU.QUESTS[a[0]].type === "main" ? 0 : 1) - (AU.QUESTS[b[0]].type === "main" ? 0 : 1));
       const picks = this.anyOpen() || (PR && PR.on) ? [] : list.slice(0, 3);
-      const goals = picks.length < 2 && !this.anyOpen() && !(PR && PR.on) ? this.nextGoals() : [];
+      const goals = picks.length < 1 && !this.anyOpen() && !(PR && PR.on) ? this.nextGoals() : [];
       if (!picks.length && !goals.length) { T.style.display = "none"; this.hud.cache.trk = null; this._trkDirs = []; return; }
       const key = picks.map(([id, r]) => id + AU.questKind(id) + r.state + JSON.stringify(r.prog)).join("|") + "|" + AU.G.count("fur") + "|" + goals.join("/");
       if (this.hud.cache.trk !== key) {
@@ -203,7 +208,7 @@ window.AU = window.AU || {};
           else q.objectives.forEach((o, i) => box.append(h("div", { class: "to" + (AU.G.objectiveDone(q, rec, i) ? " ok" : "") }, this.objText(o, rec, i))));
           const dir = h("div", { class: "td" }); box.append(dir); this._trkDirs.push({ el: dir, id }); t.append(box);
         });
-        if (goals.length) { const box = h("div", { class: "tq tnext" }, h("div", { class: "tt" }, "다음 목표")); goals.forEach((g) => box.append(h("div", { class: "to" }, g))); t.append(box); }
+        if (goals.length) { const box = h("div", { class: "tq tnext" }, h("div", { class: "tt" }, "지금 할 일")); goals.forEach((g) => box.append(h("div", { class: "to" }, g))); t.append(box); }
       }
       for (const d of this._trkDirs || []) { const txt = this.questGuide(d.id); this.setText(d.el, "trkd" + d.id, txt); d.el.style.display = txt ? "block" : "none"; }
       T.style.display = "block";
@@ -228,12 +233,13 @@ window.AU = window.AU || {};
       this.setText(el, "kh", on ? txt : ""); el.style.display = on ? "block" : "none";
     },
     objText(o, rec, i) {
+      const q0done = (r) => !!(r && r.spots && Object.keys(r.spots).length >= 2); // 조사·수리 지점을 모두 마친 뒤의 안내용
       const prog = rec ? (o.kind === "collect" ? Math.min(AU.G.count(o.item), o.count) : (rec.prog[i] || 0)) : 0;
       if (o.kind === "kill") return AU.MONSTERS[o.target].name.replace(" (임시)", "") + " 처치 (" + prog + "/" + o.count + ")";
       if (o.kind === "collect") return AU.ITEMS[o.item].name + " 수집 (" + prog + "/" + o.count + ")";
-      if (o.kind === "repair" || o.kind === "investigate") { const n = rec && rec.spots ? o.targets.filter((t) => rec.spots[t]).length : 0; return (o.kind === "repair" ? "방책 수리 " : "흔적 조사 ") + "(" + n + "/" + o.targets.length + ")"; }
+      if (o.kind === "repair" || o.kind === "investigate") { const n = rec && rec.spots ? o.targets.filter((t) => rec.spots[t]).length : 0; return (o.kind === "repair" ? "방책 수리 " : "흔적 조사 ") + "(" + n + "/" + o.targets.length + ")" + (n >= o.targets.length ? " ✔ 완료" : ""); }
       if (o.kind === "deliver") return ((w) => { const c = w.charCodeAt(w.length - 1) - 0xAC00; return w + (c >= 0 && c < 11172 ? (c % 28 ? "을" : "를") : "을(를)"); })(AU.ITEMS[o.item].name.replace(" (임시)", "")) + " " + AU.NPCS[o.target].name.replace(" (임시)", "") + "에게 전하기 (" + (rec ? (rec.prog[i] || 0) : 0) + "/1)";
-      if (o.kind === "choice") return AU.NPCS[o.target].name.replace(" (임시)", "") + "에게 결과를 알리기 (" + (rec ? (rec.prog[i] || 0) : 0) + "/1)";
+      if (o.kind === "choice") return (rec && q0done(rec) ? "▶ 이제 " : "") + AU.NPCS[o.target].name.replace(" (임시)", "") + "에게 결과를 알리기 (" + (rec ? (rec.prog[i] || 0) : 0) + "/1)";
       return AU.NPCS[o.target].name.replace(" (임시)", "") + "에게 말 걸기 (" + prog + "/1)";
     },
     toast(text, kind) {
@@ -255,7 +261,8 @@ window.AU = window.AU || {};
     },
 
     /* ============ 창 열고 닫기 ============ */
-    openHelpOnce() { const F = AU.G.S.flags; if (AU.Tutorial) return; if (F.helpShown || /[?&]dev=1/.test(location.search) || (AU.Prologue && AU.Prologue.on)) return; F.helpShown = true; setTimeout(() => { if (!this.cur && !this.dialog && !(AU.Prologue && AU.Prologue.on)) this.open("help"); }, 900); },
+    openHelpOnce() { const F = AU.G.S.flags; return; // 단계별 안내(guide.js)가 대신함
+       if (F.helpShown || /[?&]dev=1/.test(location.search) || (AU.Prologue && AU.Prologue.on)) return; F.helpShown = true; setTimeout(() => { if (!this.cur && !this.dialog && !(AU.Prologue && AU.Prologue.on)) this.open("help"); }, 900); },
     toggleWin(name) { if (this.dialog) return; if (this.curName === name) this.close(); else this.open(name); },
     toggleMenu() { if (this.dialog) return; if (this.curName === "menu") this.close(); else this.open("menu"); },
     open(name) {
@@ -339,7 +346,7 @@ window.AU = window.AU || {};
     },
     renderDialog() {
       const d = this.dialog; if (!d) return;
-      const last = d.i >= d.lines.length - 1, cur = d.lines[d.i], isObj = cur && typeof cur === "object", np = isObj ? cur.npc : d.npc, text = AU.Profile.fmt(isObj ? cur.t : cur).replace(/\{(attack|jump|interact)\}/g, (m, k) => keyOf(k));
+      const last = d.i >= d.lines.length - 1, cur = d.lines[d.i], isObj = cur && typeof cur === "object", np = isObj ? cur.npc : d.npc, text = AU.Profile.fmt(isObj ? cur.t : cur).replace(/\{(attack|jump|interact|skills)\}/g, (m, k) => keyOf(k));
       const ppk = AU.Img.has(np.portrait) ? np.portrait : (np.alt && AU.Img.has(np.alt) ? np.alt : np.portrait), pt = AU.Img.has(ppk) ? h("img", { src: AU.ASSETS[ppk].path, alt: "" }) : h("div", { class: "ptfallback", text: np.name.slice(0, 1) });
       const back = d.i > 0 ? btn("◀ 이전 (" + AU.keyLabel(AU.Input.bindings.left) + ")", "dback", () => this.backDialog()) : null;
       const choices = last && d.opt.choices ? h("div", { class: "choices" }, back, d.opt.choices.map((c) => btn(c.label + (keyOf(c.key) ? "  (" + keyOf(c.key) + ")" : ""), c.key === "interact" ? "primary" : "", () => this.finishDialog(c)))) : null;
@@ -613,8 +620,7 @@ window.AU = window.AU || {};
   const INV_CATS = [["all", "전체", () => true], ["equip", "장비", (it) => it.type === "equip"], ["use", "소비", (it) => it.type === "use"], ["etc", "재료·기타", (it) => it.type === "etc"], ["quest", "퀘스트·중요", (it) => it.type === "quest" || it.type === "story"]];
   R.inventory = function (b) {
     const S = AU.G.S;
-    const top = h("div", { class: "tabs" }, [["bag", "가방"], ["craft", "제작법"]].map(([k, l]) => btn(l, (UI.tab.inv || "bag") === k ? "on" : "", () => { UI.tab.inv = k; UI.renderWin(); })));
-    if ((UI.tab.inv || "bag") === "craft") { b.append(top); UI.craftPanel(b); b.append(h("div", { class: "silver", text: "은화 " + S.silver })); return; }
+    const top = h("div", { class: "tabs" }, [["bag", "가방"]].map(([k, l]) => btn(l, "on", () => {})));
     b.append(top);
     const TYPE = { equip: "장비", use: "소비", etc: "기타", quest: "퀘스트", story: "중요 물품" };
     const ids = Object.keys(S.inv), cat = UI.tab.invcat || "all", catDef = INV_CATS.find((c) => c[0] === cat) || INV_CATS[0];
@@ -897,7 +903,12 @@ window.AU = window.AU || {};
         h("h4", { text: "수행 조건" }), ...q.objectives.map((o, i) => h("div", { class: "obj" + (AU.G.objectiveDone(q, rec, i) ? " ok" : "") }, (AU.G.objectiveDone(q, rec, i) ? "✔ " : "□ ") + UI.objText(o, rec, i))),
         h("h4", { text: "보상" }), h("p", { text: rewardText(q.reward) }), h("p", { class: "note", text: "의뢰인: " + AU.NPCS[q.giver].name }));
     } else if (sel && sel.m) {
-      det.append(h("h3", { text: sel.m.title }), h("div", { class: "tags" }, h("span", { class: "tag", text: "현실" }), h("span", { class: "tag", text: AU.PERMA[sel.m.perma] }), h("span", { class: "tag", text: AU.MISSION_STATES[sel.r.state] })), h("p", { text: sel.m.desc }), h("p", { class: "note", text: "상태 변경은 모험일지(" + keyOf("journal") + ")에서 합니다." }));
+      det.append(h("h3", { text: sel.m.title }), h("div", { class: "tags" }, h("span", { class: "tag", text: "현실" }), h("span", { class: "tag", text: AU.PERMA[sel.m.perma] }), h("span", { class: "tag", text: AU.MISSION_STATES[sel.r.state] })), h("p", { text: sel.m.desc }), h("p", { class: "note", text: "상태 변경은 모험일지(" + keyOf("journal") + ")에서 합니다." }),
+        h("h4", { text: "이렇게 하면 완료예요" }), h("p", { text: "현실에서 해 본 뒤, 모험일지(" + keyOf("journal") + ") ▸ 현실 활동에서 이 미션의 ‘완료’(해 보기만 했다면 ‘시도’)를 눌러 기록하면 됩니다. 못 했다면 ‘건너뛰기’도 괜찮아요." }),
+        (() => { // 나의 목표 적기: 이 미션으로 내가 무엇을 해 볼지 직접 적어 두는 칸(이 브라우저에 저장)
+          const box = h("div", { class: "mgoal" }), inp = h("textarea", { class: "mgoal-in", rows: "2", maxlength: "120", placeholder: "예) 오늘은 책상 정리 10분만 해 보기" }), st = h("span", { class: "note" });
+          inp.value = sel.r.goal || ""; const save = btn("목표 저장", "mini", () => { sel.r.goal = inp.value.trim().slice(0, 120); AU.G.save("mission_goal"); st.textContent = sel.r.goal ? "저장했어요." : "비웠어요."; });
+          box.append(h("h4", { text: "나의 목표 적기 (선택)" }), inp, save, st); return box; })());
     } else det.append(h("p", { class: "empty", text: "퀘스트를 선택하면 자세한 내용이 표시됩니다." }));
     b.append(tabs, h("div", { class: "split q" }, ul, det));
   };
@@ -1103,7 +1114,7 @@ window.AU = window.AU || {};
       sec("기본 조작", [[K("left") + "·" + K("right"), "이동"], [K("jump"), "점프"], [K("attack"), "기본 공격(피로도가 쌓이지 않음)"], [K("interact"), "NPC와 대화, 물건 줍기, 포털 이동 확인"], [K("up") + "/" + K("down"), "밧줄·사다리 오르내리기, 포털 들어가기"], ["1·2·3", "스킬 슬롯(전직 후 사용)"]]),
       sec("화면 구성", [["왼쪽 위 미니맵", "내 위치(파란 점)와 NPC·몬스터·출구. 누르면 월드맵"], ["목표", "진행 중인 퀘스트와 다음에 할 일. ▾로 접고, 끌어서 옮길 수 있음(더블클릭으로 원위치)"], ["아래 가운데", "레벨, HP(체력), 피로도(스킬을 쓸수록 쌓임), EXP(경험치)"], ["이름표", "발 밑에 이름이 표시됩니다. 몬스터는 머리 위에 레벨과 이름"], ["느낌표 !", "받을 수 있는 퀘스트"], ["물음표 ?", "완료해서 보고할 수 있는 퀘스트"]]),
       sec("창 열기", [[K("inventory"), "인벤토리: 가진 물건, 사용·장착"], [K("equipment"), "장비창: 장착한 장비와 능력치 비교"], [K("stats"), "스탯창: 능력치 보기, 포인트 분배"], [K("skills"), "스킬창: 스킬 확인·배치, 휴식으로 피로도 줄이기"], [K("quests"), "퀘스트창: 진행 중·완료 퀘스트 자세히"], [K("worldmap"), "월드맵: 갈 수 있는 지역"], [K("journal"), "모험일지: 현실 활동 미션, 마음 기록"], [K("keysettings"), "설정: 소리, 키 바꾸기"], ["Esc", "메뉴 / 열린 창 닫기"]]),
-      sec("알아 두기", [["쓰러지면", "마을에서 일어나며 경험치를 5% 잃습니다. 문장을 하나 골라 마음을 가다듬는 시간이 있습니다."], ["마을(안전 지역)", "몬스터가 나오지 않는 곳입니다. 체력은 저절로 차지 않으니 회복약을 챙기세요."], ["상점", "상인 NPC와 대화해서 물건을 사고팝니다."], ["레벨 10", "전직 시험을 보기 전까지는 10레벨에서 멈춥니다."]]),
+      sec("알아 두기", [["쓰러지면", "마을에서 일어나며 경험치를 5% 잃습니다. 문장을 하나 골라 마음을 가다듬는 시간이 있습니다."], ["마을(안전 지역)", "몬스터가 나오지 않는 곳입니다. 체력은 저절로 차지 않으니 회복약을 챙기세요."], ["상점", "상인 NPC와 대화해서 물건을 사고팝니다."], ["최대 레벨", "1막에서는 15레벨까지 오릅니다. 다음 이야기가 열리면 이어서 성장합니다."]]),
       h("div", { class: "choices" }, btn("알겠습니다", "primary", () => UI.close()))));
   };
 

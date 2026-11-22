@@ -8,6 +8,7 @@ AU.CONFIG = {
   W: 1280, H: 720, GROUND: 590,
 
   // 이동 수치: 이전 아스텔리아 시제품(speed 180, jump 520, gravity 1400)을 그대로 이어받음
+  dash: { level: 5, max: 3, recharge: 10, speed: 1050, dur: 0.17 }, // 이동기: Lv.5부터, 최대 3번 충전·대기시간 없이 연속 사용·10초마다 1번 충전
   move: { speed: 180, jump: 520, gravity: 1400, ropeSpeed: 120, accel: 1900, decel: 2600, maxFall: 900 },
   player: { spriteHeight: 150, halfW: 22, height: 118 },
 
@@ -63,6 +64,7 @@ AU.ACTIONS = [
   { id: "skill3", label: "스킬 3", code: "Digit3" },
   { id: "potion", label: "물약 빠른 사용", code: "Digit4" },
   { id: "scroll", label: "귀환 주문서 사용", code: "Digit5" },
+  { id: "dash", label: "이동기(Lv.5)", code: "ShiftLeft" },
   { id: "inventory", label: "인벤토리", code: "KeyI" },
   { id: "equipment", label: "장비창", code: "KeyE" },
   { id: "stats", label: "스탯창", code: "KeyS" },
@@ -74,5 +76,5 @@ AU.ACTIONS = [
   { id: "keysettings", label: "키보드 설정", code: "Backslash" }
 ];
 // 오른쪽 Alt/Ctrl, 숫자패드도 같은 동작으로 인정
-AU.ALIASES = { AltLeft: ["AltRight"], ControlLeft: ["ControlRight"], Digit1: ["Numpad1"], Digit2: ["Numpad2"], Digit3: ["Numpad3"], Digit4: ["Numpad4"], Digit5: ["Numpad5"], Backslash: ["IntlYen", "IntlBackslash"] };
+AU.ALIASES = { ShiftLeft: ["ShiftRight"], AltLeft: ["AltRight"], ControlLeft: ["ControlRight"], Digit1: ["Numpad1"], Digit2: ["Numpad2"], Digit3: ["Numpad3"], Digit4: ["Numpad4"], Digit5: ["Numpad5"], Backslash: ["IntlYen", "IntlBackslash"] };
 AU.FIXED_KEYS = { menu: "Escape" };
