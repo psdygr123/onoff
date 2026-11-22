@@ -20,7 +20,7 @@ const note = (id, name, ok, ev) => { ok ? pass++ : fail++; console.log((ok ? 'PA
   note('A3', '이름 호칭이 대사에 들어감', /시험용/.test(shown) && !/\{/.test(shown), shown);
   await ev(() => { AU.UI.dialog = null; AU.UI.dlgEl.classList.add('hidden'); AU.G.turnIn('q_s1_silver'); });
   note('A4', '면담 완료로 검 지급·시험 1 열림', (await ev(() => AU.G.count('sword_a'))) === 1 && (await st('q_s1_test')) === 'available');
-  const chain = [['q_s1_test', 'fox', 1], ['q_first', 'fox', 3], ['q_forest', 'snake', 5]];
+  const chain = [['q_s1_test', 'snake', 1], ['q_first', 'snake', 3], ['q_forest', 'fox', 5]];
   for (const [q, m, n] of chain) { await ev(() => { AU.G.S.level = Math.max(AU.G.S.level, 3); }); await ev((i) => AU.G.startQuest(i), q); for (let k = 0; k < n; k++) await ev((t) => AU.G.onKill(t), m); await ev((i) => AU.G.turnIn(i), q); }
   note('A5', '입단 시험 1·2·3 순서대로 완료', (await st('q_forest')) === 'done' && (await st('q_guild_talk')) === 'available');
   await ev(() => { AU.G.startQuest('q_guild_talk'); AU.G.onTalk('porto_guild'); });

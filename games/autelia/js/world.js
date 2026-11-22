@@ -12,7 +12,7 @@ window.AU = window.AU || {};
 
     init() {
       const S = AU.G.S;
-      this.player = { x: S.x, y: GROUND, vx: 0, vy: 0, onGround: true, rope: null, dir: 1, invuln: 0, atkT: 0, atkCD: 0, gcd: 0, cd: {}, flash: 0, dead: false, drop: 0, anim: 0 };
+      this.player = { x: S.x, y: GROUND, vx: 0, vy: 0, onGround: true, rope: null, dir: 1, invuln: 0, atkT: 0, atkCD: 0, gcd: 0, cd: {}, dashN: AU.CONFIG.dash.max, dashRt: 0, dashT: 0, dashDir: 1, flash: 0, dead: false, drop: 0, anim: 0 };
       this.enterMap(S.map, S.x, true);
       AU.Ev.on("floater", (f) => { if (f.onPlayer) this.floater(this.player.x, this.player.y - 130, f.text, f.color); });
     },
@@ -102,6 +102,7 @@ window.AU = window.AU || {};
       // 쿨다운
       p.invuln = Math.max(0, p.invuln - dt); p.flash = Math.max(0, p.flash - dt); p.atkT = Math.max(0, p.atkT - dt); if (p.sk) { p.sk.t += dt; if (p.sk.t >= p.sk.dur) p.sk = null; }
       p.atkCD = Math.max(0, p.atkCD - dt); p.gcd = Math.max(0, p.gcd - dt);
+      { const D = AU.CONFIG.dash; p.dashT = Math.max(0, p.dashT - dt); if (p.dashN < D.max) { p.dashRt += dt; if (p.dashRt >= D.recharge) { p.dashRt = 0; p.dashN++; } } else p.dashRt = 0; }
       for (const k of Object.keys(p.cd)) p.cd[k] = Math.max(0, p.cd[k] - dt);
       // 안전 지역에서도 체력은 저절로 회복되지 않습니다(회복약·휴식 연출 등으로만 회복)
       this.bossCheckT += dt; if (this.bossCheckT > 1) { this.bossCheckT = 0; this.syncBoss(); }
@@ -133,7 +134,8 @@ window.AU = window.AU || {};
       }
       // 좌우 이동: 부드러운 가속·감속
       const sp = M.speed * (virt && virt.k || 1), target = mv * sp;
-      if (mv) { p.dir = mv; p.vx += Math.sign(target - p.vx) * M.accel * dt; if (Math.abs(p.vx) > sp) p.vx = target; }
+      if (p.dashT > 0 && !p.dead) { p.vx = p.dashDir * AU.CONFIG.dash.speed; p.vy = Math.min(p.vy, 0) * 0.3; p.anim += dt * 14; }
+      else if (mv) { p.dir = mv; p.vx += Math.sign(target - p.vx) * M.accel * dt; if (Math.abs(p.vx) > sp) p.vx = target; }
       else { const dv = M.decel * dt; p.vx = Math.abs(p.vx) <= dv ? 0 : p.vx - Math.sign(p.vx) * dv; }
       if (p.dead) p.vx = 0;
       // 밧줄 잡기
@@ -185,12 +187,23 @@ window.AU = window.AU || {};
       if (AU.Prologue && AU.Prologue.on) AU.Prologue.scan(this);
     },
 
+    /* ---------- 이동기: Lv.5부터. 충전 최대 3, 대기시간 없이 연속 사용, 10초마다 1충전 ---------- */
+    dash() {
+      const p = this.player, D = AU.CONFIG.dash, S = AU.G.S;
+      if (p.dead || p.rope || this.isBlocked()) return false;
+      if (S.level < D.level) { AU.G.toast("이동기는 Lv." + D.level + "에 배웁니다.", "warn"); return false; }
+      if (p.dashN < 1) { AU.G.toast("이동기 충전 중입니다. (" + Math.ceil(D.recharge - p.dashRt) + "초)", "warn"); return false; }
+      const I = AU.Input, h = (I.isHeld("right") ? 1 : 0) - (I.isHeld("left") ? 1 : 0);
+      p.dashN--; p.dashT = D.dur; p.dashDir = h || p.dir || 1; p.dir = p.dashDir; p.invuln = Math.max(p.invuln, D.dur);
+      return true;
+    },
     /* ---------- 입력 이벤트(눌렀을 때 한 번) ---------- */
     onAction(id) {
       if (this.isBlocked()) return;
       const PR = AU.Prologue;
       if (PR && PR.on) { if (id === "interact") { PR.interactNear(); return; } if (id === "attack" || id.startsWith("skill")) return; } // 프롤로그에서는 전투·스킬 없음
       if (id === "potion" || id === "scroll") { AU.G.quickUse(id); return; }
+      if (id === "dash") { this.dash(); return; }
       const p = this.player; if (id === "interact" || id === "up") this.scan();
       if (id === "jump") {
         if (p.rope) { p.rope = null; p.vy = -C.move.jump * 0.85; p.vx = p.dir * 160; p.onGround = false; return; }
@@ -457,10 +470,13 @@ window.AU = window.AU || {};
       const cx = Math.round(this.camX), map = this.map, p = this.player;
       ctx.save(); if (pro) PR.beginFrame(ctx);
       this.drawBackground(ctx, cx);
+      if (this.vis === "dim" && !pro) { ctx.fillStyle = "rgba(20,12,4,.34)"; ctx.fillRect(0, 0, W, H); } // 시안 A: 배경만 살짝 어둡게(인물은 그 위에 그려 또렷해짐)
       ctx.save(); ctx.translate(-cx, 0);
       if (pro) PR.drawLayer(ctx, "back");
       this.drawStructures(ctx);
+      if (this.vis === "rim" && !pro) { ctx.save(); ctx.shadowColor = "rgba(255,240,180,.95)"; ctx.shadowBlur = 12; }
       for (const n of map.npcs || []) this.drawNpc(ctx, n);
+      if (this.vis === "rim" && !pro) ctx.restore();
       if (map.fgSlice && AU.Img.has(map.bg)) { // 계산대 등 배경 일부를 NPC 앞에 다시 그려 NPC가 뒤에 서 있는 것처럼 보이게 함
         const im = AU.Img.get(map.bg), k = H / im.naturalHeight, f = map.fgSlice; ctx.drawImage(im, f[0], f[1], f[2], f[3], f[0] * k, f[1] * k, f[2] * k, f[3] * k);
       }
@@ -475,7 +491,9 @@ window.AU = window.AU || {};
       this.drawProjs(ctx);
       this.drawDrops(ctx);
       if (pro) PR.drawLayer(ctx, "mid");
+      if (this.vis === "rim" && !pro) { ctx.save(); ctx.shadowColor = "rgba(255,240,180,.95)"; ctx.shadowBlur = 12; }
       this.drawPlayer(ctx, p);
+      if (this.vis === "rim" && !pro) ctx.restore();
       if (pro) PR.drawLayer(ctx, "front");
       for (const f of this.fx) this.drawFx(ctx, f);
       for (const f of this.floaters) {
@@ -679,13 +697,13 @@ window.AU = window.AU || {};
         ctx.strokeStyle = f.color; ctx.lineWidth = 8; ctx.beginPath(); ctx.ellipse(f.x, f.y, f.r * (0.3 + k * 0.7), f.r * (0.2 + k * 0.4), 0, 0, Math.PI * 2); ctx.stroke();
       } else if (f.kind === "wave") { // 바닥을 훑는 충격파
         ctx.strokeStyle = f.color; ctx.lineWidth = 5 * (1 - k); ctx.beginPath(); ctx.ellipse(f.x, f.y, f.r * (0.2 + k * 0.8), 9 * (0.5 + k * 0.7), 0, 0, Math.PI * 2); ctx.stroke();
-      } else if (f.kind === "whirl") { // 몸을 도는 칼날 궤적(소용돌이 베기)
+      } else if (f.kind === "whirl") { // 몸을 도는 칼날 궤적(회전 베기)
         ctx.translate(f.x, f.y); ctx.scale(1, 0.55); ctx.strokeStyle = f.color; ctx.lineCap = "round";
         for (let i = 0; i < 3; i++) { const a0 = k * 9 + i * 2.094; ctx.lineWidth = 9 * (1 - k * 0.7); ctx.beginPath(); ctx.arc(0, 0, f.r * (0.55 + k * 0.45), a0, a0 + 1.5); ctx.stroke(); }
       } else if (f.kind === "sparks") { // 사방으로 튀는 불꽃
         ctx.fillStyle = f.color;
         for (let i = 0; i < f.n; i++) { const a = -1.2 + (i / (f.n - 1)) * 2.4 + (i % 2 ? 0.15 : -0.1), d = f.spread * (0.3 + k) * (0.6 + (i % 3) * 0.25); ctx.beginPath(); ctx.arc(f.x + Math.cos(a) * d * f.dir, f.y + Math.sin(a) * d * 0.8 + k * 20, 4 * (1 - k * 0.7), 0, 7); ctx.fill(); }
-      } else if (f.kind === "motes") { // 떠오르는 빛 알갱이(마음 다잡기)
+      } else if (f.kind === "motes") { // 떠오르는 빛 알갱이(응급 치유)
         ctx.fillStyle = f.color;
         for (let i = 0; i < f.n; i++) { const ox = Math.sin(i * 12.9) * 46, sp = 0.6 + (i % 4) * 0.2; ctx.beginPath(); ctx.arc(f.x + ox + Math.sin(this.time * 5 + i) * 5, f.y - 20 - k * 120 * sp, 3.5 * (1 - k * 0.5), 0, 7); ctx.fill(); }
       } else if (f.kind === "pillar") { // 은은한 빛기둥

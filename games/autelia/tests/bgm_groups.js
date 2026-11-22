@@ -20,7 +20,7 @@ const note = (id, name, ok, ev) => { ok ? pass++ : fail++; console.log((ok ? 'PA
   note('B2', '잡화점 1번·무기점 2번', (await at('general_store')).key === 'store_a' && (await at('weapon_store')).key === 'store_b');
   note('B3', '길드·창고 전용 곡', (await at('guild_hall')).key === 'guild' && (await at('warehouse')).key === 'warehouse');
   const f1 = await at('forest'), f2 = await at('harbor_road'), f3 = await at('docks');
-  note('B4', '숲길·항구 길·선창 외곽은 같은 사냥터 묶음(끊김 없이 이어짐)', f1.g === 'field' && f2.g === 'field' && f3.g === 'field' && f1.key === f2.key && f2.key === f3.key, f1.key);
+  note('B4', '여우의 숲·뱀길·선창 외곽은 같은 사냥터 묶음(끊김 없이 이어짐)', f1.g === 'field' && f2.g === 'field' && f3.g === 'field' && f1.key === f2.key && f2.key === f3.key, f1.key);
   const nxt = await ev(() => { AU.Bgm.idx.field = 1; return AU.Bgm.pick().key; }); note('B5', '곡이 끝나면 사냥터 2번으로 이어짐', nxt === 'field2', nxt);
   const tw = await ev(() => { AU.Bgm.idx.town = 3; AU.Bgm.idx.town = (AU.Bgm.idx.town + 1) % AU.Bgm.groups.town.length; return AU.Bgm.groups.town[AU.Bgm.idx.town]; }); note('B6', '마을 마지막 곡(포르투 3) 다음은 처음(모험)으로 돌아감', tw === 'adventure', tw);
   await at('docks'); const boss = await ev(() => { const W = AU.World; W.monsters.push({ alive: true, d: { boss: true }, type: 'trial_boss' }); const g = AU.Bgm.pick().g; W.monsters.pop(); return g; });

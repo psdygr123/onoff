@@ -16,7 +16,9 @@
 
   P.bgs = ["harbor_houses", "harbor_market", "harbor_wharf", "harbor_mid", "harbor_shipyard"]; P.bg = "harbor_houses"; P.width = TOTAL;
   P.platforms = [{ x: 0, y: 590, w: TOTAL }];
-  P.portals = P.portals.map((p) => p.to === "harbor_road" ? p : p.to === "docks" ? Object.assign({}, p, { x: TOTAL - 70 }) : Object.assign({}, p, { x: sh(p.x) }));
+  P.portals = P.portals.map((p) => p.to === "harbor_road" ? p : p.to === "docks" ? Object.assign({}, p, { x: TOTAL - 470, label: "선창 창고 문" }) : Object.assign({}, p, { x: sh(p.x) }));
+  // 오른쪽 끝 길: 2막을 위한 출입구만 마련(맵은 아직 없음) — 지나갈 수 없다는 안내만 나옴
+  P.portals.push({ x: TOTAL - 70, to: "porto", toX: TOTAL - 70, label: "동쪽 길", lock: "이 길은 아직 이어지지 않았습니다. (다음 이야기에서 열립니다)" });
   P.npcs = P.npcs.map((n) => Object.assign({}, n, { x: sh(n.x) }));
   P.start = sh(P.start);
   P.area = { x: 78, y: 40, desc: "주택가·어시장·선착장·중앙 부두·조선소가 이어진 큰 항구도시입니다. 선창 길드와 부두 창고, 상점이 있습니다." };
@@ -24,7 +26,7 @@
   // 다른 맵에서 포르투로 들어오는 위치 옮기기
   const to = (id, from, now) => { for (const p of (AU.MAPS[id].portals || [])) if (p.to === "porto" && p.toX === from) p.toX = now; };
   to("general_store", 2430, sh(2430)); to("weapon_store", 370, sh(370)); to("guild_hall", 1736, sh(1736)); to("warehouse", 2080, sh(2080));
-  to("docks", 2540, TOTAL - 130); to("jandari", 260, sh(260));
+  to("docks", 2540, TOTAL - 470); to("jandari", 260, sh(260));
 
   // 새 주민: 오가며 일하는 사람들(patrol)과 말을 걸 수 있는 주민
   const L = (a, b) => ({ patrol: [a, b], speed: 34 });
