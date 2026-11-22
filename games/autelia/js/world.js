@@ -56,7 +56,7 @@ window.AU = window.AU || {};
     askDeathNote() {
       this.deathAsk = true;
       const S = AU.G.S, C0 = C;
-      const opts = ["여기까지 오느라 수고했어요. 잠시 쉬어도 괜찮아요.", "다음엔 다르게 해 볼 수 있어요. 천천히 해 봐요.", "지금은 숨 한 번 고르는 것만으로 충분해요."];
+      const opts = ["여기까지 오느라 수고했어. 잠시 쉬어도 괜찮아.", "다음엔 다르게 해 볼 수 있어. 천천히 해 보자.", "지금은 숨 한 번 고르는 것만으로 충분해."];
       const st = document.getElementById("stage") || document.body;
       const box = document.createElement("div"); box.className = "death-note";
       box.innerHTML = '<div class="dn-card"><h3>잘 해내려고 애썼어요</h3><p>쓰러지는 일은 누구에게나 있어요.<br>지금 나에게 건네고 싶은 말을 하나 골라 보세요.</p></div>';
