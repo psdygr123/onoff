@@ -129,7 +129,7 @@ window.AU = window.AU || {};
   // fee: 수락할 때 내는 은화 / feeShort: 은화가 모자랄 때 하는 말 / turnIn: 보고할 NPC(없으면 의뢰인) / reqQuest·reqIn: 포털 열림 조건 / setFlags: 완료 시 기록 / after: 완료 후 안내
   Object.assign(AU.QUESTS, {
     q_a2_secret: {
-      title: "바르샤의 전언", type: "main", giver: "barsha", minLevel: 7, pre: ["q_a1_wolves"],
+      title: "바르샤의 전언", type: "main", giver: "barsha", minLevel: 7, pre: ["q_a1_boars"],
       area: "jandari_shop", desc: "잔다리 골목 안쪽, 정보상 바르샤의 공방으로 들어가 길드가 모르는 정보를 전달받습니다. 작업대 위의 결정 조각과 지도를 살펴봅니다.",
       objectives: [{ kind: "investigate", targets: ["barsha_lens", "barsha_map"] }],
       takeItems: [["teodoros_letter", 1]],

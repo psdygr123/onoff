@@ -45,7 +45,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   note('A2', '대사 줄 형식 정상', lines.length === 0, lines.join(',') || '0건');
 
   // B. 흐름
-  await ev(() => { const G = AU.G; G.S.level = 10; G.S.silver = 0; for (const id of ['q_s1_silver', 'q_s1_test', 'q_first', 'q_forest', 'q_guild_talk', 'q_a1_fence', 'q_a1_parcel', 'q_a1_traces', 'q_a1_wolves']) G.S.quests[id] = { state: 'done', prog: [], spots: {} }; G.save('t'); });
+  await ev(() => { const G = AU.G; G.S.level = 10; G.S.silver = 0; for (const id of ['q_s1_silver', 'q_s1_test', 'q_first', 'q_forest', 'q_guild_talk', 'q_a1_fence', 'q_a1_parcel', 'q_a1_traces', 'q_a1_boars']) G.S.quests[id] = { state: 'done', prog: [], spots: {} }; G.save('t'); });
   note('B0', '1장을 마치면 금속의 비밀 퀘스트가 열림', (await st('q_a2_secret')) === 'available', await st('q_a2_secret'));
   const tr = await ev(() => !AU.QUESTS.q_a1_traces.done.some((l) => /쇳조각/.test(l)));
   note('B1', '십장 완료 대사에 쇳조각·정보상 구매 안내가 없음(개편)', tr, String(tr));
