@@ -665,7 +665,16 @@ window.AU = window.AU || {};
     drawNpc(ctx, n) {
       if (this.npcEdit) { const ny = n.npcY || GROUND; ctx.save(); ctx.setLineDash([6, 4]); ctx.lineWidth = 2; ctx.strokeStyle = "#FFE08A"; ctx.strokeRect(n.x - 55, ny - 190, 110, 220); ctx.setLineDash([]); ctx.font = "700 14px 'Noto Sans KR', sans-serif"; ctx.textAlign = "center"; ctx.fillStyle = "rgba(30,22,15,.8)"; ctx.fillRect(n.x - 52, ny + 34, 104, 20); ctx.fillStyle = "#FFE08A"; ctx.fillText(Math.round(n.x) + " , " + Math.round(ny), n.x, ny + 49); ctx.restore(); }
       const d = AU.NPCS[n.id], y = n.npcY || GROUND, face = n.patrol && n._walk ? n._f : (this.player.x < n.x ? -1 : 1), bob = n.patrol && n._walk ? Math.abs(Math.sin((n._step || 0) * 0.11)) * 3 * Math.min(1, n._v / 20) : 0;
-      if (!this.sprite(ctx, d.sprite, n.x, y - bob, 150 * (d.scale || 1), face, 0)) { ctx.fillStyle = "#C9B8A0"; this.rr(ctx, n.x - 30, y - 130, 60, 130, 20); ctx.fill(); ctx.fillStyle = "#5B4636"; ctx.font = "14px sans-serif"; ctx.textAlign = "center"; ctx.fillText("이미지 없음", n.x, y - 60); }
+      const hh = 150 * (d.scale || 1), lit = this.vis === "rim" && !(AU.Prologue && AU.Prologue.on) && AU.Img.has(d.sprite) && Math.abs(n.x - (this.camX + W / 2)) < W / 2 + 160; // 화면 밖 NPC는 효과 생략(필터 비용 절약)
+      if (lit) { // 배경과 섞이지 않도록: 뒤쪽 은은한 역광 + 밝은 테두리 빛 + 얇은 어두운 윤곽(주인공만큼 또렷하게)
+        ctx.save(); ctx.translate(n.x, y - hh * 0.5); ctx.scale(0.62, 1); const g = ctx.createRadialGradient(0, 0, 6, 0, 0, hh * 0.78);
+        g.addColorStop(0, "rgba(255,238,196,.34)"); g.addColorStop(1, "rgba(255,238,196,0)"); ctx.fillStyle = g; ctx.fillRect(-hh, -hh, hh * 2, hh * 2); ctx.restore();
+        ctx.save();
+        if ("filter" in ctx) { ctx.filter = "brightness(1.07) contrast(1.06) saturate(1.1) drop-shadow(0 0 1px rgba(26,15,6,1)) drop-shadow(0 0 1px rgba(26,15,6,.9)) drop-shadow(0 0 7px rgba(255,248,225,.95))"; this.sprite(ctx, d.sprite, n.x, y - bob, hh, face, 0); }
+        else { ctx.shadowColor = "rgba(255,244,214,.95)"; ctx.shadowBlur = 14; this.sprite(ctx, d.sprite, n.x, y - bob, hh, face, 0); ctx.shadowColor = "rgba(22,14,6,.85)"; ctx.shadowBlur = 3; this.sprite(ctx, d.sprite, n.x, y - bob, hh, face, 0); }
+        ctx.restore();
+      }
+      if (!lit && !this.sprite(ctx, d.sprite, n.x, y - bob, hh, face, 0)) { ctx.fillStyle = "#C9B8A0"; this.rr(ctx, n.x - 30, y - 130, 60, 130, 20); ctx.fill(); ctx.fillStyle = "#5B4636"; ctx.font = "14px sans-serif"; ctx.textAlign = "center"; ctx.fillText("이미지 없음", n.x, y - 60); }
     },
     npcRole(id) { // 역할별 구분(글자·색): 상점/전직/안내/의뢰
       const d = AU.NPCS[id];
