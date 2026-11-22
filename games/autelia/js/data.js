@@ -38,6 +38,7 @@ AU.ASSETS = {
   mon_fox:   { path: "assets/monster/fox.webp", optional: true },
   mon_snake: { path: "assets/monster/snake.webp", optional: true },
   mon_rat:   { path: "assets/monster/rat.webp", optional: true },
+  mon_boar:  { path: "assets/monster/boar.webp", optional: true },
   mon_crab:  { path: "assets/monster/crab.webp", optional: true },
   pt_player_male: { path: "assets/portrait/player_male.webp" },
   pt_player_female: { path: "assets/portrait/player_female.webp" },
@@ -166,11 +167,11 @@ AU.AREA_LINKS = [["forest", "harbor_road"], ["harbor_road", "porto"], ["porto", 
 // sprite/sw: 정식 그림(assets/monster/*.webp, 투명 배경, 오른쪽을 보는 옆모습 1장)이 있으면 그 그림을 sw(가로 px)로 그리고, 없으면 임시 도형으로 표시합니다.
 // 이전 아스텔리아 기획의 사냥터 구성(들짐승→부두 쥐→게→거대 적)을 규칙으로만 재사용. 모두 임시 수치.
 AU.MONSTERS = {
-  fox:   { motion: "pounce", name: "들여우", lv: 3, hp: 88, atk: 14, speed: 85, chase: 150, w: 72, h: 50, exp: 100, silver: [2, 7], silverRate: 0.12, drops: [["fur", 0.15, 1, 2], ["fox_tail", 0.07], ["black_crystal", 0.2, 1, 1, "q_a1_variant"], ["potion", 0.04], ["fox_scarf", 0.012]], color: "#F5A25D", ear: true, sprite: "mon_fox", sw: 92 },
-  wild_boar: { motion: "leap", name: "굶주린 멧돼지", lv: 6, hp: 230, atk: 26, speed: 95, windT: 0.75, chargeT: 0.5, chargeSpd: 3.4, recoverT: 1.2, chase: 200, w: 96, h: 58, exp: 190, silver: [4, 12], silverRate: 0.14, drops: [["boar_tusk", 0.15], ["potion", 0.05], ["black_crystal", 0.2, 1, 1, "q_a1_variant"]], color: "#7A5C45", sprite: "mon_wolf", sw: 140 },
-  snake: { motion: "coil", name: "뱀", lv: 1, hp: 51, atk: 8, speed: 70, chase: 130, w: 90, h: 34, exp: 50, silver: [1, 4], silverRate: 0.1, drops: [["snake_skin", 0.15], ["snake_fang", 0.07], ["black_crystal", 0.3, 1, 1, "q_a1_variant"], ["potion", 0.05], ["snake_ring", 0.012]], color: "#7DBE6B", snake: true, sprite: "mon_snake", sw: 128 },
+  fox:   { motion: "pounce", name: "들여우", lv: 3, hp: 88, atk: 14, speed: 85, chase: 150, w: 72, h: 50, exp: 100, silver: [2, 7], silverRate: 0.12, drops: [["fur", 0.15, 1, 2], ["fox_tail", 0.07], ["potion", 0.04], ["fox_scarf", 0.012]], color: "#F5A25D", ear: true, sprite: "mon_fox", sw: 92 },
+  wild_boar: { motion: "leap", name: "굶주린 멧돼지", lv: 6, hp: 230, atk: 26, speed: 95, windT: 0.75, chargeT: 0.5, chargeSpd: 3.4, recoverT: 1.2, chase: 200, w: 96, h: 58, exp: 190, silver: [4, 12], silverRate: 0.14, drops: [["boar_tusk", 0.15], ["potion", 0.05]], color: "#7A5C45", sprite: "mon_boar", sw: 150 },
+  snake: { motion: "coil", name: "뱀", lv: 1, hp: 51, atk: 8, speed: 70, chase: 130, w: 90, h: 34, exp: 50, silver: [1, 4], silverRate: 0.1, drops: [["snake_skin", 0.15], ["snake_fang", 0.07], ["potion", 0.05], ["snake_ring", 0.012]], color: "#7DBE6B", snake: true, sprite: "mon_snake", sw: 128 },
   rat:   { motion: "scurry", name: "부두 쥐", lv: 5, hp: 144, atk: 21, speed: 100, chase: 160, w: 70, h: 46, exp: 170, silver: [3, 10], silverRate: 0.14, drops: [["rat_tooth", 0.15, 1, 2], ["black_crystal", 0.4, 1, 1, "q_a1_variant"], ["potion", 0.05]], color: "#A79C94", ear: true, sprite: "mon_rat", sw: 88 },
-  crab:  { motion: "sidestep", name: "집게 게", lv: 8, hp: 272, atk: 36, speed: 60, chase: 150, w: 92, h: 56, exp: 260, silver: [5, 14], silverRate: 0.16, drops: [["crab_claw", 0.15, 1, 2], ["crab_shell", 0.07], ["potion", 0.06], ["crab_vest", 0.01]], color: "#E9777A", crab: true, sprite: "mon_crab", sw: 116 },
+  crab:  { motion: "sidestep", name: "집게 게", lv: 8, hp: 272, atk: 36, speed: 60, chase: 150, w: 92, h: 56, exp: 260, silver: [5, 14], silverRate: 0.16, drops: [["black_crystal", 0.35, 1, 1, "q_a1_variant"], ["crab_claw", 0.15, 1, 2], ["crab_shell", 0.07], ["potion", 0.06], ["crab_vest", 0.01]], color: "#E9777A", crab: true, sprite: "mon_crab", sw: 116 },
   trial_boss: { name: "움브라", lv: 10, hp: 1500, atk: 40, patterns: ["lunge", "slam", "wave"], ragePatterns: ["chain"], slamR: 180, cd: 2.2, cdRage: 1.5, speed: 75, chase: 420, w: 240, h: 150, exp: 600, silver: [60, 80], silverRate: 1, drops: [], color: "#9B7FD1", boss: true, motion: "swing",
     sprite: "mon_umbra_base", sw: 300, refW: 345, poses: { idle: "mon_umbra_base", walkA: "mon_umbra_walkA", walkB: "mon_umbra_walkB", windup: "mon_umbra_windup", attack: "mon_umbra_attack", hurt: "mon_umbra_hurt", down: "mon_umbra_down" } }
 };
@@ -285,7 +286,7 @@ AU.QUESTS = {
     title: "정식 등록", type: "main", giver: "porto_foreman", turnIn: "porto_guild", minLevel: 3, pre: ["q_forest"],
     area: "guild_hall", desc: "접수의 다프네에게 가서 길드 장부에 이름을 올립니다.", objectives: [{ kind: "talk", target: "porto_guild" }],
     offer: ["이제 자네도 선창 길드의 일원일세. 접수의 다프네에게 가서 장부에 정식으로 이름을 올리게."],
-    done: ["어서 오세요. 카시안 님께 이야기 들었어요. 정식 등록을 도와드릴게요.", "이 장부에 이름이 올라가면 길드 의뢰를 받을 수 있어요. 의뢰를 마치면 은화로 보수가 나가요. 은화는 포르투 노바에서 장비와 물건을 사고파는 데 쓰는 돈이에요.", "그리고 모험가들은 모험일지에 마음에 남은 일을 적어 둔답니다. 일지에는 몸과 마음을 돌보는 작은 활동도 소개돼 있어요. 해 볼지는 자유예요.", "길드 의뢰는 제가 맡고 있어요. 레벨이 4가 되면 첫 의뢰를 드릴게요. 짐 심부름 같은 일은 카시안 님께 여쭤 보세요.", "등록을 축하해요. 이제 정식 모험가세요!"],
+    done: ["어서 오세요. 카시안 님께 이야기 들었어요. 정식 등록을 도와드릴게요.", "이 장부에 이름이 올라가면 길드 의뢰를 받을 수 있어요. 의뢰를 마치면 은화로 보수가 나가요. 은화는 포르투 노바에서 장비와 물건을 사고파는 데 쓰는 돈이에요.", "그리고 모험가들은 모험일지에 마음에 남은 일을 적어 둔답니다. 일지에는 몸과 마음을 돌보는 작은 활동도 소개돼 있어요. 한번 해 보면 어때요?", "길드 의뢰는 제가 맡고 있어요. 레벨이 4가 되면 첫 의뢰를 드릴게요. 짐 심부름 같은 일은 카시안 님께 여쭤 보세요.", "등록을 축하해요. 이제 정식 모험가세요!"],
     reward: { exp: 250, silver: 50 }
   },
   q_guild_rats: {
@@ -311,14 +312,23 @@ AU.QUESTS = {
     offer: ["심부름을 하나 부탁하겠네. 이 꾸러미를 잡화상인에게 전해 주게.", "마을 안이니 멀지 않을 걸세."],
     reminder: ["꾸러미는 잡화상인에게 전하면 되네."],
     deliver: { porto_general: ["선창 길드에서 온 꾸러미군요. 기다리고 있었어요. 고맙습니다.", "(꾸러미를 건넸습니다.)"] },
-    done: ["전했나? 수고했네. 수고비일세.", "포션이 떨어졌거든 잡화점에서 사 두게. 다음 일엔 쓸 데가 많을 걸세."],
-    reward: { exp: 500, silver: 50, items: [["potion", 2]] }
+    done: ["전했나? 수고했네. 수고비일세.", "참, 잡화상인이 답례로 부탁할 일이 있다더군. 시간 날 때 들러 보게. 포션이 떨어졌거든 거기서 사 두면 좋겠지.", "(페넬로페의 부탁을 받았습니다.)"],
+    reward: { exp: 500, silver: 50, items: [["potion", 2]] },
+    next: "q_a1_parcel_thanks"
+  },
+  q_a1_parcel_thanks: {
+    title: "페넬로페의 답례", type: "sub", giver: "porto_general", minLevel: 5, pre: ["q_a1_parcel"],
+    area: "docks", desc: "선창 외곽의 부두 쥐에게서 쥐 이빨 3개를 구해 페넬로페에게 가져다줍니다.", objectives: [{ kind: "collect", item: "rat_tooth", count: 3 }],
+    offer: ["길드 꾸러미 덕분에 한시름 놨어요. 정말 고마워요.", "받기만 하면 미안하니 답례를 하고 싶은데, 한 가지만 더 부탁해도 될까요? 부두 쥐 이빨이 약 만드는 데 필요한데, 이번엔 제가 가게를 비울 수가 없어서요.", "선창 외곽의 부두 쥐에게서 쥐 이빨 세 개만 모아 주세요. 대신 쓸 만한 물건으로 보답할게요."],
+    reminder: ["선창 외곽의 부두 쥐에게서 쥐 이빨 세 개예요. 무리하지는 마세요."],
+    done: ["세 개 다 구해 오셨네요! 덕분에 약 재료가 채워졌어요.", "이건 약소하지만 제 마음이에요. 앞으로도 가게에 자주 들러 주세요."],
+    reward: { exp: 450, silver: 60, items: [["potion", 3]] }
   },
   q_a1_variant: {
     title: "변형의 흔적", type: "main", giver: "porto_foreman", minLevel: 5, pre: ["q_guild_talk"],
-    area: "harbor_road", desc: "변형된 몬스터에게서 검은 결정 3개를 구해 길드장에게 가져갑니다.", objectives: [{ kind: "collect", item: "black_crystal", count: 3 }],
-    offer: ["이제 제법 자랐으니, 자네에게도 어려운 의뢰를 맡겨 봐야겠군.", "최근 이 일대 몬스터들이 이상하게 변하고 있네. 몇 가지 확인할 것이 있어.", "변형된 놈들의 몸에서 검은 결정이 나온다는 말이 있네. 그 결정 세 개를 구해 와 주게. 뱀길의 뱀·여우든, 멧돼지 숲의 멧돼지든, 선창의 쥐든 상관없네."],
-    reminder: ["검은 결정은 변형된 몬스터를 쓰러뜨리면 나올 걸세. 세 개를 모아 오게."],
+    area: "docks", desc: "선창의 부두 쥐와 집게 게에게서 검은 결정 3개를 구해 길드장에게 가져갑니다.", objectives: [{ kind: "collect", item: "black_crystal", count: 3 }],
+    offer: ["이제 제법 자랐으니, 자네에게도 어려운 의뢰를 맡겨 봐야겠군.", "최근 이 일대 몬스터들이 이상하게 변하고 있네. 몇 가지 확인할 것이 있어.", "변형된 놈들의 몸에서 검은 결정이 나온다는 말이 있네. 그 결정 세 개를 구해 와 주게. 선창 쪽에서 본 놈들이 유독 수상하네. 부두의 쥐든, 외곽의 집게 게든 상관없네."],
+    reminder: ["검은 결정은 선창의 부두 쥐나 집게 게를 쓰러뜨리면 나올 걸세. 세 개를 모아 오게."],
     done: ["...이게 검은 결정인가. 만져 보니 차갑고, 안쪽에 붉은 줄이 비치는군.", "자연히 생기는 물건이 아니야. 누군가 일부러 몬스터를 변형시키고 있다는 뜻이지.", "길드가 따로 알아보겠네. 레벨이 6이 되면 다시 오게. 자네에게 맡길 일이 또 있을 걸세."],
     reward: { exp: 1000, silver: 80, items: [] }
   },
@@ -383,7 +393,7 @@ AU.NPCS = {
     idle: ["선창 길드입니다. 의뢰가 필요하면 말씀하세요.", "오늘은 부두가 조용하군요."] },
   porto_armor: { name: "이리스", title: "점원", sprite: "porto_armor", portrait: "pt_porto_armor", quests: [],
     idle: ["방어구는 몸에 맞는 게 제일이에요. 천천히 구경하세요.", "무기점 주인이 망치를 잡으면 저는 갑옷을 손봅니다."] },
-  porto_general: { name: "페넬로페", sprite: "porto_general", portrait: "pt_porto_general", shop: "general",
+  porto_general: { name: "페넬로페", sprite: "porto_general", portrait: "pt_porto_general", shop: "general", quests: ["q_a1_parcel_thanks"],
     idle: ["어서 오세요. 모험에서 주워 온 재료, 제가 사들입니다.", "회복약도 있어요. 필요하면 말씀하세요."] },
   porto_smith: { name: "데메트리오스", sprite: "porto_smith", portrait: "pt_porto_smith", shop: "weapon",
     idle: ["쓸 만한 무기와 방어구라면 여기 다 있소.", "튼튼한 장비가 모험의 반이오."] },
