@@ -602,6 +602,14 @@ window.AU = window.AU || {};
       ctx.save(); ctx.translate(x, y); ctx.scale(dir < 0 ? -1 : 1, 1);
       ctx.drawImage(im, Math.max(0, Math.min(fr - 1, frame)) * fw, 0, fw, fh, -dw / 2, -height, dw, height); ctx.restore(); return true;
     },
+    litSprite(key, hh, face) { // 테두리 빛·윤곽 효과를 입힌 NPC 그림을 크기·방향별로 한 번만 만들어 둠(필터는 비싸서 매 프레임 쓰지 않음)
+      this._lit = this._lit || {}; const k = key + "|" + Math.round(hh) + "|" + face; if (this._lit[k]) return this._lit[k];
+      if (!AU.Img.has(key)) return null;
+      const rec = AU.Img.map[key], dw = hh * (rec.image.naturalWidth / rec.frames) / rec.image.naturalHeight, cv = document.createElement("canvas"), pad = 24;
+      cv.width = Math.ceil(dw) + pad * 2; cv.height = Math.ceil(hh) + pad * 2; const c = cv.getContext("2d");
+      c.filter = "brightness(1.07) contrast(1.06) saturate(1.1) drop-shadow(0 0 1px rgba(26,15,6,1)) drop-shadow(0 0 1px rgba(26,15,6,.9)) drop-shadow(0 0 7px rgba(255,248,225,.95))";
+      this.sprite(c, key, cv.width / 2, cv.height - pad, hh, face, 0); return (this._lit[k] = cv);
+    },
     nameTag(ctx, text, x, y, color) { // 유리 느낌의 알약형 이름표(배경이 복잡해도 읽히도록 어둡고 반투명)
       text = String(text).replace(/\s*\((임시|임시 명칭)\)/g, "");
       ctx.font = "600 14px 'Noto Sans KR', sans-serif"; ctx.textAlign = "center";
@@ -676,7 +684,7 @@ window.AU = window.AU || {};
         ctx.save(); ctx.translate(n.x, y - hh * 0.5); ctx.scale(0.62, 1); const g = ctx.createRadialGradient(0, 0, 6, 0, 0, hh * 0.78);
         g.addColorStop(0, "rgba(255,238,196,.34)"); g.addColorStop(1, "rgba(255,238,196,0)"); ctx.fillStyle = g; ctx.fillRect(-hh, -hh, hh * 2, hh * 2); ctx.restore();
         ctx.save();
-        if ("filter" in ctx) { ctx.filter = "brightness(1.07) contrast(1.06) saturate(1.1) drop-shadow(0 0 1px rgba(26,15,6,1)) drop-shadow(0 0 1px rgba(26,15,6,.9)) drop-shadow(0 0 7px rgba(255,248,225,.95))"; this.sprite(ctx, d.sprite, n.x, y - bob, hh, face, 0); }
+        if ("filter" in ctx) { const lc = this.litSprite(d.sprite, hh, face); if (lc) ctx.drawImage(lc, Math.round(n.x - lc.width / 2), Math.round(y - bob - (lc.height - 24))); }   // 효과를 매 프레임 계산하지 않고 한 번 만들어 둔 그림을 재사용(NPC가 많은 포르투 노바에서 화면이 끊기던 원인)
         else { ctx.shadowColor = "rgba(255,244,214,.95)"; ctx.shadowBlur = 14; this.sprite(ctx, d.sprite, n.x, y - bob, hh, face, 0); ctx.shadowColor = "rgba(22,14,6,.85)"; ctx.shadowBlur = 3; this.sprite(ctx, d.sprite, n.x, y - bob, hh, face, 0); }
         ctx.restore();
       }
