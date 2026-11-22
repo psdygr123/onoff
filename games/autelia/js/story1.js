@@ -35,10 +35,9 @@ window.AU = window.AU || {};
 
   /* 말하는 사람(대화창 이름·초상화). 주인공은 성별·이름을 따라감 */
   /* 조사 지점 그림(옵션): assets/object/spot_<id>.webp 파일을 넣으면 임시 도형 대신 그려집니다. 규격은 docs의 요청문 참고 */
-  Object.assign(AU.ASSETS, { ob_spot_barsha_lens: { path: "assets/object/spot_barsha_lens.webp", optional: true }, ob_spot_barsha_map: { path: "assets/object/spot_barsha_map.webp", optional: true }, ob_spot_relay_tent: { path: "assets/object/spot_relay_tent.webp", optional: true }, pt_claude: { path: "assets/portrait/claude.webp", optional: true }, pt_scene_found: { path: "assets/portrait/scene_found.webp", optional: true }, pt_baltein: { path: "assets/portrait/baltein.webp", optional: true } });
+  Object.assign(AU.ASSETS, { ob_spot_barsha_lens: { path: "assets/object/spot_barsha_lens.webp", optional: true }, ob_spot_barsha_map: { path: "assets/object/spot_barsha_map.webp", optional: true }, ob_spot_relay_tent: { path: "assets/object/spot_relay_tent.webp", optional: true }, pt_claude: { path: "assets/portrait/claude.webp", optional: true }, pt_baltein: { path: "assets/portrait/baltein.webp", optional: true } });
   const HERO = { get name() { return AU.Profile.name(); }, get portrait() { return AU.Profile.portraitKey(); } };
   const B = () => AU.NPCS.barsha, J = () => AU.NPCS.jepeto;
-  const SHOUT = { name: "흰 로브의 검수관", get portrait() { return AU.Img.has("pt_scene_found") ? "pt_scene_found" : "pt_baltein"; } };   // 들킨 순간: 장면 일러스트
   const CLAUDE = { name: "감독관 클로드", portrait: "pt_claude" }, BALTEIN = { name: "흰 로브의 검수관", portrait: "pt_baltein" }, VOICE = { name: "용병", portrait: "" };
   const L = (npc, t) => ({ npc, t });
 
@@ -109,7 +108,7 @@ window.AU = window.AU || {};
       { id: "valley_crates", img: "ob_trace_crate", portrait: "pt_scene_crates", x: 520, kind: "investigate", label: "불도장 찍힌 궤짝", lines: [
         "절벽 틈에서 내려다본 하차장입니다. 검은 옷의 용병 수십 명이 짐수레에서 묵직한 궤짝을 끊임없이 나르고 있습니다.",
         "궤짝 옆면마다 불도장으로 찍힌 '검은 물결' 표식이 선명합니다. 구석에서는 계약에 묶인 인부들이 검은 결정 원석을 다듬고 있습니다."] },
-      { id: "relay_tent", img: "ob_spot_relay_tent", portrait: "pt_scene_tent", w: 520, x: 1700, kind: "investigate", label: "중심 천막 밑 대화", lines: [
+      { id: "relay_tent", img: "ob_spot_relay_tent", portrait: "pt_scene_tent", w: 520, x: 1700, kind: "investigate", label: "중심 천막 밑 대화", cuts: [{ at: 0, src: "assets/cut/relay_peek.webp" }, { at: 7, src: "assets/cut/relay_found.webp" }], lines: [
         "(중심 천막 아래에서 두 사람이 낮게 이야기하고 있다.)",
         "(가죽 채찍을 찬 사내는 상단 감독관 클로드. 흰 로브를 입고 핏빛 원석을 들여다보는 사내는 흰 로브의 검수관이라 불린다.)",
         L(BALTEIN, "변형이 덜 되었군. 투입량을 늘려라, 클로드. 위에서 서두르고 계신다."),
@@ -117,7 +116,7 @@ window.AU = window.AU || {};
         L(BALTEIN, "죽는 놈은 버려라. 실험 구역에 넘길 물량만 맞추면 된다. 이번에 잡은 짐승들은 곧바로 아지트로 올려 보낸다."),
         L(HERO, "(몬스터를 일부러 변형시키는 실험... 이 중계소는 그 재료를 아지트로 보내는 길목이다. 아지트가 어딘가에 있다.)"),
         "(그때 발밑에서 자갈 하나가 굴러떨어졌다.)",
-        L(SHOUT, "거기 누구냐!"),
+        L(BALTEIN, "거기 누구냐!"),
         L(HERO, "(들켰다! 도망가자!)")] },
       { id: "lift_rope", img: "fence", kind: "repair", x: 2500, dur: 2, label: "수하물 리프트 밧줄", done: "고정 밧줄을 정으로 끊었습니다. 거대한 도르래가 요란하게 무너져 내리며 추격자들의 길을 막습니다." }
     ],
