@@ -186,9 +186,26 @@ window.AU = window.AU || {};
       if (o.kind === "talk" || o.kind === "deliver" || o.kind === "choice") { const mp = this.npcMap(o.target); return this.dirText(mp, o.target); }
       return q.area ? this.dirText(q.area, null) : "";
     },
+    /* 지금 가야 할 지역(메인 우선): 보고 대기 > 진행 중 목표 지역 > 새 의뢰 NPC가 있는 지역. 포털 강조에 사용 */
+    guideMap() {
+      const S = AU.G.S, rank = (id) => (AU.questKind(id) === "main" ? 0 : 1);
+      const act = Object.entries(S.quests).filter(([, r]) => r.state === "active" || r.state === "ready").sort((a, b) => rank(a[0]) - rank(b[0]))[0];
+      if (act) { const q = AU.QUESTS[act[0]]; if (!q) return null; if (act[1].state === "ready") return this.npcMap(q.turnIn || q.giver);
+        const o = q.objectives.find((x, i) => !AU.G.objectiveDone(q, act[1], i)); if (o && (o.kind === "talk" || o.kind === "deliver" || o.kind === "choice")) return this.npcMap(o.target); return q.area || null; }
+      const av = Object.keys(AU.QUESTS).filter((id) => AU.G.questStatus(id) === "available").sort((x, y) => rank(x) - rank(y))[0];
+      return av ? this.npcMap(AU.QUESTS[av].giver) : null;
+    },
+    guidePortal() { // 이 맵에서 안내 대상 지역으로 가는 다음 포털(없으면 null). 0.4초마다만 다시 계산
+      const W = AU.World, t = performance.now(); if (this._gp && this._gp.k === W.mapId + "|" + AU.G.S.level && t - this._gp.t < 400) return this._gp.v;
+      let v = null; const to = AU.Prologue && AU.Prologue.on ? null : this.guideMap();
+      if (to && W.map && to !== W.mapId) { const hop = this.route(W.mapId, to); v = hop ? (W.map.portals || []).find((x) => x.to === hop && !x.lock) || null : null; }
+      this._gp = { k: W.mapId + "|" + AU.G.S.level, t, v }; return v;
+    },
     nextGoals() { // 진행 중인 퀘스트가 모자랄 때 알려 주는 다음 목표(최대 2줄)
       const S = AU.G.S, out = [];
-      for (const id of Object.keys(AU.QUESTS)) { if (AU.G.questStatus(id) === "available") { const q = AU.QUESTS[id], mp = this.npcMap(q.giver); out.push(AU.QKIND[AU.questKind(id)].icon + " 새 의뢰: " + q.title.replace(" (임시)", "") + " — " + AU.NPCS[q.giver].name.replace(" (임시)", "") + (mp ? " (" + this.areaName(mp) + ")" : "")); break; } }
+      { const av = Object.keys(AU.QUESTS).filter((id) => AU.G.questStatus(id) === "available").sort((x, y) => (AU.questKind(x) === "main" ? 0 : 1) - (AU.questKind(y) === "main" ? 0 : 1))[0];
+        if (av) { const q = AU.QUESTS[av], mp = this.npcMap(q.giver), dir = mp ? this.dirText(mp, q.giver) : "";
+          out.push(AU.QKIND[AU.questKind(av)].icon + " 새 의뢰: " + q.title.replace(" (임시)", "") + " — " + AU.NPCS[q.giver].name.replace(" (임시)", "") + (mp ? " (" + this.areaName(mp) + ")" : "") + (dir ? "\n" + dir : "")); } }
       if (out.length < 2) { const lockedLv = Object.keys(AU.QUESTS).map((id) => [id, AU.QUESTS[id]]).filter(([id, q]) => !S.quests[id] && q.pre.every((x) => AU.G.questStatus(x) === "done") && S.level < q.minLevel && id !== "q_job").sort((a, b) => a[1].minLevel - b[1].minLevel)[0];
         if (lockedLv) out.push("Lv." + lockedLv[1].minLevel + "이 되면 새 의뢰: " + lockedLv[1].title.replace(" (임시)", "")); }
       if (out.length < 2 && !AU.G.awakened() && S.level < 10) out.push("Lv.10까지 레벨을 올리세요 (지금 Lv." + S.level + ") — 사냥터: 뱀길·멧돼지 숲·선창 외곽");
@@ -209,7 +226,7 @@ window.AU = window.AU || {};
           else q.objectives.forEach((o, i) => box.append(h("div", { class: "to" + (AU.G.objectiveDone(q, rec, i) ? " ok" : "") }, this.objText(o, rec, i))));
           const dir = h("div", { class: "td" }); box.append(dir); this._trkDirs.push({ el: dir, id }); t.append(box);
         });
-        if (goals.length) { const box = h("div", { class: "tq tnext" }, h("div", { class: "tt" }, "지금 할 일")); goals.forEach((g) => box.append(h("div", { class: "to" }, g))); t.append(box); }
+        if (goals.length) { const box = h("div", { class: "tq tnext" }, h("div", { class: "tt" }, "지금 할 일")); goals.forEach((g) => box.append(h("div", { class: "to", style: "white-space:pre-line" }, g))); t.append(box); }
       }
       for (const d of this._trkDirs || []) { const txt = this.questGuide(d.id); this.setText(d.el, "trkd" + d.id, txt); d.el.style.display = txt ? "block" : "none"; }
       T.style.display = "block";
