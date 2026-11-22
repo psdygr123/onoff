@@ -243,6 +243,9 @@ AU.SKILLS = {
   focus:  { name: "버스트", cost: 12, cd: 10, heal: 0.35, desc: "숨을 고르며 상처를 치유해 최대 HP의 35%를 회복합니다." }
 };
 AU.WARRIOR_SKILLS = ["strike", "spin", "focus"];
+/* 스킬은 레벨에 따라 하나씩 열림: 1번 스매시 크러셔 Lv10(힘의 각성), 2번 Lv15, 3번 Lv20(전직 이후) */
+AU.SKILL_UNLOCK_LV = { strike: 10, spin: 15, focus: 20 };
+AU.skillsForLevel = (lv) => AU.WARRIOR_SKILLS.filter((id) => lv >= AU.SKILL_UNLOCK_LV[id]);
 
 /* ---------- 퀘스트 (전부 임시 테스트 콘텐츠) ---------- */
 // kind: kill(처치) / collect(아이템 수집) / talk(대화) / deliver(물건 전달: item→target NPC) / investigate(조사 지점 targets) / repair(목공 수리 지점 targets) / choice(선택: 정답 없는 갈림길, target NPC에게 말 걸기)
