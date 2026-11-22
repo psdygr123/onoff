@@ -77,7 +77,7 @@
       phase = phase || (opts._lineSel ? "line" : "group");   // 1단계는 직업군(용사) → 용사를 고르면 전사·마법사… 선택 창
       root.innerHTML = ""; let sel = phase === "line" ? this.cleanLine(opts._lineSel || (opts.initial && opts.initial.line)) : "hero";
       const box = h("div", "panel setupbox jobbox"); box.id = "jobsetup"; box.setAttribute("role", "dialog"); box.setAttribute("aria-label", "직업 선택하기");
-      box.append(this.stepBar(h, 1), h("p", "stitle", "직업 선택하기"), h("p", "ssub", "어떤 길을 걸을지 정해주세요."));
+      box.append(this.stepBar(h, 1), h("p", "stitle", "직업 선택하기"), h("p", "ssub", "어떤 길을 걸을지 정해 주세요."));
       const list = phase === "line" ? AU.JOB_LINES : AU.JOB_GROUPS;
       const row = h("div", "jcards"); row.setAttribute("role", "radiogroup"); row.setAttribute("aria-label", "직업"); const els = {};
       const note = h("p", "jnote", ""); note.setAttribute("aria-live", "polite");
