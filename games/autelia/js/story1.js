@@ -35,9 +35,10 @@ window.AU = window.AU || {};
 
   /* 말하는 사람(대화창 이름·초상화). 주인공은 성별·이름을 따라감 */
   /* 조사 지점 그림(옵션): assets/object/spot_<id>.webp 파일을 넣으면 임시 도형 대신 그려집니다. 규격은 docs의 요청문 참고 */
-  Object.assign(AU.ASSETS, { ob_spot_barsha_lens: { path: "assets/object/spot_barsha_lens.webp", optional: true }, ob_spot_barsha_map: { path: "assets/object/spot_barsha_map.webp", optional: true }, ob_spot_relay_tent: { path: "assets/object/spot_relay_tent.webp", optional: true }, pt_claude: { path: "assets/portrait/claude.webp", optional: true }, pt_baltein: { path: "assets/portrait/baltein.webp", optional: true } });
+  Object.assign(AU.ASSETS, { ob_spot_barsha_lens: { path: "assets/object/spot_barsha_lens.webp", optional: true }, ob_spot_barsha_map: { path: "assets/object/spot_barsha_map.webp", optional: true }, ob_spot_relay_tent: { path: "assets/object/spot_relay_tent.webp", optional: true }, pt_claude: { path: "assets/portrait/claude.webp", optional: true }, pt_scene_found: { path: "assets/portrait/scene_found.webp", optional: true }, pt_baltein: { path: "assets/portrait/baltein.webp", optional: true } });
   const HERO = { get name() { return AU.Profile.name(); }, get portrait() { return AU.Profile.portraitKey(); } };
   const B = () => AU.NPCS.barsha, J = () => AU.NPCS.jepeto;
+  const SHOUT = { name: "흰 로브의 검수관", get portrait() { return AU.Img.has("pt_scene_found") ? "pt_scene_found" : "pt_baltein"; } };   // 들킨 순간: 장면 일러스트
   const CLAUDE = { name: "감독관 클로드", portrait: "pt_claude" }, BALTEIN = { name: "흰 로브의 검수관", portrait: "pt_baltein" }, VOICE = { name: "용병", portrait: "" };
   const L = (npc, t) => ({ npc, t });
 
@@ -57,7 +58,7 @@ window.AU = window.AU || {};
   });
 
   /* ---------- NPC ---------- */
-  AU.NPCS.barsha = { name: "정보상 바르샤", sprite: "barsha", portrait: "pt_barsha", quests: ["q_a2_secret", "q_a3_scout"],
+  AU.NPCS.barsha = { name: "정보상 바르샤", sprite: "barsha", portrait: "pt_barsha", quests: ["q_a2_secret", "q_a3_recon", "q_a3_scout"],
     idle: ["길드 장부에 내 이름은 없네. 그게 이 일의 요령이지.", "필요한 소식이 생기면 내가 먼저 부를 걸세."] };
   AU.NPCS.jepeto = { name: "도편수 제페토", sprite: "jepeto", portrait: "pt_jepeto", quests: ["q_a3_scout", "q_a3_jepeto"],
     idle: ["손은 늙었어도 눈은 아직 쓸 만하다네.", "서부로 가는 길은 험하니 단련을 게을리하지 말게."] };
@@ -68,7 +69,7 @@ window.AU = window.AU || {};
     platforms: [{ x: 0, y: 590, w: 1500 }], ropes: [],
     portals: [{ x: 40, to: "porto", toX: 260, label: "포르투 노바" },
               { x: 960, to: "jandari_shop", toX: 200, label: "정보상의 공방(문)", door: true },
-              { x: 1460, to: "valley", toX: 90, label: "북쪽 경계(검은 골짜기)", reqQuest: "q_a3_scout", reqIn: ["active", "ready", "done"], reqText: "정보상에게 아직 들을 이야기가 남아 있습니다." }],
+              { x: 1460, to: "valley", toX: 90, label: "북쪽 경계(검은 골짜기)", reqQuest: "q_a3_recon", reqIn: ["active", "ready", "done"], reqText: "정보상에게 아직 들을 이야기가 남아 있습니다." }],
     npcs: [],
     spots: [],
     spawns: [], start: 90,
@@ -95,7 +96,7 @@ window.AU = window.AU || {};
     area: { x: 66, y: 52, desc: "정보상 바르샤의 공방 안입니다. 작업대 위에 길드 장부에 없는 물건들이 놓여 있습니다." }
   };
   AU.MAPS.valley = {
-    name: "검은 골짜기", bg: "valley", hint: "골짜기 안쪽으로 가며 변형된 여우를 처치하고, 조사 지점(F)도 확인하세요", width: 3200, safe: false,
+    name: "검은 골짜기", bg: "valley", hint: "안쪽의 조사 지점(F)을 확인하세요. 변형된 여우는 위험합니다", width: 3200, safe: false,
     /* 발판(나무 잔교): 땅에서 점프로 닿는 높이는 96px 이하라 70px씩 계단으로 쌓고, 190px 높이의 잔교는 밧줄로만 오름.
        밧줄은 잔교 왼쪽 끝 바로 옆(x=잔교 시작-15)에 걸고, 위쪽 끝(top)은 잔교 윗면보다 15px 위 */
     platforms: [{ x: 0, y: 590, w: 3200 }, { x: 840, y: 520, w: 240, thin: true }, { x: 1020, y: 450, w: 240, thin: true },
@@ -109,13 +110,15 @@ window.AU = window.AU || {};
         "절벽 틈에서 내려다본 하차장입니다. 검은 옷의 용병 수십 명이 짐수레에서 묵직한 궤짝을 끊임없이 나르고 있습니다.",
         "궤짝 옆면마다 불도장으로 찍힌 '검은 물결' 표식이 선명합니다. 구석에서는 계약에 묶인 인부들이 검은 결정 원석을 다듬고 있습니다."] },
       { id: "relay_tent", img: "ob_spot_relay_tent", portrait: "pt_scene_tent", w: 520, x: 1700, kind: "investigate", label: "중심 천막 밑 대화", lines: [
-        "중심 천막 아래에서 두 사람이 낮게 이야기하고 있습니다.",
-        "가죽 채찍을 찬 사내는 상단 감독관 클로드. 흰 로브를 입고 핏빛 원석을 들여다보는 사내는 흰 로브의 검수관이라 불립니다.",
+        "(중심 천막 아래에서 두 사람이 낮게 이야기하고 있다.)",
+        "(가죽 채찍을 찬 사내는 상단 감독관 클로드. 흰 로브를 입고 핏빛 원석을 들여다보는 사내는 흰 로브의 검수관이라 불린다.)",
         L(BALTEIN, "변형이 덜 되었군. 투입량을 늘려라, 클로드. 위에서 서두르고 계신다."),
         L(CLAUDE, "우리 짐승들이 버티질 못합니다. 결정을 더 먹이면 죽어 나가는 놈이 늘어요."),
         L(BALTEIN, "죽는 놈은 버려라. 실험 구역에 넘길 물량만 맞추면 된다. 이번에 잡은 짐승들은 곧바로 아지트로 올려 보낸다."),
         L(HERO, "(몬스터를 일부러 변형시키는 실험... 이 중계소는 그 재료를 아지트로 보내는 길목이다. 아지트가 어딘가에 있다.)"),
-        "그때 발밑에서 자갈 하나가 굴러떨어졌습니다. \"거기 누구냐! 바위 위에 쥐새끼가 꼬였다! 우리를 열어라!\" 사슬 풀리는 소리와 함께 갇혀 있던 변형 여우들이 풀려나 이쪽으로 몰려옵니다."] },
+        "(그때 발밑에서 자갈 하나가 굴러떨어졌다.)",
+        L(SHOUT, "거기 누구냐!"),
+        L(HERO, "(들켰다! 도망가자!)")] },
       { id: "lift_rope", img: "fence", kind: "repair", x: 2500, dur: 2, label: "수하물 리프트 밧줄", done: "고정 밧줄을 정으로 끊었습니다. 거대한 도르래가 요란하게 무너져 내리며 추격자들의 길을 막습니다." }
     ],
     spawns: [{ type: "mutfox", x: 700 }, { type: "mutfox", x: 1150 }, { type: "mutfox", x: 1140, y: 450, min: 1030, max: 1250 }, { type: "mutfox", x: 2130, y: 400, min: 2010, max: 2250 }, { type: "mutfox", x: 2400 }, { type: "mutfox", x: 3000, y: 450, min: 2890, max: 3110 }],
@@ -150,12 +153,23 @@ window.AU = window.AU || {};
       done: ["들었나? 몬스터를 일부러 어둠에 물들이는 자들이 있네. 이 도시 주변의 이상한 짐승들은 그 부산물이야.", "지도의 붉은 점이 그들의 중계소일세. 가 보려면 레벨 8은 되어야 하네. 들키면 칼을 뽑게 될 테니."],
       reward: { exp: 700, silver: 60, items: [["barsha_map", 1]] }
     },
-    q_a3_scout: {
-      title: "검은 골짜기 정찰", type: "main", giver: "barsha", turnIn: "jepeto", minLevel: 8, pre: ["q_a2_secret"],
-      area: "valley", desc: "검은 골짜기의 중계소를 정찰합니다. 궤짝과 천막 대화를 조사하고, 풀려난 변형 여우 5마리를 물리친 뒤 리프트 밧줄을 끊고 협곡으로 빠져나가, 도와준 노인(제페토)에게 보고합니다.",
-      objectives: [{ kind: "investigate", targets: ["valley_crates", "relay_tent"] }, { kind: "kill", target: "mutfox", count: 5 }, { kind: "repair", targets: ["lift_rope"] }],
+    q_a3_recon: {
+      title: "검은 골짜기 잠입", type: "main", giver: "barsha", minLevel: 8, pre: ["q_a2_secret"],
+      area: "valley", desc: "검은 골짜기의 중계소에 몰래 들어가 궤짝과 천막 아래 대화를 조사합니다. 들키면 도망쳐 정보상 바르샤에게 돌아갑니다.",
+      objectives: [{ kind: "investigate", targets: ["valley_crates", "relay_tent"] }],
       offer: ["북쪽 끝의 검은 골짜기에 중계소가 있네. 지도의 붉은 점이 그곳일세.", "가까이 가서 무엇을 나르는지 직접 보고 오게. 들키면 칼을 뽑아야 할 걸세.", "중계소는 잔다리 골목 북쪽 끝에서 이어지네. 레벨 8 이상을 권하네."],
-      reminder: ["북쪽 끝에서 검은 골짜기로 가게. 궤짝과 천막을 살피고, 풀려난 변형 여우를 처치한 뒤 리프트 밧줄을 끊어 길을 막게."],
+      reminder: ["북쪽 끝에서 검은 골짜기로 가게. 궤짝과 천막 아래 대화를 살피고, 들키면 곧장 돌아오게."],
+      done: [L(B(), "...숨이 차 보이는군. 들켰다고? 그래도 무사히 돌아왔으니 됐네."),
+             L(B(), "천막 아래에서 들은 이야기, 짐작이 틀리지 않았군. 결정을 먹여 짐승을 일부러 변형시키는 놈들이라니."),
+             L(B(), "놈들이 곧 골짜기를 뒤질 걸세. 한숨 돌렸으면 다시 내게 오게. 그 길을 빠져나갈 방법을 알려 주겠네.")],
+      reward: { exp: 300, silver: 30, items: [] }
+    },
+    q_a3_scout: {
+      title: "검은 골짜기 탈출", type: "main", giver: "barsha", turnIn: "jepeto", minLevel: 8, pre: ["q_a3_recon"],
+      area: "valley", desc: "추격해 오는 변형 여우 5마리를 물리치고 리프트 밧줄을 끊어 추격을 막은 뒤, 협곡으로 빠져나가 도와준 노인(제페토)에게 보고합니다.",
+      objectives: [{ kind: "kill", target: "mutfox", count: 5 }, { kind: "repair", targets: ["lift_rope"] }],
+      offer: ["들켰으니 놈들이 골짜기에 변형 여우를 풀어 쫓아올 걸세. 맞서 싸우는 수밖에 없네.", "여우를 쳐서 길을 연 다음, 골짜기 동쪽 수하물 리프트의 고정 밧줄을 끊게. 그러면 추격이 막히네.", "그리고 협곡 바위틈으로 빠져나가게. 거기에 나와 뜻이 같은 도편수 제페토가 있네."],
+      reminder: ["골짜기에서 변형 여우 5마리를 처치하고, 동쪽 리프트 밧줄을 끊은 뒤 협곡으로 빠져나가 제페토를 만나게."],
       done: [L(J(), "무사히 빠져나왔군. 이런 척박한 골짜기까지 들어온 사람이 있을 줄은 몰랐네. 나는 제페토라 하네. 겉으로는 동부에서 궁궐을 짓던 도편수였고, 바르샤와 같은 일도 하고 있지."),
              L(J(), "...잠깐. 손목을 좀 보여 주겠나. 그 검은 고리... 역시 그렇군."),
              L(J(), "오오, 그렇다면 그대는 용사로군. 옛 건축물과 비석을 파다 보면 용사의 기록이 여기저기 끊겨 있다는 걸 알게 된다네."),

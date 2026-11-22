@@ -86,7 +86,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await talk('barsha');
   note('B9', '보고하면 완료 + 양피지 지도', (await st('q_a2_secret')) === 'done' && (await ev(() => AU.G.count('barsha_map'))) === 1, await st('q_a2_secret'));
   await accept('barsha');
-  note('B10', '정찰 퀘스트 수락(레벨 8 이상)', (await st('q_a3_scout')) === 'active', await st('q_a3_scout'));
+  note('B10', '잠입 정찰 퀘스트 수락(레벨 8 이상)', (await st('q_a3_recon')) === 'active' && (await st('q_a3_scout')) !== 'active', await st('q_a3_recon'));
   const po2 = true;
   // 수락 후 골목 북쪽 포털 확인(공방에서 나와 이동)
   await ev(() => AU.World.enterMap('jandari', 1460, true)); await sleep(200); await ev(() => AU.World.scan());
@@ -103,10 +103,21 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const speakers = await ev(() => AU.UI.dialog.lines.filter((l) => typeof l === 'object').map((l) => l.npc.name));
   for (let i = 0; i < 12 && (await ev(() => !!AU.UI.dialog)); i++) { await key('Space'); await sleep(100); }
   note('B13', '천막 대화에 클로드·발테인·주인공 화자가 나옴', /클로드/.test(speakers.join()) && /검수관/.test(speakers.join()) && dl >= 7, dl + ' ' + speakers.join('|'));
+  const tl = await ev(() => AU.MAPS.valley.spots.find((x) => x.id === 'relay_tent').lines.map((l) => (typeof l === 'string' ? l : l.t)));
+  note('B13b', '들킨 장면: 외침이 "거기 누구냐!"로 짧고, 마지막은 주인공의 도망 대사, 사슬 문구 없음', tl.includes('거기 누구냐!') && /도망가자/.test(tl[tl.length - 1]) && !tl.some((t) => /사슬|쥐새끼/.test(t)), tl.slice(-3).join(' | '));
+  note('B13c', '천막 조사 후 잠입 퀘스트는 보고 가능 상태(정보상에게 돌아가야 함)', (await st('q_a3_recon')) === 'ready' && (await st('q_a3_scout')) !== 'active', await st('q_a3_recon'));
+  // 도망쳐 정보상에게 돌아가 보고 → 탈출 퀘스트 수락
+  await ev(() => { AU.World.enterMap('jandari_shop', 940, true); AU.World.monsters = []; AU.World.spawn = () => null; }); await sleep(300);
+  await ev(() => { AU.World.player.x = 940; AU.World.player.vx = 0; AU.World.scan(); });
+  await talk('barsha');
+  note('B13d', '정보상에게 보고하면 잠입 완료', (await st('q_a3_recon')) === 'done', await st('q_a3_recon'));
+  await accept('barsha');
+  note('B13e', '정보상에게서 탈출 퀘스트를 받음', (await st('q_a3_scout')) === 'active', await st('q_a3_scout'));
+  await ev(() => { AU.World.enterMap('valley', 1700, true); AU.World.monsters = []; AU.World.spawn = () => null; }); await sleep(300);
   const hero = await ev(() => { const all = [].concat(AU.QUESTS.q_a3_scout.done, AU.QUESTS.q_a2_secret.done, AU.QUESTS.q_a3_jepeto.done).filter((x) => typeof x === 'object'); const l = all.find((x) => /{이름/.test(x.t)); return l ? AU.Profile.fmt(l.t) : ''; });
   note('B14', '주인공 대사에 닉네임이 들어감', /시험용/.test(hero), hero.slice(0, 30));
   for (let i = 0; i < 5; i++) await ev(() => AU.G.onKill('mutfox'));
-  note('B15', '용병 5명 처치 반영', await ev(() => AU.G.S.quests.q_a3_scout.prog[1] === 5), await ev(() => JSON.stringify(AU.G.S.quests.q_a3_scout.prog)));
+  note('B15', '용병 5명 처치 반영', await ev(() => AU.G.S.quests.q_a3_scout.prog[0] === 5), await ev(() => JSON.stringify(AU.G.S.quests.q_a3_scout.prog)));
   // 협곡 포털은 밧줄을 끊기 전 닫힘
   await ev(() => { AU.World.player.x = 3150; AU.World.player.vx = 0; AU.World.scan(); }); await sleep(100);
   const g0 = await ev(() => AU.World.portalOpen(AU.World.nearPortal));
