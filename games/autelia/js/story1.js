@@ -98,7 +98,7 @@ window.AU = window.AU || {};
       { id: "valley_crates", img: "ob_trace_crate", x: 520, kind: "investigate", label: "불도장 찍힌 궤짝", lines: [
         "절벽 틈에서 내려다본 하차장입니다. 검은 옷의 용병 수십 명이 짐수레에서 묵직한 궤짝을 끊임없이 나르고 있습니다.",
         "궤짝 옆면마다 불도장으로 찍힌 '검은 물결' 표식이 선명합니다. 구석에서는 계약에 묶인 인부들이 검은 결정 원석을 다듬고 있습니다."] },
-      { id: "relay_tent", img: "ob_spot_relay_tent", w: 330, x: 1700, kind: "investigate", label: "중심 천막 밑 대화", lines: [
+      { id: "relay_tent", img: "ob_spot_relay_tent", w: 520, x: 1700, kind: "investigate", label: "중심 천막 밑 대화", lines: [
         "중심 천막 아래에서 두 사람이 낮게 이야기하고 있습니다.",
         "가죽 채찍을 찬 사내는 상단 감독관 클로드. 흰 로브를 입고 핏빛 원석을 들여다보는 사내는 흰 로브의 검수관이라 불립니다.",
         L(BALTEIN, "변형이 덜 되었군. 투입량을 늘려라, 클로드. 위에서 서두르고 계신다."),
