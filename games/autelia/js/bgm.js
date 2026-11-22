@@ -9,13 +9,13 @@ window.AU = window.AU || {};
   const TRACKS = { main: "assets/audio/light_through_the_blinds.mp3", harbor: "assets/audio/harbor.mp3", adventure: "assets/audio/adventure.mp3",
     arkea: BG + "arkea.mp3", porto1: BG + "porto1.mp3", porto2: BG + "porto2.mp3", porto3: BG + "porto3.mp3", store_a: BG + "store_a.mp3", store_b: BG + "store_b.mp3",
     guild: BG + "guild.mp3", inn: BG + "inn.mp3", warehouse: BG + "warehouse.mp3", east_road: BG + "east_road.mp3", field1: BG + "field1.mp3", field2: BG + "field2.mp3",
-    ship1: BG + "ship1.mp3", ship2: BG + "ship2.mp3", boss: BG + "boss.mp3", escort: BG + "escort.mp3", breath: BG + "breath.mp3", ending: BG + "ending.mp3", title: BG + "ending.mp3", intro: BG + "intro.mp3?v=5", raid: BG + "raid.mp3?v=2", elegy: BG + "elegy.mp3" };
+    ship1: BG + "ship1.mp3", ship2: BG + "ship2.mp3", boss: BG + "boss.mp3", escort: BG + "escort.mp3", valley: BG + "valley.mp3", breath: BG + "breath.mp3", ending: BG + "ending.mp3", title: BG + "ending.mp3", intro: BG + "intro.mp3?v=5", raid: BG + "raid.mp3?v=2", elegy: BG + "elegy.mp3" };
   /* 곡 묶음(그룹): 같은 묶음 안에서는 곡이 끝나면 다음 곡으로 이어지고, 묶음 안의 다른 지역으로 옮겨도 끊기지 않고 계속 이어집니다.
      oneShot은 한 번만 재생하고 끝납니다. 예: 포르투 노바 1·2·3번이 차례로 이어지고, 멧돼지 숲·뱀길·선창 외곽은 사냥터 1·2번이 이어집니다. */
   const GROUPS = { main: ["main"], arkea: ["arkea"], adventure: ["adventure"], town: ["adventure", "porto1", "porto2", "porto3"], store_a: ["store_a"], store_b: ["store_b"], guild: ["guild"], inn: ["inn"], warehouse: ["warehouse"],
-    field: ["field1", "field2"], alley: ["ship2"], relay: ["escort"], east_road: ["east_road"], ship: ["ship1", "ship2"], boss: ["boss"], escort: ["escort"], breath: ["breath"], ending: ["ending"], title: ["title"], intro: ["intro"], raid: ["raid"], elegy: ["elegy"] };
+    field: ["field1", "field2"], alley: ["ship2"], relay: ["escort"], valley: ["valley"], east_road: ["east_road"], ship: ["ship1", "ship2"], boss: ["boss"], escort: ["escort"], breath: ["breath"], ending: ["ending"], title: ["title"], intro: ["intro"], raid: ["raid"], elegy: ["elegy"] };
   const ONE_SHOT = { ending: true, intro: true };
-  const MAP_GROUP = { porto: "town", jandari: "alley", valley: "relay", gorge: "relay", general_store: "store_a", weapon_store: "store_b", guild_hall: "guild", warehouse: "warehouse", forest: "field", harbor_road: "field", docks: "field", hide_outer: "adventure", hide_tunnel: "adventure", hide_lab: "adventure" };
+  const MAP_GROUP = { porto: "town", jandari: "alley", valley: "valley", gorge: "relay", general_store: "store_a", weapon_store: "store_b", guild_hall: "guild", warehouse: "warehouse", forest: "field", harbor_road: "field", docks: "field", hide_outer: "adventure", hide_tunnel: "adventure", hide_lab: "adventure" };
   const GAIN = { harbor: 1.7 };   // 원본 소리가 작은 곡 보정(새 곡들은 소리 크기를 맞춰 두었음)
   const CFG = { src: TRACKS.main, vol: 0.32, duckVol: 0.14, fadeInPerSec: 0.5, fadeOutPerSec: 1.6 };
   const B = AU.Bgm = { cfg: CFG, el: null, vol: 0, failed: false, blocked: false, state: "idle", track: "main", cur: "main", group: "main", idx: {}, silentG: null, tracks: TRACKS, groups: GROUPS };
