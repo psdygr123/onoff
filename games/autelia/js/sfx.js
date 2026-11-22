@@ -161,7 +161,7 @@ window.AU = window.AU || {};
   S.DEFS = D; S.GAIN = GAIN;
   // 정식 음원(2026-11-16 받음) — 같은 이름의 합성음 대신 파일을 재생. [이름, 설명, 파일, 기본 음량]
   [["skill_strike", "스킬① 스매시 크러셔(묵직한 베기)", "skill_strike2", 0.75], ["skill_strike_alt", "스킬① 스매시 크러셔 — 다른 버전(비교용)", "skill_strike", 0.75],
-   ["skill_spin", "스킬② 크로스 슬래시", "skill_spin", 0.75], ["skill_focus", "스킬③ 바이탈 버스트", "skill_focus", 0.6],
+   ["skill_spin", "스킬② 크로스 슬래시", "skill_spin", 0.75], ["skill_focus", "스킬③ 버스트", "skill_focus", 0.6],
    ["hit_spark", "타격 불꽃(맞힐 때 번쩍)", "hit_spark", 0.4], ["scroll_return", "마을 귀환 주문서(종이 찢김)", "scroll_return", 0.7],
    ["inn_blanket", "여관 휴식 — 이불 소리", "inn_blanket", 0.6], ["inn_fire", "여관 휴식 — 따뜻한 난로", "inn_fire", 1],
    ["breath_wave", "호흡 안내음 — 물결 소리(반복용)", "breath_wave", 0.35], ["timer_start", "명상·쉼 타이머 시작(작은 종)", "timer_start", 0.6],

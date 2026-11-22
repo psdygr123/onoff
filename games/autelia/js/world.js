@@ -404,11 +404,15 @@ window.AU = window.AU || {};
           if (!m.did) { m.did = true; this.bossStrike(m); }
           if (m.st >= (m.pat === "wave" && m.rage ? 0.75 : 0.4)) { m.state = "chase"; m.cd = this.attackCd(m); m.st = 0; }
           if (m.pat === "wave" && m.rage && !m.did2 && m.st >= 0.35) { m.did2 = true; this.bossStrike(m); }
+        } else if (m.state === "recover") {
+          m.st += dt; // 돌진 직후 제자리에서 멈춤: 공격할 틈
+          if (m.st >= m.d.recoverT) { m.state = "chase"; m.cd = this.attackCd(m); m.st = 0; }
         } else if (m.state === "lunge") {
-          m.st += dt; m.x += m.dir * m.d.speed * 3 * dt;
+          m.st += dt; m.x += m.dir * m.d.speed * (m.d.chargeSpd || 3) * dt;
           if (Math.abs(p.x - m.x) < m.d.w / 2 + C.player.halfW && Math.abs(p.y - m.y) < m.d.h + 30) this.hurtPlayer(m, m.pat === "chain" ? 0.9 : 1);
-          if (m.st >= 0.28) {
-            if (m.pat === "chain" && m.chain < 1) { m.chain++; m.state = "windup"; m.wt = 0.4; m.st = 0; m.dir = sign(dx) || m.dir; } // 연속 돌진: 두 번째는 짧은 예고
+          if (m.st >= (m.d.chargeT || 0.28)) {
+            if (m.d.recoverT) { m.state = "recover"; m.st = 0; this.floater(m.x, m.y - m.d.h - 30, "헉헉…", "#FFE9A8"); } // 멧돼지: 전력 돌진 뒤 숨을 고르는 빈틈
+            else if (m.pat === "chain" && m.chain < 1) { m.chain++; m.state = "windup"; m.wt = 0.4; m.st = 0; m.dir = sign(dx) || m.dir; } // 연속 돌진: 두 번째는 짧은 예고
             else { m.state = "chase"; m.cd = this.attackCd(m); m.st = 0; }
           }
         }
@@ -423,7 +427,7 @@ window.AU = window.AU || {};
       if (d.patterns) { const pool = d.patterns.filter((k) => k !== m.lastPat || d.patterns.length === 1); if (rage && d.ragePatterns) pool.push(...d.ragePatterns, ...d.ragePatterns); pat = pool[Math.floor(Math.random() * pool.length)]; }
       const W = { lunge: 0.5, chain: 0.6, slam: 0.8, wave: 0.7 }; // 모든 패턴은 0.5초 이상 예고
       m.lastPat = pat; m.pat = pat; m.rage = rage; m.chain = 0; m.did2 = false;
-      m.wt = Math.max(0.5, (W[pat] || 0.5) * (rage ? 0.85 : 1));
+      m.wt = Math.max(0.5, (W[pat] || 0.5) * (rage ? 0.85 : 1), d.windT || 0);
       m.state = "windup"; m.st = 0;
     },
     slamRadius(m) { return m.d.slamR || 190; },
@@ -703,7 +707,7 @@ window.AU = window.AU || {};
       } else if (f.kind === "sparks") { // 사방으로 튀는 불꽃
         ctx.fillStyle = f.color;
         for (let i = 0; i < f.n; i++) { const a = -1.2 + (i / (f.n - 1)) * 2.4 + (i % 2 ? 0.15 : -0.1), d = f.spread * (0.3 + k) * (0.6 + (i % 3) * 0.25); ctx.beginPath(); ctx.arc(f.x + Math.cos(a) * d * f.dir, f.y + Math.sin(a) * d * 0.8 + k * 20, 4 * (1 - k * 0.7), 0, 7); ctx.fill(); }
-      } else if (f.kind === "motes") { // 떠오르는 빛 알갱이(바이탈 버스트)
+      } else if (f.kind === "motes") { // 떠오르는 빛 알갱이(버스트)
         ctx.fillStyle = f.color;
         for (let i = 0; i < f.n; i++) { const ox = Math.sin(i * 12.9) * 46, sp = 0.6 + (i % 4) * 0.2; ctx.beginPath(); ctx.arc(f.x + ox + Math.sin(this.time * 5 + i) * 5, f.y - 20 - k * 120 * sp, 3.5 * (1 - k * 0.5), 0, 7); ctx.fill(); }
       } else if (f.kind === "pillar") { // 은은한 빛기둥
@@ -772,7 +776,7 @@ window.AU = window.AU || {};
         const P = d.poses, step = Math.floor(this.time / 0.22 + x * 0.01) % 2 === 0 ? "walkA" : "walkB";
         let key = P.idle; if (m.flash > 0) key = P.hurt; else if (m.state === "lunge" || m.state === "strike") key = P.attack; else if (m.state === "windup") key = P.windup; else if (m.state === "chase" || m.state === "patrol") key = P[step];
         const im = AU.Img.get(AU.Img.has(key) ? key : d.sprite), dw = d.sw * im.naturalWidth / (d.refW || im.naturalWidth), dh = dw * im.naturalHeight / im.naturalWidth;
-        const lunge = m.state === "lunge" ? Math.min(1, m.st / 0.28) : 0;
+        const lunge = m.state === "lunge" ? Math.min(1, m.st / (m.d.chargeT || 0.28)) : 0;
         ctx.save(); ctx.translate(x + (m.dir < 0 ? -1 : 1) * 14 * lunge, y - (m.state === "chase" || m.state === "patrol" ? Math.abs(Math.sin(this.time * 7)) * 3 : 0)); ctx.scale(m.dir < 0 ? -1 : 1, 1);
         ctx.drawImage(im, -dw / 2, -dh, dw, dh); ctx.restore(); th = dh * 0.92;
       } else if (sp) { // 정식 그림: 한 장을 코드로 움직임(걷기 통통, 준비 동작 웅크림, 돌진 늘어남, 피격 번쩍임)
@@ -788,6 +792,7 @@ window.AU = window.AU || {};
           else if (mo === "swing") { rot += 0.025 * f * Math.sin(tt * 6 + ph); ox += 2 * Math.sin(tt * 6 + ph); }                 // 용병: 묵직한 걸음
           else if (m.state === "chase") { rot += 0.035 * Math.sin(tt * 13 + ph); sy += 0.025 * Math.sin(tt * 13 + ph + 1); }     // 기본: 달려드는 흔들림
         }
+        if (m.state === "recover") { sy = 0.93 + 0.03 * Math.sin(m.st * 14); sx = 1.04; rot = -0.05; up = -1; } // 숨을 몰아쉬며 멈춤
         if (m.state === "windup") {
           const k = Math.min(1, m.st / (m.wt || 0.5));
           if (mo === "coil") { sy = 1 + 0.18 * k; sx = 1 - 0.12 * k; rot = -0.28 * k; ox = -10 * k; }                              // 뱀: 머리를 뒤로 쳐듦
@@ -798,7 +803,7 @@ window.AU = window.AU || {};
           else if (mo === "swing") { sy = 1 + 0.05 * k; sx = 1 - 0.04 * k; rot = -0.3 * k; ox = -6 * k; up = 6 * k; }   // 철퇴를 뒤로 들어 올림
           else { sy = 1 - 0.14 * k; sx = 1 + 0.08 * k; rot = -0.12 * k; }
         } else if (m.state === "lunge") {
-          const q = Math.min(1, m.st / 0.28);
+          const q = Math.min(1, m.st / (m.d.chargeT || 0.28));
           if (mo === "coil") { sx = 1.28; sy = 0.82; rot = 0.12 - 0.12 * q; ox = 26 * q; }                                    // 뱀: 쭉 뻗으며 물기
           else if (mo === "scurry") { sx = 1.3; sy = 0.78; rot = 0.04; ox = 30 * q; }                                           // 쥐: 낮게 돌진해 들이받음
           else if (mo === "sidestep") { const sn = Math.sin(q * Math.PI * 3); sx = 1.05 + 0.08 * sn; sy = 0.96 - 0.06 * sn; rot = 0.03 * sn; ox = 8 * q; } // 게: 집게를 딱딱 여닫음
