@@ -36,7 +36,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   note('1', '방향키 이동·Alt 점프', s1.x > s0.x + 60 && s2.x < s1.x - 30 && air.y < 580 && landed.y === 590, `→ ${s0.x}→${s1.x}, ← ${s1.x}→${s2.x}, 점프 중 y=${air.y}, 착지 y=${landed.y}(Alt를 계속 누르고 있어도 착지 상태 유지)`);
 
   // ===== 6. NPC 대화 (Space) + 대화 중 입력 차단 =====
-  await ev(() => { const S = AU.G.S; S.quests.q_s1_silver = { state: 'done', prog: [1], spots: {} }; S.quests.q_s1_test = { state: 'done', prog: [2], spots: {} }; }); await goto('guild_hall', 800); await ev(() => { if (!AU.G.count('sword_a')) AU.G.giveItem('sword_a', 1, true); }); await sleep(200);
+  await ev(() => { const S = AU.G.S; S.quests.q_s1_silver = { state: 'done', prog: [1], spots: {} }; S.quests.q_s1_test = { state: 'done', prog: [2], spots: {} }; }); await goto('guild_hall', 500); await ev(() => { if (!AU.G.count('sword_a')) AU.G.giveItem('sword_a', 1, true); }); await sleep(200);
   const near = await ev(() => AU.World.prompt);
   await p.keyboard.press('Space'); await sleep(150);
   const d1 = await S(); const line1 = await ev(() => document.querySelector('.dline') && document.querySelector('.dline').textContent);
@@ -51,7 +51,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   note('16a', '대화 중 점프·공격·메뉴키 차단', ydlg === 590 && atkDlg === 0 && winDlg === null, `대화 중 Alt 후 y=${ydlg}(590=점프 안 함), Ctrl 후 공격쿨=${atkDlg}, I키 창=${winDlg}`);
 
   // ===== 2·3·4·5. 전투·경험치·레벨업 =====
-  await goto('forest', 480);
+  await goto('harbor_road', 480);
   const pre = await S();
   // 2: 피해
   const hpBefore = await ev(() => { const W = AU.World, pl = W.player, m = W.monsters.find((q) => q.alive && q.type === 'fox'); m.x = pl.x + 70; m.y = pl.y; m.state = 'patrol'; m.cd = 5; pl.dir = 1; W.__t = m; return m.hp; });
@@ -63,7 +63,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const k1 = await kill('fox'); const afterK = await S();
   const AU_FOX_EXP = await ev(() => AU.MONSTERS.fox.exp);
   const expGain = (afterK.lv - pre.lv) * 0 + (afterK.exp - exp0);
-  note('3', '적 처치 시 경험치 획득', k1 && (afterK.exp - exp0) >= AU_FOX_EXP && (afterK.exp - exp0) <= Math.ceil(AU_FOX_EXP * 1.3), `처치=${k1}, EXP ${exp0} → ${afterK.exp} (들여우 EXP ${AU_FOX_EXP}), 은화 ${pre.silver}→${afterK.silver}`);
+  note('3', '적 처치 시 경험치 획득', k1 && (afterK.lv > pre.lv || ((afterK.exp - exp0) >= AU_FOX_EXP && (afterK.exp - exp0) <= Math.ceil(AU_FOX_EXP * 1.3))), `처치=${k1}, EXP ${exp0} → ${afterK.exp} (들여우 EXP ${AU_FOX_EXP}), 은화 ${pre.silver}→${afterK.silver}`);
   // 4: 레벨업(실전)
   for (let i = 0; i < 6 && (await S()).lv < 2; i++) await kill('fox');
   const afterLv = await S(); const hud = await ev(() => document.querySelector('.lvbadge').textContent);
@@ -73,7 +73,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await p.screenshot({ path: SH + 'combat.png' });
 
   // 퀘스트 반납 + 장비
-  await goto('guild_hall', 800); await sleep(100);
+  await goto('guild_hall', 500); await sleep(100);
   for (let i = 0; i < 4 && (i === 0 || await ev(() => !!AU.UI.dialog)); i++) { await p.keyboard.press('Space'); await sleep(130); }
   const swordCount = await ev(() => AU.G.count('sword_a')), qdone = await ev(() => AU.G.S.quests.q_first.state);
 

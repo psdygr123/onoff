@@ -15,7 +15,7 @@ const note = (id, name, ok, ev) => { ok ? pass++ : fail++; console.log((ok ? 'PA
   await ev(() => AU.G.startQuest('q_s1_silver'));
   await ev(() => { AU.UI.talkNpc('porto_foreman'); }); await sleep(100);
   const lines = await ev(() => AU.UI.dialog && AU.UI.dialog.lines.map((l) => (typeof l === 'string' ? l : l.t)));
-  note('A2', '테오도로스 면담: 이름·입단 테스트 문구(이름 치환)', (await st('q_s1_silver')) === 'ready' && !!lines && lines.length >= 4, JSON.stringify(lines).slice(0, 120));
+  note('A2', '클레안드로스 면담: 이름·입단 테스트 문구(이름 치환)', (await st('q_s1_silver')) === 'ready' && !!lines && lines.length >= 4, JSON.stringify(lines).slice(0, 120));
   const shown = await ev(() => AU.Profile.fmt(AU.QUESTS.q_s1_silver.done[1]));
   note('A3', '이름 호칭이 대사에 들어감', /시험용/.test(shown) && !/\{/.test(shown), shown);
   await ev(() => { AU.UI.dialog = null; AU.UI.dlgEl.classList.add('hidden'); AU.G.turnIn('q_s1_silver'); });

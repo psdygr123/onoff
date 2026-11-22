@@ -8,7 +8,7 @@ window.AU = window.AU || {};
 
   const World = AU.World = {
     mapId: null, map: null, player: null, monsters: [], fx: [], floaters: [], drops: [], nearDrop: null, camX: 0, time: 0,
-    trans: null, deadT: 0, prompt: "", nearNpc: null, nearPortal: null, nearSpot: null, work: null, bossCheckT: 0, blockedFn: () => false,
+    vis: "rim", trans: null, deadT: 0, prompt: "", nearNpc: null, nearPortal: null, nearSpot: null, work: null, bossCheckT: 0, blockedFn: () => false,
 
     init() {
       const S = AU.G.S;
@@ -474,7 +474,7 @@ window.AU = window.AU || {};
       ctx.save(); ctx.translate(-cx, 0);
       if (pro) PR.drawLayer(ctx, "back");
       this.drawStructures(ctx);
-      if (this.vis === "rim" && !pro) { ctx.save(); ctx.shadowColor = "rgba(255,240,180,.95)"; ctx.shadowBlur = 12; }
+      if (this.vis === "rim" && !pro) { ctx.save(); ctx.shadowColor = "rgba(255,244,214,.6)"; ctx.shadowBlur = 6; }
       for (const n of map.npcs || []) this.drawNpc(ctx, n);
       if (this.vis === "rim" && !pro) ctx.restore();
       if (map.fgSlice && AU.Img.has(map.bg)) { // 계산대 등 배경 일부를 NPC 앞에 다시 그려 NPC가 뒤에 서 있는 것처럼 보이게 함
@@ -491,7 +491,7 @@ window.AU = window.AU || {};
       this.drawProjs(ctx);
       this.drawDrops(ctx);
       if (pro) PR.drawLayer(ctx, "mid");
-      if (this.vis === "rim" && !pro) { ctx.save(); ctx.shadowColor = "rgba(255,240,180,.95)"; ctx.shadowBlur = 12; }
+      if (this.vis === "rim" && !pro) { ctx.save(); ctx.shadowColor = "rgba(255,244,214,.6)"; ctx.shadowBlur = 6; }
       this.drawPlayer(ctx, p);
       if (this.vis === "rim" && !pro) ctx.restore();
       if (pro) PR.drawLayer(ctx, "front");
