@@ -265,7 +265,7 @@ window.AU = window.AU || {};
     /* ---------- 조사·수리 지점 ---------- */
     useSpot(sp) {
       if (this.work) return;
-      if (sp.kind === "investigate") { AU.UI.say({ name: sp.label, portrait: "" }, sp.lines || ["살펴보았습니다."], { end: () => { AU.G.completeSpot(sp.id); if (sp.onDone) sp.onDone(this); } }); return; }
+      if (sp.kind === "investigate") { AU.UI.say({ name: sp.label, portrait: sp.portrait || "" }, sp.lines || ["살펴보았습니다."], { end: () => { AU.G.completeSpot(sp.id); if (sp.onDone) sp.onDone(this); } }); return; }
       this.work = { sp, t: 0, dur: sp.dur || 1.5, x0: this.player.x };   // 목공 수리: 제자리에서 잠깐 작업. 움직이거나 맞으면 멈춤
       if (AU.Sfx && AU.Sfx.play) { try { AU.Sfx.play("hit"); } catch (e) { /* 소리 없음 */ } }
     },
@@ -575,11 +575,15 @@ window.AU = window.AU || {};
           ctx.drawImage(im, cx - w2 / 2 + (k % 2 ? 6 : 0), yb - h2, w2, h2);
         }
       }
-      for (const pl of map.platforms) if (pl.thin) { // 얇은 발판(임시 그래픽)
+      for (const pl of map.platforms) if (pl.thin && AU.Img.has("ob_plank")) { // 나무 잔교 그림(thin 발판)
+        const im = AU.Img.get("ob_plank"), hh = pl.w * im.naturalHeight / im.naturalWidth; ctx.drawImage(im, pl.x - 4, pl.y - 3, pl.w + 8, hh);
+      } else if (pl.thin) { // 얇은 발판(임시 그래픽)
         ctx.fillStyle = "#C99B5C"; this.rr(ctx, pl.x, pl.y, pl.w, 14, 6); ctx.fill(); ctx.strokeStyle = "#7A5530"; ctx.lineWidth = 3; ctx.stroke();
         ctx.fillStyle = "#E7C48C"; this.rr(ctx, pl.x + 6, pl.y + 2, pl.w - 12, 4, 2); ctx.fill();
       }
-      for (const r of map.ropes || []) { // 밧줄(임시 그래픽)
+      for (const r of map.ropes || []) if (AU.Img.has("ob_rope")) { // 밧줄 그림(세로로 늘려서 그림)
+        const im = AU.Img.get("ob_rope"), w = Math.min(34, (r.bottom - r.top + 8) * im.naturalWidth / im.naturalHeight * 1.6); ctx.drawImage(im, r.x - w / 2, r.top - 8, w, r.bottom - r.top + 8);
+      } else { // 밧줄(임시 그래픽)
         ctx.strokeStyle = "#8B5E34"; ctx.lineWidth = 5; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(r.x, r.top - 8); ctx.lineTo(r.x, r.bottom); ctx.stroke();
         ctx.strokeStyle = "#D9A566"; ctx.lineWidth = 2; ctx.setLineDash([5, 7]); ctx.beginPath(); ctx.moveTo(r.x, r.top - 8); ctx.lineTo(r.x, r.bottom); ctx.stroke(); ctx.setLineDash([]);
       }
@@ -707,7 +711,10 @@ window.AU = window.AU || {};
     drawHeroArt(ctx, p, lean, moving) { // 프롤로그 주인공 시트(성별 따라 m/f, 색은 Tint가 입힘). 그림이 없으면 false
       const g = AU.Profile.gender(), loco = "pc_player_" + g + "_locomotion", act = "pc_player_" + g + "_actions";
       const PA = AU.PArt, spr = PA && PA.spr; if (!spr || !AU.Img.has(loco) || !AU.Img.has(act)) return false;
-      if (p.rope) return false;
+      if (p.rope) {   // 밧줄 오르내리기: 뒷모습 4단계(움직일 때만 넘어가고, 멈추면 그 자세로 매달려 있음)
+        const ck = "pc_player_" + g + "_climb"; if (!AU.Img.has(ck)) return false;
+        return PA.spr(ctx, ck, ["up1", "up2", "up3", "up4"][Math.floor(p.anim * 0.6) % 4], p.x, p.y, 1);
+      }
       const cb = "pc_player_" + g + "_combat", hasCb = AU.Img.has(cb);
       if (hasCb) {
         const sk = p.sk && p.sk.id; let cf = null;

@@ -105,7 +105,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   note('B13', '천막 대화에 클로드·발테인·주인공 화자가 나옴', /클로드/.test(speakers.join()) && /검수관/.test(speakers.join()) && dl >= 7, dl + ' ' + speakers.join('|'));
   const hero = await ev(() => { const all = [].concat(AU.QUESTS.q_a3_scout.done, AU.QUESTS.q_a2_secret.done, AU.QUESTS.q_a3_jepeto.done).filter((x) => typeof x === 'object'); const l = all.find((x) => /{이름/.test(x.t)); return l ? AU.Profile.fmt(l.t) : ''; });
   note('B14', '주인공 대사에 닉네임이 들어감', /시험용/.test(hero), hero.slice(0, 30));
-  for (let i = 0; i < 5; i++) await ev(() => AU.G.onKill('merc'));
+  for (let i = 0; i < 5; i++) await ev(() => AU.G.onKill('mutfox'));
   note('B15', '용병 5명 처치 반영', await ev(() => AU.G.S.quests.q_a3_scout.prog[1] === 5), await ev(() => JSON.stringify(AU.G.S.quests.q_a3_scout.prog)));
   // 협곡 포털은 밧줄을 끊기 전 닫힘
   await ev(() => { AU.World.player.x = 3150; AU.World.player.vx = 0; AU.World.scan(); }); await sleep(100);

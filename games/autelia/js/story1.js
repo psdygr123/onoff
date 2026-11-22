@@ -25,6 +25,11 @@ window.AU = window.AU || {};
     bg_hideout_lab_2: { path: "assets/bg/hideout_lab_2.webp", optional: true },
     bg_hideout_boss: { path: "assets/bg/hideout_boss.webp", optional: true },
     mon_merc: { path: "assets/monster/merc.webp", optional: true },
+    mon_mutfox: { path: "assets/monster/mutant_fox.webp", optional: true },
+    ob_plank: { path: "assets/object/plank.webp", optional: true },
+    ob_rope: { path: "assets/object/rope.webp", optional: true },
+    pt_scene_crates: { path: "assets/portrait/scene_crates.webp", optional: true },
+    pt_scene_tent: { path: "assets/portrait/scene_tent.webp", optional: true },
     mon_wolf: { path: "assets/monster/wolf.webp", optional: true }
   });
 
@@ -47,6 +52,7 @@ window.AU = window.AU || {};
   /* ---------- 적 ---------- */
   Object.assign(AU.MONSTERS, {
     merc: { name: "블랙 웨이브 용병", lv: 9, hp: 260, atk: 34, speed: 90, chase: 210, w: 60, h: 112, exp: 300, silver: [7, 16], silverRate: 0.16, drops: [["iron_scrap", 0.15, 1, 2], ["potion", 0.05]], color: "#4D4D5C", motion: "swing", sprite: "mon_merc", sw: 88 },
+    mutfox: { name: "변형된 여우", lv: 9, hp: 260, atk: 34, speed: 125, chase: 250, w: 84, h: 56, exp: 300, silver: [7, 16], silverRate: 0.16, drops: [["fur", 0.2, 1, 2], ["potion", 0.05]], color: "#7A2A35", ear: true, motion: "pounce", sprite: "mon_mutfox", sw: 132 },
     wolf: { name: "오염된 늑대", lv: 10, hp: 300, atk: 38, speed: 115, chase: 230, w: 88, h: 54, exp: 320, silver: [8, 18], silverRate: 0.17, drops: [["wolf_pelt", 0.15, 1, 2], ["potion", 0.05]], color: "#6C6F7A", ear: true, motion: "leap", sprite: "mon_wolf", sw: 140 }
   });
 
@@ -89,26 +95,30 @@ window.AU = window.AU || {};
     area: { x: 66, y: 52, desc: "정보상 바르샤의 공방 안입니다. 작업대 위에 길드 장부에 없는 물건들이 놓여 있습니다." }
   };
   AU.MAPS.valley = {
-    name: "검은 골짜기", bg: "valley", width: 3200, safe: false,
-    platforms: [{ x: 0, y: 590, w: 3200 }, { x: 880, y: 470, w: 220, thin: true }, { x: 1480, y: 440, w: 240, thin: true }, { x: 2360, y: 470, w: 220, thin: true }], ropes: [],
+    name: "검은 골짜기", bg: "valley", hint: "골짜기 안쪽으로 가며 변형된 여우를 처치하고, 조사 지점(F)도 확인하세요", width: 3200, safe: false,
+    /* 발판(나무 잔교): 땅에서 점프로 닿는 높이는 96px 이하라 70px씩 계단으로 쌓고, 190px 높이의 잔교는 밧줄로만 오름.
+       밧줄은 잔교 왼쪽 끝 바로 옆(x=잔교 시작-15)에 걸고, 위쪽 끝(top)은 잔교 윗면보다 15px 위 */
+    platforms: [{ x: 0, y: 590, w: 3200 }, { x: 840, y: 520, w: 240, thin: true }, { x: 1020, y: 450, w: 240, thin: true },
+                { x: 2000, y: 400, w: 260, thin: true }, { x: 2700, y: 520, w: 240, thin: true }, { x: 2880, y: 450, w: 240, thin: true }],
+    ropes: [{ x: 2020, top: 385, bottom: 590, exitDir: 1 }],
     portals: [{ x: 50, to: "jandari", toX: 1380, label: "잔다리 골목" },
-              { x: 3150, to: "gorge", toX: 90, label: "협곡 바위틈", reqSpot: "lift_rope", reqText: "아직 추격자들이 길을 막고 있습니다. 리프트 밧줄을 끊어 길을 막아야 합니다." }],
+              { x: 3150, to: "gorge", toX: 90, label: "협곡 바위틈", reqSpot: "lift_rope", reqText: "아직 변형 여우들이 길을 막고 있습니다. 여우를 물리치고 리프트 밧줄을 끊어 추격을 막아야 합니다." }],
     npcs: [],
     spots: [
-      { id: "valley_crates", img: "ob_trace_crate", x: 520, kind: "investigate", label: "불도장 찍힌 궤짝", lines: [
+      { id: "valley_crates", img: "ob_trace_crate", portrait: "pt_scene_crates", x: 520, kind: "investigate", label: "불도장 찍힌 궤짝", lines: [
         "절벽 틈에서 내려다본 하차장입니다. 검은 옷의 용병 수십 명이 짐수레에서 묵직한 궤짝을 끊임없이 나르고 있습니다.",
         "궤짝 옆면마다 불도장으로 찍힌 '검은 물결' 표식이 선명합니다. 구석에서는 계약에 묶인 인부들이 검은 결정 원석을 다듬고 있습니다."] },
-      { id: "relay_tent", img: "ob_spot_relay_tent", w: 520, x: 1700, kind: "investigate", label: "중심 천막 밑 대화", lines: [
+      { id: "relay_tent", img: "ob_spot_relay_tent", portrait: "pt_scene_tent", w: 520, x: 1700, kind: "investigate", label: "중심 천막 밑 대화", lines: [
         "중심 천막 아래에서 두 사람이 낮게 이야기하고 있습니다.",
         "가죽 채찍을 찬 사내는 상단 감독관 클로드. 흰 로브를 입고 핏빛 원석을 들여다보는 사내는 흰 로브의 검수관이라 불립니다.",
         L(BALTEIN, "변형이 덜 되었군. 투입량을 늘려라, 클로드. 위에서 서두르고 계신다."),
         L(CLAUDE, "우리 짐승들이 버티질 못합니다. 결정을 더 먹이면 죽어 나가는 놈이 늘어요."),
         L(BALTEIN, "죽는 놈은 버려라. 실험 구역에 넘길 물량만 맞추면 된다. 이번에 잡은 짐승들은 곧바로 아지트로 올려 보낸다."),
         L(HERO, "(몬스터를 일부러 변형시키는 실험... 이 중계소는 그 재료를 아지트로 보내는 길목이다. 아지트가 어딘가에 있다.)"),
-        "그때 발밑에서 자갈 하나가 굴러떨어졌습니다. \"거기 누구냐! 바위 위에 쥐새끼가 꼬였다!\" 횃불이 암벽을 비춥니다."] },
+        "그때 발밑에서 자갈 하나가 굴러떨어졌습니다. \"거기 누구냐! 바위 위에 쥐새끼가 꼬였다! 우리를 열어라!\" 사슬 풀리는 소리와 함께 갇혀 있던 변형 여우들이 풀려나 이쪽으로 몰려옵니다."] },
       { id: "lift_rope", img: "fence", kind: "repair", x: 2500, dur: 2, label: "수하물 리프트 밧줄", done: "고정 밧줄을 정으로 끊었습니다. 거대한 도르래가 요란하게 무너져 내리며 추격자들의 길을 막습니다." }
     ],
-    spawns: [{ type: "merc", x: 760 }, { type: "merc", x: 1100 }, { type: "merc", x: 1580, y: 440, min: 1490, max: 1710 }, { type: "merc", x: 2000 }, { type: "merc", x: 2420, y: 470, min: 2370, max: 2570 }, { type: "merc", x: 2750 }],
+    spawns: [{ type: "mutfox", x: 700 }, { type: "mutfox", x: 1150 }, { type: "mutfox", x: 1140, y: 450, min: 1030, max: 1250 }, { type: "mutfox", x: 2130, y: 400, min: 2010, max: 2250 }, { type: "mutfox", x: 2400 }, { type: "mutfox", x: 3000, y: 450, min: 2890, max: 3110 }],
     area: { x: 78, y: 28, desc: "포르투 노바 북쪽 경계 너머의 기암괴석 지대입니다. 블랙 웨이브 비밀 중계소가 있습니다." }
   };
   AU.MAPS.gorge = {
@@ -142,10 +152,10 @@ window.AU = window.AU || {};
     },
     q_a3_scout: {
       title: "검은 골짜기 정찰", type: "main", giver: "barsha", turnIn: "jepeto", minLevel: 8, pre: ["q_a2_secret"],
-      area: "valley", desc: "검은 골짜기의 중계소를 정찰합니다. 궤짝과 천막 대화를 조사하고, 쫓아오는 용병 5명을 물리친 뒤 리프트 밧줄을 끊고 협곡으로 빠져나가, 도와준 노인(제페토)에게 보고합니다.",
-      objectives: [{ kind: "investigate", targets: ["valley_crates", "relay_tent"] }, { kind: "kill", target: "merc", count: 5 }, { kind: "repair", targets: ["lift_rope"] }],
+      area: "valley", desc: "검은 골짜기의 중계소를 정찰합니다. 궤짝과 천막 대화를 조사하고, 풀려난 변형 여우 5마리를 물리친 뒤 리프트 밧줄을 끊고 협곡으로 빠져나가, 도와준 노인(제페토)에게 보고합니다.",
+      objectives: [{ kind: "investigate", targets: ["valley_crates", "relay_tent"] }, { kind: "kill", target: "mutfox", count: 5 }, { kind: "repair", targets: ["lift_rope"] }],
       offer: ["북쪽 끝의 검은 골짜기에 중계소가 있네. 지도의 붉은 점이 그곳일세.", "가까이 가서 무엇을 나르는지 직접 보고 오게. 들키면 칼을 뽑아야 할 걸세.", "중계소는 잔다리 골목 북쪽 끝에서 이어지네. 레벨 8 이상을 권하네."],
-      reminder: ["북쪽 끝에서 검은 골짜기로 가게. 궤짝과 천막을 살피고, 쫓기면 밧줄을 끊어 길을 막게."],
+      reminder: ["북쪽 끝에서 검은 골짜기로 가게. 궤짝과 천막을 살피고, 풀려난 변형 여우를 처치한 뒤 리프트 밧줄을 끊어 길을 막게."],
       done: [L(J(), "무사히 빠져나왔군. 이런 척박한 골짜기까지 들어온 사람이 있을 줄은 몰랐네. 나는 제페토라 하네. 겉으로는 동부에서 궁궐을 짓던 도편수였고, 바르샤와 같은 일도 하고 있지."),
              L(J(), "...잠깐. 손목을 좀 보여 주겠나. 그 검은 고리... 역시 그렇군."),
              L(J(), "오오, 그렇다면 그대는 용사로군. 옛 건축물과 비석을 파다 보면 용사의 기록이 여기저기 끊겨 있다는 걸 알게 된다네."),
