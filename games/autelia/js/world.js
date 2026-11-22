@@ -209,11 +209,14 @@ window.AU = window.AU || {};
     },
     drawStealthProps(ctx) {
       const m = this.map; if (!m || (!m.hideSpots && !m.blockers)) return; const y = GROUND, on = this.stealthOn();
-      for (const b of m.blockers || []) { ctx.fillStyle = "#2F2B27"; ctx.fillRect(b.x - 20, y - 230, 40, 230); ctx.fillStyle = "rgba(255,255,255,.08)"; ctx.fillRect(b.x - 20, y - 230, 7, 230); ctx.fillStyle = "#3F3934"; ctx.fillRect(b.x - 26, y - 238, 52, 12); }
+      const pic = (key, x, h) => { const im = AU.Img.has(key) ? AU.Img.get(key) : null; if (!im) return false; const w = h * im.naturalWidth / im.naturalHeight; ctx.drawImage(im, x - w / 2, y - h + 6, w, h); return true; };
+      for (const b of m.blockers || []) { if (pic("ob_hide_pillar", b.x, 270)) continue; ctx.fillStyle = "#2F2B27"; ctx.fillRect(b.x - 20, y - 230, 40, 230); ctx.fillStyle = "rgba(255,255,255,.08)"; ctx.fillRect(b.x - 20, y - 230, 7, 230); ctx.fillStyle = "#3F3934"; ctx.fillRect(b.x - 26, y - 238, 52, 12); }
       for (const hs of m.hideSpots || []) {
-        ctx.fillStyle = "#5B4632"; ctx.fillRect(hs.x - 38, y - 66, 76, 66); ctx.strokeStyle = "#2E2216"; ctx.lineWidth = 3; ctx.strokeRect(hs.x - 38, y - 66, 76, 66);
-        ctx.beginPath(); ctx.moveTo(hs.x - 38, y - 44); ctx.lineTo(hs.x + 38, y - 44); ctx.moveTo(hs.x - 38, y - 22); ctx.lineTo(hs.x + 38, y - 22); ctx.stroke();
-        if (on && this.player && !this.player.hidden) { ctx.fillStyle = "rgba(255,243,205,.85)"; ctx.font = "700 13px 'Noto Sans KR', sans-serif"; ctx.textAlign = "center"; ctx.fillText("숨는 곳", hs.x, y - 76); }
+        if (!pic("ob_hide_crate", hs.x, 150)) {
+          ctx.fillStyle = "#5B4632"; ctx.fillRect(hs.x - 38, y - 66, 76, 66); ctx.strokeStyle = "#2E2216"; ctx.lineWidth = 3; ctx.strokeRect(hs.x - 38, y - 66, 76, 66);
+          ctx.beginPath(); ctx.moveTo(hs.x - 38, y - 44); ctx.lineTo(hs.x + 38, y - 44); ctx.moveTo(hs.x - 38, y - 22); ctx.lineTo(hs.x + 38, y - 22); ctx.stroke();
+        }
+        if (on && this.player && !this.player.hidden) { ctx.fillStyle = "rgba(255,243,205,.9)"; ctx.font = "700 13px 'Noto Sans KR', sans-serif"; ctx.textAlign = "center"; ctx.fillText("숨는 곳", hs.x, y - 160); }
       }
     },
     /* ---------- 이동기: Lv.5부터. 충전 최대 3, 대기시간 없이 연속 사용, 10초마다 1충전 ---------- */

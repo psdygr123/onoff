@@ -26,6 +26,7 @@ window.AU = window.AU || {};
     bg_hideout_outer_1: BG("hideout_outer_1"), bg_hideout_outer_2: BG("hideout_outer_2"), bg_hideout_tunnel: BG("hideout_tunnel"),
     bg_hideout_lab_1: BG("hideout_lab_1"), bg_hideout_lab_2: BG("hideout_lab_2"), bg_hideout_boss: BG("hideout_boss")
   });
+  Object.assign(AU.MONSTERS, { ob_hide_crate: { path: "assets/object/hide_crate.webp", optional: true }, ob_hide_pillar: { path: "assets/object/hide_pillar.webp", optional: true } }); // 숨는 곳·시야 가림 기둥 그림(없으면 임시 도형)
   const FLOOR = { x: 0, y: 590, w: 2558 };
   const AREA = (x, y, d) => ({ x, y, desc: d });
   AU.MAPS.hide_outer = {
