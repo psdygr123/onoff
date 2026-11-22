@@ -16,7 +16,10 @@ const URL = (process.env.GAME_URL || 'http://localhost:8801') + '/index.html?int
   await p.evaluate(() => AU.UI.open('inventory')); await sleep(300);
   ok('G2 인벤토리를 열면 카드가 사라지고 창 안내 상자가 나옴', !(await card()) && !!(await p.$('.guidebox')), '');
   await p.evaluate(() => AU.UI.close()); await p.evaluate(() => AU.G.giveItem('sword_a', 1)); await sleep(200);
-  ok('G3 첫 장비 → 장비창 안내', /장비창/.test(await card() || ''), await card());
+  await sleep(900);
+  const mt = await p.evaluate(() => (document.querySelector('.modalwrap h3') || {}).textContent || '');
+  ok('G3 첫 무기 → 장비 장착 안내 제안(단계별 안내)', /장착/.test(mt), mt);
+  await p.evaluate(() => { const b = [...document.querySelectorAll('.modalwrap button')].find((x) => /나중에/.test(x.textContent)); b && b.click(); }); await sleep(300);
   await p.evaluate(() => { AU.Guide.dismiss(); AU.G.startQuest('q_s1_silver'); }); await sleep(200);
   ok('G4 첫 퀘스트 → 퀘스트창 안내', /퀘스트창/.test(await card() || ''), await card());
   await p.evaluate(() => { AU.Guide.dismiss(); AU.G.giveItem('potion', 1); }); await sleep(200);

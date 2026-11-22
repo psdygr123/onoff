@@ -61,7 +61,8 @@ window.AU = window.AU || {};
     giveItem(id, n = 1, quiet) {
       this.S.inv[id] = (this.S.inv[id] || 0) + n;
       if (!quiet) this.toast("획득: " + AU.ITEMS[id].name + (n > 1 ? " ×" + n : ""), "item");
-      if (AU.Guide) { AU.Guide.trigger("item"); if (AU.ITEMS[id].type === "equip") AU.Guide.trigger("equip"); }
+      if (AU.Guide) { AU.Guide.trigger("item"); if (AU.ITEMS[id].type === "equip" && !(AU.EquipTour)) AU.Guide.trigger("equip"); }
+      if (!quiet && AU.ITEMS[id].type === "equip" && AU.ITEMS[id].slot === "weapon" && !this.S.equip.weapon && AU.EquipTour) AU.EquipTour.offerSoon();
       this.refreshCollectQuests(); this.changed();
     },
     // 상인과 이야기해 상점을 연 동안에만 사고팔기·제작 가능(shop: "general" 잡화 / "weapon" 무기점 / "smith" 대장간)

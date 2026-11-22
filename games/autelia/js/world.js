@@ -338,7 +338,8 @@ window.AU = window.AU || {};
       return true;
     },
     basicAttack() {
-      const p = this.player; p.atkCD = C.combat.attackCooldown; p.atkT = 0.22;
+      const p = this.player;
+      if (!AU.G.S.equip.weapon) { if (AU.EquipTour) AU.EquipTour.blocked(); return; }   // 무기를 장착하지 않으면 공격 불가 p.atkCD = C.combat.attackCooldown; p.atkT = 0.22;
       const x0 = p.dir > 0 ? p.x + 8 : p.x - 8 - C.combat.attackRange, x1 = x0 + C.combat.attackRange;
       this.fx.push({ kind: "slash", x: p.x + p.dir * 56, y: p.y - 64, dir: p.dir, t: 0, dur: 0.2, r: 60, color: "#FFF6CF" });
       for (const m of this.monsters) {
@@ -349,6 +350,7 @@ window.AU = window.AU || {};
     useSkillSlot(i) {
       const S = AU.G.S, p = this.player, id = S.skills.slots[i];
       if (p.dead) return;
+      if (id && !S.equip.weapon) { if (AU.EquipTour) AU.EquipTour.blocked(); return; }   // 무기 없이는 스킬도 불가
       if (!id) { AU.G.toast(AU.G.awakened() ? "빈 슬롯입니다. K 키에서 스킬을 배치하세요." : "아직 스킬이 열리지 않았습니다. 10레벨에 힘이 깨어나면 사용할 수 있습니다.", "warn"); return; }
       const sk = AU.SKILLS[id];
       if ((p.cd[id] || 0) > 0 || p.gcd > 0) return;

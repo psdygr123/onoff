@@ -17,7 +17,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const holdUntil = async (key, cond, max = 6000, step = 80) => { await p.keyboard.down(key); const t0 = Date.now(); let ok = false; while (Date.now() - t0 < max) { if (await ev(cond)) { ok = true; break; } await sleep(step); } await p.keyboard.up(key); return ok; };
   // 가까이 붙여 놓고 Ctrl로 때려서 처치(체력이 위험하면 테스트 쪽에서 HP만 보충: 전투 결과가 아니라 시험 안정성 목적)
   const kill = async (type, max = 14000) => {
-    const ok = await ev((type) => { const W = AU.World, pl = W.player; const m = W.monsters.find((q) => q.alive && q.type === type); if (!m) return false; W.__t = m; m.x = pl.x + 70; m.y = pl.y; m.state = 'patrol'; m.cd = 2; pl.dir = 1; return true; }, type);
+    const ok = await ev((type) => { const W = AU.World, pl = W.player; const m = W.monsters.find((q) => q.alive && q.type === type); if (!m) return false; if (!AU.G.S.equip.weapon) { AU.G.S.inv.sword_a = (AU.G.S.inv.sword_a || 0) + 1; AU.G.equip('sword_a'); } W.__t = m; m.x = pl.x + 70; m.y = pl.y; m.state = 'patrol'; m.cd = 2; pl.dir = 1; return true; }, type);
     if (!ok) return false;
     await p.keyboard.down('Control'); const t0 = Date.now(); let dead = false;
     while (Date.now() - t0 < max) { dead = await ev(() => { const W = AU.World, m = W.__t, pl = W.player; if (AU.G.S.hp < AU.G.d().maxHp * 0.4) AU.G.S.hp = AU.G.d().maxHp; if (m.alive) { m.x = pl.x + 70; m.y = pl.y; pl.dir = 1; } return !m.alive; }); if (dead) break; await sleep(60); }
@@ -54,7 +54,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await goto('harbor_road', 480);
   const pre = await S();
   // 2: 피해
-  const hpBefore = await ev(() => { const W = AU.World, pl = W.player, m = W.monsters.find((q) => q.alive && q.type === 'fox'); m.x = pl.x + 70; m.y = pl.y; m.state = 'patrol'; m.cd = 5; pl.dir = 1; W.__t = m; return m.hp; });
+  const hpBefore = await ev(() => { if (!AU.G.S.equip.weapon) { AU.G.S.inv.sword_a = (AU.G.S.inv.sword_a || 0) + 1; AU.G.equip('sword_a'); } const W = AU.World, pl = W.player, m = W.monsters.find((q) => q.alive && q.type === 'fox'); m.x = pl.x + 70; m.y = pl.y; m.state = 'patrol'; m.cd = 5; pl.dir = 1; W.__t = m; return m.hp; });
   await p.keyboard.press('Control'); await sleep(200);
   const hpAfter = await ev(() => AU.World.__t.hp);
   note('2', 'Ctrl 기본 공격 피해', hpAfter < hpBefore, `들여우 HP ${hpBefore} → ${hpAfter} (키 입력은 실제 Ctrl)`);
@@ -87,7 +87,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   note('8', 'W로 월드맵 열기·닫기', w1 === '월드맵' && w2 === null, `첫 입력=${w1}, 다시 입력=${w2}`);
 
   // ===== 장비 장착이 전투 능력치에 반영 =====
-  const a0 = (await S()).atk;
+  await ev(() => { if (AU.G.S.equip.weapon) AU.G.unequip('weapon'); }); const a0 = (await S()).atk;
   await p.keyboard.press('e'); await sleep(100); await p.click('.window .detail .btn.primary'); await sleep(150); await p.keyboard.press('Escape'); const a1 = (await S()).atk;
   note('7b', '장비 장착 → 공격력 반영', a1 === a0 + 4, `공격력 ${a0} → ${a1} (견습용 검 +4)`);
 
