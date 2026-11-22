@@ -10,6 +10,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await p.goto(URL); await ev(() => localStorage.clear()); await p.goto(URL); await p.waitForSelector('#btn-start'); await p.click('#btn-start'); await sleep(300);
   for (let i = 0; i < 2 && await p.$('#job-next'); i++) { await p.click('#job-next'); await sleep(200); } if (await p.$('#charsetup')) { await p.fill('#sname', '시험용'); await p.click('#setup-ok'); await sleep(300); }
   await ev(() => AU.Prologue.debugComplete('arche')); await sleep(200);
+  await ev(() => { AU.World._origSpawn = AU.World.spawn; });
   const key = async (k, ms = 60) => { await p.keyboard.down(k); await sleep(ms); await p.keyboard.up(k); };
   const st = (id) => ev((id) => AU.G.questStatus(id), id);
   const talk = async (npc) => { await ev((n) => AU.UI.talkNpc(n), npc); await sleep(200); for (let i = 0; i < 14 && (await ev(() => !!AU.UI.dialog)); i++) { await key('Space'); await sleep(120); } };
@@ -86,48 +87,64 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await talk('barsha');
   note('B9', '보고하면 완료 + 양피지 지도', (await st('q_a2_secret')) === 'done' && (await ev(() => AU.G.count('barsha_map'))) === 1, await st('q_a2_secret'));
   await accept('barsha');
-  note('B10', '잠입 정찰 퀘스트 수락(레벨 8 이상)', (await st('q_a3_recon')) === 'active' && (await st('q_a3_scout')) !== 'active', await st('q_a3_recon'));
-  const po2 = true;
+  note('B10', '하차장 잠입 퀘스트 수락(레벨 8 이상)', (await st('q_a3_recon')) === 'active' && (await st('q_a3_crystal')) !== 'active', await st('q_a3_recon'));
   // 수락 후 골목 북쪽 포털 확인(공방에서 나와 이동)
   await ev(() => AU.World.enterMap('jandari', 1460, true)); await sleep(200); await ev(() => AU.World.scan());
   const po3 = await ev(() => AU.World.portalOpen(AU.World.nearPortal));
   note('B11', '수락 후 북쪽 포털 열림', po3 === true, String(po3));
-  // 검은 골짜기
-  await ev(() => { AU.World.enterMap('valley', 500, true); AU.World.monsters = []; AU.World.spawn = () => null; }); await sleep(300);
-  const sp1 = await ev(() => { AU.World.scan(); return AU.World.nearSpot && AU.World.nearSpot.id; });
-  note('B12', '골짜기: 궤짝 조사 안내', sp1 === 'valley_crates', String(sp1));
-  await key('Space'); await sleep(200); for (let i = 0; i < 8 && (await ev(() => !!AU.UI.dialog)); i++) { await key('Space'); await sleep(100); }
-  await ev(() => { AU.World.player.x = 1700; AU.World.player.vx = 0; AU.World.scan(); }); await sleep(100);
-  await key('Space'); await sleep(200);
-  const dl = await ev(() => AU.UI.dialog && AU.UI.dialog.lines.length);
-  const speakers = await ev(() => AU.UI.dialog.lines.filter((l) => typeof l === 'object').map((l) => l.npc.name));
-  for (let i = 0; i < 12 && (await ev(() => !!AU.UI.dialog)); i++) { await key('Space'); await sleep(100); }
-  note('B13', '천막 대화에 클로드·발테인·주인공 화자가 나옴', /클로드/.test(speakers.join()) && /검수관/.test(speakers.join()) && dl >= 7, dl + ' ' + speakers.join('|'));
-  const tl = await ev(() => AU.MAPS.valley.spots.find((x) => x.id === 'relay_tent').lines.map((l) => (typeof l === 'string' ? l : l.t)));
-  note('B13b', '들킨 장면: 외침이 "거기 누구냐!"로 짧고, 마지막은 주인공의 도망 대사, 사슬 문구 없음', tl.includes('거기 누구냐!') && /도망가자/.test(tl[tl.length - 1]) && !tl.some((t) => /사슬|쥐새끼/.test(t)), tl.slice(-3).join(' | '));
-  note('B13c', '천막 조사 후 잠입 퀘스트는 보고 가능 상태(정보상에게 돌아가야 함)', (await st('q_a3_recon')) === 'ready' && (await st('q_a3_scout')) !== 'active', await st('q_a3_recon'));
-  // 도망쳐 정보상에게 돌아가 보고 → 탈출 퀘스트 수락
+  // 검은 골짜기: 하차장 포털
+  await ev(() => { AU.World.enterMap('valley', 560, true); AU.World.monsters = []; AU.World.spawn = () => null; }); await sleep(300);
+  const yp = await ev(() => { AU.World.scan(); const p = AU.World.nearPortal; return p && p.to === 'yard' && AU.World.portalOpen(p); });
+  note('B12', '골짜기: 하차장 포털이 열림', yp === true, String(yp));
+  // 하차장 잠입
+  await ev(() => { AU.World.spawn = AU.World._origSpawn; AU.World.enterMap('yard', 120, true); }); await sleep(500);
+  const ys = await ev(() => ({ on: AU.World.stealthOn(), n: AU.World.monsters.filter((m) => m.type === 'merc_sentry' && m.d.sight).length }));
+  note('B12b', '하차장은 잠입 중(시야 있는 경계 용병 4명)', ys.on === true && ys.n === 4, JSON.stringify(ys));
+  await ev(() => { AU.World.player.x = 700; AU.World.caught(AU.World.monsters[0]); }); await sleep(2200);
+  const cg = await ev(() => ({ tries: AU.G.S.flags.stealth_tries_yard, map: AU.World.mapId, x: Math.round(AU.World.player.x), st: AU.G.questStatus('q_a3_recon') }));
+  note('B12c', '들키면 입구에서 다시 시작(횟수 기록·퀘스트 유지)', cg.tries === 1 && cg.map === 'yard' && cg.x < 300 && cg.st === 'active', JSON.stringify(cg));
+  for (const x of [1330, 2300]) { await ev((x) => { AU.World.monsters = []; AU.World.player.x = x; AU.World.player.vx = 0; AU.World.player.hidden = false; AU.World.scan(); }, x); await sleep(100); await key('Space'); await sleep(200); for (let i = 0; i < 6 && (await ev(() => !!AU.UI.dialog)); i++) { await key('Space'); await sleep(100); } }
+  note('B12d', '하차장 두 곳 조사 → 보고 대기', (await st('q_a3_recon')) === 'ready', await st('q_a3_recon'));
+  const sb = await ev(() => AU.G.S.silver); await ev(() => { AU.Hideout.onTravel(AU.World, 'valley'); AU.World.enterMap('valley', 620, true); });
+  const clr = await ev(() => ({ f: !!AU.G.S.flags.yard_clear, d: AU.G.S.silver }));
+  note('B12e', '입구로 나가면 잠입 성공(깃발 기록·두 번째 이후라 보너스 없음)', clr.f === true && clr.d === sb, JSON.stringify(clr));
+  // 정보상에게 보고 → 변형의 증거 수락
   await ev(() => { AU.World.enterMap('jandari_shop', 940, true); AU.World.monsters = []; AU.World.spawn = () => null; }); await sleep(300);
   await ev(() => { AU.World.player.x = 940; AU.World.player.vx = 0; AU.World.scan(); });
   await talk('barsha');
   note('B13d', '정보상에게 보고하면 잠입 완료', (await st('q_a3_recon')) === 'done', await st('q_a3_recon'));
   await accept('barsha');
-  note('B13e', '정보상에게서 탈출 퀘스트를 받음', (await st('q_a3_scout')) === 'active', await st('q_a3_scout'));
-  await ev(() => { AU.World.enterMap('valley', 1700, true); AU.World.monsters = []; AU.World.spawn = () => null; }); await sleep(300);
+  note('B13e', '정보상에게서 변형의 증거 퀘스트를 받음', (await st('q_a3_crystal')) === 'active' && (await st('q_a3_scout')) !== 'active', await st('q_a3_crystal'));
+  await ev(() => { AU.World.enterMap('valley', 1400, true); AU.World.monsters = []; AU.World.spawn = () => null; }); await sleep(300);
   const hero = await ev(() => { const all = [].concat(AU.QUESTS.q_a3_scout.done, AU.QUESTS.q_a2_secret.done, AU.QUESTS.q_a3_jepeto.done).filter((x) => typeof x === 'object'); const l = all.find((x) => /{이름/.test(x.t)); return l ? AU.Profile.fmt(l.t) : ''; });
   note('B14', '주인공 대사에 닉네임이 들어감', /시험용/.test(hero), hero.slice(0, 30));
   for (let i = 0; i < 5; i++) await ev(() => AU.G.onKill('mutfox'));
-  note('B15', '용병 5명 처치 반영', await ev(() => AU.G.S.quests.q_a3_scout.prog[0] === 5), await ev(() => JSON.stringify(AU.G.S.quests.q_a3_scout.prog)));
-  // 협곡 포털은 밧줄을 끊기 전 닫힘
-  await ev(() => { AU.World.player.x = 3150; AU.World.player.vx = 0; AU.World.scan(); }); await sleep(100);
-  const g0 = await ev(() => AU.World.portalOpen(AU.World.nearPortal));
-  note('B16', '리프트 밧줄을 끊기 전에는 협곡 포털 닫힘', g0 === false, String(g0));
-  await ev(() => { AU.World.player.x = 2500; AU.World.player.vx = 0; AU.World.scan(); }); await sleep(100);
-  await key('Space'); await sleep(2300);
-  note('B17', '밧줄 수리 지점 완료 → 보고 가능 상태', (await st('q_a3_scout')) === 'ready', await st('q_a3_scout'));
-  await ev(() => { AU.World.player.x = 3150; AU.World.player.vx = 0; AU.World.scan(); }); await sleep(100);
-  const g1 = await ev(() => AU.World.portalOpen(AU.World.nearPortal));
-  note('B18', '밧줄을 끊으면 협곡 포털 열림', g1 === true, String(g1));
+  note('B15', '변형 여우 5마리 처치 반영', await ev(() => AU.G.S.quests.q_a3_crystal.prog[0] === 5), await ev(() => JSON.stringify(AU.G.S.quests.q_a3_crystal.prog)));
+  note('B15b', '여우는 검은 결정을 떨굼(변형의 증거 진행 중에만)', await ev(() => AU.MONSTERS.mutfox.drops.some((d) => d[0] === 'black_crystal' && d[4] === 'q_a3_crystal')), '');
+  await ev(() => AU.G.giveItem('black_crystal', 3, true));
+  note('B16', '결정 3개를 모으면 보고 가능', (await st('q_a3_crystal')) === 'ready', await st('q_a3_crystal'));
+  await ev(() => { AU.World.enterMap('jandari_shop', 940, true); AU.World.monsters = []; AU.World.spawn = () => null; }); await sleep(300);
+  await ev(() => { AU.World.player.x = 940; AU.World.player.vx = 0; AU.World.scan(); });
+  await talk('barsha');
+  note('B17', '정보상에게 보고하면 변형의 증거 완료', (await st('q_a3_crystal')) === 'done', await st('q_a3_crystal'));
+  await accept('barsha');
+  note('B17b', '정보상에게서 중심 천막 퀘스트를 받음', (await st('q_a3_scout')) === 'active', await st('q_a3_scout'));
+  // 천막 엿보기 → 컷신 → 협곡
+  await ev(() => { AU.World.enterMap('valley', 1700, true); AU.World.monsters = []; AU.World.spawn = () => null; }); await sleep(300);
+  const g0 = await ev(() => { AU.World.player.x = 3150; AU.World.player.vx = 0; AU.World.scan(); return AU.World.portalOpen(AU.World.nearPortal); });
+  note('B18', '천막을 보기 전에는 협곡 포털 닫힘', g0 === false, String(g0));
+  await ev(() => { AU.World.player.x = 1700; AU.World.player.vx = 0; AU.World.scan(); }); await sleep(100);
+  await key('Space'); await sleep(200);
+  const dl = await ev(() => AU.UI.dialog && AU.UI.dialog.lines.length);
+  const speakers = await ev(() => AU.UI.dialog.lines.filter((l) => typeof l === 'object').map((l) => l.npc.name));
+  const cutN = await ev(() => AU.UI.dialog.opt.cuts.length);
+  for (let i = 0; i < 24 && (await ev(() => !!AU.UI.dialog)); i++) { await key('Space'); await sleep(100); }
+  note('B13', '천막 컷신에 클로드·발테인·제페토·주인공 화자가 나오고 컷 6장 연결', /클로드/.test(speakers.join()) && /검수관/.test(speakers.join()) && /제페토/.test(speakers.join()) && dl >= 19 && cutN === 6, dl + ' ' + cutN + ' ' + speakers.join('|'));
+  const tl = await ev(() => AU.MAPS.valley.spots.find((x) => x.id === 'relay_tent').lines.map((l) => (typeof l === 'string' ? l : l.t)));
+  note('B13b', '들킨 장면: 외침이 "거기 누구냐!"로 짧고 사슬 문구 없음', tl.includes('거기 누구냐!') && /도망가자/.test(tl[8]) && !tl.some((t) => /사슬|쥐새끼/.test(t)), tl.slice(7, 9).join(' | '));
+  await sleep(1800);
+  const gm = await ev(() => ({ map: AU.World.mapId, st: AU.G.questStatus('q_a3_scout') }));
+  note('B13c', '컷신이 끝나면 협곡 바위틈으로 이동하고 보고 가능 상태', gm.map === 'gorge' && gm.st === 'ready', JSON.stringify(gm));
   // 협곡: 제페토에게 보고
   await ev(() => { AU.World.enterMap('gorge', 420, true); AU.World.monsters = []; AU.World.spawn = () => null; }); await sleep(300);
   const before = await ev(() => AU.G.S.silver);

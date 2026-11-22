@@ -40,7 +40,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     m.state = 'patrol'; m.dir = -1; p.x = 560; W.spotted = false; W.updateMonsters(0.05); const front = W.spotted && !!(W.trans && W.trans.caught); W.trans = null; AU.G.S.flags.stealth_tries_hide_outer = 0; return { behind, front }; });
   note('B4', '경비는 등 뒤에서는 못 보고, 바라보는 쪽에서 들키면 실패(입구 복귀 연출)', sight.behind === false && sight.front === true, JSON.stringify(sight));
   // 보너스: 안 들키고 이동
-  await ev(() => { AU.World.enterMap('hide_outer', 2480, true); AU.World.spotted = false; AU.World.monsters.forEach((x) => { x.alive = false; x.respawnT = -1; }); AU.World.scan(); }); await sleep(100);
+  await ev(() => { AU.World.enterMap('hide_outer', 2480, true); AU.World.spotted = false; AU.World.monsters.forEach((x) => { x.alive = false; x.respawnT = -1; }); AU.World.trans = null; AU.World.scan(); }); await sleep(100);
   const b0 = await ev(() => AU.G.S.silver); await ev(() => { AU.World.travel('hide_tunnel', 90); }); await sleep(1200);
   const b1 = await ev(() => AU.G.S.silver); note('B5', '안 들키고 통과 시 보너스 은화 +100(1회)', b1 - b0 >= 100 && (await ev(() => AU.World.mapId)) === 'hide_tunnel', (b1 - b0) + ' ' + await ev(() => AU.World.mapId));
   // 조사 지점·처치 목표

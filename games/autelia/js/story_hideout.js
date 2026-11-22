@@ -211,6 +211,14 @@ window.AU = window.AU || {};
   };
   // 외곽에서 안 들키고 갱도에 도착하면 보너스(한 번만)
   H.onTravel = function (W, to) {
+    if (W.mapId === "yard" && to === "valley") { // 하차장 잠입 성공: 두 곳을 모두 조사하고 입구로 나왔을 때
+      const S = AU.G.S; if (!S.flags.yard_clear && AU.G.spotDone("yard_crates") && AU.G.spotDone("yard_ledger")) {
+        S.flags.yard_clear = true;
+        if (!(S.flags.stealth_tries_yard > 0) && !S.flags.yard_sneak_bonus) { S.flags.yard_sneak_bonus = true; AU.G.gainSilver(60); AU.G.toast("한 번도 들키지 않고 하차장을 조사했습니다! 보너스: 은화 60", "good"); }
+        else AU.G.toast("하차장 잠입에 성공했습니다. 정보상에게 돌아가 보고하세요.", "good");
+      }
+      return;
+    }
     if (W.mapId !== "hide_outer" || to !== "hide_tunnel") return;
     const S = AU.G.S; if (!AU.G.questStatus || S.flags.hide_outer_clear) return;
     S.flags.hide_outer_clear = true; // 외곽 잠입 구간 통과: 이후 경비는 평소처럼 행동
