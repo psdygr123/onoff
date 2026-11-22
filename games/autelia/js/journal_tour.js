@@ -26,7 +26,7 @@ window.AU = window.AU || {};
     { setup: { jg: "real", j: "today" }, target: () => find(".window.win-journal .real-tabs"), title: "처음엔 '오늘의 활동'만 봐요",
       lines: () => ["탭이 여러 개지만, 처음에는 '오늘의 활동'만 보면 충분해요.", "나머지는 익숙해진 뒤에 천천히 둘러보세요."] },
     { setup: { jg: "real", j: "today" }, target: () => find('.window.win-journal [data-real-bridge="suggestions"]') || find(".window.win-journal .wbody"), title: "방금 지은 신전과 이어진 활동이에요",
-      lines: () => { const m = mission(); return ["신전을 완성한 일에서 이어진 첫 활동이 나왔어요.", m ? "'" + m.title + "' — 약 " + m.minutes + "분이면 돼요." : "1분 안에 할 수 있는 가벼운 활동이에요."]; } },
+      lines: () => { const m = mission(); return ["신전을 완성한 일에서 이어진 첫 활동이 나왔어요.", m ? "**" + m.title + "** — 약 " + m.minutes + "분이면 돼요." : "1분 안에 할 수 있는 가벼운 활동이에요."]; } },
     { setup: { jg: "real", j: "today" }, target: () => find('.window.win-journal [data-real-bridge="suggestions"] .macts') || find(".window.win-journal .wbody"), title: "활동은 세 걸음으로 기록해요",
       lines: () => ["버튼을 눌러 지금 어디까지 했는지 남기면 돼요.", "'건너뛰기'를 눌러도 괜찮고, 나중에 다시 해도 돼요."],
       extra: () => h("div", { class: "jt-steps", "aria-label": "수락, 해 봤어요, 완료했어요" },
@@ -89,7 +89,7 @@ window.AU = window.AU || {};
           const S = STEPS[i];
           UI.tab.jg = S.setup.jg; UI.tab.j = S.setup.j; UI.renderWin();
           prog.textContent = (i + 1) + " / " + STEPS.length; title.textContent = S.title;
-          body.replaceChildren(...S.lines().map((t) => h("p", { text: t })));
+          body.replaceChildren(...S.lines().map((t) => h("p", null, t.split(/\*\*(.+?)\*\*/).map((part, k) => (k % 2 ? h("b", { class: "rb-em", text: part }) : part)))));   // **강조**: 현실 활동 이름
           extra.replaceChildren(); const ex = S.extra && S.extra(); if (ex) extra.append(ex);
           bPrev.style.visibility = i ? "visible" : "hidden"; bNext.textContent = i === STEPS.length - 1 ? "이해했어요" : "다음 ▶";
           const el = S.target(); if (el && el.scrollIntoView) el.scrollIntoView({ block: "nearest" });

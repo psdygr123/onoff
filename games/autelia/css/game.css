@@ -873,3 +873,4 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
 .tracker .tq.qk-main { border-left: 3px solid var(--qk-main); padding-left: 7px; } .tracker .tq.qk-sub { border-left: 3px solid var(--qk-sub); padding-left: 7px; }
 .toast.qk-main { border-left-color: var(--qk-main); } .toast.qk-sub { border-left-color: var(--qk-sub); }
 .modal.restnote .rb-em { color: #2F7D6B; font-weight: 800; background: rgba(47,125,107,.12); padding: 1px 6px; border-radius: 6px; }
+.jt-body .rb-em { color: #2F7D6B; font-weight: 800; background: rgba(47,125,107,.12); padding: 1px 6px; border-radius: 6px; }
