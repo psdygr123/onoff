@@ -113,7 +113,7 @@ window.AU = window.AU || {};
     name: "협곡 바위틈", bg: "gorge", width: 1500, safe: false,
     platforms: [{ x: 0, y: 590, w: 1500 }], ropes: [],
     portals: [{ x: 40, to: "valley", toX: 3050, label: "검은 골짜기" },
-              { x: 1460, to: "hide_outer", toX: 90, label: "검은 아지트", reqQuest: "q_h1", reqIn: ["active", "ready", "done"], reqText: "협곡 안쪽 길은 아직 닫혀 있습니다. 제페토의 부탁을 받아야 합니다." }],
+              { x: 1460, to: "hide_outer", toX: 90, label: "검은 아지트", reqQuest: "q_h1a", reqIn: ["active", "ready", "done"], reqText: "협곡 안쪽 길은 아직 닫혀 있습니다. 제페토의 부탁을 받아야 합니다." }],
     npcs: [{ id: "jepeto", x: 420 }],
     spots: [
     ],

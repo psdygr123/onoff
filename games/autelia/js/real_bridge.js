@@ -24,7 +24,7 @@ window.AU = window.AU || {};
       "act1-q_a1_variant-start": {"missionId":"m_e4","moment":"변형의 흔적","story":"검은 결정의 정체를 알아보기로 했습니다.","mode":"journal","questId":"q_a1_variant","phase":"start"},
       "act1-q_a2_secret-done": {"missionId":"m_m6","moment":"바르샤의 전언","story":"새로운 정보를 얻고 앞으로 나아갈 방향을 찾았습니다.","mode":"journal","questId":"q_a2_secret","phase":"done"},
       "act1-q_a3_jepeto-start": {"missionId":"m_m1","moment":"제페토의 부탁","story":"제페토의 부탁을 받아 새로운 조사에 나섭니다.","mode":"journal","questId":"q_a3_jepeto","phase":"start"},
-      "act1-q_h1-done": {"missionId":"m_m4","moment":"1막 완료 · 제페토에게 보고","story":"긴 조사를 마치고 다음 여정을 준비할 시간이 되었습니다.","mode":"journal","questId":"q_h1","phase":"done"}
+      "act1-q_h1f-done": {"missionId":"m_m4","moment":"1막 완료 · 제페토에게 보고","story":"긴 조사를 마치고 다음 여정을 준비할 시간이 되었습니다.","mode":"journal","questId":"q_h1f","phase":"done"}
     }),
     suggestions() {
       const flags = AU.G && AU.G.S && AU.G.S.flags;
@@ -81,7 +81,9 @@ window.AU = window.AU || {};
         const heading = document.createElement("h3"); heading.textContent = title;
         const body = document.createElement("div"); body.className = "note";
         for (const paragraph of description.split("\\n\\n")) {
-          const p = document.createElement("p"); p.textContent = paragraph; body.append(p);
+          const p = document.createElement("p");
+          paragraph.split(/\*\*(.+?)\*\*/).forEach((part, i) => { if (!part) return; if (i % 2) { const em = document.createElement("b"); em.className = "rb-em"; em.textContent = part; p.append(em); } else p.append(document.createTextNode(part)); });   // **강조**: 현실 미션 이름이 눈에 띄게
+          body.append(p);
         }
         const actions = document.createElement("div"); actions.className = "choices";
         const finish = (value) => {
@@ -136,7 +138,7 @@ window.AU = window.AU || {};
       let answer = "later";
       if (this.visibleInDev()) {
         answer = await this.prompt("메인 퀘스트와 함께하는 현실 활동",
-          (this.PLACEMENTS[key] ? this.PLACEMENTS[key].story : "메인 스토리 퀘스트를 시작했습니다.") + "\n\n함께 해볼 수 있는 선택형 현실 미션: " + m.title + " (약 " + m.minutes + "분). " + m.desc + "\n\n현실 미션을 하지 않아도 메인 스토리는 그대로 진행됩니다.",
+          (this.PLACEMENTS[key] ? this.PLACEMENTS[key].story : "메인 스토리 퀘스트를 시작했습니다.") + "\n\n함께 해볼 수 있는 선택형 현실 미션: **" + m.title + " (약 " + m.minutes + "분)** " + m.desc + "\n\n현실 미션을 하지 않아도 메인 스토리는 그대로 진행됩니다.",
           [{text:"현실 미션도 수락",value:"accept",primary:true},{text:"게임만 진행하기",value:"later"}]);
       }
       if (answer === "accept") {

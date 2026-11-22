@@ -39,7 +39,7 @@ window.AU = window.AU || {};
       const m = this.map; if (!m.boss) return;
       const has = this.monsters.some((q) => q.type === m.boss.type && q.alive);
       // 보스 등장 조건: 기본은 전직 시험 중. quest(+afterSpot)가 있으면 그 퀘스트가 진행 중이고 지정 지점을 마쳤을 때
-      const on = m.boss.quest ? (AU.G.questStatus(m.boss.quest) === "active" && (!m.boss.afterSpot || AU.G.spotDone(m.boss.afterSpot)) && !(AU.G.S.flags["boss_" + m.boss.type])) : AU.G.bossActive();
+      const on = m.boss.quest ? (AU.G.questStatus(m.boss.quest) === "active" && (!m.boss.afterSpot || AU.G.spotDone(m.boss.afterSpot)) && !(AU.G.S.flags["boss_" + m.boss.type])) : false;
       if (on && !has) this.spawn(m.boss.type, m.boss.x, undefined, undefined, undefined, "boss");
     },
     spawn(type, x, y, min, max, tag) {
@@ -191,7 +191,7 @@ window.AU = window.AU || {};
     },
 
     /* ---------- 잠입 임무(map.stealthMission): 들키면 구역 입구에서 다시 시작. 숨는 상자(hideSpots)·시야를 막는 구조물(blockers) ---------- */
-    stealthOn() { const sm = this.map && this.map.stealthMission; return !!sm && AU.G.questStatus(sm.quest) === "active" && !AU.G.S.flags[sm.flag]; },
+    stealthOn() { const sm = this.map && this.map.stealthMission; if (!sm || AU.G.S.flags[sm.flag]) return false; const st = AU.G.questStatus(sm.quest); return st === "active" || st === "ready" || (st === "done" && !!sm.next && AU.G.questStatus(sm.next) === "active"); },
     stealthTries() { const sm = this.map && this.map.stealthMission; return sm ? (AU.G.S.flags["stealth_tries_" + this.mapId] || 0) : 0; },
     sightMul() { return this.stealthOn() && this.stealthTries() >= 3 ? 0.8 : 1; }, // 3번 이상 들키면 경비 시야가 조금 약해짐(도움)
     sightBlocked(gx, px) { const lo = Math.min(gx, px), hi = Math.max(gx, px); return (this.map.blockers || []).some((b) => b.x > lo && b.x < hi); },

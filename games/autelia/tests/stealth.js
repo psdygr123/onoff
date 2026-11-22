@@ -10,7 +10,7 @@ const URL = "http://localhost:8801/index.html?dev=1&intro=cards", sleep = (ms) =
   for (let i = 0; i < 2 && await p.$("#job-next"); i++) { await p.click("#job-next"); await sleep(200); }
   if (await p.$("#charsetup")) { await p.fill("#sname", "시험용"); await p.click("#setup-ok"); await sleep(300); }
   await ev(() => AU.Prologue.debugComplete("arche")); await sleep(300);
-  await ev(() => { const S = AU.G.S; S.level = 10; S.quests.q_h1 = { state: "active", prog: [0, 0, 0, 0, 0, 0, 0], spots: {} }; AU.World.enterMap("hide_outer", 700, true); AU.World.trans = null; });
+  await ev(() => { const S = AU.G.S; S.level = 10; S.quests.q_h1a = { state: "active", prog: [0], spots: {} }; AU.World.enterMap("hide_outer", 700, true); AU.World.trans = null; });
   await sleep(200);
   const setup = () => ev(() => { const W = AU.World; W.trans = null; W.monsters.slice(1).forEach((x) => { x.alive = false; x.respawnT = -1; }); const m = W.monsters[0]; m.alive = true; m.state = "patrol"; m.dir = 1; m.x = 700; m.min = 700; m.max = 700; m.pause = 99; const p = W.player; p.x = 560; p.vx = 0; p.hidden = false; return W.stealthOn(); });
   T("S1", "퀘스트 진행 중 잠입 임무 활성", await setup(), null);

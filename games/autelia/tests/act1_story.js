@@ -28,7 +28,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
         if (o.kind === 'talk' && !AU.NPCS[o.target]) out.push(id + ': 대화 NPC 없음');
         for (const t of o.targets || []) if (!Object.values(AU.MAPS).some((m) => (m.spots || []).some((s) => s.id === t))) out.push(id + ': 지점 없음 ' + t);
       }
-      const n = AU.NPCS[q.turnIn || q.giver]; if (n && !(n.quests || []).includes(id)) out.push(id + ': 보고 NPC의 quests에 없음');
+      const n = AU.NPCS[q.turnIn || q.giver]; if (n && !q.autoDone && !(n.quests || []).includes(id)) out.push(id + ': 보고 NPC의 quests에 없음');
     }
     for (const [id, m] of Object.entries(AU.MAPS)) {
       for (const pt of m.portals || []) { if (!pt.lock && !AU.MAPS[pt.to]) out.push(id + ': 포털 대상 없음 ' + pt.to); if (pt.reqQuest && !AU.QUESTS[pt.reqQuest]) out.push(id + ': 포털 조건 퀘스트 없음'); }

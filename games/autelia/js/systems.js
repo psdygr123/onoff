@@ -180,6 +180,7 @@ window.AU = window.AU || {};
       for (const [it, n] of q.takeItems || []) { this.S.inv[it] = Math.max(0, (this.S.inv[it] || 0) - n); if (!this.S.inv[it]) delete this.S.inv[it]; }
       for (const [it, n] of q.startItems || []) this.giveItem(it, n);   // 전달 퀘스트: 수락할 때 맡는 물건
       const qk = AU.questKind(id), ql = AU.QKIND[qk]; this.log(ql.label + " 퀘스트 수락: " + q.title); this.toast(ql.icon + " " + ql.label + " 퀘스트 수락: " + q.title, "quest qk-" + qk);
+      if (AU.Ev) AU.Ev.emit("questStart", { id });
       this.refreshQuest(id);
       if (AU.RealBridge) AU.RealBridge.questEvent(id, "start");
       this.save("quest"); this.changed(); return true;
@@ -188,7 +189,7 @@ window.AU = window.AU || {};
       const rec = this.qs(id), q = AU.QUESTS[id]; if (!rec || rec.state === "done") return;
       const all = q.objectives.every((o, i) => this.objectiveDone(q, rec, i));
       const next = all ? "ready" : "active";
-      if (next === "ready" && rec.state !== "ready") this.toast("목표 달성: " + q.title + " (의뢰인에게 돌아가세요)", "quest");
+      if (next === "ready" && rec.state !== "ready" && !q.autoDone) this.toast("목표 달성: " + q.title + " (의뢰인에게 돌아가세요)", "quest");
       // 조사·수리 지점을 모두 마쳤지만 보고가 남은 경우: 한 번 크게 알림
       if (next === "active" && !rec.noted) {
         const wk = q.objectives.findIndex((o) => (o.kind === "investigate" || o.kind === "repair") && this.objectiveDone(q, rec, q.objectives.indexOf(o)));
@@ -196,6 +197,7 @@ window.AU = window.AU || {};
         if (wk >= 0 && rest && rest.target && AU.NPCS[rest.target]) { rec.noted = true; this.toast("✔ " + (q.objectives[wk].kind === "repair" ? "수리" : "조사") + " 완료! " + AU.NPCS[rest.target].name.replace(" (임시)", "") + "에게 가서 결과를 알리세요.", "quest"); }
       }
       rec.state = next;
+      if (next === "ready" && q.autoDone) this.turnIn(id);   // 현장 완료형: 의뢰인에게 돌아가지 않고 그 자리에서 완료
     },
     refreshCollectQuests() { for (const id of Object.keys(this.S.quests)) this.refreshQuest(id); },
     onKill(type) {
@@ -283,6 +285,7 @@ window.AU = window.AU || {};
       if (r.levelTo) { let g = 0; while (this.S.level < r.levelTo && g++ < 20) this.gainExp(Math.max(1, AU.expToNext(this.S.level) - this.S.exp), q.title); }
       if (q.awaken) this.awaken();
       if (AU.RealBridge) AU.RealBridge.questEvent(id, "done");
+      if (q.next) this.startQuest(q.next);   // 연속 퀘스트: 다음 단계를 바로 수락
       this.save("quest"); this.changed(); return true;
     },
 
@@ -648,7 +651,8 @@ window.AU = window.AU || {};
       } else merged.mindStats = Object.assign(base.mindStats, raw.mindStats);
       merged.profile = AU.Profile ? AU.Profile.clean(raw.profile) : { name: "", gender: "" };
       merged.v = C.save.version; merged.inv = raw.inv || {}; merged.quests = raw.quests || {}; merged.visited = raw.visited || { arche: true };
-      delete merged.quests.q_job;   // 전직 시험 폐지: 이전 저장의 기록 제거
+      delete merged.quests.q_job;
+      if (merged.quests.q_h1) AU.migrateHideout(merged);   // 아지트 퀘스트 6단계 분할: 이전 저장의 q_h1을 단계별 기록으로 옮김   // 전직 시험 폐지: 이전 저장의 기록 제거
       // 프롤로그 추가 전(v1) 저장: 이미 시작한 본편 진행을 그대로 유지하고 프롤로그는 '완료'로 간주(필요하면 제목 화면에서 다시 볼 수 있음)
       merged.prologue = raw.prologue && typeof raw.prologue === "object" ? raw.prologue : { state: "COMPLETED", flags: {}, seen: {}, legacy: true };
       return merged;

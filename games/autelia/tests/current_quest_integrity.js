@@ -18,7 +18,7 @@ const BASE = process.env.GAME_URL || "http://localhost:8801";
       if (quest.giver && !npcs[quest.giver]) errors.push(id + ": nonexistent giver " + quest.giver);
       if (quest.turnIn && !npcs[quest.turnIn]) errors.push(id + ": nonexistent turnIn " + quest.turnIn);
     }
-    const current = ["q_a1_parcel","q_a1_variant","q_a1_traces","q_a2_secret","q_a3_scout","q_a3_jepeto","q_h1"];
+    const current = ["q_a1_parcel","q_a1_variant","q_a1_traces","q_a2_secret","q_a3_scout","q_a3_jepeto","q_h1a","q_h1b","q_h1c","q_h1d","q_h1e","q_h1f"];
     for(const id of current) if(!q[id]) errors.push("missing current quest " + id);
     return {errors,questCount:ids.length,oldFencePresent:!!q.q_a1_fence,knownMaps:!!maps.porto};
   });
