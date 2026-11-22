@@ -265,7 +265,7 @@ window.AU = window.AU || {};
     /* ---------- 조사·수리 지점 ---------- */
     useSpot(sp) {
       if (this.work) return;
-      if (sp.kind === "investigate") { AU.UI.say({ name: sp.label, portrait: sp.portrait || "" }, sp.lines || ["살펴보았습니다."], { end: () => { AU.G.completeSpot(sp.id); if (sp.onDone) sp.onDone(this); } }); return; }
+      if (sp.kind === "investigate") { AU.UI.say({ name: sp.label, portrait: sp.portrait || "" }, sp.lines || ["살펴보았습니다."], { cuts: sp.cuts, end: () => { AU.G.completeSpot(sp.id); if (sp.onDone) sp.onDone(this); } }); return; }
       this.work = { sp, t: 0, dur: sp.dur || 1.5, x0: this.player.x };   // 목공 수리: 제자리에서 잠깐 작업. 움직이거나 맞으면 멈춤
       if (AU.Sfx && AU.Sfx.play) { try { AU.Sfx.play("hit"); } catch (e) { /* 소리 없음 */ } }
     },
