@@ -172,7 +172,7 @@ window.AU = window.AU || {};
       const W = AU.World, m = W.map, p = W.player; if (!m || !p || !targetMap) return "";
       if (targetMap === W.mapId) {
         if (npcId) { const n = (m.npcs || []).find((x) => x.id === npcId); if (n) { const d = n.x - p.x; return Math.abs(d) < 160 ? "바로 근처에 있어요" : (d > 0 ? "▶ 오른쪽으로 가세요" : "◀ 왼쪽으로 가세요"); } }
-        return "이 지역에서 진행하세요";
+        return m.hint || "이 지역에서 진행하세요";
       }
       const hop = this.route(W.mapId, targetMap); if (!hop) return "";
       const pt = (m.portals || []).find((x) => x.to === hop); if (!pt) return "";
