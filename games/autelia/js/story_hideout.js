@@ -27,6 +27,8 @@ window.AU = window.AU || {};
     bg_hideout_lab_1: BG("hideout_lab_1"), bg_hideout_lab_2: BG("hideout_lab_2"), bg_hideout_boss: BG("hideout_boss")
   });
   Object.assign(AU.MONSTERS, { ob_hide_crate: { path: "assets/object/hide_crate.webp", optional: true }, ob_hide_pillar: { path: "assets/object/hide_pillar.webp", optional: true } }); // 숨는 곳·시야 가림 기둥 그림(없으면 임시 도형)
+  /* 조사 지점 그림(옵션): assets/object/spot_<id>.webp 파일을 넣으면 임시 도형 대신 그려집니다. 규격은 docs의 요청문 참고 */
+  Object.assign(AU.ASSETS, { ob_spot_hide_gate: { path: "assets/object/spot_hide_gate.webp", optional: true }, ob_spot_hide_cargo: { path: "assets/object/spot_hide_cargo.webp", optional: true }, ob_spot_tun_cages: { path: "assets/object/spot_tun_cages.webp", optional: true }, ob_spot_tun_notes: { path: "assets/object/spot_tun_notes.webp", optional: true }, ob_spot_lab_records: { path: "assets/object/spot_lab_records.webp", optional: true } });
   const FLOOR = { x: 0, y: 590, w: 2558 };
   const AREA = (x, y, d) => ({ x, y, desc: d });
   AU.MAPS.hide_outer = {
@@ -37,11 +39,11 @@ window.AU = window.AU || {};
               { x: 2510, to: "hide_tunnel", toX: 90, label: "갱도 입구", reqQuest: "q_h1a", reqIn: ["active", "ready", "done"], reqText: "제페토의 부탁을 받아야 안으로 들어갈 수 있습니다." }],
     npcs: [],
     spots: [
-      { id: "hide_gate", img: "", x: 700, kind: "investigate", label: "초소의 출입 장부", lines: [
+      { id: "hide_gate", img: "ob_spot_hide_gate", w: 190, x: 700, kind: "investigate", label: "초소의 출입 장부", lines: [
         "초소 탁자 위에 출입 장부가 펼쳐져 있습니다. 매달 '짐승 N두, 원석 N상자'라는 숫자가 적혀 있고, 서명란에는 같은 이름이 반복됩니다.",
         "서명은 '실험 책임 파우스토스'. 장부 맨 아래에는 붉은 잉크로 '움브라 완성 임박'이라고 휘갈겨 있습니다.",
         L(HERO, "(이곳은 짐승이 들어가는 입구구나. 책임자의 이름은 파우스토스... 그리고 움브라.)")] },
-      { id: "hide_cargo", img: "", x: 1750, kind: "investigate", label: "빈 수송 우리", lines: [
+      { id: "hide_cargo", img: "ob_spot_hide_cargo", w: 240, x: 1750, kind: "investigate", label: "빈 수송 우리", lines: [
         "검은 쇠창살로 짠 우리가 층층이 쌓여 있습니다. 모두 비어 있지만 바닥에는 긁힌 자국과 검게 굳은 결정 가루가 남아 있습니다.",
         "우리마다 번호표가 달려 있습니다. 가장 큰 번호는 사백을 넘깁니다.",
         L(HERO, "(이 수가 전부 안쪽으로 들어갔다는 뜻이다. 서둘러야 한다.)")] }
@@ -55,11 +57,11 @@ window.AU = window.AU || {};
     portals: [{ x: 40, to: "hide_outer", toX: 2450, label: "아지트 외곽" }, { x: 1240, to: "hide_lab", toX: 90, label: "실험 구역" }],
     npcs: [],
     spots: [
-      { id: "tun_cages", img: "", x: 430, kind: "investigate", label: "갱도 벽면의 빈 우리들", lines: [
+      { id: "tun_cages", img: "ob_spot_tun_cages", w: 230, x: 430, kind: "investigate", label: "갱도 벽면의 빈 우리들", lines: [
         "갱도 벽을 따라 우리가 줄지어 박혀 있습니다. 문은 모두 열려 있고 안은 비어 있습니다.",
         "바닥에는 짐승 발톱이 낸 긁힌 자국과 함께, 붉은 줄이 비치는 검은 결정 조각이 점점이 떨어져 있습니다.",
         L(HERO, "(우리에서 나온 짐승들이 이 갱도를 돌아다니고 있다. 이것들이 협곡으로 빠져나간 늑대의 정체인가.)")] },
-      { id: "tun_notes", img: "", x: 930, kind: "investigate", label: "갱도 기록판", lines: [
+      { id: "tun_notes", img: "ob_spot_tun_notes", w: 150, x: 930, kind: "investigate", label: "갱도 기록판", lines: [
         "광부용 작업판에 누군가 분필로 일지를 적어 두었습니다. '결정 투입량 3단계, 개체 7번 이상 반응, 개체 12번 탈주'.",
         "마지막 줄은 지워지다 만 글씨입니다. '이대로는 안 된다. 책임자는 더 큰 그릇이 필요하다고 한다. 그릇이란 무엇인가.'",
         L(HERO, "(그릇... 더 큰 그릇을 만들려는 건가.)")] }
@@ -74,7 +76,7 @@ window.AU = window.AU || {};
               { x: 2510, to: "hide_boss", toX: 90, label: "보스의 방", reqQuest: "q_h1e", reqIn: ["done"], reqText: "파우스토스가 풀어 놓은 변형체들을 먼저 쓰러뜨려야 합니다." }],
     npcs: [],
     spots: [
-      { id: "lab_records", img: "", x: 760, kind: "investigate", label: "실험 기록대", lines: [
+      { id: "lab_records", img: "ob_spot_lab_records", w: 210, x: 760, kind: "investigate", label: "실험 기록대", lines: [
         "유리 용기 사이 기록대에 두꺼운 실험 기록이 쌓여 있습니다. 표지에는 '검은 그릇 계획'이라고 쓰여 있습니다.",
         "'여러 짐승에 결정을 먹여 어둠을 쌓는다. 가장 잘 버틴 개체에게 모든 어둠을 모은다. 그 그릇이 용사의 힘과 부딪칠 때 낙인은 풀린다.'",
         L(HERO, "(몬스터들은 재료였다. 하나의 그릇을 완성하려고... 그리고 그 목적은 용사의 힘.)")] },

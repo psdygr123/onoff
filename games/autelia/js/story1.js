@@ -29,9 +29,11 @@ window.AU = window.AU || {};
   });
 
   /* 말하는 사람(대화창 이름·초상화). 주인공은 성별·이름을 따라감 */
+  /* 조사 지점 그림(옵션): assets/object/spot_<id>.webp 파일을 넣으면 임시 도형 대신 그려집니다. 규격은 docs의 요청문 참고 */
+  Object.assign(AU.ASSETS, { ob_spot_barsha_lens: { path: "assets/object/spot_barsha_lens.webp", optional: true }, ob_spot_barsha_map: { path: "assets/object/spot_barsha_map.webp", optional: true }, ob_spot_relay_tent: { path: "assets/object/spot_relay_tent.webp", optional: true }, pt_claude: { path: "assets/portrait/claude.webp", optional: true }, pt_baltein: { path: "assets/portrait/baltein.webp", optional: true } });
   const HERO = { get name() { return AU.Profile.name(); }, get portrait() { return AU.Profile.portraitKey(); } };
   const B = () => AU.NPCS.barsha, J = () => AU.NPCS.jepeto;
-  const CLAUDE = { name: "감독관 클로드", portrait: "" }, BALTEIN = { name: "흰 로브의 검수관", portrait: "" }, VOICE = { name: "용병", portrait: "" };
+  const CLAUDE = { name: "감독관 클로드", portrait: "pt_claude" }, BALTEIN = { name: "흰 로브의 검수관", portrait: "pt_baltein" }, VOICE = { name: "용병", portrait: "" };
   const L = (npc, t) => ({ npc, t });
 
   /* ---------- 아이템 ---------- */
@@ -74,11 +76,11 @@ window.AU = window.AU || {};
     npcs: [{ id: "barsha", x: 940, npcY: 462 }],
     fgSlice: [625, 425, 640, 175],   // 작업대: 정보상보다 앞에 다시 그려 탁자 뒤에 서 있게 함
     spots: [
-      { id: "barsha_lens", img: "", x: 730, kind: "investigate", label: "작업대 위의 검은 결정 조각", lines: [
+      { id: "barsha_lens", img: "ob_spot_barsha_lens", w: 120, x: 730, kind: "investigate", label: "작업대 위의 검은 결정 조각", lines: [
         L(B(), "길드가 보낸 것과 같은 결이다. 자연에서 이만큼 순하게 굳은 결정은 나오지 않아."),
         L(B(), "누군가 일부러 만들어 내고 있다는 뜻이지. 그리고 그 재료는 짐승의 몸이야. 몸에 닿은 어둠이 굳어서 이렇게 된다."),
         L(HERO, "(몬스터 몸에서 나온 검은 결정... 누군가 몬스터를 일부러 어둠에 물들이고 있다는 말이다.)")] },
-      { id: "barsha_map", img: "", x: 1150, kind: "investigate", label: "구겨진 양피지 지도", lines: [
+      { id: "barsha_map", img: "ob_spot_barsha_map", w: 130, x: 1150, kind: "investigate", label: "구겨진 양피지 지도", lines: [
         L(B(), "북쪽 경계 너머 검은 골짜기에 붉은 점이 찍혀 있지. 블랙 웨이브 상단이 쓰는 비밀 중계소야."),
         L(B(), "매달 그리로 짐승을 가둘 우리와 검은 결정 원석이 실려 간다."),
         L(B(), "상단은 심부름꾼일 뿐이야. 누가 시키는지, 어디로 가는지는 직접 보고 와야 알 수 있네.")] }
@@ -96,7 +98,7 @@ window.AU = window.AU || {};
       { id: "valley_crates", img: "ob_trace_crate", x: 520, kind: "investigate", label: "불도장 찍힌 궤짝", lines: [
         "절벽 틈에서 내려다본 하차장입니다. 검은 옷의 용병 수십 명이 짐수레에서 묵직한 궤짝을 끊임없이 나르고 있습니다.",
         "궤짝 옆면마다 불도장으로 찍힌 '검은 물결' 표식이 선명합니다. 구석에서는 계약에 묶인 인부들이 검은 결정 원석을 다듬고 있습니다."] },
-      { id: "relay_tent", img: "", x: 1700, kind: "investigate", label: "중심 천막 밑 대화", lines: [
+      { id: "relay_tent", img: "ob_spot_relay_tent", w: 330, x: 1700, kind: "investigate", label: "중심 천막 밑 대화", lines: [
         "중심 천막 아래에서 두 사람이 낮게 이야기하고 있습니다.",
         "가죽 채찍을 찬 사내는 상단 감독관 클로드. 흰 로브를 입고 핏빛 원석을 들여다보는 사내는 흰 로브의 검수관이라 불립니다.",
         L(BALTEIN, "변형이 덜 되었군. 투입량을 늘려라, 클로드. 위에서 서두르고 계신다."),

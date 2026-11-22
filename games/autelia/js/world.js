@@ -613,7 +613,7 @@ window.AU = window.AU || {};
         const x = sp.x;
         // 정식 그림이 있으면 그림으로(방책은 고치기 전·후 두 장이 같은 틀), 없으면 아래 임시 도형
         const key = sp.img === "fence" ? (done ? "ob_fence_fixed" : "ob_fence_broken") : sp.img, im = key && AU.Img.has(key) ? AU.Img.get(key) : null;
-        if (im) { const w = sp.kind === "repair" ? 170 : sp.img === "ob_trace_crate" ? 112 : 160, h = w * im.naturalHeight / im.naturalWidth; ctx.drawImage(im, x - w / 2, y - h + 6, w, h); }
+        if (im) { const w = sp.w || (sp.kind === "repair" ? 170 : sp.img === "ob_trace_crate" ? 112 : 160), h = w * im.naturalHeight / im.naturalWidth; ctx.drawImage(im, x - w / 2, y - h + 6, w, h); }
         else if (sp.kind === "repair") {
           ctx.save(); ctx.lineCap = "round";
           if (done) { ctx.strokeStyle = "#8A6B46"; ctx.lineWidth = 9; ctx.beginPath(); ctx.moveTo(x - 44, y); ctx.lineTo(x - 44, y - 70); ctx.moveTo(x + 44, y); ctx.lineTo(x + 44, y - 70); ctx.stroke(); ctx.lineWidth = 7; ctx.strokeStyle = "#A88358"; ctx.beginPath(); ctx.moveTo(x - 50, y - 56); ctx.lineTo(x + 50, y - 56); ctx.moveTo(x - 50, y - 30); ctx.lineTo(x + 50, y - 30); ctx.stroke(); }
