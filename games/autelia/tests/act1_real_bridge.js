@@ -5,7 +5,7 @@ try{const p=await b.newPage();await p.goto((process.env.GAME_URL||"http://localh
 await p.evaluate(()=>AU.Prologue.debugComplete("porto"));
 const a=await p.evaluate(()=>{
  const G=AU.G,S=G.S,B=AU.RealBridge;S.level=20;S.silver=10000;
- const expected=[{"id":"q_s1_silver","phase":"start","missionId":"m_m3"},{"id":"q_guild_talk","phase":"done","missionId":"m_e6"},{"id":"q_a1_variant","phase":"start","missionId":"m_e4"},{"id":"q_a2_secret","phase":"done","missionId":"m_m6"},{"id":"q_a3_jepeto","phase":"start","missionId":"m_m1"},{"id":"q_h1","phase":"done","missionId":"m_m4"}];
+ const expected=[{"id":"q_s1_silver","phase":"start","missionId":"m_m3"},{"id":"q_guild_talk","phase":"done","missionId":"m_e6"},{"id":"q_a1_variant","phase":"start","missionId":"m_e4"},{"id":"q_a2_secret","phase":"done","missionId":"m_m6"},{"id":"q_a3_jepeto","phase":"start","missionId":"m_m1"},{"id":"q_h1f","phase":"done","missionId":"m_m4"}];
  const donePrereq=id=>{for(const pre of AU.QUESTS[id].pre){if(G.questStatus(pre)!=="done"){donePrereq(pre);S.quests[pre]={state:"done",prog:AU.QUESTS[pre].objectives.map(o=>o.count||1),spots:{}}}}};
  const logs=[];
  for(const x of expected){

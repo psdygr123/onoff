@@ -18,16 +18,16 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   // A. 데이터
   const bad = await ev(() => { const out = []; const need = ['hide_outer','hide_tunnel','hide_lab','hide_boss'];
     for (const id of need) { const m = AU.MAPS[id]; if (!m) { out.push('맵 없음 ' + id); continue; } for (const pt of m.portals) if (!AU.MAPS[pt.to]) out.push(id + ' 포털 ' + pt.to); for (const s of m.spawns) if (!AU.MONSTERS[s.type]) out.push('몬스터 ' + s.type); for (const k of (m.bgs || [m.bg])) if (!AU.ASSETS[k]) out.push('배경 미등록 ' + k); }
-    const q = AU.QUESTS.q_h1; for (const o of q.objectives) { if (o.kind === 'kill' && !AU.MONSTERS[o.target]) out.push('kill ' + o.target); for (const t of o.targets || []) if (!Object.values(AU.MAPS).some((m) => (m.spots || []).some((s) => s.id === t))) out.push('지점 ' + t); }
-    if (!AU.NPCS.jepeto.quests.includes('q_h1')) out.push('제페토 quests'); if (AU.MONSTERS.umbra_boss.lv !== 15) out.push('움브라 레벨');
+    for (const q of ['q_h1a','q_h1b','q_h1c','q_h1d','q_h1e','q_h1f'].map((k) => AU.QUESTS[k])) for (const o of q.objectives) { if (o.kind === 'kill' && !AU.MONSTERS[o.target]) out.push('kill ' + o.target); for (const t of o.targets || []) if (!Object.values(AU.MAPS).some((m) => (m.spots || []).some((s) => s.id === t))) out.push('지점 ' + t); }
+    if (!AU.NPCS.jepeto.quests.includes('q_h1a') || !AU.NPCS.jepeto.quests.includes('q_h1f')) out.push('제페토 quests'); if (AU.MONSTERS.umbra_boss.lv !== 15) out.push('움브라 레벨');
     for (const [id, m] of Object.entries(AU.MAPS)) for (const pt of m.portals || []) if (!pt.lock && !AU.MAPS[pt.to]) out.push(id + ' 포털대상 ' + pt.to);
     return out; });
   note('A1', '아지트 데이터 연결', bad.length === 0, bad.join(' / ') || '0건');
   // B. 흐름
   await ev(() => { const G = AU.G; G.S.level = 10; for (const id of ['q_s1_silver','q_s1_test','q_first','q_forest','q_guild_talk','q_a1_fence','q_a1_parcel','q_a1_traces','q_a2_secret','q_a3_scout','q_a3_jepeto']) G.S.quests[id] = { state: 'done', prog: [], spots: {} }; G.save('t'); });
-  note('B0', '제페토 부탁 후 아지트 퀘스트 열림', (await st('q_h1')) === 'available', await st('q_h1'));
+  note('B0', '제페토 부탁 후 아지트 퀘스트 열림', (await st('q_h1a')) === 'available', await st('q_h1a'));
   await ev(() => AU.World.enterMap('gorge', 420, true)); await sleep(200);
-  await accept('jepeto'); note('B1', '아지트 퀘스트 수락', (await st('q_h1')) === 'active', await st('q_h1'));
+  await accept('jepeto'); note('B1', '아지트 1단계 수락', (await st('q_h1a')) === 'active', await st('q_h1a'));
   await ev(() => AU.World.enterMap('gorge', 1460, true)); await sleep(150);
   await ev(() => { AU.World.scan(); }); const gp = await ev(() => AU.World.nearPortal && AU.World.nearPortal.to);
   note('B2', '협곡 안쪽 포털이 외곽으로 연결', gp === 'hide_outer', String(gp));
@@ -45,18 +45,32 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const b1 = await ev(() => AU.G.S.silver); note('B5', '안 들키고 통과 시 보너스 은화 +100(1회)', b1 - b0 >= 100 && (await ev(() => AU.World.mapId)) === 'hide_tunnel', (b1 - b0) + ' ' + await ev(() => AU.World.mapId));
   // 조사 지점·처치 목표
   const spot = async (id, mapId) => { const sx = await ev(([id, mapId]) => { if (AU.World.mapId !== mapId) AU.World.enterMap(mapId, 100, true); const s = AU.World.map.spots.find((s) => s.id === id); AU.World.player.x = s.x; AU.World.player.vx = 0; AU.World.scan(); return !!AU.World.nearSpot; }, [id, mapId]); await sleep(80); await key('Space'); await sleep(200); for (let i = 0; i < 10 && (await ev(() => !!AU.UI.dialog)); i++) { await key('Space'); await sleep(100); } return sx; };
-  const ok1 = await spot('hide_gate', 'hide_outer') && await spot('hide_cargo', 'hide_outer') && await spot('tun_cages', 'hide_tunnel') && await spot('tun_notes', 'hide_tunnel');
-  note('B6', '외곽·갱도 조사 4곳 완료', ok1 && (await ev(() => AU.G.S.quests.q_h1.prog.slice(0, 2).join())) === '2,2', await ev(() => AU.G.S.quests.q_h1.prog.join()));
-  await ev(() => { for (let i = 0; i < 4; i++) AU.G.onKill('hide_beast'); for (let i = 0; i < 2; i++) AU.G.onKill('hide_keeper'); });
-  note('B7', '갱도·실험구역 처치 목표 집계', (await ev(() => AU.G.S.quests.q_h1.prog.slice(2, 4).join())) === '4,2', await ev(() => AU.G.S.quests.q_h1.prog.join()));
+  const ok1a = await spot('hide_gate', 'hide_outer') && await spot('hide_cargo', 'hide_outer');
+  const chain1 = (await st('q_h1a')) === 'done' && (await st('q_h1b')) === 'active';
+  const ok1 = ok1a && await spot('tun_cages', 'hide_tunnel') && await spot('tun_notes', 'hide_tunnel');
+  note('B6', '외곽 조사 완료 → 1단계 현장 완료·2단계 자동 수락, 갱도 조사 2곳', ok1 && chain1 && (await ev(() => AU.G.S.quests.q_h1b.prog[0])) === 2, await st('q_h1a') + '/' + await st('q_h1b'));
+  await ev(() => { for (let i = 0; i < 4; i++) AU.G.onKill('hide_beast'); });
+  const c1 = (await st('q_h1b')) === 'done' && (await st('q_h1c')) === 'active';
+  await ev(() => { for (let i = 0; i < 2; i++) AU.G.onKill('hide_keeper'); });
+  note('B7', '늑대 4 처치 → 2단계 완료·3단계 시작, 감시병 2 집계', c1 && (await ev(() => AU.G.S.quests.q_h1c.prog[0])) === 2, await st('q_h1b') + '/' + await st('q_h1c'));
   // 실험 구역: 기록 + 파우스토스 대화(초상화 3표정)
   const ok2 = await spot('lab_records', 'hide_lab');
   const portrait = await ev(() => { const ks = AU.MAPS.hide_lab.spots.find((s) => s.id === 'lab_faustos').lines.filter((l) => typeof l === 'object' && /faustos/.test(l.npc.portrait)).map((l) => l.npc.portrait); return [...new Set(ks)].sort().join(); });
   const closed = await ev(() => { AU.World.enterMap('hide_lab', 2480, true); AU.World.scan(); const pt = AU.World.nearPortal; return pt && !AU.World.portalOpen(pt); });
   note('B8', '파우스토스 만나기 전에는 보스 포털 잠김, 표정 3종 사용', ok2 && closed && portrait === 'pt_faustos,pt_faustos_mad,pt_faustos_shock', portrait + ' closed=' + closed);
+  const c2 = (await st('q_h1c')) === 'done' && (await st('q_h1d')) === 'active';
+  const npc0 = await ev(() => AU.MAPS.hide_lab.npcs.length);
   await spot('lab_faustos', 'hide_lab');
+  const npc1 = await ev(() => AU.MAPS.hide_lab.npcs.length);
+  const pend = await ev(() => !!AU.G.pendingChoice('faustos'));
+  await ev(() => { const q = AU.QUESTS.q_h1d; AU.G.applyChoice('q_h1d', 1, q.choice.options[0]); });
+  const npc2 = await ev(() => AU.MAPS.hide_lab.npcs.length);
+  const d1 = (await st('q_h1d')) === 'done' && (await st('q_h1e')) === 'active';
+  note('B8b', '기록 완료 → 4단계 시작, 파우스토스는 대면 뒤 선택 때까지만 서 있음, 선택 후 5단계 자동 시작', c2 && npc0 === 0 && npc1 === 1 && pend && npc2 === 0 && d1, [c2, npc0, npc1, pend, npc2, d1].join());
+  const closed2 = await ev(() => { AU.World.enterMap('hide_lab', 2480, true); AU.World.scan(); const pt = AU.World.nearPortal; return pt && !AU.World.portalOpen(pt); });
+  await ev(() => { for (let i = 0; i < 6; i++) AU.G.onKill('hide_beast'); });
   const open = await ev(() => { AU.World.enterMap('hide_lab', 2480, true); AU.World.scan(); const pt = AU.World.nearPortal; return pt && AU.World.portalOpen(pt); });
-  note('B9', '파우스토스 대화 후 보스 포털 열림', !!open, String(open));
+  note('B9', '5단계(변형체 6) 전에는 보스 포털 잠김, 완료 후 열림·6단계 시작', closed2 && !!open && (await st('q_h1f')) === 'active', 'closed=' + closed2 + ' open=' + open + ' ' + await st('q_h1f'));
   // 보스
   await ev(() => AU.World.enterMap('hide_boss', 90, true)); await sleep(300);
   const bs = await ev(() => { AU.World.syncBoss(); const b = AU.World.monsters.find((m) => m.type === 'umbra_boss'); return b && { lv: b.d.lv, hp: b.hp }; });
@@ -70,10 +84,10 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const okf = await spot('faustos_flee', 'hide_boss');
   const run = await ev(() => AU.World.fx.some((f) => f.kind === 'runner' && f.img === 'faustos_run'));
   note('B12', '철수 대사 후 파우스토스 달리기 연출', okf && run && fl0 === null, 'near=' + okf + ' run=' + run + ' before=' + fl0);
-  note('B13', '모든 목표 완료 → 보고 가능', (await st('q_h1')) === 'ready', await st('q_h1') + ' ' + await ev(() => AU.G.S.quests.q_h1.prog.join()));
+  note('B13', '6단계 목표 완료 → 보고 가능', (await st('q_h1f')) === 'ready', await st('q_h1f') + ' ' + await ev(() => AU.G.S.quests.q_h1f.prog.join()));
   await ev(() => AU.World.enterMap('gorge', 420, true)); await sleep(200);
   await talk('jepeto');
-  note('B14', '제페토 보고 → 완료·Lv15·1막 종료 플래그', (await st('q_h1')) === 'done' && (await ev(() => AU.G.S.level)) === 15 && (await ev(() => AU.G.S.flags.a1_hideout_done)), (await st('q_h1')) + ' Lv' + await ev(() => AU.G.S.level));
+  note('B14', '제페토 보고 → 완료·Lv15·1막 종료 플래그', (await st('q_h1f')) === 'done' && (await ev(() => AU.G.S.level)) === 15 && (await ev(() => AU.G.S.flags.a1_hideout_done)), (await st('q_h1f')) + ' Lv' + await ev(() => AU.G.S.level));
   const bad2 = errs.filter((e) => !/Failed to load/.test(e)); note('Z', '콘솔 오류 없음', bad2.length === 0, bad2.join(' | ') || '0건');
   await b.close(); const f = R.filter((r) => !r.ok); console.log('\n' + (R.length - f.length) + '/' + R.length + ' 통과'); process.exit(f.length ? 1 : 0);
 })();
