@@ -589,11 +589,15 @@ window.AU = window.AU || {};
         ctx.strokeStyle = "#D9A566"; ctx.lineWidth = 2; ctx.setLineDash([5, 7]); ctx.beginPath(); ctx.moveTo(r.x, r.top - 8); ctx.lineTo(r.x, r.bottom); ctx.stroke(); ctx.setLineDash([]);
       }
       for (const pt of map.portals || []) { // 포털 표시(임시 그래픽)
-        const near = this.nearPortal === pt, bob = Math.sin(this.time * 3) * 4;
-        ctx.globalAlpha = near ? 1 : 0.8; ctx.fillStyle = "#F4E7C8"; ctx.strokeStyle = "rgba(50,38,26,.75)"; ctx.lineWidth = 2;
+        const near = this.nearPortal === pt, bob = Math.sin(this.time * 3) * 4, guide = AU.UI && AU.UI.guidePortal && AU.UI.guidePortal() === pt;
+        if (guide) { // 지금 가야 할 길: 금빛 고리와 ★ 표시
+          const pul = 0.5 + 0.5 * Math.sin(this.time * 4); ctx.save(); ctx.globalAlpha = 0.35 + 0.3 * pul; ctx.fillStyle = "#FFD978";
+          ctx.beginPath(); ctx.ellipse(pt.x, GROUND - 6, 70 + 10 * pul, 16 + 3 * pul, 0, 0, 7); ctx.fill(); ctx.restore();
+        }
+        ctx.globalAlpha = near ? 1 : 0.8; ctx.fillStyle = guide ? "#FFD978" : "#F4E7C8"; ctx.strokeStyle = "rgba(50,38,26,.75)"; ctx.lineWidth = 2;
         ctx.beginPath(); ctx.moveTo(pt.x, GROUND - 150 + bob); ctx.lineTo(pt.x + 22, GROUND - 118 + bob); ctx.lineTo(pt.x + 9, GROUND - 118 + bob); ctx.lineTo(pt.x + 9, GROUND - 96 + bob);
         ctx.lineTo(pt.x - 9, GROUND - 96 + bob); ctx.lineTo(pt.x - 9, GROUND - 118 + bob); ctx.lineTo(pt.x - 22, GROUND - 118 + bob); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.globalAlpha = 1;
-        ctx.font = "500 16px 'Noto Sans KR', sans-serif"; ctx.textAlign = "center"; ctx.lineWidth = 4; ctx.lineJoin = "round"; ctx.strokeStyle = "rgba(30,22,15,.75)"; ctx.strokeText(pt.label, pt.x, GROUND - 160 + bob); ctx.fillStyle = "#FFFFFF"; ctx.fillText(pt.label, pt.x, GROUND - 160 + bob);
+        ctx.font = "500 16px 'Noto Sans KR', sans-serif"; ctx.textAlign = "center"; ctx.lineWidth = 4; ctx.lineJoin = "round"; ctx.strokeStyle = "rgba(30,22,15,.75)"; ctx.strokeText(pt.label, pt.x, GROUND - 160 + bob); ctx.fillStyle = "#FFFFFF"; ctx.fillText(pt.label, pt.x, GROUND - 160 + bob); if (guide) { ctx.font = "700 14px 'Noto Sans KR', sans-serif"; ctx.fillStyle = "#FFD978"; ctx.strokeText("★ 퀘스트 길", pt.x, GROUND - 182 + bob); ctx.fillText("★ 퀘스트 길", pt.x, GROUND - 182 + bob); }
       }
     },
     rr(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); },

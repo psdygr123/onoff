@@ -51,7 +51,7 @@ const out = []; const note = (n, ok, d) => { out.push(ok); console.log((ok ? 'PA
   note('V8 조사 지점 2곳에 장면 일러스트 연결', r4.sp.length === 2, r4.sp);
   await ev(() => AU.World.enterMap('valley', 500, true)); await sleep(300);
   const g1 = await ev(() => AU.Bgm.pickGroup()); await ev(() => AU.World.enterMap('jandari', 500, true)); await sleep(300); const g2 = await ev(() => AU.Bgm.pickGroup());
-  note('V9 골짜기·잔다리 골목 배경음 배정', g1 === 'relay' && g2 === 'alley', { g1, g2 });
+  note('V9 골짜기·잔다리 골목 배경음 배정', g1 === 'valley' && g2 === 'alley', { g1, g2 });
   note('Z 오류 없음', errs.length === 0, errs);
   await b.close(); process.exit(out.every(Boolean) ? 0 : 1);
 })();
