@@ -77,7 +77,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     check('Q10a 메인 퀘스트의 선행은 모두 메인', chain.length === 0, chain);
     await ev(() => { AU.G.S.quests = {}; for (const id of ['q_s1_silver', 'q_s1_test', 'q_first', 'q_forest', 'q_guild_talk']) AU.G.S.quests[id] = { state: 'done', prog: [], spots: {} }; AU.G.S.level = 9; });
     const seq = [];
-    for (const id of ['q_a1_variant', 'q_a1_traces', 'q_a2_secret', 'q_a3_scout', 'q_a3_jepeto']) { if (id === 'q_a3_jepeto') await ev(() => { AU.G.S.level = 10; }); const st0 = await ev((id) => AU.G.questStatus(id), id); seq.push(id + ':' + st0); await ev((id) => { AU.G.S.quests[id] = { state: 'done', prog: [], spots: {} }; }, id); }
+    for (const id of ['q_a1_variant', 'q_a1_traces', 'q_a2_secret', 'q_a3_recon', 'q_a3_scout', 'q_a3_jepeto']) { if (id === 'q_a3_jepeto') await ev(() => { AU.G.S.level = 10; }); const st0 = await ev((id) => AU.G.questStatus(id), id); seq.push(id + ':' + st0); await ev((id) => { AU.G.S.quests[id] = { state: 'done', prog: [], spots: {} }; }, id); }
     check('Q10b 서브(쥐 소탕) 없이 Lv9(제페토 의뢰는 Lv10 조건)에서 메인 체인이 차례로 열림', seq.every((x) => x.endsWith(':available')), seq);
 
     // Q11 선택된 서브 항목의 왼쪽 띠가 종류 색을 유지, 색 변수가 AU.QKIND에서 주입됨

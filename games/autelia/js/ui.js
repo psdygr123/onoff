@@ -88,7 +88,8 @@ window.AU = window.AU || {};
       R.append(this.hud.keyhint, panel, topleft, this.hud.menuBtn, h("div", { class: "slots" }, [...this.hud.quick, this.hud.dashEl, ...this.hud.slots]), this.hud.prompt, this.hud.mapName, this.hud.toasts, this.hud.save, this.hud.banner, this.hud.warn, this.hud.devBtn);
       this.hud.cache = {};
       this.winEl = h("div", { class: "winwrap hidden" }); this.dlgEl = h("div", { class: "dialog hidden" }); this.modalEl = h("div", { class: "modalwrap hidden" });
-      R.append(this.winEl, this.dlgEl, this.modalEl);
+      this.cutEl = h("div", { class: "cutlayer" });   // 조사 장면용 전체 화면 컷 그림(대화창 바로 아래)
+      R.append(this.winEl, this.cutEl, this.dlgEl, this.modalEl);
     },
     // 미니맵: 지형·포털·NPC·몬스터·플레이어와 현재 화면 범위를 작게 그림
     drawMini() {
@@ -344,8 +345,23 @@ window.AU = window.AU || {};
       this.dialog = { npc, lines, i: 0, opt }; AU.Input.held.clear();
       this.dlgEl.classList.remove("hidden"); this.renderDialog();
     },
+    /* 전체 화면 컷 그림: say(..., { cuts: [{ at: 줄 번호, src }] })로 줄이 바뀔 때 그림을 바꿔 보여 줌(프롤로그 컷과 같은 연출). 그림이 없으면 조용히 건너뜀 */
+    setCut(src) {
+      if (this.cutSrc === src) return; this.cutSrc = src;
+      const old = [...this.cutEl.children];
+      if (!src) { old.forEach((e) => { e.classList.remove("on"); setTimeout(() => e.remove(), 800); }); return; }
+      const im = h("img", { class: "cutimg", alt: "", src });
+      im.onload = () => { requestAnimationFrame(() => im.classList.add("on")); old.forEach((e) => { e.classList.remove("on"); setTimeout(() => e.remove(), 800); }); };
+      im.onerror = () => { im.remove(); };
+      this.cutEl.append(im);
+    },
+    applyCut(d) {
+      const cs = d.opt && d.opt.cuts; if (!cs) { if (this.cutSrc) this.setCut(null); return; }
+      let src = null; for (const c of cs) if (c.at <= d.i) src = c.src; this.setCut(src);
+    },
     renderDialog() {
       const d = this.dialog; if (!d) return;
+      this.applyCut(d);
       const last = d.i >= d.lines.length - 1, cur = d.lines[d.i], isObj = cur && typeof cur === "object", np = isObj ? cur.npc : d.npc, text = AU.Profile.fmt(isObj ? cur.t : cur).replace(/\{(attack|jump|interact|skills)\}/g, (m, k) => keyOf(k));
       const ppk = AU.Img.has(np.portrait) ? np.portrait : (np.alt && AU.Img.has(np.alt) ? np.alt : np.portrait), pt = AU.Img.has(ppk) ? h("img", { src: AU.ASSETS[ppk].path, alt: "" }) : h("div", { class: "ptfallback", text: np.name.slice(0, 1) });
       const back = d.i > 0 ? btn("◀ 이전 (" + AU.keyLabel(AU.Input.bindings.left) + ")", "dback", () => this.backDialog()) : null;
@@ -362,7 +378,7 @@ window.AU = window.AU || {};
     },
     finishDialog(choice) {
       const d = this.dialog; if (!d) return;
-      this.dialog = null; AU.G.S.flags.tipDlg = true; this.dlgEl.classList.add("hidden"); this.dlgEl.innerHTML = ""; AU.Input.held.clear();
+      this.dialog = null; AU.G.S.flags.tipDlg = true; this.dlgEl.classList.add("hidden"); this.dlgEl.innerHTML = ""; AU.Input.held.clear(); if (this.cutSrc) this.setCut(null);
       if (choice && choice.fn) choice.fn(); if (!choice && d.opt.end) d.opt.end();
       this.flushAfter();
     },

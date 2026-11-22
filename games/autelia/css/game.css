@@ -874,3 +874,9 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
 .toast.qk-main { border-left-color: var(--qk-main); } .toast.qk-sub { border-left-color: var(--qk-sub); }
 .modal.restnote .rb-em { color: #2F7D6B; font-weight: 800; background: rgba(47,125,107,.12); padding: 1px 6px; border-radius: 6px; }
 .jt-body .rb-em { color: #2F7D6B; font-weight: 800; background: rgba(47,125,107,.12); padding: 1px 6px; border-radius: 6px; }
+
+/* 조사 장면 전체 화면 컷(대화창 아래, HUD 위) */
+.cutlayer { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.cutlayer .cutimg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .7s ease; transform-origin: 50% 45%; }
+.cutlayer .cutimg.on { opacity: 1; animation: cutzoom 45s linear forwards; }
+@keyframes cutzoom { from { transform: scale(1); } to { transform: scale(1.08); } }
