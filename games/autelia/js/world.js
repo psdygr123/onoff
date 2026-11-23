@@ -122,7 +122,7 @@ window.AU = window.AU || {};
       const virt = this.virt; // 컷신이 주인공을 걷게 할 때(프롤로그)는 키 입력 대신 가상 입력을 씀
       const left = virt ? virt.dir < 0 : !blocked && I.isHeld("left"), right = virt ? virt.dir > 0 : !blocked && I.isHeld("right"), up = !blocked && I.isHeld("up"), down = !blocked && I.isHeld("down");
       const mv = (right ? 1 : 0) - (left ? 1 : 0);
-      if (p.hidden) { p.hideT -= dt; if (mv !== 0 || p.hideT <= 0 || blocked || p.dead) p.hidden = false; else p.vx = 0; } // 숨는 중: 움직이면 풀림, 최대 시간 뒤 자동 해제
+      if (p.hidden) { if (mv !== 0 || blocked || p.dead) p.hidden = false; else p.vx = 0; } // 숨는 중: 움직이거나 Space를 누르면 풀림(시간 제한 없음)
       this.nearNpc = null; this.nearHide = null; this.nearPortal = null; if (this.work) this.updateWork(dt, blocked);
 
       if (p.rope) {
@@ -193,7 +193,7 @@ window.AU = window.AU || {};
     /* ---------- 잠입 임무(map.stealthMission): 들키면 구역 입구에서 다시 시작. 숨는 상자(hideSpots)·시야를 막는 구조물(blockers) ---------- */
     stealthOn() { const sm = this.map && this.map.stealthMission; if (!sm || AU.G.S.flags[sm.flag]) return false; const st = AU.G.questStatus(sm.quest); return st === "active" || st === "ready" || (st === "done" && !!sm.next && AU.G.questStatus(sm.next) === "active"); },
     stealthTries() { const sm = this.map && this.map.stealthMission; return sm ? (AU.G.S.flags["stealth_tries_" + this.mapId] || 0) : 0; },
-    sightMul() { return this.stealthOn() && this.stealthTries() >= 3 ? 0.8 : 1; }, // 3번 이상 들키면 경비 시야가 조금 약해짐(도움)
+    sightMul() { if (!this.stealthOn()) return 1; const t = this.stealthTries(); return t >= 4 ? 0.6 : t >= 2 ? 0.8 : 1; }, // 들킬수록 경비 시야가 약해짐(2번 ×0.8, 4번 ×0.6)
     sightBlocked(gx, px) { const lo = Math.min(gx, px), hi = Math.max(gx, px); return (this.map.blockers || []).some((b) => b.x > lo && b.x < hi); },
     caught(m) {
       if (this.trans || this.player.dead) return;
@@ -212,11 +212,16 @@ window.AU = window.AU || {};
       const pic = (key, x, h) => { const im = AU.Img.has(key) ? AU.Img.get(key) : null; if (!im) return false; const w = h * im.naturalWidth / im.naturalHeight; ctx.drawImage(im, x - w / 2, y - h + 6, w, h); return true; };
       for (const b of m.blockers || []) { if (pic("ob_hide_pillar", b.x, 270)) continue; ctx.fillStyle = "#2F2B27"; ctx.fillRect(b.x - 20, y - 230, 40, 230); ctx.fillStyle = "rgba(255,255,255,.08)"; ctx.fillRect(b.x - 20, y - 230, 7, 230); ctx.fillStyle = "#3F3934"; ctx.fillRect(b.x - 26, y - 238, 52, 12); }
       for (const hs of m.hideSpots || []) {
+        const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 380);
+        if (on) { const g = ctx.createRadialGradient(hs.x, y - 40, 6, hs.x, y - 40, 90); g.addColorStop(0, "rgba(255,214,120," + (0.30 + 0.25 * pulse) + ")"); g.addColorStop(1, "rgba(255,214,120,0)"); ctx.fillStyle = g; ctx.fillRect(hs.x - 90, y - 130, 180, 140); }
         if (!pic("ob_hide_crate", hs.x, 150)) {
-          ctx.fillStyle = "#5B4632"; ctx.fillRect(hs.x - 38, y - 66, 76, 66); ctx.strokeStyle = "#2E2216"; ctx.lineWidth = 3; ctx.strokeRect(hs.x - 38, y - 66, 76, 66);
-          ctx.beginPath(); ctx.moveTo(hs.x - 38, y - 44); ctx.lineTo(hs.x + 38, y - 44); ctx.moveTo(hs.x - 38, y - 22); ctx.lineTo(hs.x + 38, y - 22); ctx.stroke();
+          const bw = 96, bh = 84, bx = hs.x - bw / 2, by = y - bh;
+          ctx.fillStyle = "#6A5038"; ctx.fillRect(bx, by, bw, bh); ctx.strokeStyle = "#2E2216"; ctx.lineWidth = 3; ctx.strokeRect(bx, by, bw, bh);
+          ctx.fillStyle = "#7B5E42"; ctx.fillRect(bx - 4, by - 8, bw + 8, 14); ctx.strokeRect(bx - 4, by - 8, bw + 8, 14);
+          ctx.beginPath(); ctx.moveTo(bx, by + 30); ctx.lineTo(bx + bw, by + 30); ctx.moveTo(bx, by + 58); ctx.lineTo(bx + bw, by + 58); ctx.moveTo(bx + bw / 2, by + 6); ctx.lineTo(bx + bw / 2, by + bh); ctx.stroke();
         }
-        if (on && this.player && !this.player.hidden) { ctx.fillStyle = "rgba(255,243,205,.9)"; ctx.font = "700 13px 'Noto Sans KR', sans-serif"; ctx.textAlign = "center"; ctx.fillText("숨는 곳", hs.x, y - 160); }
+        if (on) { ctx.strokeStyle = "rgba(255,214,120," + (0.55 + 0.4 * pulse) + ")"; ctx.lineWidth = 3; ctx.strokeRect(hs.x - 52, y - 98, 104, 100); }
+        if (on && this.player && !this.player.hidden) { const near = Math.abs(this.player.x - hs.x) < 60; ctx.fillStyle = near ? "rgba(255,236,170,1)" : "rgba(255,243,205,.9)"; ctx.font = "700 14px 'Noto Sans KR', sans-serif"; ctx.textAlign = "center"; ctx.fillText(near ? "Space로 숨기" : "숨는 곳", hs.x, y - 108); }
       }
     },
     /* ---------- 이동기: Lv.5부터. 충전 최대 3, 대기시간 없이 연속 사용, 10초마다 1충전 ---------- */
@@ -250,7 +255,7 @@ window.AU = window.AU || {};
         if (this.nearSpot) { this.useSpot(this.nearSpot); return; }
         if (this.nearNpc) { AU.UI.talkNpc(this.nearNpc.id); return; }
         if (p.hidden) { p.hidden = false; return; }
-        if (this.nearHide) { p.hidden = true; p.hideT = 8; p.vx = 0; }
+        if (this.nearHide) { p.hidden = true; p.vx = 0; }
       } else if (id === "up") {
         if (this.nearPortal && !p.rope) { const pt = this.nearPortal; if (pt.lock) { AU.UI.toast(pt.lock, "info"); return; } if (!this.portalOpen(pt)) { AU.UI.toast(pt.reqText || "아직 갈 수 없습니다.", "warn"); return; } this.travel(pt.to, pt.toX); }
       } else if (id.startsWith("skill")) this.useSkillSlot(+id.slice(5) - 1);
@@ -431,7 +436,7 @@ window.AU = window.AU || {};
             else if (m.cd <= 0) this.startAttack(m);
           } else if (m.pause > 0) m.pause -= dt;
           else {
-            m.x += m.dir * m.d.speed * 0.5 * dt;
+            m.x += m.dir * (m.d.patrolSpeed || m.d.speed * 0.5) * dt;
             if (m.x < m.min) { m.x = m.min; m.dir = 1; m.pause = rnd(0.3, 1.2); }
             if (m.x > m.max) { m.x = m.max; m.dir = -1; m.pause = rnd(0.3, 1.2); }
           }
@@ -836,7 +841,10 @@ window.AU = window.AU || {};
     },
     drawMonster(ctx, m) {
       const d = m.d, x = m.x, y = m.y, mo0 = d.motion || "";
-      let hop = m.state === "lunge" ? -10 : Math.abs(Math.sin(this.time * 6 + x)) * (m.state === "chase" ? 5 : 2);
+      const dd = Math.abs(x - (m._lx === undefined ? x : m._lx)); m._lx = x; m._wd = (m._wd || 0) + dd; if (dd > 0.01) m._mvt = this.time;   // 걸음 위상은 실제로 걸은 거리에 맞춤(제자리에선 멈추고, 빨리 걸으면 빨리 디딤)
+      const moving = this.time - (m._mvt || -9) < 0.12, wph = (m._wd / (d.stride || Math.max(36, (d.sw || d.w) * 0.5))) * Math.PI, wsin = moving ? Math.sin(wph) : 0;
+      const wk = d.walk && d.walk.length && moving && (m.state === "patrol" || m.state === "chase") && d.walk.every((k) => AU.Img.has(k)) ? d.walk[Math.floor(m._wd / (d.frameLen || 24)) % d.walk.length] : d.walkIdle && !moving && (m.state === "patrol" || m.state === "chase") && AU.Img.has(d.walkIdle) ? d.walkIdle : null;   // 진짜 걷기 프레임(걸은 거리 기준으로 한 칸씩)
+      let hop = wk ? 0 : m.state === "lunge" ? -10 : (mo0 === "" || mo0 === "swing") && (m.state === "patrol" || m.state === "chase") ? Math.abs(wsin) * (m.state === "chase" ? 5 : 3.5) : Math.abs(Math.sin(this.time * 6 + x)) * (m.state === "chase" ? 5 : 2);
       if (mo0 === "coil") hop = 0;                                                            // 뱀: 바닥을 미끄러짐(통통 튀지 않음)
       else if (mo0 === "scurry") hop = m.state === "lunge" ? 0 : Math.abs(Math.sin(this.time * 18 + x)) * 2.5; // 쥐: 잔걸음
       else if (mo0 === "sidestep") hop = m.state === "lunge" ? 0 : Math.abs(Math.sin(this.time * 5 + x)) * 1.5; // 게: 낮게 옆걸음
@@ -849,7 +857,7 @@ window.AU = window.AU || {};
         ctx.save(); ctx.translate(x + (m.dir < 0 ? -1 : 1) * 14 * lunge, y - (m.state === "chase" || m.state === "patrol" ? Math.abs(Math.sin(this.time * 7)) * 3 : 0)); ctx.scale(m.dir < 0 ? -1 : 1, 1);
         ctx.drawImage(im, -dw / 2, -dh, dw, dh); ctx.restore(); th = dh * 0.92;
       } else if (sp) { // 정식 그림: 한 장을 코드로 움직임(걷기 통통, 준비 동작 웅크림, 돌진 늘어남, 피격 번쩍임)
-        const im = AU.Img.get(d.sprite), dw = d.sw, dh = dw * im.naturalHeight / im.naturalWidth; let sx = 1, sy = 1, rot = 0;
+        const im = AU.Img.get(wk || d.sprite), dw = wk ? d.sw * im.naturalWidth / (d.walkRefW || im.naturalWidth) : d.sw, dh = dw * im.naturalHeight / im.naturalWidth; let sx = 1, sy = 1, rot = 0;
         const mo = d.motion || "", tt = this.time, ph = x * 0.013; let ox = 0, up = 0;
         sy += 0.018 * Math.sin(tt * 3 + ph); sx -= 0.01 * Math.sin(tt * 3 + ph); // 숨쉬기
         if (m.state === "chase" || m.state === "patrol") {
@@ -858,7 +866,7 @@ window.AU = window.AU || {};
           else if (mo === "scurry") { ox += 3 * f * Math.sin(tt * 34 + ph); rot += 0.025 * Math.sin(tt * 34 + ph); sy -= 0.03 * f; } // 쥐: 잔떨림 잔걸음
           else if (mo === "sidestep") { ox += 6 * f * Math.sin(tt * 6 + ph); rot += 0.04 * f * Math.sin(tt * 12 + ph); sy -= 0.04; } // 게: 낮게 옆으로 뒤뚱
           else if (mo === "leap") { up += Math.abs(Math.sin(tt * 5 + ph)) * 9 * f; rot += 0.05 * Math.sin(tt * 10 + ph); }       // 늑대: 크게 성큼성큼
-          else if (mo === "swing") { rot += 0.025 * f * Math.sin(tt * 6 + ph); ox += 2 * Math.sin(tt * 6 + ph); }                 // 용병: 묵직한 걸음
+          else if (mo === "swing") { if (!wk) { rot += 0.03 * wsin; ox += 2 * wsin; } }                 // 용병: 묵직한 걸음
           else if (m.state === "chase") { rot += 0.035 * Math.sin(tt * 13 + ph); sy += 0.025 * Math.sin(tt * 13 + ph + 1); }     // 기본: 달려드는 흔들림
         }
         if (m.state === "recover") { sy = 0.93 + 0.03 * Math.sin(m.st * 14); sx = 1.04; rot = -0.05; up = -1; } // 숨을 몰아쉬며 멈춤

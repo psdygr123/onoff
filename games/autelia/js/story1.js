@@ -25,6 +25,7 @@ window.AU = window.AU || {};
     bg_hideout_lab_2: { path: "assets/bg/hideout_lab_2.webp", optional: true },
     bg_hideout_boss: { path: "assets/bg/hideout_boss.webp", optional: true },
     mon_merc: { path: "assets/monster/merc.webp", optional: true },
+    mon_merc_w1: { path: "assets/monster/merc_w1.webp", optional: true }, mon_merc_w2: { path: "assets/monster/merc_w2.webp", optional: true }, mon_merc_w3: { path: "assets/monster/merc_w3.webp", optional: true }, mon_merc_w4: { path: "assets/monster/merc_w4.webp", optional: true }, mon_merc_idle: { path: "assets/monster/merc_idle.webp", optional: true },   // 용병 걷기 4칸(한 걸음 주기)
     bg_yard: { path: "assets/bg/yard.webp", optional: true },   // 용병 하차장(잠입 맵) 배경
     mon_mutfox: { path: "assets/monster/mutant_fox.webp", optional: true },
     ob_plank: { path: "assets/object/plank.webp", optional: true },
@@ -52,8 +53,8 @@ window.AU = window.AU || {};
 
   /* ---------- 적 ---------- */
   Object.assign(AU.MONSTERS, {
-    merc: { name: "블랙 웨이브 용병", lv: 9, hp: 260, atk: 34, speed: 90, chase: 210, w: 60, h: 112, exp: 300, silver: [7, 16], silverRate: 0.16, drops: [["iron_scrap", 0.15, 1, 2], ["potion", 0.05]], color: "#4D4D5C", motion: "swing", sprite: "mon_merc", sw: 88 },
-    merc_sentry: { name: "블랙 웨이브 용병", lv: 9, hp: 260, atk: 34, speed: 70, chase: 210, sight: 330, w: 60, h: 112, exp: 300, silver: [7, 16], silverRate: 0.16, drops: [["iron_scrap", 0.15, 1, 2], ["potion", 0.05]], color: "#4D4D5C", motion: "swing", sprite: "mon_merc", sw: 88 },
+    merc: { name: "블랙 웨이브 용병", lv: 9, hp: 260, atk: 34, speed: 90, chase: 210, w: 60, h: 112, exp: 300, silver: [7, 16], silverRate: 0.16, drops: [["iron_scrap", 0.15, 1, 2], ["potion", 0.05]], color: "#4D4D5C", motion: "swing", sprite: "mon_merc", walk: ["mon_merc_w1", "mon_merc_w2", "mon_merc_w3", "mon_merc_w4"], walkIdle: "mon_merc_idle", walkRefW: 215, frameLen: 24, sw: 88 },
+    merc_sentry: { name: "블랙 웨이브 용병", lv: 9, hp: 260, atk: 34, speed: 70, patrolSpeed: 55, chase: 210, sight: 200, w: 60, h: 112, exp: 300, silver: [7, 16], silverRate: 0.16, drops: [["iron_scrap", 0.15, 1, 2], ["potion", 0.05]], color: "#4D4D5C", motion: "swing", sprite: "mon_merc", walk: ["mon_merc_w1", "mon_merc_w2", "mon_merc_w3", "mon_merc_w4"], walkIdle: "mon_merc_idle", walkRefW: 215, frameLen: 24, sw: 88 },
     mutfox: { name: "변형된 여우", lv: 9, hp: 260, atk: 34, speed: 125, chase: 250, w: 84, h: 56, exp: 300, silver: [7, 16], silverRate: 0.16, drops: [["fur", 0.2, 1, 2], ["black_crystal", 0.75, 1, 1, "q_a3_crystal"], ["potion", 0.05]], color: "#7A2A35", ear: true, motion: "pounce", sprite: "mon_mutfox", sw: 132 },
     wolf: { name: "오염된 늑대", lv: 10, hp: 300, atk: 38, speed: 115, chase: 230, w: 88, h: 54, exp: 320, silver: [8, 18], silverRate: 0.17, drops: [["wolf_pelt", 0.15, 1, 2], ["potion", 0.05]], color: "#6C6F7A", ear: true, motion: "leap", sprite: "mon_wolf", sw: 140 }
   });
@@ -137,7 +138,7 @@ window.AU = window.AU || {};
      상자 앞에서 Space로 숨고, 기둥 뒤로 시선을 피합니다. 두 곳을 조사한 뒤 입구(왼쪽 끝)로 나가면 성공입니다. */
   AU.MAPS.yard = {
     name: "용병 하차장", bg: "bg_yard", width: 2480, safe: false, stealth: true,
-    stealthMission: { quest: "q_a3_recon", flag: "yard_clear", start: 120 }, hideSpots: [{ x: 880 }, { x: 1480 }, { x: 2040 }], blockers: [{ x: 1240 }, { x: 1800 }],
+    stealthMission: { quest: "q_a3_recon", flag: "yard_clear", start: 120 }, hideSpots: [{ x: 360 }, { x: 760 }, { x: 1100 }, { x: 1480 }, { x: 1700 }, { x: 1980 }, { x: 2200 }], blockers: [{ x: 1240 }, { x: 1800 }],
     platforms: [{ x: 0, y: 590, w: 2558 }], ropes: [],
     portals: [{ x: 40, to: "valley", toX: 620, label: "검은 골짜기" }],
     npcs: [],
@@ -152,7 +153,7 @@ window.AU = window.AU || {};
         L(HERO, "(중심 천막... 이 골짜기 안쪽에서 누가 짐승을 만지고 있다는 뜻이다. 들키기 전에 빠져나가자.)")] }
     ],
     spawns: [{ type: "merc_sentry", x: 560, min: 450, max: 900 }, { type: "merc_sentry", x: 1180, min: 1020, max: 1420 }, { type: "merc_sentry", x: 1700, min: 1560, max: 1950 }, { type: "merc_sentry", x: 2230, min: 2100, max: 2420 }],
-    area: { x: 80, y: 32, desc: "검은 골짜기 안쪽의 용병 하차장입니다. 용병에게 들키면 입구에서 다시 시작합니다. 상자 앞에서 Space로 숨고, 기둥 뒤로 시선을 피하세요." }
+    area: { x: 80, y: 32, desc: "검은 골짜기 안쪽의 용병 하차장입니다. 용병에게 들키면 입구에서 다시 시작합니다. 금빛으로 빛나는 상자 앞에서 Space로 숨고, 기둥 뒤로 시선을 피하세요." }
   };
   AU.MAPS.gorge = {
     name: "협곡 바위틈", bg: "gorge", width: 1500, safe: false,
