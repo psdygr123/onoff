@@ -58,17 +58,27 @@ const URL = process.env.GAME_URL || 'http://localhost:8801';
   });
   T('.mood-chip CSS 존재', hasChip === true);
 
-  // 7. missionReview 모달에 efficacy select 존재
+  // 7. 단계형 리커트 흐름: 한 화면 한 질문, 5점 버튼, 선택 문항 건너뛰기
   await p.evaluate(() => {
     const m = AU.G.mission('m_e5');
-    if (AU.G.S.missions.states['m_e5'].state !== 'done') AU.G.S.missions.states['m_e5'].state = 'done';
-    AU.UI.missionReview(m, 'done', () => {});
+    window.__sub = null;
+    AU.UI.missionReview(m, 'done', (f) => { window.__sub = f; });
   });
-  await p.waitForTimeout(300);
-  const selCount = await p.evaluate(() => document.querySelectorAll('.modal select').length);
-  T('missionReview select 4개(기존3+efficacy)', selCount === 4, selCount);
-  const hasChips = await p.evaluate(() => document.querySelectorAll('.mood-chip').length > 0);
-  T('missionReview 기분 칩 렌더', hasChips === true);
+  const likertCount = () => p.evaluate(() => document.querySelectorAll('.modal .likert-btn').length);
+  T('1단계 리커트 버튼 5개', (await likertCount()) === 5);
+  T('select 미사용', (await p.evaluate(() => document.querySelectorAll('.modal select').length)) === 0);
+  for (const v of [4, 3, 5]) { await p.click('.modal .likert-btn:nth-child(' + v + ')'); await p.waitForTimeout(400); }
+  T('4단계(효능감, 선택) 도달', (await p.evaluate(() => document.querySelector('.modal .rv-q').textContent.includes('스스로'))) === true);
+  await p.click('.modal .choices .btn:last-child'); // 건너뛰기
+  T('기분 칩 단계 렌더', (await p.evaluate(() => document.querySelectorAll('.mood-chip').length)) === 7);
+  await p.click('.modal .mood-chip:nth-child(7)');
+  await p.click('.modal .choices .btn:last-child'); // 다음
+  const dis = await p.evaluate(() => document.querySelector('.modal .choices .btn.primary').hasAttribute('disabled'));
+  T('마지막 단계 제출 활성', dis === false);
+  await p.click('.modal .choices .btn.primary');
+  await p.waitForTimeout(500);
+  const sub = await p.evaluate(() => window.__sub);
+  T('제출 값(도전4·의미3·만족5·효능감null·기분)', sub && sub.challenge === 4 && sub.meaning === 3 && sub.satisfaction === 5 && sub.efficacy === null && sub.mood === '뿌듯함', sub);
 
   T('페이지 오류 없음', errs.length === 0, errs);
   console.log(fail ? 'FAILED ' + fail : 'ALL PASS');

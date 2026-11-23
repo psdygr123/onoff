@@ -887,3 +887,18 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
 .mood-chip { background: #f5f0e8; border: 1px solid #d4c5a9; border-radius: 20px; padding: 4px 10px; font-size: 13px; cursor: pointer; transition: background .15s, border-color .15s; }
 .mood-chip:hover { background: #ede4d0; border-color: #b8a07a; }
 .mood-chip.selected { background: #d4eddc; border-color: #5a9e72; color: #2d6e45; font-weight: 600; }
+
+/* 소감 단계형 입력 (리커트 5점) */
+.review-step .rv-prog { display: flex; align-items: center; gap: 10px; margin: 0 0 14px; font-size: 13px; color: #8a6a3a; }
+.rv-dots { display: flex; gap: 5px; flex: 1; } .rv-dots i { flex: 1; height: 5px; border-radius: 3px; background: #e3d6b8; } .rv-dots i.done { background: #b98b45; } .rv-dots i.cur { background: #8d6425; }
+.review-step .rv-q { font-size: 19px; font-weight: 700; margin: 6px 0 4px; line-height: 1.5; }
+.review-step .rv-hint { margin: 0 0 14px; }
+.likert { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.likert-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 2px; min-height: 64px; background: #fff8e6; border: 1px solid #c9ad78; border-radius: 8px; cursor: pointer; font: inherit; color: #6e4c18; }
+.likert-btn b { font-size: 20px; } .likert-btn span { font-size: 11px; line-height: 1.25; text-align: center; word-break: keep-all; }
+.likert-btn:hover { background: #f0dfb4; } .likert-btn:focus-visible { outline: 2px solid #8d6425; outline-offset: 2px; }
+.likert-btn.selected { background: linear-gradient(#b98b45, #8d6425); border-color: #6e4c18; color: #fff8e6; }
+.review-step .mood-chips { gap: 8px; } .review-step .mood-chip { padding: 8px 14px; font-size: 15px; min-height: 40px; }
+.review-step .choices { margin-top: 16px; justify-content: flex-end; }
+.rv-foot { display: flex; gap: 8px; justify-content: center; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #d4c5a9; }
+.rv-foot .btn { font-size: 13px; opacity: .85; }
