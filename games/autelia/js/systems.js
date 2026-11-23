@@ -423,7 +423,7 @@ window.AU = window.AU || {};
       this.initMissions();
       const r = S.missions.states[id], m = this.mission(id); if (!r || !m) return false;
       const ok = {
-        accept: ["available"], attempt: ["accepted"], partial: ["attempted"], done: ["accepted", "attempted", "partial"],
+        accept: ["available"], attempt: ["accepted"], partial: ["accepted", "attempted"], done: ["accepted", "attempted", "partial"],
         skip: ["available", "accepted", "attempted", "partial"], retry: ["partial", "skipped"]
       };
       if (!ok[next] || !ok[next].includes(r.state)) return false;

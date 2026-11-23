@@ -48,27 +48,29 @@ const URL = process.env.GAME_URL || 'http://localhost:8801';
   T('하위 호환: efficacy null', log2 && log2.efficacy === null, log2);
   T('하위 호환: mood null', log2 && log2.mood === null, log2);
 
-  // 6. 기분 칩 CSS 클래스 존재
-  const hasChip = await p.evaluate(() => {
-    const sheets = Array.from(document.styleSheets);
-    for (const s of sheets) {
-      try { const r = Array.from(s.cssRules || []); if (r.some(x => x.selectorText && x.selectorText.includes('mood-chip'))) return true; } catch(e){}
-    }
-    return false;
-  });
-  T('.mood-chip CSS 존재', hasChip === true);
+  // 7. 필수 3문항만 단계형 리커트: 도전도 → 의미 → 만족도(+선택 첨부) → 제출
+  await p.evaluate(() => { window.__sub = null; AU.UI.missionReview(AU.G.mission('m_e5'), 'done', (f) => { window.__sub = f; }); });
+  T('1단계 리커트 버튼 5개', (await p.evaluate(() => document.querySelectorAll('.modal .likert-btn').length)) === 5);
+  T('진행 표시 1 / 3', (await p.evaluate(() => document.querySelector('.rv-prog span').textContent)) === '1 / 3');
+  T('select 미사용', (await p.evaluate(() => document.querySelectorAll('.modal select').length)) === 0);
+  for (const v of [4, 3]) { await p.click('.modal .likert-btn:nth-child(' + v + ')'); await p.waitForTimeout(400); }
+  T('3단계 만족도 도달', (await p.evaluate(() => document.querySelector('.modal .rv-q').textContent.includes('만족'))) === true);
+  T('기분 칩·소감 글 삭제됨', (await p.evaluate(() => document.querySelectorAll('.mood-chip, textarea.memo').length)) === 0);
+  T('만족도 선택 전 제출 비활성', (await p.evaluate(() => document.querySelector('.modal .choices .btn.primary').hasAttribute('disabled'))) === true);
+  await p.click('.modal .likert-btn:nth-child(5)'); await p.waitForTimeout(400);
+  await p.click('.modal .choices .btn.primary'); await p.waitForTimeout(500);
+  const sub = await p.evaluate(() => window.__sub);
+  T('제출 값(도전4·의미3·만족5)', sub && sub.challenge === 4 && sub.meaning === 3 && sub.satisfaction === 5 && sub.efficacy === null && sub.mood === null, sub);
 
-  // 7. missionReview 모달에 efficacy select 존재
-  await p.evaluate(() => {
-    const m = AU.G.mission('m_e5');
-    if (AU.G.S.missions.states['m_e5'].state !== 'done') AU.G.S.missions.states['m_e5'].state = 'done';
-    AU.UI.missionReview(m, 'done', () => {});
+  // 8. 수락 뒤 바로 완료 가능(해 봤어요 없음)
+  const flow = await p.evaluate(() => {
+    const G = AU.G; G.S.missions.states['m_e4'] = { state: 'accepted', rewarded: false, tries: 0 };
+    const fb = { challenge: 2, meaning: 3, satisfaction: 4, note: '' };
+    return G.setMissionState('m_e4', 'done', fb, null) && G.S.missions.states['m_e4'].state === 'done';
   });
-  await p.waitForTimeout(300);
-  const selCount = await p.evaluate(() => document.querySelectorAll('.modal select').length);
-  T('missionReview select 4개(기존3+efficacy)', selCount === 4, selCount);
-  const hasChips = await p.evaluate(() => document.querySelectorAll('.mood-chip').length > 0);
-  T('missionReview 기분 칩 렌더', hasChips === true);
+  T('accepted → done 직행', flow === true, flow);
+  const part = await p.evaluate(() => { const G = AU.G; G.S.missions.states['m_e3'] = { state: 'accepted', rewarded: false, tries: 0 }; return G.setMissionState('m_e3', 'partial', null, null); });
+  T('accepted → partial 직행', part === true, part);
 
   T('페이지 오류 없음', errs.length === 0, errs);
   console.log(fail ? 'FAILED ' + fail : 'ALL PASS');

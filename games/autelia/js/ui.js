@@ -802,43 +802,53 @@ window.AU = window.AU || {};
   UI.missionReview = function (m, next, onSubmit) {
     const wrap = UI.modalEl; UI.modal = true; wrap.classList.remove("hidden"); wrap.innerHTML = "";
     const evidencePanel = AU.MissionEvidence.panel(m);
-    const ratings = {}, labels = [["challenge", "얼마나 도전적이었나요?"], ["meaning", "나에게 얼마나 의미 있었나요?"], ["satisfaction", "활동 후 얼마나 만족스러웠나요?"], ["efficacy", "다음에도 스스로 해낼 수 있을 것 같다"]];
-    const fields = labels.map(([key, label]) => {
-      const sel = h("select", { "aria-label": label });
-      sel.append(h("option", { value: "", text: "선택해 주세요" }));
-      for (let i = 1; i <= 5; i++) sel.append(h("option", { value: String(i), text: i + " / 5" }));
-      ratings[key] = sel; return h("label", { class: "note" }, label, sel);
-    });
-    // 기분 칩 선택 (선택)
-    const MOODS = [["😊","좋음"],["😌","평온"],["😐","그저 그럼"],["😔","아쉬움"],["😤","힘들었음"],["😮","놀라움"],["💪","뿌듯함"]];
-    let selectedMood = null;
-    const moodChips = MOODS.map(([emoji, label]) => {
-      const chip = h("button", { class: "mood-chip", type: "button", "aria-label": label, text: emoji + " " + label });
-      chip.addEventListener("click", () => {
-        if (selectedMood === label) { selectedMood = null; chip.classList.remove("selected"); }
-        else { selectedMood = label; moodChips.forEach(c => c.classList.remove("selected")); chip.classList.add("selected"); }
-      });
-      return chip;
-    });
-    const moodRow = h("div", { class: "mood-row" }, h("span", { class: "note", text: "지금 기분은요? (선택)" }), h("div", { class: "mood-chips" }, ...moodChips));
-    const ta = h("textarea", { class: "memo", maxlength: "200", rows: "3", placeholder: "선택: 어떤 경험이었는지 자유롭게 적어 주세요." });
+    // 리커트 5점 척도: 진술문에 대한 동의 정도
+    const LIKERT = ["전혀 그렇지 않다", "그렇지 않다", "보통이다", "그렇다", "매우 그렇다"];
+    const Q = [
+      { key: "challenge", text: "이 활동은 나에게 도전적이었다.", hint: "어렵게 느껴졌다면 높게, 쉬웠다면 낮게 골라 주세요." },
+      { key: "meaning", text: "이 활동은 나에게 의미가 있었다.", hint: "정답은 없습니다. 느낀 그대로 골라 주세요." },
+      { key: "satisfaction", text: "활동을 마친 지금, 만족스럽다.", hint: "낮은 만족도도 그대로 기록해 주세요." },
+    ];
+    const ans = { challenge: null, meaning: null, satisfaction: null };
+    let step = 0, busy = false;
+    const steps = Q.map((q) => ({ q }));
     const close = () => { evidencePanel.dispose(); UI.modal = false; wrap.classList.add("hidden"); wrap.innerHTML = ""; };
-    let busy=false;
-    const finish = async (review) => { if(busy)return; busy=true; try { const evidence=await evidencePanel.value(); close(); const ok=onSubmit(review,evidence); if(ok===false){ if(evidence&&evidence.photoId&&AU.MissionEvidence)AU.MissionEvidence.remove(evidence.photoId).catch(()=>{}); AU.G.toast("지금은 이 활동을 기록할 수 없습니다. 상태가 바뀌었을 수 있어 목록을 새로 불러왔습니다. 첨부한 사진은 저장하지 않았습니다.","info"); UI.renderWin&&UI.renderWin(); } } catch(e) { busy=false; AU.G.toast(e.message||"보조 기록 저장 실패. 첨부를 제거하고 다시 시도하세요.","info"); } };
+    const finish = async (review) => { if (busy) return; busy = true; try { const evidence = await evidencePanel.value(); close(); const ok = onSubmit(review, evidence); if (ok === false) { if (evidence && evidence.photoId && AU.MissionEvidence) AU.MissionEvidence.remove(evidence.photoId).catch(() => {}); AU.G.toast("지금은 이 활동을 기록할 수 없습니다. 상태가 바뀌었을 수 있어 목록을 새로 불러왔습니다. 첨부한 사진은 저장하지 않았습니다.", "info"); UI.renderWin && UI.renderWin(); } } catch (e) { busy = false; AU.G.toast(e.message || "보조 기록 저장 실패. 첨부를 제거하고 다시 시도하세요.", "info"); } };
     const submit = () => {
-      const review = Object.fromEntries(labels.map(([key]) => [key, Number(ratings[key].value) || null]));
-      review.note = ta.value;
-      review.mood = selectedMood;
+      const review = { ...ans, efficacy: null, mood: null, note: "" };
       if (!AU.G.validMissionFeedback(review)) return;
       finish(review);
     };
-    const yes = btn(next === "partial" ? "시도 기록하기" : "평가하고 완료하기", "primary", submit, { disabled: "" });
-    const upd = () => { if (["challenge","meaning","satisfaction"].every(k => ratings[k].value)) yes.removeAttribute("disabled"); else yes.setAttribute("disabled", ""); };
-    for (const s of Object.values(ratings)) s.addEventListener("change", upd);
-    wrap.append(h("div", { class: "panel modal restnote" }, h("h3", { text: m.title + " · 활동 돌아보기" }),
-      h("p", { class: "note", text: "세 항목은 정답이 없습니다. 어려움·낮은 만족도도 그대로 기록해 주세요. 소감 글쓰기는 선택입니다." }),
-      evidencePanel.root, ...fields, moodRow, ta, h("div", { class: "choices" }, yes, btn("평가 없이 계속", "", () => finish(null)), btn("취소", "", close))));
-    upd();
+    const go = (n) => { step = Math.max(0, Math.min(steps.length - 1, n)); draw(); };
+    const likertRow = (q) => {
+      const row = h("div", { class: "likert", role: "radiogroup", "aria-label": q.text });
+      LIKERT.forEach((label, i) => {
+        const v = i + 1;
+        const b = h("button", { type: "button", class: "likert-btn" + (ans[q.key] === v ? " selected" : ""), role: "radio", "aria-checked": String(ans[q.key] === v), "aria-label": v + " " + label },
+          h("b", { text: String(v) }), h("span", { text: label }));
+        b.addEventListener("click", () => { ans[q.key] = v; draw(); setTimeout(() => { if (step < steps.length - 1 && steps[step].q.key === q.key) go(step + 1); }, 220); });
+        row.append(b);
+      });
+      return row;
+    };
+    function draw() {
+      wrap.innerHTML = "";
+      const s = steps[step], total = steps.length;
+      const dots = h("div", { class: "rv-dots", "aria-hidden": "true" }, steps.map((_, i) => h("i", { class: i < step ? "done" : i === step ? "cur" : "" })));
+      const head = [h("h3", { text: m.title + " · 활동 돌아보기" }), h("div", { class: "rv-prog" }, dots, h("span", { text: (step + 1) + " / " + total }))];
+      const q = s.q, last = step === total - 1, body = [], acts = [];
+      body.push(h("p", { class: "rv-q", text: q.text }), h("p", { class: "note rv-hint", text: q.hint }), likertRow(q));
+      if (step > 0) acts.push(btn("이전", "", () => go(step - 1)));
+      if (last) {
+        // 사진·시간 기록은 질문이 아닌 첨부이므로 선택 사항으로 마지막 화면에만 둔다.
+        body.push(evidencePanel.root);
+        const ready = ["challenge", "meaning", "satisfaction"].every((k) => ans[k]);
+        acts.push(btn(next === "partial" ? "시도 기록하기" : "평가하고 완료하기", "primary", submit, ready ? {} : { disabled: "" }));
+      } else if (ans[q.key]) acts.push(btn("다음", "primary", () => go(step + 1)));
+      const foot = h("div", { class: "rv-foot" }, btn("평가 없이 계속", "", () => finish(null)), btn("취소", "", close));
+      wrap.append(h("div", { class: "panel modal restnote review-step" }, ...head, ...body, h("div", { class: "choices" }, ...acts), foot));
+    }
+    draw();
   };
 
   UI.restNote = function (m, onSubmit) {
@@ -1032,7 +1042,7 @@ window.AU = window.AU || {};
       const missionCard = (m, opts) => {
         const r = M.states[m.id]; if (!r || r.state === "locked") return null; opts = opts || {};
         const hist = r.state === "done" ? AU.G.missionRepeatStats(m.id) : null, fav = AU.G.isFavorite(m.id);
-        const acts = { available: [["수락", "primary", "accept"], ["건너뛰기", "", "skip"]], accepted: [["해 봤어요", "primary", "attempt"], ["건너뛰기", "", "skip"]], attempted: [["완료했어요", "primary", "done"], ["일부만 했어요", "", "partial"], ["건너뛰기", "", "skip"]],
+        const acts = { available: [["수락", "primary", "accept"], ["건너뛰기", "", "skip"]], accepted: [["완료했어요", "primary", "done"], ["일부만 했어요", "", "partial"], ["건너뛰기", "", "skip"]], attempted: [["완료했어요", "primary", "done"], ["일부만 했어요", "", "partial"], ["건너뛰기", "", "skip"]],
           partial: [["완료했어요", "primary", "done"], ["다시 도전", "", "retry"], ["건너뛰기", "", "skip"]], skipped: [["다시 도전", "", "retry"]], done: [] }[r.state] || [];
         return h("div", { class: "mission st-" + r.state, "data-mid": m.id, "data-q": (m.title + " " + m.desc).toLowerCase() },
           h("div", { class: "mh" }, h("span", { class: "tag perma", text: m.perma + " · " + AU.PERMA[m.perma] }), h("span", { class: "tag", text: (AREAS[m.functionArea] || "일상 활동") + " · " + (["", "쉬움", "보통", "확장"][m.difficulty] || "선택") + " · 약 " + m.minutes + "분" }), h("span", { class: "tag", text: AU.MISSION_STATES[r.state] }), h("span", { class: "pts", text: r.rewarded ? "지급 완료" : "갤러리 토큰 +1" }),
