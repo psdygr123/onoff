@@ -891,7 +891,7 @@ window.AU = window.AU || {};
           else if (mo === "swing") { sx = 1.06; sy = 0.96; rot = -0.3 + 0.62 * q; ox = 18 * q; }                        // 위에서 아래로 내려침
           else { sx = 1.14; sy = 0.9; rot = 0.1; }
         }
-        if (posed) { sx = 1; sy = 1; rot = 0; if (m.state === "windup") { ox = 0; up = 0; } }   // 준비·공격 전용 그림: 코드 변형 없이 그림 자체가 동작(돌진 앞쏠림만 유지)
+        if (posed) { sx = 1; sy = 1; rot = 0; if (m.state === "windup") { ox = 0; up = 0; } else up *= 0.5; }   // 준비·공격 전용 그림: 코드 변형 없이 그림 자체가 동작(돌진 앞쏠림만 유지)
         if (m.flash > 0) { sx *= 0.92; sy *= 1.07; rot -= 0.1; ox -= 6; } // 맞았을 때 움찔
         ctx.save(); ctx.translate(x + ox * (m.dir < 0 ? -1 : 1), y - hop - up); ctx.scale(m.dir < 0 ? -1 : 1, 1); ctx.rotate(rot); ctx.scale(sx, sy);
         if (m.flash > 0 && "filter" in ctx) ctx.filter = "brightness(2.2)";
