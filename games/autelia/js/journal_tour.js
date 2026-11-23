@@ -54,13 +54,13 @@ window.AU = window.AU || {};
     /* 투어 실행. opts.closeAfter: 끝나면 일지 창도 닫기(프롤로그 흐름용). 결과: "done" | "skip" | "closed" */
     start(opts) {
       opts = opts || {};
-      const UI = AU.UI, root = document.getElementById("ui"), P = AU.Prologue;
+      const UI = AU.UI, root = document.getElementById("ui"), P = AU.Prologue, ST = opts.steps || STEPS;   // opts.steps: 다른 창(예: 나만의 공간)용 단계 목록. 단계마다 win(창 이름)·setup(일지 탭)·target을 지정
       if (this.active || !UI || !root) return Promise.resolve("skip");
       return new Promise((resolve) => {
         this.active = true;
         const oldFrozen = P && P.frozen, prev = { jg: UI.tab.jg, j: UI.tab.j };
         if (P && P.on) P.frozen = true;
-        if (UI.curName !== "journal") { UI.open("journal"); }
+        { const w0 = ST[0].win || "journal"; if (UI.curName !== w0) UI.open(w0); }
         AU.Input.held.clear();
         const shade = h("div", { class: "jt-shade" }), spot = h("div", { class: "jt-spot" });
         const prog = h("span", { class: "jt-prog" }), title = h("b", { class: "jt-title" }), body = h("div", { class: "jt-body" }), extra = h("div", { class: "jt-extra" });
@@ -72,8 +72,9 @@ window.AU = window.AU || {};
         const stageBox = () => { const st = document.getElementById("stage"), r = st.getBoundingClientRect(); return { r, k: r.width / 1280 || 1 }; };
         const place = () => {
           if (ended) return;
-          if (AU.UI.curName !== "journal") return finish("closed");
-          const S = STEPS[i], el = S.target(), { r: sr, k } = stageBox();
+          const S = ST[i];
+          if (AU.UI.curName !== (S.win || "journal")) return finish("closed");
+          const el = S.target(), { r: sr, k } = stageBox();
           if (el) {
             const er = el.getBoundingClientRect(), pad = 6;
             const x = (er.left - sr.left) / k - pad, y = (er.top - sr.top) / k - pad, w = er.width / k + pad * 2, hh = er.height / k + pad * 2;
@@ -86,12 +87,13 @@ window.AU = window.AU || {};
           } else { spot.style.display = "none"; card.style.left = Math.round((1280 - card.offsetWidth) / 2) + "px"; card.style.top = "300px"; }
         };
         const show = () => {
-          const S = STEPS[i];
-          UI.tab.jg = S.setup.jg; UI.tab.j = S.setup.j; UI.renderWin();
-          prog.textContent = (i + 1) + " / " + STEPS.length; title.textContent = S.title;
+          const S = ST[i];
+          if (S.setup) { UI.tab.jg = S.setup.jg; UI.tab.j = S.setup.j; }
+          UI.curName = S.win || "journal"; UI.renderWin();
+          prog.textContent = (i + 1) + " / " + ST.length; title.textContent = S.title;
           body.replaceChildren(...S.lines().map((t) => h("p", null, t.split(/\*\*(.+?)\*\*/).map((part, k) => (k % 2 ? h("b", { class: "rb-em", text: part }) : part)))));   // **강조**: 현실 활동 이름
           extra.replaceChildren(); const ex = S.extra && S.extra(); if (ex) extra.append(ex);
-          bPrev.style.visibility = i ? "visible" : "hidden"; bNext.textContent = i === STEPS.length - 1 ? "이해했어요" : "다음 ▶";
+          bPrev.style.visibility = i ? "visible" : "hidden"; bNext.textContent = i === ST.length - 1 ? "이해했어요" : "다음 ▶";
           const el = S.target(); if (el && el.scrollIntoView) el.scrollIntoView({ block: "nearest" });
           card.style.left = "-9999px"; requestAnimationFrame(() => { place(); });
         };
@@ -99,14 +101,14 @@ window.AU = window.AU || {};
           if (ended) return; ended = true; clearInterval(timer);
           AU.Input.rawHandlers = AU.Input.rawHandlers.filter((f) => f !== onKey);
           shade.remove(); spot.remove(); card.remove();
-          if (why === "done") { const F = AU.G.S.flags; F.journalTourSeen = true; F.gdw_journal = true; AU.G.save("journal-tour"); }
+          if (why === "done") { if (opts.onDone) opts.onDone(); else { const F = AU.G.S.flags; F.journalTourSeen = true; F.gdw_journal = true; AU.G.save("journal-tour"); } }
           if (why !== "closed") {
             if (opts.closeAfter) UI.close(); else { UI.tab.jg = prev.jg || "real"; UI.tab.j = prev.j || "today"; if (UI.curName === "journal") UI.renderWin(); }
           }
           if (P && P.on) P.frozen = oldFrozen;
           AU.Input.held.clear(); this.active = false; resolve(why);
         };
-        const next = () => { if (i >= STEPS.length - 1) return finish("done"); i++; show(); };
+        const next = () => { if (i >= ST.length - 1) return finish("done"); i++; show(); };
         const back = () => { if (i > 0) { i--; show(); } };
         const onKey = (e) => {
           if (e.type !== "keydown") return false;

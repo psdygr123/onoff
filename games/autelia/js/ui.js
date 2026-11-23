@@ -551,7 +551,7 @@ window.AU = window.AU || {};
       h("div", { class: "room-a-actions" },
         btn("공간 꾸미기", "primary", toggleShop),
         btn("기록 보기", "", openJournal),
-        btn("사용법 보기", "", () => AU.FirstMissionGuide && AU.FirstMissionGuide.open({ replay: true })),
+        btn("사용법 보기", "", () => AU.FirstMissionGuide && AU.FirstMissionGuide.start()),
         btn("방문 기록", "", () => { if (!attended) AU.G.galleryCheckin(); }),
         btn("나가기", "", () => AU.main && AU.main.galleryOnly ? AU.main.exitGame() : UI.close()))));
   };
