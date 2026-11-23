@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """몬스터 걷기 시트 패커: 가로 4프레임 마젠타 시트 → assets/monster/<name>_w1..w4.webp (같은 칸 크기, 발바닥선·몸 중심 고정).
-사용(games/autelia 에서): python3 ../../tools/art/pack_mwalk.py <시트.png> <name> <기준그림 폭> [기준그림 높이]
+사용(games/autelia 에서): python3 ../../tools/art/pack_mwalk.py <시트.png> <name> <기준 크기> [h]   (h 를 주면 기준 크기를 '높이'로 보고 맞춤: 서 있는 2족 몬스터용)
 기준그림(대기 스프라이트)과 같은 크기감이 되도록 4프레임 평균 폭을 기준 폭에 맞춤."""
 import sys, numpy as np
 from PIL import Image
@@ -26,7 +26,8 @@ assert len(segs) == 4, segs
 boxes = []
 for x0, x1 in segs:
     ys = np.where(A[:, x0:x1 + 1].any(1))[0]; boxes.append((x0, ys.min(), x1, ys.max()))
-sc = refw / np.mean([b[2] - b[0] + 1 for b in boxes])
+byh = len(sys.argv) > 4 and sys.argv[4] == 'h'
+sc = refw / np.mean([(b[3] - b[1] if byh else b[2] - b[0]) + 1 for b in boxes])
 crops = [rgba.crop((x0, y0, x1 + 1, y1 + 1)) for x0, y0, x1, y1 in boxes]
 crops = [c.resize((max(1, round(c.width * sc)), max(1, round(c.height * sc))), Image.LANCZOS) for c in crops]
 W = max(c.width for c in crops) + 8; H = max(c.height for c in crops) + 4
