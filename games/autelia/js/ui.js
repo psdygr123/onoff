@@ -802,29 +802,42 @@ window.AU = window.AU || {};
   UI.missionReview = function (m, next, onSubmit) {
     const wrap = UI.modalEl; UI.modal = true; wrap.classList.remove("hidden"); wrap.innerHTML = "";
     const evidencePanel = AU.MissionEvidence.panel(m);
-    const ratings = {}, labels = [["challenge", "얼마나 도전적이었나요?"], ["meaning", "나에게 얼마나 의미 있었나요?"], ["satisfaction", "활동 후 얼마나 만족스러웠나요?"]];
+    const ratings = {}, labels = [["challenge", "얼마나 도전적이었나요?"], ["meaning", "나에게 얼마나 의미 있었나요?"], ["satisfaction", "활동 후 얼마나 만족스러웠나요?"], ["efficacy", "다음에도 스스로 해낼 수 있을 것 같다"]];
     const fields = labels.map(([key, label]) => {
       const sel = h("select", { "aria-label": label });
       sel.append(h("option", { value: "", text: "선택해 주세요" }));
       for (let i = 1; i <= 5; i++) sel.append(h("option", { value: String(i), text: i + " / 5" }));
       ratings[key] = sel; return h("label", { class: "note" }, label, sel);
     });
+    // 기분 칩 선택 (선택)
+    const MOODS = [["😊","좋음"],["😌","평온"],["😐","그저 그럼"],["😔","아쉬움"],["😤","힘들었음"],["😮","놀라움"],["💪","뿌듯함"]];
+    let selectedMood = null;
+    const moodChips = MOODS.map(([emoji, label]) => {
+      const chip = h("button", { class: "mood-chip", type: "button", "aria-label": label, text: emoji + " " + label });
+      chip.addEventListener("click", () => {
+        if (selectedMood === label) { selectedMood = null; chip.classList.remove("selected"); }
+        else { selectedMood = label; moodChips.forEach(c => c.classList.remove("selected")); chip.classList.add("selected"); }
+      });
+      return chip;
+    });
+    const moodRow = h("div", { class: "mood-row" }, h("span", { class: "note", text: "지금 기분은요? (선택)" }), h("div", { class: "mood-chips" }, ...moodChips));
     const ta = h("textarea", { class: "memo", maxlength: "200", rows: "3", placeholder: "선택: 어떤 경험이었는지 자유롭게 적어 주세요." });
     const close = () => { evidencePanel.dispose(); UI.modal = false; wrap.classList.add("hidden"); wrap.innerHTML = ""; };
     let busy=false;
     const finish = async (review) => { if(busy)return; busy=true; try { const evidence=await evidencePanel.value(); close(); const ok=onSubmit(review,evidence); if(ok===false){ if(evidence&&evidence.photoId&&AU.MissionEvidence)AU.MissionEvidence.remove(evidence.photoId).catch(()=>{}); AU.G.toast("지금은 이 활동을 기록할 수 없습니다. 상태가 바뀌었을 수 있어 목록을 새로 불러왔습니다. 첨부한 사진은 저장하지 않았습니다.","info"); UI.renderWin&&UI.renderWin(); } } catch(e) { busy=false; AU.G.toast(e.message||"보조 기록 저장 실패. 첨부를 제거하고 다시 시도하세요.","info"); } };
     const submit = () => {
-      const review = Object.fromEntries(labels.map(([key]) => [key, Number(ratings[key].value)]));
+      const review = Object.fromEntries(labels.map(([key]) => [key, Number(ratings[key].value) || null]));
       review.note = ta.value;
+      review.mood = selectedMood;
       if (!AU.G.validMissionFeedback(review)) return;
       finish(review);
     };
     const yes = btn(next === "partial" ? "시도 기록하기" : "평가하고 완료하기", "primary", submit, { disabled: "" });
-    const upd = () => { if (labels.every(([key]) => ratings[key].value)) yes.removeAttribute("disabled"); else yes.setAttribute("disabled", ""); };
+    const upd = () => { if (["challenge","meaning","satisfaction"].every(k => ratings[k].value)) yes.removeAttribute("disabled"); else yes.setAttribute("disabled", ""); };
     for (const s of Object.values(ratings)) s.addEventListener("change", upd);
     wrap.append(h("div", { class: "panel modal restnote" }, h("h3", { text: m.title + " · 활동 돌아보기" }),
       h("p", { class: "note", text: "세 항목은 정답이 없습니다. 어려움·낮은 만족도도 그대로 기록해 주세요. 소감 글쓰기는 선택입니다." }),
-      evidencePanel.root, ...fields, ta, h("div", { class: "choices" }, yes, btn("평가 없이 계속", "", () => finish(null)), btn("취소", "", close))));
+      evidencePanel.root, ...fields, moodRow, ta, h("div", { class: "choices" }, yes, btn("평가 없이 계속", "", () => finish(null)), btn("취소", "", close))));
     upd();
   };
 
