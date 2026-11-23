@@ -843,7 +843,8 @@ window.AU = window.AU || {};
       const d = m.d, x = m.x, y = m.y, mo0 = d.motion || "";
       const dd = Math.abs(x - (m._lx === undefined ? x : m._lx)); m._lx = x; m._wd = (m._wd || 0) + dd; if (dd > 0.01) m._mvt = this.time;   // 걸음 위상은 실제로 걸은 거리에 맞춤(제자리에선 멈추고, 빨리 걸으면 빨리 디딤)
       const moving = this.time - (m._mvt || -9) < 0.12, wph = (m._wd / (d.stride || Math.max(36, (d.sw || d.w) * 0.5))) * Math.PI, wsin = moving ? Math.sin(wph) : 0;
-      let hop = m.state === "lunge" ? -10 : (mo0 === "" || mo0 === "swing") && (m.state === "patrol" || m.state === "chase") ? Math.abs(wsin) * (m.state === "chase" ? 5 : 3.5) : Math.abs(Math.sin(this.time * 6 + x)) * (m.state === "chase" ? 5 : 2);
+      const wk = d.walk && d.walk.length && moving && (m.state === "patrol" || m.state === "chase") && d.walk.every((k) => AU.Img.has(k)) ? d.walk[Math.floor(m._wd / (d.frameLen || 24)) % d.walk.length] : null;   // 진짜 걷기 프레임(걸은 거리 기준으로 한 칸씩)
+      let hop = wk ? 0 : m.state === "lunge" ? -10 : (mo0 === "" || mo0 === "swing") && (m.state === "patrol" || m.state === "chase") ? Math.abs(wsin) * (m.state === "chase" ? 5 : 3.5) : Math.abs(Math.sin(this.time * 6 + x)) * (m.state === "chase" ? 5 : 2);
       if (mo0 === "coil") hop = 0;                                                            // 뱀: 바닥을 미끄러짐(통통 튀지 않음)
       else if (mo0 === "scurry") hop = m.state === "lunge" ? 0 : Math.abs(Math.sin(this.time * 18 + x)) * 2.5; // 쥐: 잔걸음
       else if (mo0 === "sidestep") hop = m.state === "lunge" ? 0 : Math.abs(Math.sin(this.time * 5 + x)) * 1.5; // 게: 낮게 옆걸음
@@ -856,7 +857,7 @@ window.AU = window.AU || {};
         ctx.save(); ctx.translate(x + (m.dir < 0 ? -1 : 1) * 14 * lunge, y - (m.state === "chase" || m.state === "patrol" ? Math.abs(Math.sin(this.time * 7)) * 3 : 0)); ctx.scale(m.dir < 0 ? -1 : 1, 1);
         ctx.drawImage(im, -dw / 2, -dh, dw, dh); ctx.restore(); th = dh * 0.92;
       } else if (sp) { // 정식 그림: 한 장을 코드로 움직임(걷기 통통, 준비 동작 웅크림, 돌진 늘어남, 피격 번쩍임)
-        const im = AU.Img.get(d.sprite), dw = d.sw, dh = dw * im.naturalHeight / im.naturalWidth; let sx = 1, sy = 1, rot = 0;
+        const im = AU.Img.get(wk || d.sprite), dw = wk ? d.sw * im.naturalWidth / (d.walkRefW || im.naturalWidth) : d.sw, dh = dw * im.naturalHeight / im.naturalWidth; let sx = 1, sy = 1, rot = 0;
         const mo = d.motion || "", tt = this.time, ph = x * 0.013; let ox = 0, up = 0;
         sy += 0.018 * Math.sin(tt * 3 + ph); sx -= 0.01 * Math.sin(tt * 3 + ph); // 숨쉬기
         if (m.state === "chase" || m.state === "patrol") {
@@ -865,7 +866,7 @@ window.AU = window.AU || {};
           else if (mo === "scurry") { ox += 3 * f * Math.sin(tt * 34 + ph); rot += 0.025 * Math.sin(tt * 34 + ph); sy -= 0.03 * f; } // 쥐: 잔떨림 잔걸음
           else if (mo === "sidestep") { ox += 6 * f * Math.sin(tt * 6 + ph); rot += 0.04 * f * Math.sin(tt * 12 + ph); sy -= 0.04; } // 게: 낮게 옆으로 뒤뚱
           else if (mo === "leap") { up += Math.abs(Math.sin(tt * 5 + ph)) * 9 * f; rot += 0.05 * Math.sin(tt * 10 + ph); }       // 늑대: 크게 성큼성큼
-          else if (mo === "swing") { rot += 0.03 * wsin; ox += 2 * wsin; }                 // 용병: 묵직한 걸음
+          else if (mo === "swing") { if (!wk) { rot += 0.03 * wsin; ox += 2 * wsin; } }                 // 용병: 묵직한 걸음
           else if (m.state === "chase") { rot += 0.035 * Math.sin(tt * 13 + ph); sy += 0.025 * Math.sin(tt * 13 + ph + 1); }     // 기본: 달려드는 흔들림
         }
         if (m.state === "recover") { sy = 0.93 + 0.03 * Math.sin(m.st * 14); sx = 1.04; rot = -0.05; up = -1; } // 숨을 몰아쉬며 멈춤
