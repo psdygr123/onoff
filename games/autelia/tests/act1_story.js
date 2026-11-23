@@ -133,20 +133,24 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await ev(() => { AU.World.enterMap('valley', 1700, true); AU.World.monsters = []; AU.World.spawn = () => null; }); await sleep(300);
   const g0 = await ev(() => { AU.World.player.x = 3150; AU.World.player.vx = 0; AU.World.scan(); return AU.World.portalOpen(AU.World.nearPortal); });
   note('B18', '천막을 보기 전에는 협곡 포털 닫힘', g0 === false, String(g0));
-  await ev(() => { AU.World.player.x = 1700; AU.World.player.vx = 0; AU.World.scan(); }); await sleep(100);
+  const rp = await ev(() => { AU.World.player.x = 1700; AU.World.player.vx = 0; AU.World.scan(); const pt = AU.World.nearPortal; return pt && pt.to + ':' + AU.World.portalOpen(pt); });
+  note('B18b', '골짜기 중심 천막이 천막 위 바위틈 포털로 열림', rp === 'ridge:true', String(rp));
+  await ev(() => { AU.World.enterMap('ridge', 90, true); AU.World.monsters = []; AU.World.spawn = () => null; }); await sleep(300);
+  const rbg = await ev(() => ({ w: AU.MAPS.ridge.width, bgm: AU.BGM && AU.BGM.groupOf ? AU.BGM.groupOf('ridge') : null }));
+  await ev(() => { AU.World.player.x = 1300; AU.World.player.vx = 0; AU.World.scan(); }); await sleep(100);
   await key('Space'); await sleep(200);
   const dl = await ev(() => AU.UI.dialog && AU.UI.dialog.lines.length);
   const speakers = await ev(() => AU.UI.dialog.lines.filter((l) => typeof l === 'object').map((l) => l.npc.name));
   const cutN = await ev(() => AU.UI.dialog.opt.cuts.length);
   for (let i = 0; i < 24 && (await ev(() => !!AU.UI.dialog)); i++) { await key('Space'); await sleep(100); }
   note('B13', '천막 컷신에 클로드·발테인·제페토·주인공 화자가 나오고 컷 6장 연결', /클로드/.test(speakers.join()) && /검수관/.test(speakers.join()) && /제페토/.test(speakers.join()) && dl >= 19 && cutN === 6, dl + ' ' + cutN + ' ' + speakers.join('|'));
-  const tl = await ev(() => AU.MAPS.valley.spots.find((x) => x.id === 'relay_tent').lines.map((l) => (typeof l === 'string' ? l : l.t)));
+  const tl = await ev(() => AU.MAPS.ridge.spots.find((x) => x.id === 'relay_tent').lines.map((l) => (typeof l === 'string' ? l : l.t)));
   note('B13b', '들킨 장면: 외침이 "거기 누구냐!"로 짧고 사슬 문구 없음', tl.includes('거기 누구냐!') && /도망가자/.test(tl[8]) && !tl.some((t) => /사슬|쥐새끼/.test(t)), tl.slice(7, 9).join(' | '));
   await sleep(1800);
   const gm = await ev(() => ({ map: AU.World.mapId, st: AU.G.questStatus('q_a3_scout') }));
   note('B13c', '컷신이 끝나면 협곡 바위틈으로 이동하고 보고 가능 상태', gm.map === 'gorge' && gm.st === 'ready', JSON.stringify(gm));
   // 협곡: 제페토에게 보고
-  await ev(() => { AU.World.enterMap('gorge', 420, true); AU.World.monsters = []; AU.World.spawn = () => null; }); await sleep(300);
+  await ev(() => { AU.World.enterMap('gorge', 740, true); AU.World.monsters = []; AU.World.spawn = () => null; }); await sleep(300);
   const before = await ev(() => AU.G.S.silver);
   await talk('jepeto');
   note('B19', '제페토에게 보고하면 정찰 완료·은화 +120', (await st('q_a3_scout')) === 'done' && (await ev(() => AU.G.S.silver)) - before === 120, (await st('q_a3_scout')) + ' ' + ((await ev(() => AU.G.S.silver)) - before));
@@ -159,7 +163,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const fin = await ev(() => ({ s: AU.G.questStatus('q_a3_jepeto'), flag: AU.G.S.flags.a1_jepeto_done }));
   note('B22', '완료 → 제페토 부탁 완료 표시', fin.s === 'done' && fin.flag === true, JSON.stringify(fin));
   // 막다른 포털 안내
-  await ev(() => { AU.World.player.x = 1460; AU.World.player.vx = 0; AU.World.scan(); }); await sleep(100);
+  await ev(() => { AU.World.player.x = 2800; AU.World.player.vx = 0; AU.World.scan(); }); await sleep(100);
   await key('ArrowUp'); await sleep(300);
   const still = await ev(() => AU.World.mapId);
   note('B23', '협곡 안쪽 길은 안내만 나오고 이동하지 않음', still === 'gorge', still);

@@ -45,7 +45,7 @@ const out = []; const note = (n, ok, d) => { out.push(ok); console.log((ok ? 'PA
   const j2 = await ev(() => ({ y: Math.round(AU.World.player.y), g: AU.World.player.onGround }));
   note('V5 첫 잔교에서 점프하면 둘째 잔교(y=450)에 올라섬', j2.y === 450 && j2.g, j2);
   // 4) 몬스터·퀘스트·그림·BGM
-  const r4 = await ev(() => { const M = AU.MAPS.valley; return { types: [...new Set(M.spawns.map((s) => s.type))], q: AU.QUESTS.q_a3_crystal.objectives.find((o) => o.kind === 'kill').target, art: ['mon_mutfox', 'ob_plank', 'ob_rope', 'pt_scene_tent', 'pc_player_m_climb', 'pc_player_f_climb'].map((k) => AU.Img.has(k)), sp: M.spots.filter((s) => s.portrait).map((s) => s.portrait), bg: [AU.Bgm.groups.relay, AU.Bgm.groups.alley] }; });
+  const r4 = await ev(() => { const M = AU.MAPS.valley; const RM = AU.MAPS.ridge; return { types: [...new Set(M.spawns.map((s) => s.type))], q: AU.QUESTS.q_a3_crystal.objectives.find((o) => o.kind === 'kill').target, art: ['mon_mutfox', 'ob_plank', 'ob_rope', 'pt_scene_tent', 'pc_player_m_climb', 'pc_player_f_climb'].map((k) => AU.Img.has(k)), sp: RM.spots.filter((s) => s.portrait).map((s) => s.portrait), bg: [AU.Bgm.groups.relay, AU.Bgm.groups.alley] }; });
   note('V6 몬스터가 모두 변형 여우이고 퀘스트 목표도 변형 여우', r4.types.join() === 'mutfox' && r4.q === 'mutfox', r4);
   note('V7 그림 6종이 모두 불러와짐', r4.art.every(Boolean), r4.art);
   note('V8 천막 조사 지점에 장면 일러스트 연결', r4.sp.length === 1, r4.sp);

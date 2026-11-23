@@ -9,6 +9,7 @@ window.AU = window.AU || {};
     valley: { path: "assets/bg/valley.webp", optional: true },
     bg_barsha_shop: { path: "assets/bg/weapon_store.webp", optional: true },   // 정보상 공방 실내(임시: 무기점 그림 재사용. 정식 그림이 오면 이 경로만 바꿈)
     gorge:  { path: "assets/bg/gorge.webp", optional: true },
+    ridge:  { path: "assets/bg/ridge.webp", optional: true },   // 중심 천막 위 바위 능선(엿듣기 맵)
     barsha:  { path: "assets/char/barsha.webp", optional: true },
     jepeto:  { path: "assets/char/jepeto.webp", optional: true },
     pt_barsha: { path: "assets/portrait/barsha.webp", optional: true },
@@ -108,10 +109,23 @@ window.AU = window.AU || {};
     ropes: [{ x: 2020, top: 385, bottom: 590, exitDir: 1 }],
     portals: [{ x: 50, to: "jandari", toX: 1380, label: "잔다리 골목" },
               { x: 560, to: "yard", toX: 90, label: "용병 하차장(잠입)", reqQuest: "q_a3_recon", reqIn: ["active", "ready", "done"], reqText: "정보상에게 먼저 이야기를 들어야 합니다." },
+              { x: 1700, to: "ridge", toX: 90, label: "중심 천막 위 바위틈", reqQuest: "q_a3_scout", reqIn: ["active", "ready", "done"], reqText: "정보상에게 중심 천막 이야기를 먼저 들어야 합니다." },
               { x: 3150, to: "gorge", toX: 90, label: "협곡 바위틈", reqQuest: "q_a3_scout", reqIn: ["ready", "done"], reqText: "골짜기 안쪽 천막을 먼저 살펴봐야 합니다." }],
     npcs: [],
     spots: [
-      { id: "relay_tent", img: "ob_spot_relay_tent", portrait: "pt_scene_tent", w: 520, x: 1700, kind: "investigate", label: "중심 천막 밑 대화", cuts: [{ at: 0, src: "assets/cut/relay_peek.webp" }, { at: 7, src: "assets/cut/relay_found.webp" }, { at: 9, src: "assets/cut/relay_chase.webp" }, { at: 12, src: "assets/cut/relay_trapped.webp" }, { at: 14, src: "assets/cut/relay_rope.webp" }, { at: 17, src: "assets/cut/relay_hide.webp" }], lines: [
+    ],
+    spawns: [{ type: "mutfox", x: 700 }, { type: "mutfox", x: 1150 }, { type: "mutfox", x: 1140, y: 450, min: 1030, max: 1250 }, { type: "mutfox", x: 2130, y: 400, min: 2010, max: 2250 }, { type: "mutfox", x: 2400 }, { type: "mutfox", x: 3000, y: 450, min: 2890, max: 3110 }],
+    area: { x: 78, y: 28, desc: "포르투 노바 북쪽 경계 너머의 기암괴석 지대입니다. 블랙 웨이브 비밀 중계소가 있습니다." }
+  };
+  /* 중심 천막 위 바위틈: 검은 골짜기 중심 천막의 포탈로 들어오는 짧은 엿듣기 맵.
+     오른쪽 끝 바위 모서리까지 걸어가 Space로 아래의 대화를 엿들으면 들킴 → 추격 → 제페토 구출 컷신이 이어지고, 끝나면 협곡의 제페토 거처로 이동합니다. */
+  AU.MAPS.ridge = {
+    name: "중심 천막 위 바위틈", bg: "ridge", hint: "발소리를 죽이고 오른쪽 끝 바위 모서리로 가세요", width: 1500, safe: true,
+    platforms: [{ x: 0, y: 590, w: 1500 }], ropes: [],
+    portals: [{ x: 40, to: "valley", toX: 1640, label: "검은 골짜기" }],
+    npcs: [],
+    spots: [
+      { id: "relay_tent", portrait: "pt_scene_tent", w: 520, x: 1300, kind: "investigate", label: "중심 천막 밑 대화", cuts: [{ at: 0, src: "assets/cut/relay_peek.webp" }, { at: 7, src: "assets/cut/relay_found.webp" }, { at: 9, src: "assets/cut/relay_chase.webp" }, { at: 12, src: "assets/cut/relay_trapped.webp" }, { at: 14, src: "assets/cut/relay_rope.webp" }, { at: 17, src: "assets/cut/relay_hide.webp" }], lines: [
         "(중심 천막 아래에서 두 사람이 낮게 이야기하고 있다.)",
         "(가죽 채찍을 찬 사내는 상단 감독관 클로드. 흰 로브를 입고 핏빛 원석을 들여다보는 사내는 흰 로브의 검수관이라 불린다.)",
         L(BALTEIN, "변형이 덜 되었군. 투입량을 늘려라, 클로드. 위에서 서두르고 계신다."),
@@ -131,10 +145,10 @@ window.AU = window.AU || {};
         L(J(), "쉿! 따라오게. 입을 다물고!"),
         "(좁은 바위틈 안쪽. 용병들의 발소리가 바위 밖으로 지나간다. 숨을 죽이자 노인이 낮게 속삭였다.)",
         L(J(), "...지나갔군. 이제 안심해도 되네. 이쪽으로 오게. 한숨 돌리며 이야기하세.")],
-      onDone: (W) => { if (AU.G.questStatus("q_a3_scout") === "ready") W.trans = { t: 0, dur: 1.0, to: "gorge", x: 520, swapped: false }; } },
+      onDone: (W) => { if (AU.G.questStatus("q_a3_scout") === "ready") W.trans = { t: 0, dur: 1.0, to: "gorge", x: 640, swapped: false }; } },
     ],
-    spawns: [{ type: "mutfox", x: 700 }, { type: "mutfox", x: 1150 }, { type: "mutfox", x: 1140, y: 450, min: 1030, max: 1250 }, { type: "mutfox", x: 2130, y: 400, min: 2010, max: 2250 }, { type: "mutfox", x: 2400 }, { type: "mutfox", x: 3000, y: 450, min: 2890, max: 3110 }],
-    area: { x: 78, y: 28, desc: "포르투 노바 북쪽 경계 너머의 기암괴석 지대입니다. 블랙 웨이브 비밀 중계소가 있습니다." }
+    spawns: [],
+    area: { x: 78, y: 26, desc: "검은 골짜기 중심 천막을 내려다보는 절벽 위 바위 능선입니다. 아래에서 블랙 웨이브 사람들의 말소리가 올라옵니다." }
   };
   /* 용병 하차장: 잠입 맵. 용병(시야 부채꼴)에게 들키면 입구에서 다시 시작하며, 안 들킬 때까지 몇 번이고 반복합니다.
      상자 앞에서 Space로 숨고, 기둥 뒤로 시선을 피합니다. 두 곳을 조사한 뒤 입구(왼쪽 끝)로 나가면 성공입니다. */
@@ -158,17 +172,19 @@ window.AU = window.AU || {};
     area: { x: 80, y: 32, desc: "검은 골짜기 안쪽의 용병 하차장입니다. 용병에게 들키면 입구에서 다시 시작합니다. 금빛으로 빛나는 상자 앞에서 Space로 숨고, 기둥 뒤로 시선을 피하세요." }
   };
   AU.MAPS.gorge = {
-    name: "협곡 바위틈", bg: "gorge", width: 1500, safe: false,
-    platforms: [{ x: 0, y: 590, w: 1500 }], ropes: [],
+    name: "협곡 바위틈", bg: "gorge", width: 2840, safe: false,
+    noMonster: [0, 1500],   // 왼쪽 제페토의 임시 거처 구간: 몬스터가 생기지도, 들어오지도 못함
+    platforms: [{ x: 0, y: 590, w: 2840 }], ropes: [],
     portals: [{ x: 40, to: "valley", toX: 3050, label: "검은 골짜기" },
-              { x: 1460, to: "hide_outer", toX: 90, label: "검은 아지트", reqQuest: "q_h1a", reqIn: ["active", "ready", "done"], reqText: "협곡 안쪽 길은 아직 닫혀 있습니다. 제페토의 부탁을 받아야 합니다." }],
-    npcs: [{ id: "jepeto", x: 420 }],
+              { x: 2800, to: "hide_outer", toX: 90, label: "검은 아지트", reqQuest: "q_h1a", reqIn: ["active", "ready", "done"], reqText: "협곡 안쪽 길은 아직 닫혀 있습니다. 제페토의 부탁을 받아야 합니다." }],
+    npcs: [{ id: "jepeto", x: 760 }],
     spots: [
     ],
-    spawns: [{ type: "wolf", x: 900 }, { type: "wolf", x: 1180 }, { type: "wolf", x: 1350 }, { type: "wolf", x: 600 }],
-    area: { x: 90, y: 16, desc: "검은 골짜기 너머 협곡의 바위틈입니다. 변형된 짐승이 출몰합니다." }
+    spawns: [{ type: "wolf", x: 1940 }, { type: "wolf", x: 2240 }, { type: "wolf", x: 2520 }, { type: "wolf", x: 2690 }],
+    area: { x: 90, y: 16, desc: "검은 골짜기 너머 협곡의 바위틈입니다. 왼쪽 천막과 판자 아래에는 제페토가 몰래 머무는 임시 거처가 있고, 안쪽에는 변형된 짐승이 출몰합니다." }
   };
-  AU.AREA_LINKS.push(["porto", "jandari"], ["jandari", "jandari_shop"], ["jandari", "valley"], ["valley", "yard"], ["valley", "gorge"]);
+
+  AU.AREA_LINKS.push(["porto", "jandari"], ["jandari", "jandari_shop"], ["jandari", "valley"], ["valley", "yard"], ["valley", "ridge"], ["valley", "gorge"]);
   { const r = AU.WORLD_REGIONS.find((x) => x.id === "south"); if (r && r.maps.indexOf("jandari_shop") < 0) r.maps.push("jandari_shop"); }
   // 포르투 노바 → 잔다리 골목 출입구
   AU.MAPS.porto.portals.push({ x: 215, to: "jandari", toX: 90, label: "잔다리 골목" });
@@ -210,7 +226,7 @@ window.AU = window.AU || {};
     },
     q_a3_scout: {
       title: "중심 천막", type: "main", giver: "barsha", turnIn: "jepeto", minLevel: 8, pre: ["q_a3_crystal"],
-      area: "valley", desc: "골짜기 가장 안쪽의 중심 천막 아래에서 오가는 이야기를 엿듣습니다. 들키면 도망치다 누군가의 도움으로 협곡 바위틈에 숨어들고, 그곳의 노인(제페토)에게 보고합니다.",
+      area: "ridge", desc: "골짜기 안쪽 중심 천막의 포탈로 올라가 천막 위 바위틈에서 아래에서 오가는 이야기를 엿듣습니다. 들키면 도망치다 누군가의 도움으로 협곡 바위틈에 숨어들고, 그곳의 노인(제페토)에게 보고합니다.",
       objectives: [{ kind: "investigate", targets: ["relay_tent"] }],
       offer: ["결정을 먹이는 자가 천막에 있을 걸세. 골짜기 안쪽 길 끝, 바위 틈 위에서 몰래 내려다볼 수 있네.", "목소리만 들어도 충분하네. 들키면 무조건 도망치게. 절벽 쪽은 막혀 있지만... 협곡 바위틈에는 나와 뜻이 같은 도편수 제페토가 있네.", "그가 도와줄 걸세. 살아서 돌아오게."],
       reminder: ["골짜기 안쪽 천막 위 바위틈에서 아래의 대화를 엿듣게. 들키면 도망쳐 협곡 바위틈의 제페토를 만나게."],

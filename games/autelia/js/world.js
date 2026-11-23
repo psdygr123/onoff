@@ -45,7 +45,7 @@ window.AU = window.AU || {};
     spawn(type, x, y, min, max, tag) {
       const d = AU.MONSTERS[type];
       const m = { type, d, tag, x, y: y || GROUND, hp: d.hp, maxHp: d.hp, alive: true, dir: Math.random() < 0.5 ? -1 : 1, vx: 0, state: "patrol", st: 0, cd: rnd(0.5, 2),
-        flash: 0, home: x, min: min != null ? min : Math.max(40, x - 220), max: max != null ? max : Math.min(this.map.width - 40, x + 220), respawnT: 0, pause: 0, kb: 0 };
+        flash: 0, home: x, min: Math.max(min != null ? min : Math.max(40, x - 220), this.map.noMonster ? this.map.noMonster[1] + 20 : 0), max: max != null ? max : Math.min(this.map.width - 40, x + 220), respawnT: 0, pause: 0, kb: 0 };
       this.monsters.push(m); return m;
     },
 
@@ -422,7 +422,8 @@ window.AU = window.AU || {};
         m.flash = Math.max(0, m.flash - dt); m.cd = Math.max(0, m.cd - dt);
         if (Math.abs(m.kb) > 4) { m.x += m.kb * dt; m.kb *= Math.pow(0.02, dt); } else m.kb = 0;
         const dx = p.x - m.x, dist = Math.abs(dx);
-        let near = !p.dead && dist < m.d.chase && Math.abs(p.y - m.y) < 160;
+        const nz = this.map.noMonster; if (nz && m.x < nz[1]) m.x = nz[1];   // 몬스터 출입 금지 구간(안전한 거처)
+        let near = !p.dead && dist < m.d.chase && Math.abs(p.y - m.y) < 160 && !(nz && p.x < nz[1] + 80);
         if (m.d.sight && m.state === "chase" && this.stealthOn()) { this.caught(m); return; } // 잠입 임무 중에는 경비가 쫓아오는 일 자체가 실패
         if (m.d.sight && m.state === "patrol") { // 경비: 바라보는 쪽 시야 안에 들어왔을 때만 발견(등 뒤·시야 밖·숨은 상태·시야를 막는 구조물 뒤는 못 봄)
           near = !p.dead && !p.hidden && dist < m.d.sight * this.sightMul() && sign(dx) === m.dir && Math.abs(p.y - m.y) < 160 && !this.sightBlocked(m.x, p.x);
