@@ -858,12 +858,13 @@ window.AU = window.AU || {};
         ctx.save(); ctx.translate(x + (m.dir < 0 ? -1 : 1) * 14 * lunge, y - (m.state === "chase" || m.state === "patrol" ? Math.abs(Math.sin(this.time * 7)) * 3 : 0)); ctx.scale(m.dir < 0 ? -1 : 1, 1);
         ctx.drawImage(im, -dw / 2, -dh, dw, dh); ctx.restore(); th = dh * 0.92;
       } else if (sp) { // 정식 그림: 한 장을 코드로 움직임(걷기 통통, 준비 동작 웅크림, 돌진 늘어남, 피격 번쩍임)
-        const im = AU.Img.get(wk || d.sprite), dw = wk ? d.sw * im.naturalWidth / (d.walkRefW || im.naturalWidth) : d.sw, dh = dw * im.naturalHeight / im.naturalWidth; let sx = 1, sy = 1, rot = 0;
+        const pose = d.pWind && ((m.state === "windup" && d.pWind) || (m.state === "lunge" && d.pLunge)) ? (m.state === "windup" ? d.pWind : d.pLunge) : null, posed = !!(pose && AU.Img.has(pose)), im = AU.Img.get(posed ? pose : (wk || d.sprite)), dw = wk || posed ? d.sw * im.naturalWidth / (d.walkRefW || im.naturalWidth) : d.sw, dh = dw * im.naturalHeight / im.naturalWidth; let sx = 1, sy = 1, rot = 0;
         const mo = d.motion || "", tt = this.time, ph = x * 0.013; let ox = 0, up = 0;
         sy += 0.018 * Math.sin(tt * 3 + ph); sx -= 0.01 * Math.sin(tt * 3 + ph); // 숨쉬기
         if (m.state === "chase" || m.state === "patrol") {
           const f = m.state === "chase" ? 1 : 0.5;
-          if (mo === "coil") { sx += 0.09 * f * Math.sin(tt * 9 + ph); rot += 0.07 * f * Math.sin(tt * 7 + ph); }                 // 뱀: 몸을 S자로 꿈틀
+          if (wk && (mo === "coil" || mo === "scurry" || mo === "sidestep")) { /* 진짜 이동 프레임이 대신하므로 코드 떨림 없음 */ }
+          else if (mo === "coil") { sx += 0.09 * f * Math.sin(tt * 9 + ph); rot += 0.07 * f * Math.sin(tt * 7 + ph); }                 // 뱀: 몸을 S자로 꿈틀
           else if (mo === "scurry") { ox += 3 * f * Math.sin(tt * 34 + ph); rot += 0.025 * Math.sin(tt * 34 + ph); sy -= 0.03 * f; } // 쥐: 잔떨림 잔걸음
           else if (mo === "sidestep") { ox += 6 * f * Math.sin(tt * 6 + ph); rot += 0.04 * f * Math.sin(tt * 12 + ph); sy -= 0.04; } // 게: 낮게 옆으로 뒤뚱
           else if (mo === "leap") { up += Math.abs(Math.sin(tt * 5 + ph)) * 9 * f; rot += 0.05 * Math.sin(tt * 10 + ph); }       // 늑대: 크게 성큼성큼
@@ -890,10 +891,11 @@ window.AU = window.AU || {};
           else if (mo === "swing") { sx = 1.06; sy = 0.96; rot = -0.3 + 0.62 * q; ox = 18 * q; }                        // 위에서 아래로 내려침
           else { sx = 1.14; sy = 0.9; rot = 0.1; }
         }
+        if (posed) { sx = 1; sy = 1; rot = 0; if (m.state === "windup") { ox = 0; up = 0; } }   // 준비·공격 전용 그림: 코드 변형 없이 그림 자체가 동작(돌진 앞쏠림만 유지)
         if (m.flash > 0) { sx *= 0.92; sy *= 1.07; rot -= 0.1; ox -= 6; } // 맞았을 때 움찔
         ctx.save(); ctx.translate(x + ox * (m.dir < 0 ? -1 : 1), y - hop - up); ctx.scale(m.dir < 0 ? -1 : 1, 1); ctx.rotate(rot); ctx.scale(sx, sy);
         if (m.flash > 0 && "filter" in ctx) ctx.filter = "brightness(2.2)";
-        ctx.drawImage(im, -dw / 2, -dh, dw, dh); ctx.restore(); th = dh * sy;
+        ctx.drawImage(im, -dw / 2, -dh, dw, dh); ctx.restore(); th = d.pWind ? d.sw * AU.Img.get(d.sprite).naturalHeight / AU.Img.get(d.sprite).naturalWidth * sy : dh * sy;   // 준비·공격 그림은 칸이 커서, 이름표·체력바 높이는 기본 그림 기준
       } else {
       ctx.save(); ctx.translate(x, y - hop); ctx.scale(m.dir < 0 ? -1 : 1, 1);
       const flash = m.flash > 0, body = flash ? "#FFFFFF" : d.color, line = "#5B4636";

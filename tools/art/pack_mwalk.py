@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """몬스터 걷기 시트 패커: 가로 4프레임 마젠타 시트 → assets/monster/<name>_w1..w4.webp (같은 칸 크기, 발바닥선·몸 중심 고정).
-사용(games/autelia 에서): python3 ../../tools/art/pack_mwalk.py <시트.png> <name> <기준 크기> [h]   (h 를 주면 기준 크기를 '높이'로 보고 맞춤: 서 있는 2족 몬스터용)
+사용(games/autelia 에서): python3 ../../tools/art/pack_mwalk.py <시트.png> <name> <기준 크기> [h|-] [칸 수]   (h 를 주면 기준 크기를 '높이'로 보고 맞춤: 서 있는 2족 몬스터용)
 기준그림(대기 스프라이트)과 같은 크기감이 되도록 4프레임 평균 폭을 기준 폭에 맞춤."""
 import sys, numpy as np
 from PIL import Image
@@ -20,14 +20,15 @@ for x, v in enumerate(col):
         if x - s > 20: segs.append([s, x - 1])
         s = None
 if s is not None: segs.append([s, len(col) - 1])
-while len(segs) > 4:  # 가장 가까운 구간끼리 병합
+NF = int(sys.argv[5]) if len(sys.argv) > 5 else 4   # 5번째 인자: 시트 칸 수(걷기 4 + 준비·공격 2 = 6 등)
+while len(segs) > NF:  # 가장 가까운 구간끼리 병합
     gaps = [segs[i + 1][0] - segs[i][1] for i in range(len(segs) - 1)]; i = int(np.argmin(gaps)); segs[i][1] = segs[i + 1][1]; del segs[i + 1]
-assert len(segs) == 4, segs
+assert len(segs) == NF, segs
 boxes = []
 for x0, x1 in segs:
     ys = np.where(A[:, x0:x1 + 1].any(1))[0]; boxes.append((x0, ys.min(), x1, ys.max()))
 byh = len(sys.argv) > 4 and sys.argv[4] == 'h'
-sc = refw / np.mean([(b[3] - b[1] if byh else b[2] - b[0]) + 1 for b in boxes])
+sc = refw / np.mean([(b[3] - b[1] if byh else b[2] - b[0]) + 1 for b in boxes[:4]])   # 크기 기준은 앞 4칸(걷기)만: 늘어난·솟은 동작 칸이 기준을 흔들지 않게
 crops = [rgba.crop((x0, y0, x1 + 1, y1 + 1)) for x0, y0, x1, y1 in boxes]
 crops = [c.resize((max(1, round(c.width * sc)), max(1, round(c.height * sc))), Image.LANCZOS) for c in crops]
 W = max(c.width for c in crops) + 8; H = max(c.height for c in crops) + 4
