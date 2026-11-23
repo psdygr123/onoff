@@ -880,3 +880,10 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
 .cutlayer .cutimg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .7s ease; transform-origin: 50% 45%; }
 .cutlayer .cutimg.on { opacity: 1; animation: cutzoom 45s linear forwards; }
 @keyframes cutzoom { from { transform: scale(1); } to { transform: scale(1.08); } }
+
+/* 기분 칩 (missionReview) */
+.mood-row { margin: 8px 0 4px; } .mood-row > span { display: block; margin-bottom: 6px; }
+.mood-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.mood-chip { background: #f5f0e8; border: 1px solid #d4c5a9; border-radius: 20px; padding: 4px 10px; font-size: 13px; cursor: pointer; transition: background .15s, border-color .15s; }
+.mood-chip:hover { background: #ede4d0; border-color: #b8a07a; }
+.mood-chip.selected { background: #d4eddc; border-color: #5a9e72; color: #2d6e45; font-weight: 600; }

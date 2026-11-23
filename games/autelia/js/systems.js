@@ -427,7 +427,7 @@ window.AU = window.AU || {};
         skip: ["available", "accepted", "attempted", "partial"], retry: ["partial", "skipped"]
       };
       if (!ok[next] || !ok[next].includes(r.state)) return false;
-      const review = this.validMissionFeedback(feedback) ? { challenge: feedback.challenge, meaning: feedback.meaning, satisfaction: feedback.satisfaction, note: String(feedback.note || '').trim().slice(0, 200) } : null;
+      const review = this.validMissionFeedback(feedback) ? { challenge: feedback.challenge, meaning: feedback.meaning, satisfaction: feedback.satisfaction, efficacy: (Number.isInteger(feedback.efficacy) && feedback.efficacy >= 1 && feedback.efficacy <= 5) ? feedback.efficacy : null, mood: (typeof feedback.mood === 'string' && feedback.mood.length <= 20) ? feedback.mood : null, note: String(feedback.note || '').trim().slice(0, 200) } : null;
       let points = 0, capped = false, gained = 0, earnedTokens = 0;
       if (next === "accept") r.state = "accepted";
       else if (next === "attempt") { r.state = "attempted"; r.tries++; }
@@ -471,7 +471,7 @@ window.AU = window.AU || {};
     repeatMission(id,feedback,evidence) {
       const S=this.S,m=this.mission(id),r=S.missions.states[id];
       if(!S.flags.missionsUnlocked||!m||!r||r.state!=="done")return false;
-      const reflection=this.validMissionFeedback(feedback)?{challenge:feedback.challenge,meaning:feedback.meaning,satisfaction:feedback.satisfaction,note:String(feedback.note||"").trim().slice(0,200)}:null;
+      const reflection=this.validMissionFeedback(feedback)?{challenge:feedback.challenge,meaning:feedback.meaning,satisfaction:feedback.satisfaction,efficacy:(Number.isInteger(feedback.efficacy)&&feedback.efficacy>=1&&feedback.efficacy<=5)?feedback.efficacy:null,mood:(typeof feedback.mood==="string"&&feedback.mood.length<=20)?feedback.mood:null,note:String(feedback.note||"").trim().slice(0,200)}:null;
       const supplementary=AU.MissionEvidence?AU.MissionEvidence.clean(evidence,m):null;
       S.missions.log.push({t:AU.dateStr(),id,perma:m.perma,state:"done",repeat:true,points:0,capped:false,reflection,mindGained:0,galleryTokens:0,proof:"self_report",supplementary});
       this.log("현실 미션 반복 수행: "+m.title);this.toast("반복 수행 기록 완료 · 추가 점수와 토큰은 없습니다.","info");
@@ -480,8 +480,8 @@ window.AU = window.AU || {};
     missionRepeatStats(id){
       const rows=this.S.missions.log.filter(e=>e.id===id&&e.state==="done");
       const reviews=rows.map(e=>e.reflection).filter(x=>x&&Number.isFinite(x.satisfaction)&&Number.isFinite(x.meaning)&&Number.isFinite(x.challenge));
-      const avg=k=>reviews.length?Math.round(reviews.reduce((n,x)=>n+x[k],0)/reviews.length*10)/10:null;
-      return {count:rows.length,repeats:rows.filter(x=>x.repeat).length,last:rows.length?rows[rows.length-1].t:null,satisfaction:avg("satisfaction"),meaning:avg("meaning"),challenge:avg("challenge")};
+      const avg=k=>{const v=reviews.filter(x=>Number.isFinite(x[k]));return v.length?Math.round(v.reduce((n,x)=>n+x[k],0)/v.length*10)/10:null;};
+      return {count:rows.length,repeats:rows.filter(x=>x.repeat).length,last:rows.length?rows[rows.length-1].t:null,satisfaction:avg("satisfaction"),meaning:avg("meaning"),challenge:avg("challenge"),efficacy:avg("efficacy")};
     },
     missionPlan(id){this.initMissions();return this.S.missions.plans[id]||{mode:"free"};},
     setMissionPlan(id,p){
