@@ -27,14 +27,14 @@ window.AU = window.AU || {};
       lines: () => ["탭이 여러 개지만, 처음에는 '오늘의 활동'만 보면 충분해요.", "나머지는 익숙해진 뒤에 천천히 둘러보세요."] },
     { setup: { jg: "real", j: "today" }, target: () => find('.window.win-journal [data-real-bridge="suggestions"]') || find(".window.win-journal .wbody"), title: "방금 지은 신전과 이어진 활동이에요",
       lines: () => { const m = mission(); return ["신전을 완성한 일에서 이어진 첫 활동이 나왔어요.", m ? "**" + m.title + "** — 약 " + m.minutes + "분이면 돼요." : "1분 안에 할 수 있는 가벼운 활동이에요."]; } },
-    { setup: { jg: "real", j: "today" }, target: () => find('.window.win-journal [data-real-bridge="suggestions"] .macts') || find(".window.win-journal .wbody"), title: "활동은 세 걸음으로 기록해요",
-      lines: () => ["버튼을 눌러 지금 어디까지 했는지 남기면 돼요.", "'건너뛰기'를 눌러도 괜찮고, 나중에 다시 해도 돼요."],
-      extra: () => h("div", { class: "jt-steps", "aria-label": "수락, 해 봤어요, 완료했어요" },
-        [["1", "수락"], ["2", "해 봤어요"], ["3", "완료했어요"]].map(([n, t], i) => [i ? h("span", { class: "jt-arrow", text: "→" }) : null, h("span", { class: "jt-step" }, h("i", { text: n }), h("b", { text: t }))])) },
+    { setup: { jg: "real", j: "today" }, target: () => find('.window.win-journal [data-real-bridge="suggestions"] .macts') || find(".window.win-journal .wbody"), title: "활동은 두 걸음으로 기록해요",
+      lines: () => ["하고 나면 '완료했어요'를 눌러 남기면 돼요.", "'건너뛰기'를 눌러도 괜찮고, 나중에 다시 해도 돼요."],
+      extra: () => h("div", { class: "jt-steps", "aria-label": "수락, 완료했어요" },
+        [["1", "수락"], ["2", "완료했어요"]].map(([n, t], i) => [i ? h("span", { class: "jt-arrow", text: "→" }) : null, h("span", { class: "jt-step" }, h("i", { text: n }), h("b", { text: t }))])) },
     { setup: { jg: "real", j: "today" }, target: () => tabBtn("마음 기록") || find(".window.win-journal .real-tabs"), title: "기록은 '마음 기록'에 남아요",
       lines: () => ["활동을 완료하면 '마음 기록'에 기록이 남아요.", "이 탭에서 언제든 지나온 기록을 볼 수 있어요."],
       extra: () => h("div", { class: "jt-recap" }, h("b", { text: "기억할 것 3가지" }),
-        h("ol", null, h("li", { text: "[" + keyJ() + "] 키로 모험일지를 연다" }), h("li", { text: "현실 활동은 선택이다" }), h("li", { text: "수락 → 해 봤어요 → 완료했어요" }))) }
+        h("ol", null, h("li", { text: "[" + keyJ() + "] 키로 모험일지를 연다" }), h("li", { text: "현실 활동은 선택이다" }), h("li", { text: "수락 → 완료했어요" }))) }
   ];
 
   const T = AU.JournalTour = {

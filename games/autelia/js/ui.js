@@ -804,21 +804,18 @@ window.AU = window.AU || {};
     const evidencePanel = AU.MissionEvidence.panel(m);
     // 리커트 5점 척도: 진술문에 대한 동의 정도
     const LIKERT = ["전혀 그렇지 않다", "그렇지 않다", "보통이다", "그렇다", "매우 그렇다"];
-    const MOODS = [["😊","좋음"],["😌","평온"],["😐","그저 그럼"],["😔","아쉬움"],["😤","힘들었음"],["😮","놀라움"],["💪","뿌듯함"]];
     const Q = [
       { key: "challenge", text: "이 활동은 나에게 도전적이었다.", hint: "어렵게 느껴졌다면 높게, 쉬웠다면 낮게 골라 주세요." },
       { key: "meaning", text: "이 활동은 나에게 의미가 있었다.", hint: "정답은 없습니다. 느낀 그대로 골라 주세요." },
       { key: "satisfaction", text: "활동을 마친 지금, 만족스럽다.", hint: "낮은 만족도도 그대로 기록해 주세요." },
-      { key: "efficacy", text: "다음에도 스스로 해낼 수 있을 것 같다.", hint: "선택 문항입니다. 건너뛰어도 됩니다.", optional: true },
     ];
-    const ans = { challenge: null, meaning: null, satisfaction: null, efficacy: null };
-    let mood = null, step = 0, busy = false;
-    const steps = [...Q.map((q) => ({ type: "likert", q })), { type: "mood" }, { type: "final" }];
-    const ta = h("textarea", { class: "memo", maxlength: "200", rows: "3", placeholder: "선택: 어떤 경험이었는지 자유롭게 적어 주세요." });
+    const ans = { challenge: null, meaning: null, satisfaction: null };
+    let step = 0, busy = false;
+    const steps = Q.map((q) => ({ q }));
     const close = () => { evidencePanel.dispose(); UI.modal = false; wrap.classList.add("hidden"); wrap.innerHTML = ""; };
     const finish = async (review) => { if (busy) return; busy = true; try { const evidence = await evidencePanel.value(); close(); const ok = onSubmit(review, evidence); if (ok === false) { if (evidence && evidence.photoId && AU.MissionEvidence) AU.MissionEvidence.remove(evidence.photoId).catch(() => {}); AU.G.toast("지금은 이 활동을 기록할 수 없습니다. 상태가 바뀌었을 수 있어 목록을 새로 불러왔습니다. 첨부한 사진은 저장하지 않았습니다.", "info"); UI.renderWin && UI.renderWin(); } } catch (e) { busy = false; AU.G.toast(e.message || "보조 기록 저장 실패. 첨부를 제거하고 다시 시도하세요.", "info"); } };
     const submit = () => {
-      const review = { ...ans, note: ta.value, mood };
+      const review = { ...ans, efficacy: null, mood: null, note: "" };
       if (!AU.G.validMissionFeedback(review)) return;
       finish(review);
     };
@@ -829,7 +826,7 @@ window.AU = window.AU || {};
         const v = i + 1;
         const b = h("button", { type: "button", class: "likert-btn" + (ans[q.key] === v ? " selected" : ""), role: "radio", "aria-checked": String(ans[q.key] === v), "aria-label": v + " " + label },
           h("b", { text: String(v) }), h("span", { text: label }));
-        b.addEventListener("click", () => { ans[q.key] = v; draw(); setTimeout(() => { if (step < steps.length - 1 && steps[step].q && steps[step].q.key === q.key) go(step + 1); }, 220); });
+        b.addEventListener("click", () => { ans[q.key] = v; draw(); setTimeout(() => { if (step < steps.length - 1 && steps[step].q.key === q.key) go(step + 1); }, 220); });
         row.append(b);
       });
       return row;
@@ -839,22 +836,15 @@ window.AU = window.AU || {};
       const s = steps[step], total = steps.length;
       const dots = h("div", { class: "rv-dots", "aria-hidden": "true" }, steps.map((_, i) => h("i", { class: i < step ? "done" : i === step ? "cur" : "" })));
       const head = [h("h3", { text: m.title + " · 활동 돌아보기" }), h("div", { class: "rv-prog" }, dots, h("span", { text: (step + 1) + " / " + total }))];
-      const body = [], acts = [];
-      if (s.type === "likert") {
-        const q = s.q;
-        body.push(h("p", { class: "rv-q", text: q.text }), h("p", { class: "note rv-hint", text: q.hint }), likertRow(q));
-        if (step > 0) acts.push(btn("이전", "", () => go(step - 1)));
-        if (q.optional) acts.push(btn(ans[q.key] ? "다음" : "건너뛰기", ans[q.key] ? "primary" : "", () => go(step + 1)));
-        else if (ans[q.key]) acts.push(btn("다음", "primary", () => go(step + 1)));
-      } else if (s.type === "mood") {
-        const chips = MOODS.map(([emoji, label]) => { const c = h("button", { class: "mood-chip" + (mood === label ? " selected" : ""), type: "button", "aria-label": label, text: emoji + " " + label }); c.addEventListener("click", () => { mood = mood === label ? null : label; draw(); }); return c; });
-        body.push(h("p", { class: "rv-q", text: "지금 기분은 어떤가요?" }), h("p", { class: "note rv-hint", text: "선택 문항입니다. 건너뛰어도 됩니다." }), h("div", { class: "mood-chips" }, ...chips));
-        acts.push(btn("이전", "", () => go(step - 1)), btn(mood ? "다음" : "건너뛰기", mood ? "primary" : "", () => go(step + 1)));
-      } else {
-        body.push(h("p", { class: "rv-q", text: "마지막으로, 남기고 싶은 기록이 있나요?" }), h("p", { class: "note rv-hint", text: "소감 글과 사진·시간 기록은 모두 선택입니다. 없어도 같은 보상을 받습니다." }), evidencePanel.root, ta);
+      const q = s.q, last = step === total - 1, body = [], acts = [];
+      body.push(h("p", { class: "rv-q", text: q.text }), h("p", { class: "note rv-hint", text: q.hint }), likertRow(q));
+      if (step > 0) acts.push(btn("이전", "", () => go(step - 1)));
+      if (last) {
+        // 사진·시간 기록은 질문이 아닌 첨부이므로 선택 사항으로 마지막 화면에만 둔다.
+        body.push(evidencePanel.root);
         const ready = ["challenge", "meaning", "satisfaction"].every((k) => ans[k]);
-        acts.push(btn("이전", "", () => go(step - 1)), btn(next === "partial" ? "시도 기록하기" : "평가하고 완료하기", "primary", submit, ready ? {} : { disabled: "" }));
-      }
+        acts.push(btn(next === "partial" ? "시도 기록하기" : "평가하고 완료하기", "primary", submit, ready ? {} : { disabled: "" }));
+      } else if (ans[q.key]) acts.push(btn("다음", "primary", () => go(step + 1)));
       const foot = h("div", { class: "rv-foot" }, btn("평가 없이 계속", "", () => finish(null)), btn("취소", "", close));
       wrap.append(h("div", { class: "panel modal restnote review-step" }, ...head, ...body, h("div", { class: "choices" }, ...acts), foot));
     }
@@ -1052,7 +1042,7 @@ window.AU = window.AU || {};
       const missionCard = (m, opts) => {
         const r = M.states[m.id]; if (!r || r.state === "locked") return null; opts = opts || {};
         const hist = r.state === "done" ? AU.G.missionRepeatStats(m.id) : null, fav = AU.G.isFavorite(m.id);
-        const acts = { available: [["수락", "primary", "accept"], ["건너뛰기", "", "skip"]], accepted: [["해 봤어요", "primary", "attempt"], ["건너뛰기", "", "skip"]], attempted: [["완료했어요", "primary", "done"], ["일부만 했어요", "", "partial"], ["건너뛰기", "", "skip"]],
+        const acts = { available: [["수락", "primary", "accept"], ["건너뛰기", "", "skip"]], accepted: [["완료했어요", "primary", "done"], ["일부만 했어요", "", "partial"], ["건너뛰기", "", "skip"]], attempted: [["완료했어요", "primary", "done"], ["일부만 했어요", "", "partial"], ["건너뛰기", "", "skip"]],
           partial: [["완료했어요", "primary", "done"], ["다시 도전", "", "retry"], ["건너뛰기", "", "skip"]], skipped: [["다시 도전", "", "retry"]], done: [] }[r.state] || [];
         return h("div", { class: "mission st-" + r.state, "data-mid": m.id, "data-q": (m.title + " " + m.desc).toLowerCase() },
           h("div", { class: "mh" }, h("span", { class: "tag perma", text: m.perma + " · " + AU.PERMA[m.perma] }), h("span", { class: "tag", text: (AREAS[m.functionArea] || "일상 활동") + " · " + (["", "쉬움", "보통", "확장"][m.difficulty] || "선택") + " · 약 " + m.minutes + "분" }), h("span", { class: "tag", text: AU.MISSION_STATES[r.state] }), h("span", { class: "pts", text: r.rewarded ? "지급 완료" : "갤러리 토큰 +1" }),
