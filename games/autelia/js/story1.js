@@ -32,7 +32,9 @@ window.AU = window.AU || {};
     ob_rope: { path: "assets/object/rope.webp", optional: true },
     pt_scene_crates: { path: "assets/portrait/scene_crates.webp", optional: true },
     pt_scene_tent: { path: "assets/portrait/scene_tent.webp", optional: true },
-    mon_wolf: { path: "assets/monster/wolf.webp", optional: true }
+    mon_wolf: { path: "assets/monster/wolf.webp", optional: true },
+    mon_wolf_w1: { path: "assets/monster/wolf_w1.webp", optional: true }, mon_wolf_w2: { path: "assets/monster/wolf_w2.webp", optional: true }, mon_wolf_w3: { path: "assets/monster/wolf_w3.webp", optional: true }, mon_wolf_w4: { path: "assets/monster/wolf_w4.webp", optional: true },   // 늑대 걷기 4칸
+    mon_mutfox_w1: { path: "assets/monster/mutant_fox_w1.webp", optional: true }, mon_mutfox_w2: { path: "assets/monster/mutant_fox_w2.webp", optional: true }, mon_mutfox_w3: { path: "assets/monster/mutant_fox_w3.webp", optional: true }, mon_mutfox_w4: { path: "assets/monster/mutant_fox_w4.webp", optional: true }   // 변형 여우 걷기 4칸
   });
 
   /* 말하는 사람(대화창 이름·초상화). 주인공은 성별·이름을 따라감 */
@@ -55,8 +57,8 @@ window.AU = window.AU || {};
   Object.assign(AU.MONSTERS, {
     merc: { name: "블랙 웨이브 용병", lv: 9, hp: 260, atk: 34, speed: 90, chase: 210, w: 60, h: 112, exp: 300, silver: [7, 16], silverRate: 0.16, drops: [["iron_scrap", 0.15, 1, 2], ["potion", 0.05]], color: "#4D4D5C", motion: "swing", sprite: "mon_merc", walk: ["mon_merc_w1", "mon_merc_w2", "mon_merc_w3", "mon_merc_w4"], walkIdle: "mon_merc_idle", walkRefW: 215, frameLen: 24, sw: 88 },
     merc_sentry: { name: "블랙 웨이브 용병", lv: 9, hp: 260, atk: 34, speed: 70, patrolSpeed: 55, chase: 210, sight: 200, w: 60, h: 112, exp: 300, silver: [7, 16], silverRate: 0.16, drops: [["iron_scrap", 0.15, 1, 2], ["potion", 0.05]], color: "#4D4D5C", motion: "swing", sprite: "mon_merc", walk: ["mon_merc_w1", "mon_merc_w2", "mon_merc_w3", "mon_merc_w4"], walkIdle: "mon_merc_idle", walkRefW: 215, frameLen: 24, sw: 88 },
-    mutfox: { name: "변형된 여우", lv: 9, hp: 260, atk: 34, speed: 125, chase: 250, w: 84, h: 56, exp: 300, silver: [7, 16], silverRate: 0.16, drops: [["fur", 0.2, 1, 2], ["black_crystal", 0.75, 1, 1, "q_a3_crystal"], ["potion", 0.05]], color: "#7A2A35", ear: true, motion: "pounce", sprite: "mon_mutfox", sw: 132 },
-    wolf: { name: "오염된 늑대", lv: 10, hp: 300, atk: 38, speed: 115, chase: 230, w: 88, h: 54, exp: 320, silver: [8, 18], silverRate: 0.17, drops: [["wolf_pelt", 0.15, 1, 2], ["potion", 0.05]], color: "#6C6F7A", ear: true, motion: "leap", sprite: "mon_wolf", sw: 140 }
+    mutfox: { name: "변형된 여우", lv: 9, hp: 260, atk: 34, speed: 125, chase: 250, w: 84, h: 56, exp: 300, silver: [7, 16], silverRate: 0.16, drops: [["fur", 0.2, 1, 2], ["black_crystal", 0.75, 1, 1, "q_a3_crystal"], ["potion", 0.05]], color: "#7A2A35", ear: true, motion: "pounce", sprite: "mon_mutfox", walk: ["mon_mutfox_w1", "mon_mutfox_w2", "mon_mutfox_w3", "mon_mutfox_w4"], walkIdle: "mon_mutfox", walkRefW: 480, frameLen: 26, sw: 132 },
+    wolf: { name: "오염된 늑대", lv: 10, hp: 300, atk: 38, speed: 115, chase: 230, w: 88, h: 54, exp: 320, silver: [8, 18], silverRate: 0.17, drops: [["wolf_pelt", 0.15, 1, 2], ["potion", 0.05]], color: "#6C6F7A", ear: true, motion: "leap", sprite: "mon_wolf", walk: ["mon_wolf_w1", "mon_wolf_w2", "mon_wolf_w3", "mon_wolf_w4"], walkIdle: "mon_wolf", walkRefW: 480, frameLen: 26, sw: 140 }
   });
 
   /* ---------- NPC ---------- */

@@ -39,6 +39,7 @@ AU.ASSETS = {
   mon_snake: { path: "assets/monster/snake.webp", optional: true },
   mon_rat:   { path: "assets/monster/rat.webp", optional: true },
   mon_boar:  { path: "assets/monster/boar.webp", optional: true },
+  mon_boar_w1: { path: "assets/monster/boar_w1.webp", optional: true }, mon_boar_w2: { path: "assets/monster/boar_w2.webp", optional: true }, mon_boar_w3: { path: "assets/monster/boar_w3.webp", optional: true }, mon_boar_w4: { path: "assets/monster/boar_w4.webp", optional: true },   // 멧돼지 걷기 4칸
   mon_crab:  { path: "assets/monster/crab.webp", optional: true },
   pt_player_male: { path: "assets/portrait/player_male.webp" },
   pt_player_female: { path: "assets/portrait/player_female.webp" },
@@ -168,7 +169,7 @@ AU.AREA_LINKS = [["forest", "harbor_road"], ["harbor_road", "porto"], ["porto", 
 // 이전 아스텔리아 기획의 사냥터 구성(들짐승→부두 쥐→게→거대 적)을 규칙으로만 재사용. 모두 임시 수치.
 AU.MONSTERS = {
   fox:   { motion: "pounce", name: "들여우", lv: 3, hp: 88, atk: 14, speed: 85, chase: 150, w: 72, h: 50, exp: 100, silver: [2, 7], silverRate: 0.12, drops: [["fur", 0.15, 1, 2], ["fox_tail", 0.07], ["potion", 0.04], ["fox_scarf", 0.012]], color: "#F5A25D", ear: true, sprite: "mon_fox", sw: 92 },
-  wild_boar: { motion: "leap", name: "굶주린 멧돼지", lv: 6, hp: 230, atk: 26, speed: 95, windT: 0.75, chargeT: 0.5, chargeSpd: 3.4, recoverT: 1.2, chase: 200, w: 96, h: 58, exp: 190, silver: [4, 12], silverRate: 0.14, drops: [["boar_tusk", 0.15], ["potion", 0.05]], color: "#7A5C45", sprite: "mon_boar", sw: 150 },
+  wild_boar: { motion: "leap", name: "굶주린 멧돼지", lv: 6, hp: 230, atk: 26, speed: 95, windT: 0.75, chargeT: 0.5, chargeSpd: 3.4, recoverT: 1.2, chase: 200, w: 96, h: 58, exp: 190, silver: [4, 12], silverRate: 0.14, drops: [["boar_tusk", 0.15], ["potion", 0.05]], color: "#7A5C45", sprite: "mon_boar", walk: ["mon_boar_w1", "mon_boar_w2", "mon_boar_w3", "mon_boar_w4"], walkIdle: "mon_boar", walkRefW: 480, frameLen: 26, sw: 150 },
   snake: { motion: "coil", name: "뱀", lv: 1, hp: 51, atk: 8, speed: 70, chase: 130, w: 90, h: 34, exp: 50, silver: [1, 4], silverRate: 0.1, drops: [["snake_skin", 0.15], ["snake_fang", 0.07], ["potion", 0.05], ["snake_ring", 0.012]], color: "#7DBE6B", snake: true, sprite: "mon_snake", sw: 128 },
   rat:   { motion: "scurry", name: "부두 쥐", lv: 5, hp: 144, atk: 21, speed: 100, chase: 160, w: 70, h: 46, exp: 170, silver: [3, 10], silverRate: 0.14, drops: [["rat_tooth", 0.15, 1, 2], ["black_crystal", 0.4, 1, 1, "q_a1_variant"], ["potion", 0.05]], color: "#A79C94", ear: true, sprite: "mon_rat", sw: 88 },
   crab:  { motion: "sidestep", name: "집게 게", lv: 8, hp: 272, atk: 36, speed: 60, chase: 150, w: 92, h: 56, exp: 260, silver: [5, 14], silverRate: 0.16, drops: [["black_crystal", 0.35, 1, 1, "q_a1_variant"], ["crab_claw", 0.15, 1, 2], ["crab_shell", 0.07], ["potion", 0.06], ["crab_vest", 0.01]], color: "#E9777A", crab: true, sprite: "mon_crab", sw: 116 },
