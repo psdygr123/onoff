@@ -896,3 +896,8 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
 .review-step .choices { margin-top: 16px; justify-content: flex-end; }
 .rv-foot { display: flex; gap: 8px; justify-content: center; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #d4c5a9; }
 .rv-foot .btn { font-size: 13px; opacity: .85; }
+
+/* 첫 완료 안내 */
+.fg-card .fg-line { margin: 0 0 10px; line-height: 1.65; }
+.fg-card h3 { margin: 0 0 12px; }
+.fg-pent { display: block; width: 100%; max-width: 280px; margin: 0 auto 10px; }
