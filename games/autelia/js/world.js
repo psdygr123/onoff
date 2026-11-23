@@ -436,7 +436,7 @@ window.AU = window.AU || {};
             else if (m.cd <= 0) this.startAttack(m);
           } else if (m.pause > 0) m.pause -= dt;
           else {
-            m.x += m.dir * m.d.speed * 0.5 * dt;
+            m.x += m.dir * (m.d.patrolSpeed || m.d.speed * 0.5) * dt;
             if (m.x < m.min) { m.x = m.min; m.dir = 1; m.pause = rnd(0.3, 1.2); }
             if (m.x > m.max) { m.x = m.max; m.dir = -1; m.pause = rnd(0.3, 1.2); }
           }
@@ -841,7 +841,9 @@ window.AU = window.AU || {};
     },
     drawMonster(ctx, m) {
       const d = m.d, x = m.x, y = m.y, mo0 = d.motion || "";
-      let hop = m.state === "lunge" ? -10 : Math.abs(Math.sin(this.time * 6 + x)) * (m.state === "chase" ? 5 : 2);
+      const dd = Math.abs(x - (m._lx === undefined ? x : m._lx)); m._lx = x; m._wd = (m._wd || 0) + dd; if (dd > 0.01) m._mvt = this.time;   // 걸음 위상은 실제로 걸은 거리에 맞춤(제자리에선 멈추고, 빨리 걸으면 빨리 디딤)
+      const moving = this.time - (m._mvt || -9) < 0.12, wph = (m._wd / (d.stride || Math.max(36, (d.sw || d.w) * 0.5))) * Math.PI, wsin = moving ? Math.sin(wph) : 0;
+      let hop = m.state === "lunge" ? -10 : (mo0 === "" || mo0 === "swing") && (m.state === "patrol" || m.state === "chase") ? Math.abs(wsin) * (m.state === "chase" ? 5 : 3.5) : Math.abs(Math.sin(this.time * 6 + x)) * (m.state === "chase" ? 5 : 2);
       if (mo0 === "coil") hop = 0;                                                            // 뱀: 바닥을 미끄러짐(통통 튀지 않음)
       else if (mo0 === "scurry") hop = m.state === "lunge" ? 0 : Math.abs(Math.sin(this.time * 18 + x)) * 2.5; // 쥐: 잔걸음
       else if (mo0 === "sidestep") hop = m.state === "lunge" ? 0 : Math.abs(Math.sin(this.time * 5 + x)) * 1.5; // 게: 낮게 옆걸음
@@ -863,7 +865,7 @@ window.AU = window.AU || {};
           else if (mo === "scurry") { ox += 3 * f * Math.sin(tt * 34 + ph); rot += 0.025 * Math.sin(tt * 34 + ph); sy -= 0.03 * f; } // 쥐: 잔떨림 잔걸음
           else if (mo === "sidestep") { ox += 6 * f * Math.sin(tt * 6 + ph); rot += 0.04 * f * Math.sin(tt * 12 + ph); sy -= 0.04; } // 게: 낮게 옆으로 뒤뚱
           else if (mo === "leap") { up += Math.abs(Math.sin(tt * 5 + ph)) * 9 * f; rot += 0.05 * Math.sin(tt * 10 + ph); }       // 늑대: 크게 성큼성큼
-          else if (mo === "swing") { rot += 0.025 * f * Math.sin(tt * 6 + ph); ox += 2 * Math.sin(tt * 6 + ph); }                 // 용병: 묵직한 걸음
+          else if (mo === "swing") { rot += 0.03 * wsin; ox += 2 * wsin; }                 // 용병: 묵직한 걸음
           else if (m.state === "chase") { rot += 0.035 * Math.sin(tt * 13 + ph); sy += 0.025 * Math.sin(tt * 13 + ph + 1); }     // 기본: 달려드는 흔들림
         }
         if (m.state === "recover") { sy = 0.93 + 0.03 * Math.sin(m.st * 14); sx = 1.04; rot = -0.05; up = -1; } // 숨을 몰아쉬며 멈춤
