@@ -15,7 +15,7 @@ window.AU = window.AU || {};
   const GROUPS = { main: ["main"], arkea: ["arkea"], adventure: ["adventure"], town: ["adventure", "porto1", "porto2", "porto3"], store_a: ["store_a"], store_b: ["store_b"], guild: ["guild"], inn: ["inn"], warehouse: ["warehouse"],
     field: ["field1", "field2"], alley: ["ship2"], relay: ["escort"], valley: ["valley"], east_road: ["east_road"], ship: ["ship1", "ship2"], boss: ["boss"], escort: ["escort"], breath: ["breath"], ending: ["ending"], title: ["title"], intro: ["intro"], raid: ["raid"], elegy: ["elegy"] };
   const ONE_SHOT = { ending: true, intro: true };
-  const MAP_GROUP = { porto: "town", jandari: "alley", valley: "valley", yard: "valley", gorge: "relay", general_store: "store_a", weapon_store: "store_b", guild_hall: "guild", warehouse: "warehouse", forest: "field", harbor_road: "field", docks: "field", hide_outer: "adventure", hide_tunnel: "adventure", hide_lab: "adventure" };
+  const MAP_GROUP = { porto: "town", jandari: "alley", valley: "valley", yard: "valley", ridge: "valley", gorge: "relay", general_store: "store_a", weapon_store: "store_b", guild_hall: "guild", warehouse: "warehouse", forest: "field", harbor_road: "field", docks: "field", hide_outer: "adventure", hide_tunnel: "adventure", hide_lab: "adventure" };
   const GAIN = { harbor: 1.7 };   // 원본 소리가 작은 곡 보정(새 곡들은 소리 크기를 맞춰 두었음)
   const CFG = { src: TRACKS.main, vol: 0.32, duckVol: 0.14, fadeInPerSec: 0.5, fadeOutPerSec: 1.6 };
   const B = AU.Bgm = { cfg: CFG, el: null, vol: 0, failed: false, blocked: false, state: "idle", track: "main", cur: "main", group: "main", idx: {}, silentG: null, tracks: TRACKS, groups: GROUPS };

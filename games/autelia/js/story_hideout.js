@@ -35,7 +35,7 @@ window.AU = window.AU || {};
     name: "검은 아지트 외곽", bg: "bg_hideout_outer_1", bgs: ["bg_hideout_outer_1", "bg_hideout_outer_2"], width: 2558, safe: false, stealth: true,
     stealthMission: { quest: "q_h1a", next: "q_h1b", flag: "hide_outer_clear", start: 120 }, hideSpots: [{ x: 960 }, { x: 1490 }, { x: 2030 }], blockers: [{ x: 1260 }, { x: 1800 }],
     platforms: [FLOOR], ropes: [],
-    portals: [{ x: 40, to: "gorge", toX: 1400, label: "협곡 바위틈" },
+    portals: [{ x: 40, to: "gorge", toX: 2740, label: "협곡 바위틈" },
               { x: 2510, to: "hide_tunnel", toX: 90, label: "갱도 입구", reqQuest: "q_h1a", reqIn: ["active", "ready", "done"], reqText: "제페토의 부탁을 받아야 안으로 들어갈 수 있습니다." }],
     npcs: [],
     spots: [
