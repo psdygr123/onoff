@@ -812,7 +812,7 @@ window.AU = window.AU || {};
     const ta = h("textarea", { class: "memo", maxlength: "200", rows: "3", placeholder: "선택: 어떤 경험이었는지 자유롭게 적어 주세요." });
     const close = () => { evidencePanel.dispose(); UI.modal = false; wrap.classList.add("hidden"); wrap.innerHTML = ""; };
     let busy=false;
-    const finish = async (review) => { if(busy)return; busy=true; try { const evidence=await evidencePanel.value(); close(); onSubmit(review,evidence); } catch(e) { busy=false; AU.G.toast(e.message||"보조 기록 저장 실패. 첨부를 제거하고 다시 시도하세요.","info"); } };
+    const finish = async (review) => { if(busy)return; busy=true; try { const evidence=await evidencePanel.value(); close(); const ok=onSubmit(review,evidence); if(ok===false){ if(evidence&&evidence.photoId&&AU.MissionEvidence)AU.MissionEvidence.remove(evidence.photoId).catch(()=>{}); AU.G.toast("지금은 이 활동을 기록할 수 없습니다. 상태가 바뀌었을 수 있어 목록을 새로 불러왔습니다. 첨부한 사진은 저장하지 않았습니다.","info"); UI.renderWin&&UI.renderWin(); } } catch(e) { busy=false; AU.G.toast(e.message||"보조 기록 저장 실패. 첨부를 제거하고 다시 시도하세요.","info"); } };
     const submit = () => {
       const review = Object.fromEntries(labels.map(([key]) => [key, Number(ratings[key].value)]));
       review.note = ta.value;
