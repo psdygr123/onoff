@@ -122,7 +122,7 @@ window.AU = window.AU || {};
       const virt = this.virt; // 컷신이 주인공을 걷게 할 때(프롤로그)는 키 입력 대신 가상 입력을 씀
       const left = virt ? virt.dir < 0 : !blocked && I.isHeld("left"), right = virt ? virt.dir > 0 : !blocked && I.isHeld("right"), up = !blocked && I.isHeld("up"), down = !blocked && I.isHeld("down");
       const mv = (right ? 1 : 0) - (left ? 1 : 0);
-      if (p.hidden) { p.hideT -= dt; if (mv !== 0 || p.hideT <= 0 || blocked || p.dead) p.hidden = false; else p.vx = 0; } // 숨는 중: 움직이면 풀림, 최대 시간 뒤 자동 해제
+      if (p.hidden) { if (mv !== 0 || blocked || p.dead) p.hidden = false; else p.vx = 0; } // 숨는 중: 움직이거나 Space를 누르면 풀림(시간 제한 없음)
       this.nearNpc = null; this.nearHide = null; this.nearPortal = null; if (this.work) this.updateWork(dt, blocked);
 
       if (p.rope) {
@@ -255,7 +255,7 @@ window.AU = window.AU || {};
         if (this.nearSpot) { this.useSpot(this.nearSpot); return; }
         if (this.nearNpc) { AU.UI.talkNpc(this.nearNpc.id); return; }
         if (p.hidden) { p.hidden = false; return; }
-        if (this.nearHide) { p.hidden = true; p.hideT = 20; p.vx = 0; }
+        if (this.nearHide) { p.hidden = true; p.vx = 0; }
       } else if (id === "up") {
         if (this.nearPortal && !p.rope) { const pt = this.nearPortal; if (pt.lock) { AU.UI.toast(pt.lock, "info"); return; } if (!this.portalOpen(pt)) { AU.UI.toast(pt.reqText || "아직 갈 수 없습니다.", "warn"); return; } this.travel(pt.to, pt.toX); }
       } else if (id.startsWith("skill")) this.useSkillSlot(+id.slice(5) - 1);

@@ -137,7 +137,7 @@ window.AU = window.AU || {};
      상자 앞에서 Space로 숨고, 기둥 뒤로 시선을 피합니다. 두 곳을 조사한 뒤 입구(왼쪽 끝)로 나가면 성공입니다. */
   AU.MAPS.yard = {
     name: "용병 하차장", bg: "bg_yard", width: 2480, safe: false, stealth: true,
-    stealthMission: { quest: "q_a3_recon", flag: "yard_clear", start: 120 }, hideSpots: [{ x: 360 }, { x: 760 }, { x: 1100 }, { x: 1480 }, { x: 1980 }, { x: 2200 }], blockers: [{ x: 1240 }, { x: 1800 }],
+    stealthMission: { quest: "q_a3_recon", flag: "yard_clear", start: 120 }, hideSpots: [{ x: 360 }, { x: 760 }, { x: 1100 }, { x: 1480 }, { x: 1700 }, { x: 1980 }, { x: 2200 }], blockers: [{ x: 1240 }, { x: 1800 }],
     platforms: [{ x: 0, y: 590, w: 2558 }], ropes: [],
     portals: [{ x: 40, to: "valley", toX: 620, label: "검은 골짜기" }],
     npcs: [],
