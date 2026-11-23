@@ -406,16 +406,48 @@ window.AU = window.AU || {};
       if (!Array.isArray(M.prefs.areas)) M.prefs.areas = [];
       if (!Number.isFinite(M.prefs.maxMin)) M.prefs.maxMin = 0;
       if (!Array.isArray(M.recoHidden)) M.recoHidden = [];
-      for (const m of AU.MISSIONS) {
-        if (!M.states[m.id]) M.states[m.id] = { state: "locked", rewarded: false, tries: 0 };
-        // 신규 활동 및 구 저장의 미완료/잠금 미션도 안내 이후 자유롭게 선택 가능.
-        if (this.S.flags.missionsUnlocked && this.S.flags.guideMet && M.states[m.id].state === "locked") M.states[m.id].state = "available";
+      for (const m of AU.MISSIONS) if (!M.states[m.id]) M.states[m.id] = { state: "locked", rewarded: false, tries: 0 };
+      if (this.S.flags.missionsUnlocked && this.S.flags.guideMet) {
+        if (!this.S.flags.missionSlotsV2) { // 구 저장: 예전에 한꺼번에 열린 미수행 활동은 미공개로 되돌림(즐겨찾기·수행 계획에 건 활동은 유지)
+          for (const m of AU.MISSIONS) { const r = M.states[m.id]; if (r.state === "available" && !M.favorites.includes(m.id) && !M.plans[m.id]) r.state = "locked"; }
+          this.S.flags.missionSlotsV2 = true;
+        }
+        this.fillSlots();
       }
+    },
+    revealMission(id) { const r = this.S.missions.states[id]; if (r && r.state === "locked") { r.state = "available"; return true; } return false; },
+    /* 미션 슬롯: 영역(P·E·R·M·A)마다 진행 가능한 활동을 1개씩만 보여 줌. 완료·건너뛰기로 자리가 비면 같은 영역의 다음 후보가 열림 */
+    fillSlots(excludeId) {
+      const M = this.S.missions; let opened = 0;
+      for (const k of Object.keys(AU.PERMA)) {
+        if (AU.MISSIONS.some((m) => m.perma === k && AU.MISSION_ACTIVE.includes((M.states[m.id] || {}).state))) continue;
+        const c = this.slotCandidate(k, excludeId); if (c) { M.states[c.id].state = "available"; opened++; }
+      }
+      return opened;
+    },
+    /* 다음 후보: 허용 단계 이하의 미공개 활동(쉬운 순·데이터 순) → 없으면 건너뛴 지 오래된 활동을 다시 제공. 막지는 않고 순서만 정함 */
+    slotCandidate(k, excludeId) {
+      const M = this.S.missions, st = (id) => (M.states[id] || {}).state, allowed = this.allowedDifficulty(k);
+      const locked = AU.MISSIONS.filter((m) => m.perma === k && m.id !== excludeId && st(m.id) === "locked" && (!m.pre || st(m.pre) === "done")).sort((a, b) => a.difficulty - b.difficulty);
+      const pick = locked.find((m) => m.difficulty <= allowed) || locked[0];
+      if (pick) return pick;
+      return AU.MISSIONS.filter((m) => m.perma === k && m.id !== excludeId && st(m.id) === "skipped").sort((a, b) => (M.states[a.id].skipSeq || 0) - (M.states[b.id].skipSeq || 0))[0] || null;
+    },
+    /* 같은 영역에서 낮은 단계 활동을 3종 이상 완료하고 평균 만족도 3 이상이면 다음 단계까지 허용. 평균 도전도가 4 이상이면 만족도 4 이상일 때만 올리고, 아니면 현재 단계 유지 */
+    allowedDifficulty(k) {
+      const M = this.S.missions; let allowed = 1;
+      for (let d = 1; d <= 2; d++) {
+        const rows = M.log.filter((e) => e.perma === k && e.state === "done" && !e.repeat && (this.mission(e.id) || {}).difficulty === d);
+        if (new Set(rows.map((e) => e.id)).size < 3) break;
+        const rv = rows.map((e) => e.reflection).filter((x) => x && Number.isFinite(x.satisfaction)), avg = (key) => rv.reduce((n, x) => n + x[key], 0) / rv.length;
+        if (rv.length && (avg("satisfaction") < 3 || (avg("challenge") >= 4 && avg("satisfaction") < 4))) break;
+        allowed = d + 1;
+      }
+      return allowed;
     },
     discoverMissions() {
       const S = this.S; if (!S.flags.missionsUnlocked) return false;
       S.flags.guideMet = true; this.initMissions();
-      for (const m of AU.MISSIONS) { const r = S.missions.states[m.id]; if (r.state === "locked") r.state = "available"; }
       this.save("mission"); this.changed(); return true;
     },
     setMissionState(id, next, feedback, evidence) {
@@ -440,7 +472,7 @@ window.AU = window.AU || {};
           r.partialRewarded = true;
         }
       }
-      else if (next === "skip") r.state = "skipped";
+      else if (next === "skip") { r.state = "skipped"; r.skipSeq = (S.missions.skipSeq = (S.missions.skipSeq || 0) + 1); }
       else if (next === "retry") r.state = "accepted";
       else if (next === "done") {
         r.state = "done";
@@ -456,11 +488,11 @@ window.AU = window.AU || {};
           S.missions.weekPoints += points; r.rewarded = true;
           gained = this.gainMind(m.perma, m.points); // 평가 응답 여부 및 점수와 무관하게 동일 보상
         }
-        for (const n of AU.MISSIONS) { const nr = S.missions.states[n.id]; if (n.pre === id && nr.state === "locked" && S.flags.guideMet) nr.state = "available"; }
       }
       // 자기보고와 선택적인 보조 기록을 분리. 사진 원본은 저장 파일에 포함하지 않음.
       const supplementary = (next === "done" || next === "partial") && AU.MissionEvidence ? AU.MissionEvidence.clean(evidence, m) : null;
-      S.missions.log.push({ t: AU.dateStr(), id, perma: m.perma, state: r.state, points, capped, reflection: review, mindGained: gained, galleryTokens: earnedTokens, proof: "self_report", supplementary });
+      S.missions.log.push({ t: AU.dateStr(), id, perma: m.perma, state: r.state, points, capped, reflection: review, mindGained: gained, galleryTokens: earnedTokens, proof: supplementary ? "evidence" : "self_report", supplementary });
+      if (next === "done" || next === "skip") this.fillSlots(next === "skip" ? id : undefined);
       if (next === "done") {
         this.log("현실 미션 완료: " + m.title);
         const mindTxt = gained ? " · 마음 [" + AU.PERMA[m.perma] + "] +" + gained : "";
@@ -473,7 +505,7 @@ window.AU = window.AU || {};
       if(!S.flags.missionsUnlocked||!m||!r||r.state!=="done")return false;
       const reflection=this.validMissionFeedback(feedback)?{challenge:feedback.challenge,meaning:feedback.meaning,satisfaction:feedback.satisfaction,efficacy:(Number.isInteger(feedback.efficacy)&&feedback.efficacy>=1&&feedback.efficacy<=5)?feedback.efficacy:null,mood:(typeof feedback.mood==="string"&&feedback.mood.length<=20)?feedback.mood:null,note:String(feedback.note||"").trim().slice(0,200)}:null;
       const supplementary=AU.MissionEvidence?AU.MissionEvidence.clean(evidence,m):null;
-      S.missions.log.push({t:AU.dateStr(),id,perma:m.perma,state:"done",repeat:true,points:0,capped:false,reflection,mindGained:0,galleryTokens:0,proof:"self_report",supplementary});
+      S.missions.log.push({t:AU.dateStr(),id,perma:m.perma,state:"done",repeat:true,points:0,capped:false,reflection,mindGained:0,galleryTokens:0,proof:supplementary?"evidence":"self_report",supplementary});
       this.log("현실 미션 반복 수행: "+m.title);this.toast("반복 수행 기록 완료 · 추가 점수와 토큰은 없습니다.","info");
       this.save("mission-repeat");this.changed();return true;
     },
@@ -537,7 +569,7 @@ window.AU = window.AU || {};
       const tried = {}; for (const m of AU.MISSIONS) if (M.states[m.id] && M.states[m.id].state === "done") tried[m.perma] = (tried[m.perma] || 0) + 1;
       const rows = [];
       for (const m of AU.MISSIONS) {
-        const st = (M.states[m.id] || {}).state; if (st === "done" || M.recoHidden.includes(m.id) || M.favorites.includes(m.id)) continue;
+        const st = (M.states[m.id] || {}).state; if (!AU.MISSION_ACTIVE.includes(st) || M.recoHidden.includes(m.id) || M.favorites.includes(m.id)) continue;
         let sc = 0; const why = [];
         if (pr.areas.includes(m.functionArea)) { sc += 3; why.push("직접 고르신 관심 영역 '" + A[m.functionArea] + "'"); }
         if (pr.maxMin && m.minutes <= pr.maxMin) { sc += 2; why.push("권장 시간 " + m.minutes + "분 — 선택하신 " + pr.maxMin + "분 이내"); }

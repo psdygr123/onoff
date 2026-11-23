@@ -11,7 +11,7 @@ const { chromium } = require('playwright');
   if(await page.$('#charsetup')){await page.fill('#sname','테스트'); await page.click('#setup-ok');}
   await page.evaluate(()=>AU.Prologue.debugComplete('arche'));
   const s=await page.evaluate(()=>{
-   const G=AU.G,S=G.S; S.level=10; S.flags.awakened=true;S.freePoints=3;S.trainingPoints=0;S.flags.missionsUnlocked=true;S.flags.guideMet=true;G.discoverMissions();
+   const G=AU.G,S=G.S; S.level=10; S.flags.awakened=true;S.freePoints=3;S.trainingPoints=0;S.flags.missionsUnlocked=true;S.flags.guideMet=true;G.discoverMissions();AU.MISSIONS.forEach(function(m){var r=AU.G.S.missions.states[m.id];if(r&&r.state==='locked')r.state='available'});
    const first=AU.MISSIONS.find(m=>!m.pre),bad={challenge:6,meaning:3,satisfaction:1},good={challenge:4,meaning:1,satisfaction:1,note:'어려웠지만 의미를 찾으려고 했어요'};
    const canAllocate=G.pool()===3;
    G.setMissionState(first.id,'accept');G.setMissionState(first.id,'attempt');

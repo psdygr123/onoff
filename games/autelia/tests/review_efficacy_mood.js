@@ -24,7 +24,7 @@ const URL = process.env.GAME_URL || 'http://localhost:8801';
   T('validMissionFeedback null 선택항목', v3 === true, v3);
 
   // 4. efficacy + mood 포함 미션 완료 → log에 기록되는지
-  await p.evaluate(() => { AU.G.discoverMissions(); AU.G.setMissionState('m_e5', 'accept'); });
+  await p.evaluate(() => { AU.G.discoverMissions();AU.MISSIONS.forEach(function(m){var r=AU.G.S.missions.states[m.id];if(r&&r.state==='locked')r.state='available'}); AU.G.setMissionState('m_e5', 'accept'); });
   await p.evaluate(() => {
     AU.G.setMissionState('m_e5', 'done', { challenge: 3, meaning: 4, satisfaction: 5, efficacy: 4, mood: '💪 뿌듯함', note: '잘 됐다' }, null);
   });

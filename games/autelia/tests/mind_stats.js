@@ -12,7 +12,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await ev(() => AU.Prologue.debugComplete('arche')); await sleep(200);
   const done = (id) => ev((id) => { AU.G.setMissionState(id, 'accept'); AU.G.setMissionState(id, 'attempt'); return AU.G.setMissionState(id, 'done'); }, id);
   const ms = () => ev(() => Object.assign({}, AU.G.S.mindStats));
-  await ev(() => { AU.G.S.flags.missionsUnlocked = true; AU.G.discoverMissions(); });
+  await ev(() => { AU.G.S.flags.missionsUnlocked = true; AU.G.discoverMissions();AU.MISSIONS.forEach(function(m){var r=AU.G.S.missions.states[m.id];if(r&&r.state==='locked')r.state='available'}); });
   note('M1', '시작 시 마음 스탯 5개 모두 0', JSON.stringify(await ms()) === '{"P":0,"E":0,"R":0,"M":0,"A":0}', JSON.stringify(await ms()));
   await done('m_p1'); const a = await ms();
   const toast1 = await ev(() => Array.from(document.querySelectorAll('.toasts > *')).map((e) => e.textContent).join('|'));
