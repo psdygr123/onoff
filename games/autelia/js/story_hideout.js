@@ -211,6 +211,7 @@ window.AU = window.AU || {};
   };
   // 외곽에서 안 들키고 갱도에 도착하면 보너스(한 번만)
   H.onTravel = function (W, to) {
+    if (to === "yard" && !AU.G.S.flags.yard_hint) { AU.G.S.flags.yard_hint = true; setTimeout(() => AU.UI.toast("금빛으로 빛나는 상자 앞에서 Space를 누르면 숨을 수 있습니다. 용병의 붉은 시야를 피해 가세요.", "info"), 1200); } // 첫 입장 안내
     if (W.mapId === "yard" && to === "valley") { // 하차장 잠입 성공: 두 곳을 모두 조사하고 입구로 나왔을 때
       const S = AU.G.S; if (!S.flags.yard_clear && AU.G.spotDone("yard_crates") && AU.G.spotDone("yard_ledger")) {
         S.flags.yard_clear = true;

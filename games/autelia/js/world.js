@@ -193,7 +193,7 @@ window.AU = window.AU || {};
     /* ---------- 잠입 임무(map.stealthMission): 들키면 구역 입구에서 다시 시작. 숨는 상자(hideSpots)·시야를 막는 구조물(blockers) ---------- */
     stealthOn() { const sm = this.map && this.map.stealthMission; if (!sm || AU.G.S.flags[sm.flag]) return false; const st = AU.G.questStatus(sm.quest); return st === "active" || st === "ready" || (st === "done" && !!sm.next && AU.G.questStatus(sm.next) === "active"); },
     stealthTries() { const sm = this.map && this.map.stealthMission; return sm ? (AU.G.S.flags["stealth_tries_" + this.mapId] || 0) : 0; },
-    sightMul() { return this.stealthOn() && this.stealthTries() >= 3 ? 0.8 : 1; }, // 3번 이상 들키면 경비 시야가 조금 약해짐(도움)
+    sightMul() { if (!this.stealthOn()) return 1; const t = this.stealthTries(); return t >= 4 ? 0.6 : t >= 2 ? 0.8 : 1; }, // 들킬수록 경비 시야가 약해짐(2번 ×0.8, 4번 ×0.6)
     sightBlocked(gx, px) { const lo = Math.min(gx, px), hi = Math.max(gx, px); return (this.map.blockers || []).some((b) => b.x > lo && b.x < hi); },
     caught(m) {
       if (this.trans || this.player.dead) return;
@@ -212,11 +212,16 @@ window.AU = window.AU || {};
       const pic = (key, x, h) => { const im = AU.Img.has(key) ? AU.Img.get(key) : null; if (!im) return false; const w = h * im.naturalWidth / im.naturalHeight; ctx.drawImage(im, x - w / 2, y - h + 6, w, h); return true; };
       for (const b of m.blockers || []) { if (pic("ob_hide_pillar", b.x, 270)) continue; ctx.fillStyle = "#2F2B27"; ctx.fillRect(b.x - 20, y - 230, 40, 230); ctx.fillStyle = "rgba(255,255,255,.08)"; ctx.fillRect(b.x - 20, y - 230, 7, 230); ctx.fillStyle = "#3F3934"; ctx.fillRect(b.x - 26, y - 238, 52, 12); }
       for (const hs of m.hideSpots || []) {
+        const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 380);
+        if (on) { const g = ctx.createRadialGradient(hs.x, y - 40, 6, hs.x, y - 40, 90); g.addColorStop(0, "rgba(255,214,120," + (0.30 + 0.25 * pulse) + ")"); g.addColorStop(1, "rgba(255,214,120,0)"); ctx.fillStyle = g; ctx.fillRect(hs.x - 90, y - 130, 180, 140); }
         if (!pic("ob_hide_crate", hs.x, 150)) {
-          ctx.fillStyle = "#5B4632"; ctx.fillRect(hs.x - 38, y - 66, 76, 66); ctx.strokeStyle = "#2E2216"; ctx.lineWidth = 3; ctx.strokeRect(hs.x - 38, y - 66, 76, 66);
-          ctx.beginPath(); ctx.moveTo(hs.x - 38, y - 44); ctx.lineTo(hs.x + 38, y - 44); ctx.moveTo(hs.x - 38, y - 22); ctx.lineTo(hs.x + 38, y - 22); ctx.stroke();
+          const bw = 96, bh = 84, bx = hs.x - bw / 2, by = y - bh;
+          ctx.fillStyle = "#6A5038"; ctx.fillRect(bx, by, bw, bh); ctx.strokeStyle = "#2E2216"; ctx.lineWidth = 3; ctx.strokeRect(bx, by, bw, bh);
+          ctx.fillStyle = "#7B5E42"; ctx.fillRect(bx - 4, by - 8, bw + 8, 14); ctx.strokeRect(bx - 4, by - 8, bw + 8, 14);
+          ctx.beginPath(); ctx.moveTo(bx, by + 30); ctx.lineTo(bx + bw, by + 30); ctx.moveTo(bx, by + 58); ctx.lineTo(bx + bw, by + 58); ctx.moveTo(bx + bw / 2, by + 6); ctx.lineTo(bx + bw / 2, by + bh); ctx.stroke();
         }
-        if (on && this.player && !this.player.hidden) { ctx.fillStyle = "rgba(255,243,205,.9)"; ctx.font = "700 13px 'Noto Sans KR', sans-serif"; ctx.textAlign = "center"; ctx.fillText("숨는 곳", hs.x, y - 160); }
+        if (on) { ctx.strokeStyle = "rgba(255,214,120," + (0.55 + 0.4 * pulse) + ")"; ctx.lineWidth = 3; ctx.strokeRect(hs.x - 52, y - 98, 104, 100); }
+        if (on && this.player && !this.player.hidden) { const near = Math.abs(this.player.x - hs.x) < 60; ctx.fillStyle = near ? "rgba(255,236,170,1)" : "rgba(255,243,205,.9)"; ctx.font = "700 14px 'Noto Sans KR', sans-serif"; ctx.textAlign = "center"; ctx.fillText(near ? "Space로 숨기" : "숨는 곳", hs.x, y - 108); }
       }
     },
     /* ---------- 이동기: Lv.5부터. 충전 최대 3, 대기시간 없이 연속 사용, 10초마다 1충전 ---------- */
@@ -250,7 +255,7 @@ window.AU = window.AU || {};
         if (this.nearSpot) { this.useSpot(this.nearSpot); return; }
         if (this.nearNpc) { AU.UI.talkNpc(this.nearNpc.id); return; }
         if (p.hidden) { p.hidden = false; return; }
-        if (this.nearHide) { p.hidden = true; p.hideT = 8; p.vx = 0; }
+        if (this.nearHide) { p.hidden = true; p.hideT = 20; p.vx = 0; }
       } else if (id === "up") {
         if (this.nearPortal && !p.rope) { const pt = this.nearPortal; if (pt.lock) { AU.UI.toast(pt.lock, "info"); return; } if (!this.portalOpen(pt)) { AU.UI.toast(pt.reqText || "아직 갈 수 없습니다.", "warn"); return; } this.travel(pt.to, pt.toX); }
       } else if (id.startsWith("skill")) this.useSkillSlot(+id.slice(5) - 1);
