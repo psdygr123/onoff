@@ -52,7 +52,7 @@ window.AU = window.AU || {};
       { id: "hide_cargo", img: "ob_spot_hide_cargo", w: 240, x: 1750, kind: "investigate", label: "빈 수송 우리", lines: [
         "검은 쇠창살로 짠 우리가 층층이 쌓여 있습니다. 모두 비어 있지만 바닥에는 긁힌 자국과 검게 굳은 결정 가루가 남아 있습니다.",
         "우리마다 번호표가 달려 있습니다. 가장 큰 번호는 사백을 넘깁니다.",
-        L(HERO, "(이 수가 전부 안쪽으로 들어갔다는 뜻이다. 서둘러야 한다.)")] }
+        L(HERO, "(번호가 사백이 넘는다…? 이 짐승들이 전부 실험에 쓰였다는 건가. 도대체 얼마나 많은 실험을 한 거지.)")] }
     ],
     spawns: [{ type: "hide_guard", x: 560, min: 450, max: 900 }, { type: "hide_guard", x: 1180, min: 1020, max: 1420 }, { type: "hide_guard", x: 1700, min: 1560, max: 1950 }, { type: "hide_guard", x: 2230, min: 2100, max: 2420 }],
     area: AREA(88, 6, "협곡 안쪽 깊은 곳에 숨은 검은 아지트의 바깥 구역입니다. 경비에게 들키면 입구에서 다시 시작합니다. 금빛 상자 앞에서 Space로 숨어 시선을 피하세요.")
