@@ -42,6 +42,7 @@ window.AU = window.AU || {};
       if (!this.activate()) return false;
       if (!S.flags.realBridgeSuggestions || typeof S.flags.realBridgeSuggestions !== "object") S.flags.realBridgeSuggestions = {};
       if (S.flags.realBridgeSuggestions[key]) return false;
+      G.revealMission(missionId);   // 스토리와 연결된 활동은 슬롯과 무관하게 열어 수락할 수 있게 함
       S.flags.realBridgeSuggestions[key] = { missionId, moment: cfg.moment, story: cfg.story };
       AU.G.save("real-bridge-queue");
       return true;
@@ -135,6 +136,7 @@ window.AU = window.AU || {};
       const m = AU.G.mission(missionId);
       if (!m) return "missing";
       this.queue(key, missionId);
+      AU.G.revealMission(missionId);   // 제안을 보여주는 활동은 슬롯과 무관하게 열어 둠
       let answer = "later";
       if (this.visibleInDev()) {
         answer = await this.prompt("메인 퀘스트와 함께하는 현실 활동",

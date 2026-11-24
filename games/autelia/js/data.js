@@ -1802,6 +1802,7 @@ AU.REST_MISSIONS.push(...[
     "optional": true
   }
 ]);
+AU.MISSION_ACTIVE = ["available", "accepted", "attempted", "partial"]; // 슬롯을 차지하는(진행 가능한) 상태
 AU.MISSION_STATES = {
   locked: "미해금", available: "수행 가능", accepted: "수락", attempted: "시도", partial: "일부 수행", done: "완료", skipped: "건너뛰기"
 };

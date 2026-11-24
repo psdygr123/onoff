@@ -10,12 +10,14 @@ const { chromium } = require('playwright');
     await p.click('#btn-start'); for (let i = 0; i < 2 && await p.$('#job-next'); i++) await p.click('#job-next');
     if (await p.$('#charsetup')) { await p.fill('#sname', '검증'); await p.click('#setup-ok'); }
     await ev(() => AU.Prologue.debugComplete('arche')); await ev(() => AU.G.discoverMissions());
+    // 슬롯 개편 이후 기본은 영역별 1개만 열리지만, 이 시험은 보상·추천·반복·주기를 '전체 열림' 상태에서 검증하므로 직접 모두 연다(슬롯 동작은 mission_slots.js)
+    await ev(() => { for (const m of AU.MISSIONS) { const r = AU.G.S.missions.states[m.id]; if (r.state === 'locked') r.state = 'available'; } });
     const open = async (tab) => { await ev((t) => { AU.UI.close(); AU.UI.tab.jg = 'real'; AU.UI.tab.j = t; AU.UI.open('journal'); }, tab); await sleep(250); };
     const txt = () => ev(() => document.querySelector('.window, .panel') ? document.body.innerText : '');
 
     // J1 탭 구성: 6개 기능 + 쉼·마음 기록 유지
     await open('today'); const tabs = await ev(() => [...document.querySelectorAll('.real-tabs .btn, .real-tabs button')].map((x) => x.textContent));
-    ck('J1 현실 활동 탭: 오늘·추천·전체·즐겨찾기·계획·기록(+쉼·마음 기록)', ['오늘의 활동', '추천 활동', '전체 활동', '즐겨찾기', '나의 활동 계획', '활동 기록', '쉼', '마음 기록'].every((t) => tabs.includes(t)), tabs.join('|'));
+    ck('J1 현실 활동 탭: 오늘·추천·전체·즐겨찾기·계획·기록(+쉼·마음 기록)', ['오늘의 활동', '추천 활동', '내 활동', '즐겨찾기', '나의 활동 계획', '활동 기록', '쉼', '마음 기록'].every((t) => tabs.includes(t)), tabs.join('|'));
 
     // J2 전체 활동: 100종, 필터·검색
     await open('missions'); const all0 = await ev(() => document.querySelectorAll('.mission[data-mid]').length);
@@ -55,7 +57,7 @@ const { chromium } = require('playwright');
     ck('J9c "다른 추천 보기"로 목록이 바뀜', rot);
     // 추천에서 이미 완료한 활동과 즐겨찾기한 활동은 제외, 미수행·건너뛰기 이력으로 불리하게 만들지 않음
     const fair = await ev(() => { const G = AU.G, first = G.recommend(1, 0)[0].m.id; G.setMissionState(first, 'accept'); G.setMissionState(first, 'skip'); const still = G.recommend(60, 0).some((r) => r.m.id === first); const done = AU.MISSIONS[50].id; G.setMissionState(done, 'accept'); G.setMissionState(done, 'done'); const noDone = !G.recommend(60, 0).some((r) => r.m.id === done); return { still, noDone }; });
-    ck('J10 건너뛴 활동도 추천에서 불이익 없이 유지, 완료한 활동은 제외', fair.still && fair.noDone, JSON.stringify(fair));
+    ck('J10 건너뛴 활동은 보관함으로 가 추천에서 빠지고, 완료한 활동도 제외', !fair.still && fair.noDone, JSON.stringify(fair));
 
     // J11 보상·반복·주기 보존
     const keep = await ev(() => { const G = AU.G, S = G.S, id = AU.MISSIONS[50].id, m = G.mission(id), v0 = S.mindStats[m.perma], t0 = G.galleryState().tokens; const rep = G.repeatMission(id, { challenge: 3, meaning: 4, satisfaction: 5, note: '좋았어요' }); const plan = G.setMissionPlan(id, { mode: 'daily' }); return { rep, plan, parity: v0 === S.mindStats[m.perma] && t0 === G.galleryState().tokens, doneKeep: G.ms(id).state === 'done', id }; });
