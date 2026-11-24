@@ -9,9 +9,12 @@ window.AU = window.AU || {};
     const out = [];
     String(text).split(/\*\*(.+?)\*\*/).forEach((part, k) => {
       if (k % 2) { const b = document.createElement("b"); b.className = "rb-em"; b.textContent = part; out.push(b); return; }
-      part.split(/(\[(?:[A-Za-z0-9]{1,6}|Shift|Space|Esc|Enter|Tab|[←→↑↓])\])/).forEach((seg) => {
+      part.split(/(\{\{\+?[^}]+\}\})/).forEach((chunk) => {   // {{비어 있음}}=경고색(빨강), {{+끼고 있어요}}=좋은 상태(초록)
+        const st = /^\{\{(\+?)([^}]+)\}\}$/.exec(chunk); if (st) { const s2 = document.createElement("span"); s2.className = st[1] ? "gstat ok" : "gstat warn"; s2.textContent = st[2]; out.push(s2); return; }
+      chunk.split(/(\[(?:[A-Za-z0-9]{1,6}|Shift|Space|Esc|Enter|Tab|[←→↑↓])\])/).forEach((seg) => {
         if (/^\[(?:[A-Za-z0-9]{1,6}|Shift|Space|Esc|Enter|Tab|[←→↑↓])\]$/.test(seg)) { const s = document.createElement("span"); s.className = "gkey"; s.textContent = seg.slice(1, -1); out.push(s); }
         else if (seg) out.push(document.createTextNode(seg));
+      });
       });
     });
     return out;
@@ -713,7 +716,7 @@ window.AU = window.AU || {};
     const slots = h("div", { class: "eqslots" });
     for (const slot of Object.keys(S.equip)) {
       const id = S.equip[slot], it = id && AU.ITEMS[id];
-      slots.append(h("div", { class: "eqslot" }, h("div", { class: "eqlabel", text: AU.SLOT_LABEL[slot] }), it ? UI.itemIcon(id, 40) : null, h("div", { class: "eqname", text: it ? it.name.replace(" (임시)", "") : "비어 있음" }),
+      slots.append(h("div", { class: "eqslot" }, h("div", { class: "eqlabel", text: AU.SLOT_LABEL[slot] }), it ? UI.itemIcon(id, 40) : null, h("div", { class: "eqname" + (it ? "" : " eqempty"), text: it ? it.name.replace(" (임시)", "") : "비어 있음" }),
         it ? h("div", { class: "stat", text: Object.entries(it.stats).map(([k, v]) => statName(k) + " +" + v).join(" · ") }) : null,
         it ? btn("해제", "", () => AU.G.unequip(slot)) : null));
     }
