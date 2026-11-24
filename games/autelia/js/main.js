@@ -93,6 +93,7 @@ window.AU = window.AU || {};
     AU.Input.attach();
     AU.Input.handlers.push((id) => { if (!main.running) return; if (AU.UI.onAction(id)) return; AU.World.onAction(id); });
     AU.Input.rawHandlers.push((e) => {
+      if ((e.code === "Enter" || e.code === "NumpadEnter") && !e.repeat && main.running && AU.UI.onEnterKey && AU.UI.onEnterKey()) return true;   // 퀘스트 수락창: Enter로 수락
       if (e.code === "F2" && main.running && main.isLocalHost()) { AU.UI.devVisible = true; AU.UI.toggleWin("dev"); return true; }
       return false;
     });

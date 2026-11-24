@@ -12,8 +12,8 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await ev(() => AU.Prologue.debugComplete('arche')); await sleep(200);
   const key = async (k, ms = 60) => { await p.keyboard.down(k); await sleep(ms); await p.keyboard.up(k); };
   const st = (id) => ev((id) => AU.G.questStatus(id), id);
-  const talk = async (npc) => { await ev((n) => AU.UI.talkNpc(n), npc); await sleep(200); for (let i = 0; i < 14 && (await ev(() => !!AU.UI.dialog)); i++) { await key('Space'); await sleep(120); } };
-  const accept = async (npc) => { await ev((n) => AU.UI.talkNpc(n), npc); await sleep(200); for (let i = 0; i < 14 && (await ev(() => !!AU.UI.dialog)); i++) { const has = await ev(() => !!(AU.UI.dialog && AU.UI.dialog.opt.choices) && AU.UI.dialog.i >= AU.UI.dialog.lines.length - 1); await key('Space'); await sleep(120); if (has) break; } await sleep(150); };
+  const talk = async (npc) => { await ev((n) => AU.UI.talkNpc(n), npc); await sleep(200); for (let i = 0; i < 14 && (await ev(() => !!AU.UI.dialog)); i++) { await key((await ev(() => !!(AU.UI.dialog && AU.UI.dialog.opt.accept && AU.UI.dialog.i >= AU.UI.dialog.lines.length - 1))) ? 'Enter' : 'Space'); await sleep(120); } };
+  const accept = async (npc) => { await ev((n) => AU.UI.talkNpc(n), npc); await sleep(200); for (let i = 0; i < 14 && (await ev(() => !!AU.UI.dialog)); i++) { const has = await ev(() => !!(AU.UI.dialog && AU.UI.dialog.opt.choices) && AU.UI.dialog.i >= AU.UI.dialog.lines.length - 1); await key((await ev(() => !!(AU.UI.dialog && AU.UI.dialog.opt.accept && AU.UI.dialog.i >= AU.UI.dialog.lines.length - 1))) ? 'Enter' : 'Space'); await sleep(120); if (has) break; } await sleep(150); };
 
   // A. 데이터
   const bad = await ev(() => { const out = []; const need = ['hide_outer','hide_tunnel','hide_lab','hide_boss'];

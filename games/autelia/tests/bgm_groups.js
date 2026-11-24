@@ -25,7 +25,7 @@ const note = (id, name, ok, ev) => { ok ? pass++ : fail++; console.log((ok ? 'PA
   const nxt = await ev(() => { AU.Bgm.idx.field = 1; return AU.Bgm.pick().key; }); note('B5', '곡이 끝나면 사냥터 2번으로 이어짐', nxt === 'field2', nxt);
   const tw = await ev(() => AU.Bgm.groups.town.length); note('B6', '포르투 노바는 1곡만 반복(단일 곡 묶음은 loop)', tw === 1, tw);
   const ps = await ev(() => { AU.Prologue.on = true; AU.G.S.prologue.state = 'SCENE_06_PORT_VIEW'; const r = AU.Bgm.pick(); AU.Prologue.on = false; return r; }); note('B8', '프롤로그 마지막 포르투 노바 소개(SCENE_06)도 같은 항구 곡', ps.g === 'town' && ps.key === 'porto', JSON.stringify(ps));
-  const hid = await at('hide_outer'); note('B9', '다른 맵(은신처)은 기존 곡 유지', hid.key === 'adventure', JSON.stringify(hid));
+  const hid = await at('hide_outer'); note('B9', '검은 아지트 외곽은 전용 곡(hide_outer)', hid.key === 'hide_outer', JSON.stringify(hid));
   await at('docks'); const boss = await ev(() => { const W = AU.World; W.monsters.push({ alive: true, d: { boss: true }, type: 'trial_boss' }); const g = AU.Bgm.pick().g; W.monsters.pop(); return g; });
   note('B7', '보스가 있으면 보스 곡', boss === 'boss', boss);
   note('Z', '페이지 오류 없음', errs.length === 0, errs.join('|'));

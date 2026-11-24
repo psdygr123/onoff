@@ -48,7 +48,7 @@ window.AU = window.AU || {};
       { id: "hide_gate", img: "ob_spot_hide_gate", w: 190, x: 700, kind: "investigate", label: "초소의 출입 장부", lines: [
         "초소 탁자 위에 출입 장부가 펼쳐져 있습니다. 매달 '짐승 N두, 원석 N상자'라는 숫자가 적혀 있고, 서명란에는 같은 이름이 반복됩니다.",
         "서명은 '실험 책임 파우스토스'. 장부 맨 아래에는 붉은 잉크로 '움브라 완성 임박'이라고 휘갈겨 있습니다.",
-        L(HERO, "(이곳은 짐승이 들어가는 입구구나. 책임자의 이름은 파우스토스... 그리고 움브라.)")] },
+        L(HERO, "(이곳이 그 짐승들을 실험하는 곳인가 보다. 파우스토스? 이 사람은 누구지? 그리고 움브라? 이건 뭐지?)")] },
       { id: "hide_cargo", img: "ob_spot_hide_cargo", w: 240, x: 1750, kind: "investigate", label: "빈 수송 우리", lines: [
         "검은 쇠창살로 짠 우리가 층층이 쌓여 있습니다. 모두 비어 있지만 바닥에는 긁힌 자국과 검게 굳은 결정 가루가 남아 있습니다.",
         "우리마다 번호표가 달려 있습니다. 가장 큰 번호는 사백을 넘깁니다.",
@@ -121,12 +121,12 @@ window.AU = window.AU || {};
   const STEP = { type: "main", giver: "jepeto", minLevel: 10 };
   const rec = (fl) => AU.G.S.flags[fl];
   AU.QUESTS.q_h1a = Object.assign({}, STEP, {
-    title: "그림자 속으로", pre: ["q_a3_jepeto"], area: "hide_outer", autoDone: true, next: "q_h1b",
+    title: "그림자 속으로", pre: ["q_a3_jepeto"], area: "hide_outer", noWhere: true, autoDone: true, next: "q_h1b",
     desc: "협곡 안쪽 아지트 외곽으로 숨어듭니다. 경비의 시선을 피해 초소 장부와 빈 수송 우리를 조사한 뒤 갱도 입구로 향합니다.",
     objectives: [{ kind: "investigate", targets: ["hide_gate", "hide_cargo"] }],
     offer: [L(J(), "때가 되었네. 협곡 안쪽의 길을 열었네. 저 바위 너머가 어둠 세력의 아지트일세."),
             L(J(), "바깥은 경비병이 지키고 있네. 붉은 시선에 걸리면 잡히니, 입구로 돌려보내질 걸세. 상자 앞에서 Space를 눌러 숨고, 기둥 뒤로 지나가게. 몇 번을 다시 해도 잃는 건 없네."),
-            L(J(), "안쪽 갱도와 실험 구역에서는 싸울 각오를 하게. 그리고 무엇을 만드는지, 누가 책임자인지 꼭 눈으로 확인하고 오게.")],
+            L(J(), "길을 쭉 가다보면 갱도가 나올 걸세. 거기에서 무슨 일이 벌어지는지 꼭 알아오게.")],
     reminder: ["초소의 장부와 빈 수송 우리를 살피고 갱도 입구로 가게. 경비의 시선은 상자와 기둥으로 피하게."],
     reward: { exp: 400, silver: 40, items: [] }
   });
