@@ -246,7 +246,7 @@ window.AU = window.AU || {};
         if (v.hand && v.hand.t < 1) { const h = v.hand, hx = e.x + e.face * 14, hy = G - 88; A.plank(ctx, h.x0 + (hx - h.x0) * h.t, h.y0 + (hy - h.y0) * h.t - Math.sin(h.t * Math.PI) * 8, 120, -0.05); }   // 주인공 손에서 아버지 손으로 천천히 건넴
         if (v.fhold && !A.has("pc_father_work")) A.plank(ctx, e.x + e.face * 14, G - 88 + Math.sin(P.time * 6) * (v.fwalk ? 1.5 : 0), 120, -0.03 * e.face);   // 건네받은 목재를 두 손으로 듦
         if (e.mark && !P.locked()) { const by = G - 204 + Math.sin(P.time * 4) * 4; ctx.fillStyle = "#E8B94E"; ctx.strokeStyle = "#fff"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(e.x - 11, by - 12); ctx.lineTo(e.x + 11, by - 12); ctx.lineTo(e.x, by + 4); ctx.closePath(); ctx.fill(); ctx.stroke(); } } });
-    const pile = P.addEnt({ id: "pile", x: L.pile, range: 90, layer: "mid", interact: { label: "목재 들기", off: true, fn: () => { if (st.carry) return; st.carry = true; v.carry = true; P.sfx("pick"); pile.mark = false; father.mark = true; father.interact.label = "목재 건네기"; P.hint("목재를 들었습니다. 아버지에게 가져가세요.", 3.5); } },
+    const pile = P.addEnt({ id: "pile", x: L.pile, range: 90, layer: "mid", interact: { label: "목재 들기", off: true, fn: () => { if (st.carry) return; st.carry = true; v.carry = true; P.sfx("wood_lift"); pile.mark = false; father.mark = true; father.interact.label = "목재 건네기"; P.hint("목재를 들었습니다. 아버지에게 가져가세요.", 3.5); } },
       draw(ctx, e, P) { for (let i = 0; i < v.pile; i++) A.plank(ctx, e.x + (i % 2) * 6, G - 10 - i * 15, 150, (i % 2 ? 0.01 : -0.01)); ctx.fillStyle = "#6e4a25"; ctx.fillRect(e.x - 66, G - 6, 8, 6); ctx.fillRect(e.x + 58, G - 6, 8, 6);
         if (e.mark && !P.locked()) { const by = G - 130 + Math.sin(P.time * 4) * 4; ctx.fillStyle = "#E8B94E"; ctx.strokeStyle = "#fff"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(e.x - 11, by - 12); ctx.lineTo(e.x + 11, by - 12); ctx.lineTo(e.x, by + 4); ctx.closePath(); ctx.fill(); ctx.stroke(); } } });
     const frame = P.addEnt({ id: "frame", x: L.joint, range: 100, layer: "mid", interact: { label: "이음새 망치질", off: true, fn: () => hammerJoint() },
@@ -267,7 +267,7 @@ window.AU = window.AU || {};
       if (!st.talk) { st.talk = true; await P.cutscene(async () => { await P.say(T.father1); }); pile.interact.off = false; pile.mark = true; father.mark = false; P.obj(OBJ.s1_lumber); return; }
       if (st.carry && !st.installed) { st.installed = true; await P.cutscene(async () => {
         father.working = false; father.faceP = false; father.face = AU.World.player.x < father.x ? -1 : 1; await P.wait(0.3); if (AU.Img.has(P.heroKey("work"))) { P.face(father.x >= AU.World.player.x ? 1 : -1); v.give = true; await P.wait(0.8); v.give = false; v.carry = false; P.sfx("pick"); }   // 새 그림: 주인공이 두 팔로 내밀고, 아버지가 받는 자세로 바뀜
-        else { v.hand = { t: 0, x0: AU.World.player.x + 4, y0: G - 96 }; v.carry = false; P.sfx("pick"); await P.tween(v.hand, { t: 1 }, 0.55, (k) => k * (2 - k)); }
+        else { v.hand = { t: 0, x0: AU.World.player.x + 4, y0: G - 96 }; v.carry = false; P.sfx("wood_lift"); await P.tween(v.hand, { t: 1 }, 0.55, (k) => k * (2 - k)); }
         v.fhold = true; await P.wait(0.25);   // 주인공이 목재를 건네면 아버지가 망치를 멈추고 받음
         const home = father.x, tx = L.joint - 150; father.face = tx >= father.x ? 1 : -1; v.fwalk = true; await P.tween(father, { x: tx }, Math.max(0.6, Math.abs(tx - father.x) / 110), (k) => k); v.fwalk = false; father.face = 1; await P.wait(0.25);   // 틀 앞까지 들고 걸어감
         if (A.has("pc_father_work")) { // 틀 앞에서 잠깐 숨을 고르고 → 두 팔을 내밀어 목재를 틀 위로 밀어 올려놓고 → 손을 거두며 자세를 바로 함
@@ -358,8 +358,8 @@ window.AU = window.AU || {};
       P.limits = { min: 40, max: L.limit, msg: "먼저 주민과 이야기를 나눠 보세요. (마을길로는 돌아갈 수 없습니다)" };
       // 광장 전용 인물: 마을길에서 만난 주민(나이 든 주민·축제 어린이)과 겹치지 않도록 새 인물을 둠(빵을 나누는 주민은 마을길에서 "광장에서 보자"고 한 인물이라 그대로)
       const sT = standing("g", "villager_a"), sF = standing("l", "villager_b");
-      // 주민과 대화를 시작하면 군중이 환호하고(함성 1회), 그 뒤로는 계속 즐겁게 들떠 있음(가라앉지 않음)
-      const joy = () => { try { if (!P.flag("plaza_cheered")) { P.setFlag("plaza_cheered"); P.sfx("cheer"); } P.tween(P.v, { cheer: 0.75 }, 0.7); } catch (e) { /* 무시 */ } };
+      // 주민과 대화를 시작하면 군중이 들뜨고(그림만, 함성 소리는 기념제 문구가 나올 때), 그 뒤로는 계속 즐겁게 들떠 있음(가라앉지 않음)
+      const joy = () => { try { if (!P.flag("plaza_cheered")) P.setFlag("plaza_cheered"); P.tween(P.v, { cheer: 0.75 }, 0.7); } catch (e) { /* 무시 */ } };
       const elder = npc(P, "traveler", "traveler", sT.sprite, L.elder, sT.h, Object.assign({}, sT.extra, { range: 100, interact: { label: "대화: 먼 마을에서 온 할머니", fn: () => { joy(); return P.cutscene(() => P.say(T.plaza_traveler)); } } }));
       const child = npc(P, "florist", "florist", sF.sprite, L.child, sF.h, Object.assign({}, sF.extra, { range: 100, interact: { label: "대화: 꽃 심부름 온 사내아이", fn: () => { joy(); return P.cutscene(() => P.say(T.plaza_florist)); } } }));
       const vendor = npc(P, "vendor", "vendor", artSpr("pc_villager_b_actions", "baker"), L.vendor, 150, { frame: A.sprFrame("pc_villager_b_actions", "cheer2"), range: 110, mark: true, interact: { label: "대화: 소피아", fn: async () => {
@@ -390,7 +390,8 @@ window.AU = window.AU || {};
   async function centerEvent() {
     const P = AU.Prologue, g = P.gen, v = P.v;
     await P.cutscene(async () => {
-      P.obj(""); await P.tween(v, { cheer: 1 }, 1.0); P.zoomTo(1.12, 2.6, 640, 330); await P.caption(T.cap2, 4.4);
+      // 소피아와 대화한 뒤 기념제 문구가 나올 때 주민들이 환호(함성 소리)
+      P.obj(""); P.sfx("cheer"); await P.tween(v, { cheer: 1 }, 1.0); P.zoomTo(1.12, 2.6, 640, 330); await P.caption(T.cap2, 4.4);
       await P.tween(v, { cheer: 0 }, 0.8); P.zoomTo(1, 0.8); await P.wait(1.6); // 음악이 멈춘 듯한 짧은 정적
       P.sfx("boom"); P.shake(18, 1.6); await P.fade(1, 0.2, "#fff"); await P.wait(0.5);
     }, { id: "cs02a", skip: true, bars: true });
