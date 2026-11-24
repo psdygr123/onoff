@@ -1,4 +1,4 @@
-/* 게임 규칙(화면과 무관): 경험치·레벨업, 인벤토리·장비, 스탯 분배, 퀘스트, 전직, 피로도(스킬로 쌓이는 수치), 현실 미션, 마음 기록, 저장.
+/* 게임 규칙(화면과 무관): 경험치·레벨업, 인벤토리·장비, 스탯 분배, 퀘스트, 전직, 피로도(스킬로 쌓이는 수치), 일상 미션, 마음 기록, 저장.
    화면 쪽은 AU.Ev 이벤트를 받아 갱신합니다. */
 window.AU = window.AU || {};
 (function () {
@@ -144,10 +144,10 @@ window.AU = window.AU || {};
     },
 
     /* ---------- 스탯 분배: 미리보기 → 최종 적용 ---------- */
-    // 기본 레벨 포인트는 현실 미션 수행 여부와 무관하게 사용 가능. 훈련 포인트는 선택형 현실 활동 추가 보상.
+    // 기본 레벨 포인트는 일상 미션 수행 여부와 무관하게 사용 가능. 훈련 포인트는 선택형 일상 활동 추가 보상.
     gateBand() { return Math.max(10, Math.floor(this.S.level / 5) * 5); },
     gateOpen() { return true; },
-    openGate() { /* 구 저장과의 호환용. 더 이상 현실 미션이 스탯 분배를 잠그지 않음. */ },
+    openGate() { /* 구 저장과의 호환용. 더 이상 일상 미션이 스탯 분배를 잠그지 않음. */ },
     usableFree() { return this.gateOpen() ? this.S.freePoints : 0; },
     pool() { return this.usableFree() + this.S.trainingPoints; },
     // pending: { STR: 2, ... }. 레벨 포인트를 먼저 쓰고 부족하면 훈련 포인트를 씀
@@ -333,17 +333,17 @@ window.AU = window.AU || {};
       this.toast("스탯 포인트 +" + C.levels.freePointsOnJobChange + ". 모험일지(J)의 '쉼' 미션으로 피로도를 줄일 수 있습니다", "info");
       AU.Ev.emit("jobchange", { job });
     },
-    /* 현실 미션: 프롤로그가 끝나 본편(Lv1)이 시작되는 순간부터 열린다. 게임 안의 능력치와는 별개이며 선택 사항.
+    /* 일상 미션: 프롤로그가 끝나 본편(Lv1)이 시작되는 순간부터 열린다. 게임 안의 능력치와는 별개이며 선택 사항.
        쉼 미션·피로도는 스킬을 배우는 시점(Lv10)에 따로 안내한다(skills.unlocked가 비어 있는 동안은 쉼 미션을 쓸 수 없음). */
     unlockRealMissions(announce) {
       const S = this.S; if (S.flags.missionsUnlocked) return false;
       S.flags.missionsUnlocked = true; this.initMissions();
-      if (announce) this.toast("모험일지(J)에 현실 활동이 열렸습니다. 알렉시오스에게 말을 걸어 보세요.", "info");
+      if (announce) this.toast("모험일지(J)에 일상 활동이 열렸습니다. 알렉시오스에게 말을 걸어 보세요.", "info");
       return true;
     },
     syncUnlockedState() {
       const S = this.S, pro = S.prologue;
-      // 프롤로그를 이미 끝낸 저장(또는 이전 규칙으로 전직한 저장)은 현실 미션을 연다
+      // 프롤로그를 이미 끝낸 저장(또는 이전 규칙으로 전직한 저장)은 일상 미션을 연다
       if (!S.flags.missionsUnlocked && ((pro && pro.state === "COMPLETED") || S.jobChanged || S.flags.awakened)) { S.flags.missionsUnlocked = true; }
       if (S.flags.missionsUnlocked) this.initMissions();
     },
@@ -364,7 +364,7 @@ window.AU = window.AU || {};
     // 피로도 줄이기. source = 'mission' | 'item' | 'weekly' | 'dev'
     relieve(source, amount, reason) { this.setFatigue(this.S.fatigue - amount, source); AU.Ev.emit("recover", { source, amount, reason }); },
     restMission(id) { return AU.REST_MISSIONS.find((m) => m.id === id); },
-    // 선택형 '쉼' 현실 미션: 하루에 같은 미션은 한 번. 자기보고이며 마음 스탯·훈련 포인트와는 무관
+    // 선택형 '쉼' 일상 미션: 하루에 같은 미션은 한 번. 자기보고이며 마음 스탯·훈련 포인트와는 무관
     restDaily() { // 11-24: 쉼 미션은 하루 5개씩, 날마다 다른 조합(id 순서를 5개씩 돌려 가며 보여 줌 — 같은 날엔 항상 같은 5개)
       const pool = AU.REST_MISSIONS.slice().sort((a, b) => (a.id < b.id ? -1 : 1)), n = pool.length, cnt = Math.min(5, n);
       const [y, mo, d] = AU.dateStr().split("-").map(Number), day = Math.floor(Date.UTC(y, mo - 1, d) / 86400000), start = (day * cnt) % n;
@@ -395,7 +395,7 @@ window.AU = window.AU || {};
       return false;
     },
 
-    /* ---------- 현실 미션 ---------- */
+    /* ---------- 일상 미션 ---------- */
     mission(id) { return AU.MISSIONS.find((m) => m.id === id); },
     ms(id) { return this.S.missions.states[id] || { state: "locked", rewarded: false, tries: 0 }; },
     initMissions() {
@@ -453,7 +453,7 @@ window.AU = window.AU || {};
       S.flags.guideMet = true; this.initMissions();
       this.save("mission"); this.changed(); return true;
     },
-    /* ---------- 현실 미션 보상: 난이도(1~3) + 시간(0~2) + 기간(0~2) 합산으로 3등급 ----------
+    /* ---------- 일상 미션 보상: 난이도(1~3) + 시간(0~2) + 기간(0~2) 합산으로 3등급 ----------
        인증(보조 기록)을 하면 full, 안 하면 part만 지급하고 나중에 인증하면 차액을 소급 지급합니다. */
     missionTier(m) {
       const d = Math.max(1, Math.min(3, m.difficulty || 1)), t = (m.minutes || 0) <= 5 ? 0 : m.minutes <= 15 ? 1 : 2, sp = m.span || 1, g = sp >= 7 ? 2 : sp >= 2 ? 1 : 0;
@@ -475,7 +475,7 @@ window.AU = window.AU || {};
       let gained = 0; if (ex.mind > 0) gained = this.gainMind(m.perma, ex.mind);
       r.reward = { tier: rw.tier, verified: true, tokens: rw.full.tokens, mind: rw.full.mind };
       e.supplementary = sup; e.proof = "evidence"; e.galleryTokens = (e.galleryTokens || 0) + Math.max(0, ex.tokens); e.mindGained = (e.mindGained || 0) + gained; e.verifiedLate = AU.dateStr();
-      this.log("현실 미션 인증: " + m.title);
+      this.log("일상 미션 인증: " + m.title);
       this.toast("인증 완료! 남은 보상 토큰 +" + Math.max(0, ex.tokens) + (gained ? " · 마음 [" + AU.PERMA[m.perma] + "] +" + gained : ""), "good");
       this.save("mission-verify"); this.changed(); return true;
     },
@@ -485,7 +485,7 @@ window.AU = window.AU || {};
       const today = AU.dateStr(), span = m.span || 1, day = Math.min(span, Math.max(1, AU.daysBetween(r.startDate, today) + 1));
       return { span, day, left: Math.max(0, AU.daysBetween(today, r.dueDate)), start: r.startDate, due: r.dueDate, overdue: today > r.dueDate, finishable: today >= r.dueDate, needMid: span >= 7 && day >= 4 && day <= 6 && !r.mid };
     },
-    /* 진행 중인 현실미션: 마감 빠른 순(기한 지난 것이 맨 앞) */
+    /* 진행 중인 일상미션: 마감 빠른 순(기한 지난 것이 맨 앞) */
     activeMissionsByDue() { return AU.MISSIONS.filter((m) => { const r = this.ms(m.id); return ["accepted", "attempted", "partial"].includes(r.state) && r.startDate; }).sort((a, b) => this.ms(a.id).dueDate.localeCompare(this.ms(b.id).dueDate)); },
     overdueMissions() { return AU.MISSIONS.filter((m) => { const r = this.ms(m.id); return ["accepted", "attempted", "partial"].includes(r.state) && r.startDate && AU.dateStr() > r.dueDate; }); },
     // 7일형 중간 확인: 수행하면서 어려운 점을 글로 받음(없다고 적어도 됨)
@@ -494,6 +494,15 @@ window.AU = window.AU || {};
       r.mid = { t: AU.dateStr(), text: String(text || "").trim().slice(0, 300) || "어려운 점 없음" };
       this.save("mission-mid"); this.changed(); return true;
     },
+    /* 기간형 일별 기록: 하루에 한 줄(그날 다시 적으면 덮어씀). 마감 전에 깜빡하지 않도록 매일 남길 수 있음 */
+    dailyCheck(id, text) {
+      const r = this.S.missions.states[id], m = this.mission(id); if (!r || !m || (m.span || 1) < 2 || !["accepted", "attempted", "partial"].includes(r.state)) return false;
+      r.daily = r.daily || {}; r.daily[AU.dateStr()] = String(text || "").trim().slice(0, 200) || "오늘 해 봤어요";
+      this.save("mission-daily"); this.changed(); return true;
+    },
+    dailyInfo(id) { const r = this.ms(id), d = r.daily || {}, today = AU.dateStr(); return { n: Object.keys(d).length, today: d[today] || null }; },
+    /* 4일차 이후 처음 접속했을 때 중간 점검을 한 번 물어볼 7일형 활동 */
+    pendingMidChecks() { return AU.MISSIONS.filter((m) => { const r = this.ms(m.id), pg = ["accepted", "attempted", "partial"].includes(r.state) ? this.missionProgress(m.id) : null; return pg && (m.span || 1) >= 7 && pg.day >= 4 && !pg.overdue && !r.mid && !r.midAsked; }); },
     // 다시 제시된 활동을 수락하기 전에 '성공하려면 필요한 것'을 글로 받음
     setReofferNote(id, text) {
       const r = this.S.missions.states[id]; if (!r) return false;
@@ -544,7 +553,7 @@ window.AU = window.AU || {};
           const pay = verified ? rw.full : rw.part;
           const room = Math.max(0, C.missions.weeklyPointCap - S.missions.weekPoints);
           points = Math.min(pay.mind, room); capped = points < pay.mind;
-          // 새 현실 미션 보상은 전투 스탯과 독립된 개인 공간 장식 재화로 지급합니다.
+          // 새 일상 미션 보상은 전투 스탯과 독립된 개인 공간 장식 재화로 지급합니다.
           // 구 저장의 trainingPoints 및 이미 배분한 스탯은 삭제하지 않습니다.
           if (!S.gallery) S.gallery = { tokens: 0, unlocked: [], selected: [], attendance: [] };
           earnedTokens = pay.tokens;
@@ -559,11 +568,11 @@ window.AU = window.AU || {};
       S.missions.log.push({ t: AU.dateStr(), id, perma: m.perma, state: r.state, points, capped, reflection: review, mindGained: gained, galleryTokens: earnedTokens, proof: supplementary ? "evidence" : "self_report", supplementary });
       if (next === "done" || next === "skip") this.fillSlots(next === "skip" ? id : undefined);
       if (next === "done") {
-        this.log("현실 미션 완료: " + m.title);
+        this.log("일상 미션 완료: " + m.title);
         const mindTxt = gained ? " · 마음 [" + AU.PERMA[m.perma] + "] +" + gained : "";
         const rr = S.missions.states[id].reward, rw = this.missionReward(m);
         const more = rr && !rr.verified && (rw.full.tokens - rr.tokens || rw.full.mind - rr.mind) ? " · 인증하면 토큰 +" + (rw.full.tokens - rr.tokens) + (rw.full.mind - rr.mind ? "·마음 +" + (rw.full.mind - rr.mind) : "") + " 더" : "";
-        this.toast("현실 미션 완료! [" + rw.name + "] 갤러리 토큰 +" + earnedTokens + mindTxt + more, "good");
+        this.toast("일상 미션 완료! [" + rw.name + "] 갤러리 토큰 +" + earnedTokens + mindTxt + more, "good");
       }
       this.save("mission"); this.changed(); return true;
     },
@@ -573,7 +582,7 @@ window.AU = window.AU || {};
       const reflection=this.validMissionFeedback(feedback)?{challenge:feedback.challenge,meaning:feedback.meaning,satisfaction:feedback.satisfaction,efficacy:(Number.isInteger(feedback.efficacy)&&feedback.efficacy>=1&&feedback.efficacy<=5)?feedback.efficacy:null,mood:(typeof feedback.mood==="string"&&feedback.mood.length<=20)?feedback.mood:null,note:String(feedback.note||"").trim().slice(0,200)}:null;
       const supplementary=AU.MissionEvidence?AU.MissionEvidence.clean(evidence,m):null;
       S.missions.log.push({t:AU.dateStr(),id,perma:m.perma,state:"done",repeat:true,points:0,capped:false,reflection,mindGained:0,galleryTokens:0,proof:supplementary?"evidence":"self_report",supplementary});
-      this.log("현실 미션 반복 수행: "+m.title);this.toast("반복 수행 기록 완료 · 추가 점수와 토큰은 없습니다.","info");
+      this.log("일상 미션 반복 수행: "+m.title);this.toast("반복 수행 기록 완료 · 추가 점수와 토큰은 없습니다.","info");
       this.save("mission-repeat");this.changed();return true;
     },
     missionRepeatStats(id){
@@ -690,7 +699,7 @@ window.AU = window.AU || {};
       if (g.selected.includes(id)) g.selected = g.selected.filter(x => x !== id); else g.selected.push(id);
       this.save('gallery'); this.changed(); return true;
     },
-    /* ---------- 마음 스탯(PERMA 5): 현실 미션을 수행하면 오르는 수치 ----------
+    /* ---------- 마음 스탯(PERMA 5): 일상 미션을 수행하면 오르는 수치 ----------
        전투 스탯과 따로 보관하며 전투 능력에는 영향을 주지 않습니다(게임 효과 연결은 [미정]). 같은 미션의 보상은 한 번만. */
     /* 마음 스탯 변화 추이: '이전' = 이번 주가 시작될 때의 기록(주가 바뀌면 그 시점의 수치로 새로 찍음). 현재−이전 = 이번 주에 오른 만큼.
        게임 속 활동 점수의 변화이며 PSS·PERMA 같은 검사 점수와는 별개입니다. 저장된 값이 바뀌었으면 true */

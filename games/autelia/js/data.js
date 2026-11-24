@@ -1,4 +1,4 @@
-/* 아우텔리아 콘텐츠 데이터(맵·적·아이템·퀘스트·스킬·현실 미션).
+/* 아우텔리아 콘텐츠 데이터(맵·적·아이템·퀘스트·스킬·일상 미션).
    스토리 담당자가 세부 시나리오를 따로 쓰므로, 여기 있는 퀘스트·대사·NPC 이름은 전부 '임시 테스트 콘텐츠'입니다.
    TODO 표시가 붙은 곳은 정식 데이터가 들어올 자리입니다. 이전 아스텔리아 스토리는 섞지 않았습니다. */
 window.AU = window.AU || {};
@@ -386,7 +386,7 @@ AU.QUESTS = {
 AU.QKIND = {
   main: { label: "메인", icon: "★", color: "#B98B45", colorDark: "#946B2C", colorLight: "#FFD978", bg: "#F6E8C6" },
   sub: { label: "서브", icon: "!", color: "#4C8DC6", colorDark: "#2F6A9C", colorLight: "#8EC5F2", bg: "#DCEAF6" },
-  real: { label: "현실", icon: "♥", color: "#8A78B0", colorDark: "#6B5A92", colorLight: "#C9BBE6", bg: "#ECE7F5" }
+  real: { label: "일상", icon: "♥", color: "#8A78B0", colorDark: "#6B5A92", colorLight: "#C9BBE6", bg: "#ECE7F5" }
 };
 // 색의 원본은 위 표 한 곳: CSS 변수(--qk-종류, -d, -l, -bg)로 내보내 화면 스타일이 같은 값을 씁니다.
 (() => { const r = document.documentElement.style; for (const [k, v] of Object.entries(AU.QKIND)) { r.setProperty("--qk-" + k, v.color); r.setProperty("--qk-" + k + "-d", v.colorDark); r.setProperty("--qk-" + k + "-l", v.colorLight); r.setProperty("--qk-" + k + "-bg", v.bg); } })();
@@ -433,7 +433,7 @@ AU.UNLOCKS = [
   { level: 10, text: "10레벨입니다. 손목의 낙인이 반응합니다. 제페토에게 힘이 깨어나는 이야기를 들어 보세요." }
 ];
 
-/* ---------- 현실 미션 (임시 목록, [미정]) ---------- */
+/* ---------- 일상 미션 (임시 목록, [미정]) ---------- */
 // 'PERMA' 영역: P 긍정정서, E 몰입, R 긍정적 관계, M 의미, A 성취. 전투 스탯과 일대일로 묶지 않음.
 // 쉬운 것(d1)부터 시작하고, d2는 같은 영역의 d1을 완료하면 열립니다. 성찰 질문·설명 팝업은 두지 않습니다.
 AU.PERMA = { P: "긍정정서", E: "몰입", R: "긍정적 관계", M: "의미", A: "성취" };
@@ -1539,7 +1539,7 @@ AU.MISSIONS.push(...[
   }
 ]);
 // 활동 경험 점수는 심리검사 점수와 별개입니다.
-/* 선택형 '쉼' 현실 미션: 피로도를 줄이는 짧은 휴식 활동(PERMA 마음 스탯과는 별개). 수치·목록은 임시, 하루에 같은 미션은 한 번 */
+/* 선택형 '쉼' 일상 미션: 피로도를 줄이는 짧은 휴식 활동(PERMA 마음 스탯과는 별개). 수치·목록은 임시, 하루에 같은 미션은 한 번 */
 AU.REST_MISSIONS = [
   { id: "r_breath", title: "3분 호흡 가다듬기", desc: "편한 자세로 앉아 숨을 천천히 들이쉬고 내쉬며 3분을 보냅니다.", recover: 25,
     guide: { kind: "breath", secs: 180, intro: ["편한 자세로 앉아 어깨의 힘을 뺍니다.", "코로 4초 들이쉬고, 입으로 6초 천천히 내쉽니다.", "생각이 떠오르면 ‘떠올랐구나’ 하고 알아차린 뒤, 다시 숨으로 돌아옵니다. 잘하려고 애쓰지 않아도 됩니다."] } },
@@ -1814,7 +1814,7 @@ AU.REST_MISSIONS.push(...[
     "optional": true
   }
 ]);
-// 현실 미션 보상표: [토큰, 마음 점수]. full=인증 시, part=인증 안 했을 때(나중에 인증하면 차액 소급 지급)
+// 일상 미션 보상표: [토큰, 마음 점수]. full=인증 시, part=인증 안 했을 때(나중에 인증하면 차액 소급 지급)
 AU.MISSION_REWARD = { 1: { name: "가벼운 활동", full: [2, 1], part: [1, 1] }, 2: { name: "보통 활동", full: [3, 2], part: [2, 1] }, 3: { name: "도전 활동", full: [4, 3], part: [2, 2] } };
 AU.MISSION_ACTIVE = ["available", "accepted", "attempted", "partial"]; // 슬롯을 차지하는(진행 가능한) 상태
 AU.MISSION_STATES = {
