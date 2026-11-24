@@ -98,7 +98,7 @@ window.AU = window.AU || {};
 
       const blocked = this.isBlocked();
       this.updatePlayer(dt, blocked);
-      this.updateMonsters(dt); this.updateNpcs(dt);
+      this.updateMonsters(dt); this.updateNpcs(dt, blocked);
       // 쿨다운
       p.invuln = Math.max(0, p.invuln - dt); p.flash = Math.max(0, p.flash - dt); p.atkT = Math.max(0, p.atkT - dt); if (p.sk) { p.sk.t += dt; if (p.sk.t >= p.sk.dur) p.sk = null; }
       p.atkCD = Math.max(0, p.atkCD - dt); p.gcd = Math.max(0, p.gcd - dt);
@@ -398,12 +398,12 @@ window.AU = window.AU || {};
     },
 
     /* ---------- 적 AI: 순찰 → 추적 → 준비 동작(!) → 돌진 ---------- */
-    updateNpcs(dt) { // 오가는 주민: patrol:[왼끝,오른끝] 안에서 목적지를 골라 천천히 가속·감속하며 걷고, 도착하면 잠시 쉬며 가끔 반대쪽을 둘러본다. 플레이어가 가까우면 멈춰 선다
+    updateNpcs(dt, blocked) { // 오가는 주민: patrol:[왼끝,오른끝] 안에서 목적지를 골라 천천히 가속·감속하며 걷고, 도착하면 잠시 쉬며 가끔 반대쪽을 둘러본다. 플레이어가 바로 앞(55px)까지 오거나 대화·창이 열리면 멈춰 선다
       const map = AU.MAPS[AU.G.S.map]; if (!map || !map.npcs) return; const px = this.player.x;
       map.npcs.forEach((n, i) => {
         if (!n.patrol || this.npcEdit) { if (n.patrol) n._walk = false; return; } n._f = n._f || 1; n._t = (n._t || 0) + dt;
         if (n._v == null) { n._v = 0; n._go = false; n._wt = 0.5 + ((i * 7) % 5); n._step = 0; n._sp = (n.speed || 38) * (0.8 + ((i * 3) % 5) * 0.1); }   // 걷는 속도는 주민마다 조금씩 다르게
-        const near = Math.abs(px - n.x) < 130, lo = n.patrol[0], hi = n.patrol[1];
+        const near = blocked || Math.abs(px - n.x) < 55, lo = n.patrol[0], hi = n.patrol[1];
         if (near) { n._walk = false; n._v = 0; return; }
         if (n._go) {
           const d = n._tx - n.x, ad = Math.abs(d), want = n._sp * Math.min(1, 0.3 + ad / 60);   // 출발·도착 때 느리게
@@ -697,6 +697,7 @@ window.AU = window.AU || {};
     drawNpc(ctx, n) {
       if (this.npcEdit) { const ny = n.npcY || GROUND; ctx.save(); ctx.setLineDash([6, 4]); ctx.lineWidth = 2; ctx.strokeStyle = "#FFE08A"; ctx.strokeRect(n.x - 55, ny - 190, 110, 220); ctx.setLineDash([]); ctx.font = "700 14px 'Noto Sans KR', sans-serif"; ctx.textAlign = "center"; ctx.fillStyle = "rgba(30,22,15,.8)"; ctx.fillRect(n.x - 52, ny + 34, 104, 20); ctx.fillStyle = "#FFE08A"; ctx.fillText(Math.round(n.x) + " , " + Math.round(ny), n.x, ny + 49); ctx.restore(); }
       const d = AU.NPCS[n.id], y = n.npcY || GROUND, face = n.patrol && n._walk ? n._f : (this.player.x < n.x ? -1 : 1), bob = n.patrol && n._walk ? Math.abs(Math.sin((n._step || 0) * 0.11)) * 3 * Math.min(1, n._v / 20) : 0;
+      const wk = n.patrol && n._walk; if (wk) { const s = Math.sin((n._step || 0) * 0.11), k = Math.min(1, n._v / 20); ctx.save(); ctx.translate(n.x, y); ctx.rotate(s * 0.045 * k * face); ctx.scale(1 + Math.abs(s) * 0.025 * k, 1 - Math.abs(s) * 0.02 * k); ctx.translate(-n.x, -y); }   // 걸을 때: 발끝을 축으로 좌우 기우뚱 + 걸음마다 살짝 눌림
       const hh = 150 * (d.scale || 1), lit = this.vis === "rim" && !(AU.Prologue && AU.Prologue.on) && AU.Img.has(d.sprite) && Math.abs(n.x - (this.camX + W / 2)) < W / 2 + 160; // 화면 밖 NPC는 효과 생략(필터 비용 절약)
       if (lit) { // 배경과 섞이지 않도록: 뒤쪽 은은한 역광 + 밝은 테두리 빛 + 얇은 어두운 윤곽(주인공만큼 또렷하게)
         ctx.save(); ctx.translate(n.x, y - hh * 0.5); ctx.scale(0.62, 1); const g = ctx.createRadialGradient(0, 0, 6, 0, 0, hh * 0.78);
@@ -707,6 +708,7 @@ window.AU = window.AU || {};
         ctx.restore();
       }
       if (!lit && !this.sprite(ctx, d.sprite, n.x, y - bob, hh, face, 0)) { ctx.fillStyle = "#C9B8A0"; this.rr(ctx, n.x - 30, y - 130, 60, 130, 20); ctx.fill(); ctx.fillStyle = "#5B4636"; ctx.font = "14px sans-serif"; ctx.textAlign = "center"; ctx.fillText("이미지 없음", n.x, y - 60); }
+      if (wk) ctx.restore();
     },
     npcRole(id) { // 역할별 구분(글자·색): 상점/전직/안내/의뢰
       const d = AU.NPCS[id];

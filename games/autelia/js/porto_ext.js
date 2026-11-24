@@ -60,5 +60,7 @@
   add("npc_housewife", 420); add("npc_resident_f", 700, L(590, 840)); add("npc_townsman", 1180, L(900, 1500)); add("npc_peddler", 1560, L(1470, 1640)); add("npc_spicer", 2020, L(1860, 2200));
   add("npc_netmender", 1760); add("npc_fishwife", 2500, L(2350, 2750)); add("npc_fisher", 2980, L(2800, 3200));
   add("npc_cabinboy", 3380, L(3340, 3440)); add("npc_sailor", 3600, L(3450, 4000)); add("npc_porter", 4250, L(4050, 4850));
+  // 가만히 서 있던 주민·안내인도 제자리 근처(±110)를 천천히 오가게 함
+  P.npcs.forEach((n) => { if (!n.patrol) { n.patrol = [n.x - 110, n.x + 110]; n.speed = 28; } });
   add("npc_porter2", sh(2689) + 300, L(sh(2689) + 150, sh(2689) + 900)); add("npc_sailor2", sh(2689) + 1250, L(sh(2689) + 1000, sh(2689) + 1550));
 })();
