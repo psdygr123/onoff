@@ -64,7 +64,7 @@ window.AU = window.AU || {};
       map: "pro_temple", x: AU.MAPS.pro_temple.start, visited: { pro_temple: true },
       profile: { name: "", gender: "" }, // 캐릭터 설정(닉네임·모습). 신규 시작 때 정함. 비어 있으면 기본값(주인공·남성형)
       prologue: { state: "NOT_STARTED", flags: {}, seen: {} }, // 신규 시작은 프롤로그부터. 기본 소지품(회복약)은 프롤로그 완료 시 지급
-      quests: {}, skills: { unlocked: [], slots: [null, null, null] },
+      quests: {}, skills: { unlocked: [], slots: [null, null, null, null, null] },
       flags: { missionsUnlocked: false, guideMet: false },
       missions: { states: {}, weekId: AU.weekId(), weekPoints: 0, log: [] },
       journal: [{ t: AU.dateStr(), text: "모험을 시작했습니다." }],
@@ -108,6 +108,8 @@ window.AU = window.AU || {};
     load(saved) {
       this.reset();
       if (saved && typeof saved === "object") {
+        // 11-24 칸 확장: 예전 기본키(물약 4·귀환 5)를 저장해 둔 경우는 새 기본키(Z·C)로 옮김(스킬 4·5와 겹치지 않게)
+        if (saved.skill4 == null && saved.potion === "Digit4") delete saved.potion; if (saved.skill5 == null && saved.scroll === "Digit5") delete saved.scroll;
         for (const a of AU.ACTIONS) { const v = saved[a.id]; if (typeof v === "string" && /^[A-Za-z0-9]{2,20}$/.test(v)) this.bindings[a.id] = v; }
         // 중복이 섞여 있으면 기본값으로 되돌림
         const codes = Object.values(this.bindings); if (new Set(codes).size !== codes.length) this.reset();

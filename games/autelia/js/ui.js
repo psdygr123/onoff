@@ -100,8 +100,8 @@ window.AU = window.AU || {};
       this.hud.menuBtn = btn("메뉴", "menubtn", () => this.toggleMenu(), { title: "메뉴 (Esc)" });
       this.hud.menuBtn.append(h("span", { class: "dot", id: "menudot" }));
       // 우측 하단: 스킬 슬롯
-      this.hud.quick = [["potion", "물약"], ["scroll", "귀환"]].map(([k, n]) => h("div", { class: "slot quick", onclick: () => AU.World.onAction(k) }, h("div", { class: "sk", text: n }), h("div", { class: "skey" }), h("div", { class: "scost" })));
-      this.hud.slots = [0, 1, 2].map((i) => h("div", { class: "slot", onclick: () => AU.World.onAction("skill" + (i + 1)) }, h("div", { class: "sk" }), h("div", { class: "sc" }), h("div", { class: "skey" }), h("div", { class: "scost" })));
+      this.hud.quick = [["potion", "물약"], ["tonic", "피로약"], ["scroll", "귀환"], ["quick4", "(빈칸)"]].map(([k, n]) => h("div", { class: "slot quick", onclick: () => AU.World.onAction(k) }, h("div", { class: "sk", text: n }), h("div", { class: "skey" }), h("div", { class: "scost" })));
+      this.hud.slots = [0, 1, 2, 3, 4].map((i) => h("div", { class: "slot", onclick: () => AU.World.onAction("skill" + (i + 1)) }, h("div", { class: "sk" }), h("div", { class: "sc" }), h("div", { class: "skey" }), h("div", { class: "scost" })));
       this.hud.prompt = h("div", { class: "prompt" });
       this.hud.mapName = h("div", { class: "mapname" });
       this.hud.toasts = h("div", { class: "toasts" });
@@ -110,7 +110,7 @@ window.AU = window.AU || {};
       this.hud.warn = h("div", { class: "storewarn" });
       this.hud.devBtn = btn("개발", "devbtn", () => this.toggleWin("dev"), { title: "개발 테스트 (F2)" });
       this.hud.dashEl = h("div", { class: "slot quick", title: "이동기: 최대 3번 충전, 10초마다 1번 충전", onclick: () => AU.World.onAction("dash") }, h("div", { class: "sk", text: "이동기" }), h("div", { class: "skey" }), h("div", { class: "scost" }));
-      R.append(this.hud.keyhint, panel, topleft, this.hud.menuBtn, h("div", { class: "slots" }, [...this.hud.quick, this.hud.dashEl, ...this.hud.slots]), this.hud.prompt, this.hud.mapName, this.hud.toasts, this.hud.save, this.hud.banner, this.hud.warn, this.hud.devBtn);
+      R.append(this.hud.keyhint, panel, topleft, this.hud.menuBtn, h("div", { class: "slots" }, h("div", { class: "srow" }, ...this.hud.slots), h("div", { class: "srow items" }, this.hud.dashEl, ...this.hud.quick)), this.hud.prompt, this.hud.mapName, this.hud.toasts, this.hud.save, this.hud.banner, this.hud.warn, this.hud.devBtn);
       this.hud.cache = {};
       this.winEl = h("div", { class: "winwrap hidden" }); this.dlgEl = h("div", { class: "dialog hidden" }); this.modalEl = h("div", { class: "modalwrap hidden" });
       this.cutEl = h("div", { class: "cutlayer" });   // 조사 장면용 전체 화면 컷 그림(대화창 바로 아래)
@@ -162,8 +162,8 @@ window.AU = window.AU || {};
       const need = AU.expToNext(S.level), atCap = S.level >= AU.levelCap(S);
       this.setStyle(this.hud.ex.firstChild, "ex", "width", (atCap && !S.jobChanged ? 100 : Math.min(100, S.exp / need * 100)).toFixed(1) + "%");
       this.setText(this.hud.ex.lastChild, "ext", atCap && !S.jobChanged ? "EXP 최대 레벨" : "EXP " + S.exp + " / " + need + " (" + (S.exp / need * 100).toFixed(1) + "%)");
-      this.hud.quick.forEach((el, i) => { const k = i ? "scroll" : "potion", n = i ? AU.G.count("town_scroll") : Object.keys(S.inv).filter((x) => AU.ITEMS[x] && AU.ITEMS[x].type === "use" && AU.ITEMS[x].heal).reduce((a, x) => a + S.inv[x], 0);
-        this.setText(el.querySelector(".skey"), "qkey" + i, keyOf(k)); this.setText(el.querySelector(".scost"), "qn" + i, "×" + n); el.classList.toggle("empty", n < 1); });
+      this.hud.quick.forEach((el, i) => { const k = ["potion", "tonic", "scroll", "quick4"][i], n = k === "scroll" ? AU.G.count("town_scroll") : k === "tonic" ? AU.G.count("fatigue_tonic") : k === "quick4" ? 0 : Object.keys(S.inv).filter((x) => AU.ITEMS[x] && AU.ITEMS[x].type === "use" && AU.ITEMS[x].heal).reduce((a, x) => a + S.inv[x], 0);
+        this.setText(el.querySelector(".skey"), "qkey" + i, keyOf(k)); this.setText(el.querySelector(".scost"), "qn" + i, k === "quick4" ? "" : "×" + n); el.classList.toggle("empty", n < 1); });   // 11-24 아이템 칸 4개(물약·피로약·귀환·예비)
       { const D = AU.CONFIG.dash, el = this.hud.dashEl, un = S.level >= D.level;
         this.setText(el.querySelector(".skey"), "dkey", keyOf("dash"));
         this.setText(el.querySelector(".scost"), "dn", un ? "●".repeat(p.dashN) + "○".repeat(D.max - p.dashN) + (p.dashN < D.max ? " " + Math.ceil(D.recharge - p.dashRt) + "s" : "") : "Lv." + D.level);
@@ -1188,13 +1188,13 @@ window.AU = window.AU || {};
     if (!AU.G.awakened()) { b.append(h("div", { class: "lockbox" }, h("h3", { text: "아직 스킬이 열리지 않았습니다" }), h("p", { text: "10레벨에 이야기 속에서 힘이 깨어나면 스킬이 열립니다. (현재 " + AU.jobName(S) + " · Lv." + S.level + ")" }), h("p", { class: "note", text: "기본 공격(" + keyOf("attack") + ")은 " + C.fatigue.name + "가 쌓이지 않습니다." }))); return; }
     b.append(UI.fatigueMeter(S, true));
     b.append(h("p", { class: "note vigor", text: FATIGUE_TIP.replace(/^피로도: /, "피로도란? ") }));
-    const slots = h("div", { class: "skslots" }, [0, 1, 2].map((i) => { const id = S.skills.slots[i]; return h("div", { class: "skslot" }, h("div", { class: "skey", text: keyOf("skill" + (i + 1)) }), h("div", { class: "skname" + (id ? "" : " eqempty"), text: id ? AU.SKILLS[id].name.replace(" (임시)", "") : "비어 있음" }), id ? btn("해제", "mini", () => { S.skills.slots[i] = null; AU.G.save("skill"); AU.G.changed(); }) : null); }));
+    const slots = h("div", { class: "skslots" }, [0, 1, 2, 3, 4].map((i) => { const id = S.skills.slots[i]; return h("div", { class: "skslot" }, h("div", { class: "skey", text: keyOf("skill" + (i + 1)) }), h("div", { class: "skname" + (id ? "" : " eqempty"), text: id ? AU.SKILLS[id].name.replace(" (임시)", "") : "비어 있음" }), id ? btn("해제", "mini", () => { S.skills.slots[i] = null; AU.G.save("skill"); AU.G.changed(); }) : null); }));
     const list = h("div", { class: "sklist" });
     for (const id of S.skills.unlocked) {
       const sk = AU.SKILLS[id], inSlot = S.skills.slots.indexOf(id);
       list.append(h("div", { class: "skitem" }, h("div", { class: "skhead" }, h("b", { text: sk.name }), inSlot >= 0 ? h("span", { class: "tag", text: "슬롯 " + (inSlot + 1) }) : null), h("p", { text: sk.desc }),
         h("div", { class: "stat", text: "피로도 +" + AU.G.skillCost(id) + (AU.G.skillCost(id) !== sk.cost ? " (기본 " + sk.cost + ", 의지 효율 적용)" : "") + " · 재사용 대기 " + sk.cd + "초" }),
-        h("div", { class: "assign" }, [0, 1, 2].map((i) => btn("슬롯 " + (i + 1) + " (" + keyOf("skill" + (i + 1)) + ")", S.skills.slots[i] === id ? "on" : "mini", () => { const prev = S.skills.slots.indexOf(id); if (prev >= 0) S.skills.slots[prev] = S.skills.slots[i]; S.skills.slots[i] = id; AU.G.save("skill"); AU.G.changed(); })))));
+        h("div", { class: "assign" }, [0, 1, 2, 3, 4].map((i) => btn("슬롯 " + (i + 1) + " (" + keyOf("skill" + (i + 1)) + ")", S.skills.slots[i] === id ? "on" : "mini", () => { const prev = S.skills.slots.indexOf(id); if (prev >= 0) S.skills.slots[prev] = S.skills.slots[i]; S.skills.slots[i] = id; AU.G.save("skill"); AU.G.changed(); })))));
     }
     b.append(h("h4", { text: "단축 슬롯" }), slots, h("h4", { text: "배운 스킬" }), list, h("p", { class: "note", text: "단축키 자체는 키보드 설정(" + keyOf("keysettings") + ")에서 바꿀 수 있습니다. 스킬은 레벨에 따라 하나씩 열립니다(Lv." + AU.SKILL_UNLOCK_LV.strike + " 1번 · Lv." + AU.SKILL_UNLOCK_LV.spin + " 2번 · Lv." + AU.SKILL_UNLOCK_LV.focus + " 3번)." }));
   };
