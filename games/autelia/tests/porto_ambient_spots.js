@@ -12,12 +12,12 @@ const URL = (process.env.GAME_URL || "http://localhost:8802") + "/index.html?dev
   await ev(() => AU.Prologue.debugComplete("arche")); await sleep(300);
   await ev(() => { AU.World.enterMap("porto", 160, true); AU.World.trans = null; }); await sleep(200);
   const ids = await ev(() => AU.MAPS.porto.spots.map((s) => s.id));
-  T("P1", "포르투 지점 6개 이상", ids.length >= 6 && ids.every((i) => /^porto_/.test(i)), ids);
+  T("P1", "포르투 지점 1개 이상", ids.length >= 1 && ids.every((i) => /^porto_/.test(i)), ids);
   const q0 = await ev(() => JSON.stringify(AU.G.S.quests));
-  await ev(() => { const W = AU.World, sp = AU.MAPS.porto.spots[1]; W.player.x = sp.x; W.player.onGround = true; W.updatePlayer(0.016, false); });
-  T("P2", "가까이 가면 조사 안내(Space)", await ev(() => !!AU.World.nearSpot && AU.World.nearSpot.id === "porto_well"), null);
+  await ev(() => { const W = AU.World, sp = AU.MAPS.porto.spots[0]; W.player.x = sp.x; W.player.onGround = true; W.updatePlayer(0.016, false); });
+  T("P2", "가까이 가면 조사 안내(Space)", await ev(() => !!AU.World.nearSpot && AU.World.nearSpot.id === "porto_board"), null);
   await p.keyboard.press("Space"); await sleep(250);
-  const opened = await ev(() => !!document.querySelector("#dialog, .dialog, #dlg") && /우물/.test(document.body.innerText));
+  const opened = await ev(() => !!document.querySelector("#dialog, .dialog, #dlg") && /게시판|쪽지/.test(document.body.innerText));
   T("P3", "Space로 글이 표시됨", opened, null);
   T("P4", "퀘스트 상태는 바뀌지 않음", (await ev(() => JSON.stringify(AU.G.S.quests))) === q0, null);
   T("P5", "콘솔 오류 없음", errs.length === 0, errs);

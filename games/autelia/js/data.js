@@ -107,8 +107,6 @@ AU.MAPS = {
     npcs: [{ id: "porto_dock", x: 600 }, { id: "guide_npc", x: 1250 }],
     spots: [
       { id: "porto_board", img: "ob_spot_porto_board", w: 130, ambient: true, kind: "investigate", x: 230, label: "부두 게시판", lines: ["낡은 게시판에 쪽지가 여럿 붙어 있습니다. 잃어버린 고양이를 찾는다는 글, 짐꾼을 구한다는 글, 오래된 배 시간표가 보입니다.", "맨 위에는 새 종이가 한 장 붙어 있습니다. '길드 의뢰는 선창 길드 접수대에서'라고 적혀 있습니다."] },
-      { id: "porto_well", img: "ob_spot_porto_well", w: 150, ambient: true, kind: "investigate", x: 880, label: "낡은 우물", lines: ["돌로 두른 낡은 우물입니다. 두레박 줄이 소금기에 하얗게 절었습니다.", "들여다보니 짠 바다 냄새가 올라옵니다. 바닷물이 스며들어 마실 수는 없는 모양입니다."] },
-      { id: "porto_fish", img: "ob_spot_porto_fish", w: 220, ambient: true, kind: "investigate", x: 1130, label: "생선 좌판", lines: ["이른 아침에 잡은 생선이 얼음 위에 늘어서 있습니다. 주인은 자리를 비운 듯합니다.", "손님을 부르는 소리가 멀리서 들려옵니다. 항구는 오늘도 바쁩니다."] },
     ],
     spawns: [], start: 160,
     area: { x: 78, y: 40, desc: "중립 항구도시입니다. 선창 길드와 부두 창고, 상점이 모여 있습니다." }

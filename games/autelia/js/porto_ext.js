@@ -63,4 +63,9 @@
   // 가만히 서 있던 주민·안내인도 제자리 근처(±110)를 천천히 오가게 함
   P.npcs.forEach((n) => { if (!n.patrol) { n.patrol = [n.x - 110, n.x + 110]; n.speed = 28; } });
   add("npc_porter2", sh(2689) + 300, L(sh(2689) + 150, sh(2689) + 900)); add("npc_sailor2", sh(2689) + 1250, L(sh(2689) + 1000, sh(2689) + 1550));
+  // 주민끼리 겹치지 않게: 이웃과의 중간선을 경계로 삼아 오가는 범위를 서로 떨어뜨림(간격 GAP 이상 유지)
+  (() => { const GAP = 140, a = P.npcs.slice().sort((p, q) => p.x - q.x);
+    a.forEach((n, i) => { const lo0 = n.patrol[0], hi0 = n.patrol[1], pv = a[i - 1], nx = a[i + 1];
+      const lo = pv ? Math.max(lo0, (pv.x + n.x) / 2 + GAP / 2) : lo0, hi = nx ? Math.min(hi0, (n.x + nx.x) / 2 - GAP / 2) : hi0;
+      n.patrol = [Math.min(lo, n.x), Math.max(hi, n.x)]; }); })();
 })();
