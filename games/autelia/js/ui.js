@@ -1169,7 +1169,7 @@ window.AU = window.AU || {};
     if (!AU.G.awakened()) { b.append(h("div", { class: "lockbox" }, h("h3", { text: "아직 스킬이 열리지 않았습니다" }), h("p", { text: "10레벨에 이야기 속에서 힘이 깨어나면 스킬이 열립니다. (현재 " + AU.jobName(S) + " · Lv." + S.level + ")" }), h("p", { class: "note", text: "기본 공격(" + keyOf("attack") + ")은 " + C.fatigue.name + "가 쌓이지 않습니다." }))); return; }
     b.append(UI.fatigueMeter(S, true));
     b.append(h("p", { class: "note vigor", text: FATIGUE_TIP.replace(/^피로도: /, "피로도란? ") }));
-    const slots = h("div", { class: "skslots" }, [0, 1, 2].map((i) => { const id = S.skills.slots[i]; return h("div", { class: "skslot" }, h("div", { class: "skey", text: keyOf("skill" + (i + 1)) }), h("div", { class: "skname", text: id ? AU.SKILLS[id].name.replace(" (임시)", "") : "비어 있음" }), id ? btn("해제", "mini", () => { S.skills.slots[i] = null; AU.G.save("skill"); AU.G.changed(); }) : null); }));
+    const slots = h("div", { class: "skslots" }, [0, 1, 2].map((i) => { const id = S.skills.slots[i]; return h("div", { class: "skslot" }, h("div", { class: "skey", text: keyOf("skill" + (i + 1)) }), h("div", { class: "skname" + (id ? "" : " eqempty"), text: id ? AU.SKILLS[id].name.replace(" (임시)", "") : "비어 있음" }), id ? btn("해제", "mini", () => { S.skills.slots[i] = null; AU.G.save("skill"); AU.G.changed(); }) : null); }));
     const list = h("div", { class: "sklist" });
     for (const id of S.skills.unlocked) {
       const sk = AU.SKILLS[id], inSlot = S.skills.slots.indexOf(id);
