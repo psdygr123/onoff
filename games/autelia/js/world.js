@@ -240,7 +240,7 @@ window.AU = window.AU || {};
       if (this.player.hidden && id !== "interact") this.player.hidden = false; // 숨은 채로 다른 행동을 하면 먼저 나옴
       const PR = AU.Prologue;
       if (PR && PR.on) { if (id === "interact") { PR.interactNear(); return; } if (id === "attack" || id.startsWith("skill")) return; } // 프롤로그에서는 전투·스킬 없음
-      if (id === "potion" || id === "scroll") { AU.G.quickUse(id); return; }
+      if (id === "potion" || id === "scroll" || id === "tonic" || id === "quick4") { AU.G.quickUse(id); return; }
       if (id === "dash") { this.dash(); return; }
       const p = this.player; if (id === "interact" || id === "up") this.scan();
       if (id === "jump") {

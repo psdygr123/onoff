@@ -125,6 +125,8 @@ window.AU = window.AU || {};
       this.toast(it.name + " 사용", "item"); this.changed(); return true;
     },
     quickUse(kind) { // 단축키로 물약·귀환 주문서 사용
+      if (kind === "tonic") { if (this.count("fatigue_tonic") < 1) { this.toast("피로회복제가 없습니다.", "warn"); return false; } return this.useItem("fatigue_tonic"); }
+      if (kind === "quick4") { this.toast("비어 있는 아이템 칸입니다. (앞으로 쓸 물건용 예비 칸)", "info"); return false; }
       if (kind === "scroll") { if (this.count("town_scroll") < 1) { this.toast("마을 귀환 주문서가 없습니다.", "warn"); return false; } return this.useItem("town_scroll"); }
       const ids = Object.keys(this.S.inv).filter((i) => AU.ITEMS[i] && AU.ITEMS[i].type === "use" && AU.ITEMS[i].heal && this.count(i) > 0).sort((a, b) => AU.ITEMS[a].heal - AU.ITEMS[b].heal);
       if (!ids.length) { this.toast("사용할 수 있는 물약이 없습니다.", "warn"); return false; }
@@ -301,7 +303,7 @@ window.AU = window.AU || {};
       const S = this.S; if (!this.awakened()) return;
       const want = AU.skillsForLevel(S.level), fresh = want.filter((id) => !S.skills.unlocked.includes(id));
       S.skills.unlocked = want.slice();
-      S.skills.slots = [0, 1, 2].map((i) => (want.includes(S.skills.slots[i]) ? S.skills.slots[i] : null));
+      S.skills.slots = [0, 1, 2, 3, 4].map((i) => (want.includes(S.skills.slots[i]) ? S.skills.slots[i] : null));
       for (const id of want) if (!S.skills.slots.includes(id)) { const i = S.skills.slots.indexOf(null); if (i >= 0) S.skills.slots[i] = id; }
       if (announce) for (const id of fresh) if (id !== "strike" || S.level > AU.SKILL_UNLOCK_LV.strike) this.toast("새 스킬 '" + AU.SKILLS[id].name + "'을(를) 배웠습니다! (" + (S.skills.slots.indexOf(id) + 1) + "번 키, K 키)", "good");
     },
@@ -770,7 +772,7 @@ window.AU = window.AU || {};
         merged.mindStats = { P: 0, E: 0, R: 0, M: 0, A: 0 };
         for (const m of AU.MISSIONS) { const r = merged.missions.states[m.id]; if (r && r.rewarded && merged.mindStats[m.perma] != null) merged.mindStats[m.perma] += m.points; }
       } else merged.mindStats = Object.assign(base.mindStats, raw.mindStats);
-      if (merged.jobChanged || (merged.flags && merged.flags.awakened)) { const w = AU.skillsForLevel(merged.level); merged.skills.unlocked = w.slice(); merged.skills.slots = [0, 1, 2].map((i) => (w.includes(merged.skills.slots[i]) ? merged.skills.slots[i] : null)); for (const id of w) if (!merged.skills.slots.includes(id)) { const i = merged.skills.slots.indexOf(null); if (i >= 0) merged.skills.slots[i] = id; } }   // 레벨별 스킬 개방 규칙 적용(이전 저장 보정)
+      if (merged.jobChanged || (merged.flags && merged.flags.awakened)) { const w = AU.skillsForLevel(merged.level); merged.skills.unlocked = w.slice(); merged.skills.slots = [0, 1, 2, 3, 4].map((i) => (w.includes(merged.skills.slots[i]) ? merged.skills.slots[i] : null)); for (const id of w) if (!merged.skills.slots.includes(id)) { const i = merged.skills.slots.indexOf(null); if (i >= 0) merged.skills.slots[i] = id; } }   // 레벨별 스킬 개방 규칙 적용(이전 저장 보정)
       merged.profile = AU.Profile ? AU.Profile.clean(raw.profile) : { name: "", gender: "" };
       merged.v = C.save.version; merged.inv = raw.inv || {}; merged.quests = raw.quests || {}; merged.visited = raw.visited || { arche: true };
       delete merged.quests.q_job;

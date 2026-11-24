@@ -973,3 +973,8 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
 .silver.ph { visibility: hidden; }
 .shoprow.g .mini { white-space: nowrap; padding-left: 4px; padding-right: 4px; }
 .shopbag { display: flex; flex-direction: column; } .shopbag .shoplist.bag { overflow-y: auto; max-height: 300px; min-height: 0; padding-right: 2px; } .shopbag .sellall { flex: none; }
+
+/* 11-24 칸 확장(B안): 윗줄 스킬 5칸 · 아랫줄 이동기 + 아이템 4칸. 한 줄 5칸이라 칸을 조금 작게 */
+.slots { flex-direction: column; align-items: flex-end; gap: 8px; } .slots .srow { display: flex; gap: 6px; }
+.slots .slot { width: 62px; height: 62px; } .slots .slot .sk { font-size: 11.5px; white-space: normal; line-height: 1.12; margin-top: 12px; } .slots .slot .skey { font-size: 10.5px; padding: 0 5px; } .slots .slot .scost { right: 5px; font-size: 11px; }
+.slots .srow.items .slot { background: rgba(236, 245, 240, .92); }
