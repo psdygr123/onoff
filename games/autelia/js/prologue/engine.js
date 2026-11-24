@@ -161,7 +161,7 @@ window.AU = window.AU || {};
       this.beginScene(i + 1);
     },
     finish() {
-      // 프롤로그 종료 후에도 현실 활동 완료 여부와 관계없이 본편으로 진입합니다.
+      // 프롤로그 종료 후에도 일상 활동 완료 여부와 관계없이 본편으로 진입합니다.
       if (AU.RealBridge) AU.RealBridge.queue("prologue-arrival", "m_p5");
       const S = AU.G.S, st = this.st(); this.setFlag("porto_nova_reached"); this.setFlag("prologue_completed");
       if (!this.replay) { st.state = "COMPLETED"; S.map = "porto"; S.x = AU.MAPS.porto.start; S.visited.porto = true; AU.G.save("prologue-complete"); }
@@ -178,7 +178,7 @@ window.AU = window.AU || {};
         this.replay = false; this.rs = null; this.on = false; this.setHud(false); this.resetMapRuntime(); this.fadeS = { a: 0, color: "#000" }; const r = this.ret; w.enterMap(r.map, r.x, true); AU.UI.mapBanner(AU.MAPS[r.map].name); return;
       }
       this.on = false; this.setHud(false); this.resetMapRuntime(); this.fadeS = { a: 0, color: "#000" }; this.holdFade = false;
-      AU.G.unlockRealMissions(false); // 프롤로그가 끝나는 순간부터 현실 미션 공개(안내는 튜토리얼과 알렉시오스)
+      AU.G.unlockRealMissions(false); // 프롤로그가 끝나는 순간부터 일상 미션 공개(안내는 튜토리얼과 알렉시오스)
       if (!S.inv.potion) AU.G.giveItem("potion", 2, true); // 기존 시제품의 시작 소지품과 동일(본편 시작 시 지급)
       S.visited.porto = true; w.enterMap("porto", AU.MAPS.porto.start, true); AU.G.log("아르케아를 떠나 포르투 노바에 도착했습니다."); AU.UI.mapBanner(AU.MAPS.porto.name);
       AU.G.save("start"); if (AU.main && AU.main.reportProgress) AU.main.reportProgress(); AU.G.changed();

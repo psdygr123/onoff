@@ -1,4 +1,4 @@
-// 현실미션 화면 연동: 중간 확인 6일차까지, HUD 마감순 표시, Q 진행 표시, 접속 안내
+// 일상미션 화면 연동: 중간 확인 6일차까지, HUD 마감순 표시, Q 진행 표시, 접속 안내
 const { chromium } = require('playwright');
 const URL = process.env.GAME_URL || 'http://localhost:8801';
 (async () => {
@@ -30,19 +30,19 @@ const URL = process.env.GAME_URL || 'http://localhost:8801';
   // 3. HUD 알림
   await p.evaluate(() => { AU.UI.close && AU.UI.close(); AU.UI.hud.cache.trk = null; AU.UI.updateTracker(); }); await p.waitForTimeout(200);
   const hud = await p.evaluate(() => { const t = AU.UI.hud.tracker, items = [...t.querySelectorAll('.treal-item')]; return { shown: t.style.display !== 'none', head: (t.querySelector('.treal .tt') || {}).textContent, items: items.map(x => x.textContent), overdueFirst: items[0] && items[0].classList.contains('overdue') }; });
-  T('HUD에 진행 중 현실미션 마감순 표시(기한 지남 먼저)', hud.shown && /진행 중 2개 · 마감순/.test(hud.head) && hud.items.length === 2 && /기한 지남/.test(hud.items[0]) && /D-6/.test(hud.items[1]) && hud.overdueFirst, hud);
+  T('HUD에 진행 중 일상미션 마감순 표시(기한 지남 먼저)', hud.shown && /진행 중 2개 · 마감순/.test(hud.head) && hud.items.length === 2 && /기한 지남/.test(hud.items[0]) && /D-6/.test(hud.items[1]) && hud.overdueFirst, hud);
   await p.evaluate(() => document.querySelector('.treal-item').click()); await p.waitForTimeout(300);
   const open = await p.evaluate(() => ({ win: AU.UI.curName === 'journal', tab: AU.UI.tab.j, jg: AU.UI.tab.jg }));
   T('HUD 항목 클릭 → 모험일지 내 활동', open.win && open.tab === 'missions' && open.jg === 'real', open);
 
   // 4. Q창에 진행 표시
   const q = await p.evaluate(() => { AU.UI.close(); AU.UI.tab.q = 'active'; AU.UI.selected.q = 'm_e1'; AU.UI.open('quests'); const el = document.querySelector('.detail .span-progress'); return el && el.textContent; });
-  T('Q창 현실미션 상세에 n일차·마감 표시', q && /7일 중 1일차/.test(q) && /마감/.test(q), q);
+  T('Q창 일상미션 상세에 n일차·마감 표시', q && /7일 중 1일차/.test(q) && /마감/.test(q), q);
 
   // 5. 접속 안내
   await p.evaluate(() => AU.UI.close()); await p.waitForTimeout(100);
   const n1 = await p.evaluate(() => { const ok = AU.UI.missionNotice(); const m = document.querySelector('.missionnotice'); return { ok, title: m && m.querySelector('h3').textContent, btns: m ? [...m.querySelectorAll('.btn')].map(x => x.textContent) : [] }; });
-  T('접속 안내: 기한 지난 미션이 있으면 안내 창', n1.ok && n1.title === '현실 미션이 있습니다' && n1.btns.includes('확인하러 가기') && n1.btns.includes('나중에'), n1);
+  T('접속 안내: 기한 지난 미션이 있으면 안내 창', n1.ok && n1.title === '일상 미션이 있습니다' && n1.btns.includes('확인하러 가기') && n1.btns.includes('나중에'), n1);
   await p.evaluate(() => [...document.querySelectorAll('.missionnotice .btn')].find(x => x.textContent === '확인하러 가기').click()); await p.waitForTimeout(300);
   T('확인하러 가기 → 모험일지 내 활동', await p.evaluate(() => AU.UI.tab.j === 'missions' && !document.querySelector('.missionnotice')));
   await p.evaluate(() => { AU.UI.close(); AU.G.resolveMission(window.__o, 'extend'); });
@@ -50,7 +50,7 @@ const URL = process.env.GAME_URL || 'http://localhost:8801';
   // 6. 완료 방법 안내 + 탭 4개
   const how = await p.evaluate(() => { AU.UI.close(); AU.UI.tab.jg = 'real'; AU.UI.tab.j = 'missions'; AU.UI.tab.missionStatus = 'all'; AU.UI.open('journal'); return { a4: AU.UI.missionHow(AU.G.mission('m_a4')), a3: AU.UI.missionHow(AU.G.mission('m_a3')), a1: AU.UI.missionHow(AU.G.mission('m_p1')), tabs: [...document.querySelectorAll('.real-tabs .btn')].map(x => x.textContent) }; });
   T('완료 방법: 한 줄 기록·사진(선택)·타이머를 구분해 안내', /한 줄을 이 게임 안에 적어요/.test(how.a4) && /사진을 올릴 수 있어요\(선택\)/.test(how.a3) && /타이머/.test(how.a1) && /내 활동에서 '완료했어요'/.test(how.a4), how);
-  T('현실 활동 탭 3개', how.tabs.length === 3 && how.tabs.join('|') === '내 활동|마음 기록|쉼', how.tabs);
+  T('일상 활동 탭 3개', how.tabs.length === 3 && how.tabs.join('|') === '내 활동|마음 기록|쉼', how.tabs);
   T('페이지 오류 없음', errs.length === 0, errs);
   console.log(fail ? 'FAILED ' + fail : 'ALL PASS'); await b.close(); process.exit(fail ? 1 : 0);
 })();
