@@ -11,10 +11,10 @@ const T = (l, ok, d) => { console.log((ok ? 'PASS ' : 'FAIL ') + l + ' :: ' + JS
   await ev(() => AU.Prologue.debugComplete('arche')); await sleep(300);
   const r0 = await ev(() => AU.npcQuestMark('porto_foreman')); T('시작 전: 카시안에는 표시 없음', !r0, r0);
   await ev(() => { AU.G.startQuest('q_s1_silver'); });
-  const r1 = await ev(() => AU.npcQuestMark('porto_foreman')); T('의뢰 진행 중: 말 걸 대상 카시안 머리 위에 ? 배지', !!(r1 && r1.mark === '?' && r1.kind === 'main'), r1);
+  const r1 = await ev(() => AU.npcQuestMark('porto_foreman')); T('의뢰 진행 중: 말 걸 대상 카시안 머리 위에 ▼ 배지', !!(r1 && r1.mark === '▼' && r1.kind === 'main'), r1);
   const r2 = await ev(() => AU.npcQuestMark('porto_dock')); T('의뢰를 준 니코스에는 표시 없음', !r2, r2);
   await ev(() => { const S = AU.G.S.quests.q_s1_silver; S.state = 'ready'; });
-  const r3 = await ev(() => AU.npcQuestMark('porto_foreman')); T('보고 가능해져도 ? 유지', !!(r3 && r3.mark === '?'), r3);
+  const r3 = await ev(() => AU.npcQuestMark('porto_foreman')); T('보고 가능해져도 ▼ 유지', !!(r3 && r3.mark === '▼'), r3);
   T('페이지 오류 없음', errs.length === 0, errs);
   console.log(fail ? 'FAILED ' + fail : 'ALL PASS'); await b.close(); process.exit(fail ? 1 : 0);
 })();

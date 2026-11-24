@@ -133,7 +133,7 @@ window.AU = window.AU || {};
       for (const n of m.npcs || []) { // 의뢰가 있는 NPC는 종류별로: 메인 금색 ★ / 서브 파란 !
         const qm = AU.npcQuestMark(n.id);
         if (!qm) { dot(n.x, C.GROUND - 40, "#E9E4D6", 5); continue; }
-        dot(n.x, C.GROUND - 40, AU.QKIND[qm.kind].color, 9);
+        dot(n.x, C.GROUND - 40, qm.color || AU.QKIND[qm.kind].color, 9);
         c.font = "700 12px 'Noto Sans KR', sans-serif"; c.textAlign = "center"; c.textBaseline = "middle"; c.fillStyle = "#FFFFFF"; c.fillText(qm.mark, X(n.x), Y(C.GROUND - 40) + 1); c.textBaseline = "alphabetic";
       }
       for (const q of W.monsters) if (q.alive) dot(q.x, q.y - 20, q.d.boss ? "#B070E8" : "#E9776D", q.d.boss ? 8 : 5);
