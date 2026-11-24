@@ -30,7 +30,7 @@ window.AU = window.AU || {};
     mon_merc_w1: { path: "assets/monster/merc_w1.webp", optional: true }, mon_merc_w2: { path: "assets/monster/merc_w2.webp", optional: true }, mon_merc_w3: { path: "assets/monster/merc_w3.webp", optional: true }, mon_merc_w4: { path: "assets/monster/merc_w4.webp", optional: true }, mon_merc_idle: { path: "assets/monster/merc_idle.webp", optional: true },   // 용병 걷기 4칸(한 걸음 주기)
     bg_yard: { path: "assets/bg/yard_long.webp", optional: true },   // 용병 하차장(잠입 맵) 배경(11-25 가로로 1.5배 늘림, 3720px)
     ob_hide_crate_brand: { path: "assets/object/hide_crate_brand.webp", optional: true },
-    ob_yard_ledger: { path: "assets/object/yard_ledger.webp", optional: true },   // 하차 장부 그림(GPT 제작 예정, docs/GPT_하차장부_요청문_1125.md). 오기 전에는 임시로 궤짝 그림   // 숨는 상자 옆면에 불도장 검은 물결 표식
+    ob_yard_ledger: { path: "assets/object/yard_ledger.webp", optional: true },   // 하차 장부 그림(GPT 제작 완료). 파일이 없으면 임시로 궤짝 그림   // 숨는 상자 옆면에 불도장 검은 물결 표식
     mon_mutfox: { path: "assets/monster/mutant_fox.webp", optional: true },
     ob_plank: { path: "assets/object/plank.webp", optional: true },
     ob_rope: { path: "assets/object/rope.webp", optional: true },
@@ -163,7 +163,7 @@ window.AU = window.AU || {};
         "짐수레 곁에 궤짝이 산처럼 쌓여 있습니다. 옆면마다 불도장으로 찍힌 '검은 물결' 표식이 선명합니다.",
         "열린 궤짝 하나에는 검은 결정 원석이 가득합니다. 안쪽에 붉은 줄이 희미하게 비칩니다.",
         L(HERO, "(이 궤짝들이 전부 골짜기 안쪽으로 들어간다. 먹이는 게 결정이구나.)")] },
-      { id: "yard_ledger", img: "ob_yard_ledger", imgFb: "ob_trace_crate", x: 3600, kind: "investigate", label: "하차 장부", lines: [
+      { id: "yard_ledger", img: "ob_yard_ledger", imgFb: "ob_trace_crate", w: 200, x: 3600, kind: "investigate", label: "하차 장부", lines: [
         "리프트 아래 목탁자 위에 하차 장부가 펼쳐져 있습니다. 날짜마다 '결정 N상자, 짐승 N두'라는 숫자가 적혀 있습니다.",
         "마지막 줄에는 다른 필체로 '투입량을 올린다. 변형이 덜 된 개체는 중심 천막으로.'라고 적혀 있습니다.",
         L(HERO, "(중심 천막... 이 골짜기 안쪽에서 누가 짐승을 만지고 있다는 뜻이다. 들키기 전에 빠져나가자.)")] }
