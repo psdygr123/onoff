@@ -4,6 +4,18 @@ window.AU = window.AU || {};
 (function () {
   const C = AU.CONFIG;
   const $ = (s, r) => (r || document).querySelector(s);
+  /* 안내 문장 꾸미기(11-24): [E] 같은 단축키는 눈에 띄는 색 글쇠(gkey)로, **굵게**는 강조(rb-em)로. 한글 [장착] 같은 버튼 이름은 그대로 둠 */
+  AU.keyRich = function (text) {
+    const out = [];
+    String(text).split(/\*\*(.+?)\*\*/).forEach((part, k) => {
+      if (k % 2) { const b = document.createElement("b"); b.className = "rb-em"; b.textContent = part; out.push(b); return; }
+      part.split(/(\[(?:[A-Za-z0-9]{1,6}|Shift|Space|Esc|Enter|Tab|[←→↑↓])\])/).forEach((seg) => {
+        if (/^\[(?:[A-Za-z0-9]{1,6}|Shift|Space|Esc|Enter|Tab|[←→↑↓])\]$/.test(seg)) { const s = document.createElement("span"); s.className = "gkey"; s.textContent = seg.slice(1, -1); out.push(s); }
+        else if (seg) out.push(document.createTextNode(seg));
+      });
+    });
+    return out;
+  };
   function h(tag, attrs, ...kids) {
     const el = document.createElement(tag);
     if (attrs) for (const [k, v] of Object.entries(attrs)) {

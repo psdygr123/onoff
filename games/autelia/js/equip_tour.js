@@ -13,7 +13,7 @@ window.AU = window.AU || {};
 
   const STEPS = [
     { target: () => find(".window.win-equipment .wtitle"), title: "장비창은 [" + "E" + "] 키로 열어요",
-      lines: () => ["장비창은 [" + keyE() + "] 키로 열고 닫을 수 있어요.", "지금은 안내를 위해 미리 열어 두었어요. 천천히 하나씩 알려 드릴게요."] },
+      lines: () => ["장비창은 [" + keyE() + "] 키로 열고 닫을 수 있어요.", "지금은 안내를 위해 미리 열어 두었어요.", "천천히 하나씩 알려 드릴게요."] },
     { target: () => find(".window.win-equipment .eqslots"), title: "위쪽 칸이 지금 끼고 있는 장비예요",
       lines: () => ["무기·방어구·장신구 칸이 있어요.", weaponOn() ? "지금은 무기를 끼고 있어요. 잘하셨어요." : "지금은 무기 칸이 '비어 있음'이에요. 이 상태로는 공격할 수 없어요."] },
     { target: () => find(".window.win-equipment .itemgrid"), title: "가방 속 장비를 골라요",
@@ -92,7 +92,7 @@ window.AU = window.AU || {};
           const S = STEPS[i];
           UI.renderWin();
           prog.textContent = (i + 1) + " / " + STEPS.length; title.textContent = i === 0 ? "장비창은 [" + keyE() + "] 키로 열어요" : S.title;
-          body.replaceChildren(...S.lines().map((t) => h("p", null, t)));
+          body.replaceChildren(...S.lines().map((t) => h("p", null, AU.keyRich(t))));
           extra.replaceChildren(); const ex = S.extra && S.extra(); if (ex) extra.append(ex);
           bPrev.style.visibility = i ? "visible" : "hidden"; bNext.textContent = i === STEPS.length - 1 ? "이해했어요" : "다음 ▶";
           card.style.left = "-9999px"; requestAnimationFrame(() => { place(); });

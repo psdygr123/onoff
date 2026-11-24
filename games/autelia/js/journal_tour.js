@@ -16,7 +16,7 @@ window.AU = window.AU || {};
   /* 단계 정의: setup=그 단계에서 보여 줄 일지 화면, target=비출 요소, title/lines=설명, extra=카드 안 추가 그림 */
   const STEPS = [
     { setup: { jg: "game", j: "a1" }, target: () => find(".window.win-journal .wtitle"), title: "모험일지는 [J] 키로 열어요",
-      lines: () => ["모험일지는 [" + keyJ() + "] 키로 열고 닫을 수 있어요.", "지금은 안내를 위해 미리 열어 두었어요. 천천히 하나씩 알려 드릴게요."] },
+      lines: () => ["모험일지는 [" + keyJ() + "] 키로 열고 닫을 수 있어요.", "지금은 안내를 위해 미리 열어 두었어요.", "천천히 하나씩 알려 드릴게요."] },
     { setup: { jg: "game", j: "a1" }, target: () => find(".window.win-journal .jgroup"), title: "위쪽은 두 갈래예요",
       lines: () => ["'모험 이야기'에는 지나온 장면이 정리돼요.", "'일상 활동'에서는 일상에서 해 볼 수 있는 작은 활동을 볼 수 있어요."] },
     { setup: { jg: "game", j: "a1" }, target: () => find(".window.win-journal .tabs") || find(".window.win-journal .wbody"), title: "모험 이야기는 장면과 마음을 담는 곳이에요",
@@ -91,7 +91,7 @@ window.AU = window.AU || {};
           if (S.setup) Object.assign(UI.tab, S.setup);
           UI.curName = S.win || "journal"; UI.renderWin();
           prog.textContent = (i + 1) + " / " + ST.length; title.textContent = S.title;
-          body.replaceChildren(...S.lines().map((t) => h("p", null, t.split(/\*\*(.+?)\*\*/).map((part, k) => (k % 2 ? h("b", { class: "rb-em", text: part }) : part)))));   // **강조**: 일상 활동 이름
+          body.replaceChildren(...S.lines().map((t) => h("p", null, AU.keyRich(t))));   // **강조**: 일상 활동 이름
           extra.replaceChildren(); const ex = S.extra && S.extra(); if (ex) extra.append(ex);
           bPrev.style.visibility = i ? "visible" : "hidden"; bNext.textContent = i === ST.length - 1 ? "이해했어요" : "다음 ▶";
           const el = S.target(); if (el && el.scrollIntoView) el.scrollIntoView({ block: "nearest" });

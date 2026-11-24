@@ -49,7 +49,7 @@ window.AU = window.AU || {};
       const id = this.queue.shift(), T = TRIG[id], root = document.getElementById("ui"); if (!root) return;
       // 이미 그 창을 한 번이라도 열어 봤다면 카드가 필요 없음
       if (flags()["gdw_" + T.win]) return this.next();
-      const card = h("div", { class: "guidecard" }, h("div", { class: "gtitle", text: T.title }), T.lines().map((l) => h("p", { text: l })), h("button", { type: "button", class: "gclose", text: "나중에" }));
+      const card = h("div", { class: "guidecard" }, h("div", { class: "gtitle", text: T.title }), T.lines().map((l) => h("p", null, AU.keyRich(l))), h("button", { type: "button", class: "gclose", text: "나중에" }));
       card.querySelector(".gclose").onclick = () => this.dismiss();
       root.append(card); this.card = card; this.waiting = T.win;
     },
