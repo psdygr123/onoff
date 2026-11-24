@@ -1,1 +1,13 @@
 __pycache__/
+# 비밀 값·키 (실수로 올라가는 것을 막기 위한 안전망)
+.env
+.env.*
+*.pem
+*.key
+serviceAccount*.json
+*-adminsdk-*.json
+.firebase/
+firebase-debug.log
+node_modules/
+*.log
+.DS_Store
