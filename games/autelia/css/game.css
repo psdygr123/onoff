@@ -912,3 +912,4 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
 .roomlink-stats{display:flex;gap:12px;flex-wrap:wrap;font-size:13px;margin:6px 0 8px}
 .room-home .room-center{grid-template-rows:minmax(300px,1fr)}.room-home .room-center .personalroom{min-height:300px}
 .room-home .roomshop{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.room-home .roomshopitem{padding:6px}.room-home .roomshopitem .note{display:none}.room-home .roomicon{height:34px}
+.mission .note.span-progress{font-size:12px;color:#5a4a2a;background:#fff6dc;border-radius:8px;padding:4px 8px;margin:4px 0}.mission .note.span-progress.overdue{background:#fdeaea;color:#8a2d2d}
