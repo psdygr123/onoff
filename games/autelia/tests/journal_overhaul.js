@@ -17,7 +17,7 @@ const { chromium } = require('playwright');
 
     // J1 탭 구성: 6개 기능 + 쉼·마음 기록 유지
     await open('today'); const tabs = await ev(() => [...document.querySelectorAll('.real-tabs .btn, .real-tabs button')].map((x) => x.textContent));
-    ck('J1 현실 활동 탭: 오늘·추천·전체·즐겨찾기·계획·기록(+쉼·마음 기록)', ['오늘의 활동', '추천 활동', '내 활동', '즐겨찾기', '나의 활동 계획', '활동 기록', '쉼', '마음 기록'].every((t) => tabs.includes(t)), tabs.join('|'));
+    ck('J1 현실 활동 탭은 4개: 오늘·내 활동·활동 기록·마음 기록', tabs.length === 4 && ['오늘의 활동', '내 활동', '활동 기록', '마음 기록'].every((t) => tabs.includes(t)), tabs.join('|'));
 
     // J2 전체 활동: 100종, 필터·검색
     await open('missions'); const all0 = await ev(() => document.querySelectorAll('.mission[data-mid]').length);

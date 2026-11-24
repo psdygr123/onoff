@@ -897,6 +897,12 @@ window.AU = window.AU || {};
       h("div", { class: "choices" }, btn("네, 다시 도전할게요", "primary", () => go(true)), btn("아니요, 다른 활동을 볼게요", "", () => go(false)), btn("닫기", "", close))));
   };
   /* 기한이 지난 활동: 상태를 골라 정리 */
+  /* 완료 방법: 어디서 무엇을 하고 어디에 기록하는지 한 줄로 */
+  UI.missionHow = function (m) {
+    const k = AU.MissionEvidence ? AU.MissionEvidence.kind(m) : "record";
+    const how = { timer: "③ 앱 안의 타이머를 켜고 해 보세요. 시간이 쌓이면 인증돼요.", photo: "③ 결과물 사진을 올릴 수 있어요(선택). 사진은 이 기기에만 저장되고, 올리지 않아도 완료할 수 있어요.", record: "③ 무엇을 했는지 한 줄을 이 게임 안에 적어요(선택). 적은 글은 이 기기에만 저장돼요." }[k] || "";
+    return "이렇게 해요 · ① 현실에서 직접 해 봅니다. ② 모험일지 ▸ 현실 활동 ▸ 내 활동에서 '완료했어요'를 누릅니다. " + how;
+  };
   /* 접속 안내: 기한이 지난 현실미션이 있으면 한 번 알려 줌 */
   UI.missionNotice = function () {
     const n = AU.G.overdueMissions().length; if (!n || UI.modal) return false;
@@ -1098,7 +1104,8 @@ window.AU = window.AU || {};
   const PRO_CARDS = [["stele_read", "마을길 끝의 기념비", "축제를 앞둔 아침, 마을길 끝 기념비에서 다섯 용사의 이야기를 읽었다.", "road"], ["temple_work_complete", "신전을 짓는 아버지 곁에서", "신전 건축 현장에서 목수인 아버지를 도왔다. 평범하고 따뜻한 하루였다.", "temple"], ["banners_done", "축제 깃발", "축제 깃대에 깃발을 달아 마을을 꾸몄다.", "road"], ["festival_interaction_complete", "빛의 축제", "축제 광장에서 이웃들과 이야기를 나눴다.", "plaza"], ["attack_triggered", "갑작스러운 습격", "축제가 열리던 광장에 검은 무리가 들이닥쳤다.", "plaza_atk"], ["father_final_words_seen", "아버지의 마지막 말", "아버지는 낯선 금속 조각과 도구 가방을 맡기고 도망치라고 했다.", "house_atk"], ["arkea_escape_complete", "아르케아를 떠나며", "불타는 마을을 뒤로하고 길을 달렸다.", "escape"], ["porto_nova_reached", "포르투 노바 도착", "낯선 항구도시에 닿았다. 이곳에서 새로운 모험이 시작된다.", "port"]];
   const ACT1_CARDS = []; // 1막 핵심 장면은 본편 구현에 맞춰 추가
   const PRO_STEPS = [["stele_read", "마을길 끝의 기념비를 읽었다"], ["banners_done", "축제 깃발을 깃대에 달았다"], ["temple_work_complete", "신전 건축 현장에서 아버지를 도왔다"], ["festival_interaction_complete", "축제 광장에서 주민들과 이야기를 나눴다"], ["father_final_conversation_complete", "아버지와 마지막 이야기를 나눴다"], ["metal_fragment_acquired", "의문의 금속 조각을 손에 넣었다"], ["carpenter_bag_acquired", "목수 도구 가방을 챙겼다"], ["arkea_escape_complete", "아르케아를 탈출했다"], ["porto_nova_reached", "포르투 노바에 도착했다"]];
-  const REAL_TABS = [["today", "오늘의 활동"], ["reco", "추천 활동"], ["missions", "내 활동"], ["fav", "즐겨찾기"], ["plan", "나의 활동 계획"], ["mlog", "활동 기록"], ["rest", "쉼"], ["record", "마음 기록"]];
+  const REAL_TABS = [["today", "오늘의 활동"], ["missions", "내 활동"], ["mlog", "활동 기록"], ["record", "마음 기록"]];
+  const REAL_HIDDEN = { reco: "today", fav: "today", plan: "mlog", rest: "today" }; // 탭 줄에서는 빼고, 다른 화면의 버튼으로만 여는 화면
   R.journal = function (b) {
     const S = AU.G.S, un = S.flags.missionsUnlocked;
     const grp = UI.tab.jg || "game";   // 현실 활동은 Lv.10 전직 전에도 탭이 보이고(잠금), 내용은 미리 볼 수 있지만 기능은 쓸 수 없음
@@ -1108,11 +1115,11 @@ window.AU = window.AU || {};
       tab = ["pro", "a1", "log"].includes(UI.tab.j) ? UI.tab.j : "a1";
       b.append(h("div", { class: "tabs" }, [["pro", "프롤로그"], ["a1", "1막 · 항구도시"], ["log", "전체 기록"]].map(([k, l]) => btn(l, tab === k ? "on" : "", () => { UI.tab.j = k; UI.renderWin(); }))));
     } else {
-      tab = REAL_TABS.some(([k]) => k === UI.tab.j) ? UI.tab.j : "today";
+      tab = REAL_TABS.some(([k]) => k === UI.tab.j) || REAL_HIDDEN[UI.tab.j] ? UI.tab.j : "today";
       if (!un) b.append(h("div", { class: "lockbox lockband" }, h("b", { text: "🔒 아직 열리지 않았습니다" }), h("p", { text: "프롤로그를 마치면 열립니다." })));
       b.append(h("div", { class: "realband", text: "게임 속 이야기와는 별개인 현실 활동입니다. 하지 않아도 모험은 계속되고, 직접 해 보고 기록하는 방식입니다." }),
         AU.JournalTour ? h("div", { class: "jt-again-row" }, btn("안내 다시 보기", "mini jt-again", () => AU.JournalTour.start({}))) : null,
-        h("div", { class: "tabs real-tabs" }, REAL_TABS.map(([k, l]) => btn(l, tab === k ? "on" : "", () => { UI.tab.j = k; UI.renderWin(); }))));
+        h("div", { class: "tabs real-tabs" }, REAL_TABS.map(([k, l]) => btn(l, (tab === k || REAL_HIDDEN[tab] === k) ? "on" : "", () => { UI.tab.j = k; UI.renderWin(); }))));
     }
     const logOf = (act) => { const j = S.journal, arr = j.findIndex((e) => /포르투 노바에 도착/.test(e.text)); return j.map((e, i) => ({ e, a: e.a || (arr >= 0 && i <= arr ? "pro" : "a1") })).filter((x) => !act || x.a === act).map((x) => x.e).reverse(); };
     const logBox = (rows) => h("div", { class: "logs" }, rows.length ? rows.map((e) => h("div", { class: "logrow" }, h("span", { text: e.t }), h("b", { text: e.text }))) : h("p", { class: "empty", text: "아직 기록이 없습니다." }));
@@ -1169,7 +1176,7 @@ window.AU = window.AU || {};
         return h("div", { class: "mission st-" + r.state, "data-mid": m.id, "data-q": (m.title + " " + m.desc).toLowerCase() },
           h("div", { class: "mh" }, h("span", { class: "tag perma", text: m.perma + " · " + AU.PERMA[m.perma] }), h("span", { class: "tag", text: (AREAS[m.functionArea] || "일상 활동") + " · " + (["", "쉬움", "보통", "확장"][m.difficulty] || "선택") + " · " + (m.span > 1 ? "기간 " + m.span + "일 · 1회 약 " : "약 ") + m.minutes + "분" }), h("span", { class: "tag" + (r.state === "done" ? " proof" : ""), text: r.state === "done" ? proofLabel(M.log.find((x) => x.id === m.id && x.state === "done" && !x.repeat)) : AU.MISSION_STATES[r.state] }), h("span", { class: "pts", text: r.rewarded ? "지급 완료" : AU.G.missionReward(m).name + " · 토큰 " + AU.G.missionReward(m).part.tokens + "~" + AU.G.missionReward(m).full.tokens }),
             h("button", { type: "button", class: "favbtn" + (fav ? " on" : ""), "aria-pressed": fav ? "true" : "false", title: fav ? "즐겨찾기 해제" : "즐겨찾기에 추가", onclick: () => { AU.G.toggleFavorite(m.id); UI.renderWin(); } }, fav ? "★" : "☆")),
-          h("b", { text: m.title }), h("p", { text: m.desc }), rewardLine(m, r),
+          h("b", { text: m.title }), h("p", { text: m.desc }), ["available", "accepted", "attempted", "partial"].includes(r.state) ? h("p", { class: "note how", text: UI.missionHow(m) }) : null, rewardLine(m, r),
           r.state === "done" && r.reward && !r.reward.verified ? h("div", { class: "macts" }, btn("인증하고 남은 보상 받기", "primary", () => UI.missionVerify(m))) : null,
           opts.reasons ? h("p", { class: "reco-why", text: "추천 이유 · " + opts.reasons.join(" · ") }) : null,
           hist ? h("p", { class: "note", text: "누적 " + hist.count + "회 · 최근 " + (hist.last || "—") + " · 평균 만족도 " + (hist.satisfaction == null ? "미평가" : hist.satisfaction + "/5") + " · 평균 의미 " + (hist.meaning == null ? "미평가" : hist.meaning + "/5") + " · 평균 도전 " + (hist.challenge == null ? "미평가" : hist.challenge + "/5") }) : null,
@@ -1190,7 +1197,7 @@ window.AU = window.AU || {};
           const m = AU.G.mission(suggestion.missionId); if (!m) continue; const state = AU.G.ms(m.id).state;
           cards.append(h("div", { class: "mission" },
             h("div", { class: "mh" }, h("span", { class: "tag", text: suggestion.moment || "스토리 연계" }), h("span", { class: "tag perma", text: m.perma + " · " + AU.PERMA[m.perma] }), h("span", { class: "tag", text: AU.MISSION_STATES[state] || state })),
-            h("b", { text: m.title }), h("p", { text: suggestion.story || "" }), h("p", { class: "note", text: m.desc }),
+            h("b", { text: m.title }), h("p", { text: suggestion.story || "" }), h("p", { class: "note", text: m.desc }), h("p", { class: "note how", text: UI.missionHow(m) }),
             state === "available" ? h("div", { class: "macts" }, btn("이 활동도 수락", "primary", () => { AU.RealBridge.acceptSuggested(key); UI.renderWin(); }), btn("나중에", "", () => { UI.tab.missionArea = "all"; UI.tab.j = "missions"; UI.renderWin(); })) : h("p", { class: "note", text: "기록과 완료는 '내 활동'에서 진행할 수 있습니다." })));
         }
         rec.append(cards); return rec;
@@ -1199,13 +1206,14 @@ window.AU = window.AU || {};
       const chips = (opts, cur, onPick) => h("div", { class: "tabs mission-filter" }, opts.map(([k, l]) => btn(l, String(cur) === String(k) ? "on" : "", () => onPick(k))));
 
       if (tab === "today") {
-        const planned = AU.G.todayPlanned(), linked = linkedBlock(), favs = M.favorites.map((id) => AU.G.mission(id)).filter((m) => m && AU.G.ms(m.id).state !== "done").slice(0, 4), doneToday = AU.G.todayDone();
+        const planned = AU.G.todayPlanned(), linked = linkedBlock(), favs = M.favorites.map((id) => AU.G.mission(id)).filter((m) => m && AU.G.ms(m.id).state !== "done"), recos = AU.G.recommend(3, UI.tab.recoOff || 0), doneToday = AU.G.todayDone();
         b.append(h("p", { class: "note", text: "오늘 해 볼 만한 활동을 모았어요. 하지 않아도 괜찮고, 하지 않은 활동에 불이익은 없습니다." }));
         if (doneToday) b.append(h("div", { class: "msummary" }, h("b", { text: "오늘 기록한 활동 " + doneToday + "회" }), h("span", { class: "note", text: " · 수고하셨어요. 기록은 '활동 기록'에서 볼 수 있습니다." })));
         if (planned.length) b.append(h("div", { class: "msummary", "data-today": "planned" }, h("b", { text: "오늘의 활동 계획 · " + planned.length + "종" }), h("p", { class: "note", text: "직접 정해 둔 수행 주기에 해당하는 활동입니다. 오늘 하지 않아도 불이익은 없습니다." }), cardGrid(planned)));
         if (linked) b.append(linked);
         if (favs.length) b.append(h("div", { class: "msummary", "data-today": "favs" }, h("b", { text: "즐겨찾기한 활동" }), cardGrid(favs)));
-        if (!planned.length && !linked && !favs.length) b.append(empty("오늘 정해 둔 활동은 아직 없어요. 가볍게 둘러보고 싶다면 아래에서 골라 보세요.", [["추천 활동 보기", "reco"], ["내 활동 보기", "missions"]]));
+        b.append(h("div", { class: "msummary", "data-reco": "list" }, h("b", { text: "지금 해 볼 만한 활동" }), recos.length ? cardGrid(recos.map((r) => r.m), (m) => ({ reasons: recos.find((r) => r.m.id === m.id).reasons, hideBtn: true })) : h("p", { class: "empty", text: "지금 추천할 활동이 없어요. '내 활동'에서 직접 골라 보세요." }),
+          h("div", { class: "macts" }, btn("다른 추천 보기", "", () => { UI.tab.recoOff = (UI.tab.recoOff || 0) + 1; UI.renderWin(); }), btn("내 활동에서 고르기", "", () => { UI.tab.j = "missions"; UI.renderWin(); }), btn("쉼 활동 보기", "", () => { UI.tab.j = "rest"; UI.renderWin(); }))));
         b.append(tokenBar());
       } else if (tab === "reco") {
         const pr = AU.G.recoPrefs(), off = UI.tab.recoOff || 0, recos = AU.G.recommend(3, off), hidden = M.recoHidden.map((id) => AU.G.mission(id)).filter(Boolean);
@@ -1227,6 +1235,7 @@ window.AU = window.AU || {};
         if (free.length) b.append(h("div", { class: "msummary", "data-plan": "free" }, h("b", { text: "주기를 정하지 않은 활동 · " + free.length + "종" }), h("div", { class: "planfree" }, free.map((m) => h("div", { class: "planrow" }, h("span", { text: m.title + " · " + (AREAS[m.functionArea] || "일상 활동") }), btn("주기 설정", "mini", () => UI.missionPlanEditor(m)))))));
         if (!done.length) b.append(empty("아직 완료한 활동이 없어요. 한 번 해 본 뒤에 이곳에서 수행 주기를 정할 수 있습니다.", [["내 활동 보기", "missions"]]));
       } else if (tab === "mlog") {
+        b.append(h("div", { class: "macts" }, btn("수행 주기 정하기", "mini", () => { UI.tab.j = "plan"; UI.renderWin(); })));
         const kind = UI.tab.mlogKind || "all", N = UI.tab.mlogN || 40, FEEL = { calm: "조금 편안해졌어요", same: "별다른 변화가 없었어요", mixed: "여러 감정이 섞여 있어요", tense: "아직 긴장되거나 불편해요", other: "그 밖의 느낌이에요" };
         const rows = [...(M.log || []).map((e) => ({ t: e.t, k: "real", e })), ...((S.rest && S.rest.log) || []).map((e) => ({ t: e.t, k: "rest", e }))].reverse().sort((x, y) => (x.t < y.t ? 1 : x.t > y.t ? -1 : 0)).filter((r) => kind === "all" || r.k === kind);
         b.append(h("p", { class: "note", text: "직접 남긴 활동 기록입니다. 평가 점수와 소감은 나만 보는 기록이며 보상에 영향을 주지 않습니다." }), chips([["all", "전체"], ["real", "현실 미션"], ["rest", "쉼"]], kind, (k) => { UI.tab.mlogKind = k; UI.tab.mlogN = 40; UI.renderWin(); }));
