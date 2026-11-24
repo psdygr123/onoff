@@ -85,13 +85,15 @@ window.AU = window.AU || {};
     }
     return b;
   };
+  // 레벨에 따른 최대 HP 보너스(스탯과 별개): 레벨마다 (base + 레벨÷every)씩 쌓임 — 레벨이 오를수록 상승폭이 조금씩 커짐
+  AU.levelHpBonus = (level) => { const g = C.levels.hpGain; let t = 0; for (let l = 2; l <= (level || 1); l++) t += g.base + Math.floor(l / g.every); return t; };
   AU.derive = function (st, opts = {}) {
     const P = C.stats.perPoint, eq = AU.equipBonus(st, opts.equip);
     const tot = (k) => (opts.stats ? opts.stats[k] : AU.statTotal(st, k));
     const eff = Math.min(C.stats.maxEfficiency, tot("WIL") * P.WIL.eff);
     return {
       atk: Math.round(C.combat.basePower + tot("STR") * P.STR.atk + eq.atk),
-      maxHp: Math.round(C.combat.baseHp + tot("VIT") * P.VIT.hp + eq.hp),
+      maxHp: Math.round(C.combat.baseHp + tot("VIT") * P.VIT.hp + eq.hp + AU.levelHpBonus(st.level)),
       dodge: +(tot("AGI") * P.AGI.dodge + eq.dodge).toFixed(2),
       crit: +(C.combat.baseCrit + tot("DEX") * P.DEX.crit + eq.crit).toFixed(2),
       eff: +eff.toFixed(2), costMult: 1 - eff / 100
