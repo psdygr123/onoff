@@ -4,6 +4,21 @@ window.AU = window.AU || {};
 (function () {
   const C = AU.CONFIG;
   const $ = (s, r) => (r || document).querySelector(s);
+  /* 안내 문장 꾸미기(11-24): [E] 같은 단축키는 눈에 띄는 색 글쇠(gkey)로, **굵게**는 강조(rb-em)로. 한글 [장착] 같은 버튼 이름은 그대로 둠 */
+  AU.keyRich = function (text) {
+    const out = [];
+    String(text).split(/\*\*(.+?)\*\*/).forEach((part, k) => {
+      if (k % 2) { const b = document.createElement("b"); b.className = "rb-em"; b.textContent = part; out.push(b); return; }
+      part.split(/(\{\{\+?[^}]+\}\})/).forEach((chunk) => {   // {{비어 있음}}=경고색(빨강), {{+끼고 있어요}}=좋은 상태(초록)
+        const st = /^\{\{(\+?)([^}]+)\}\}$/.exec(chunk); if (st) { const s2 = document.createElement("span"); s2.className = st[1] ? "gstat ok" : "gstat warn"; s2.textContent = st[2]; out.push(s2); return; }
+      chunk.split(/(\[(?:[A-Za-z0-9]{1,6}|Shift|Space|Esc|Enter|Tab|[←→↑↓])\])/).forEach((seg) => {
+        if (/^\[(?:[A-Za-z0-9]{1,6}|Shift|Space|Esc|Enter|Tab|[←→↑↓])\]$/.test(seg)) { const s = document.createElement("span"); s.className = "gkey"; s.textContent = seg.slice(1, -1); out.push(s); }
+        else if (seg) out.push(document.createTextNode(seg));
+      });
+      });
+    });
+    return out;
+  };
   function h(tag, attrs, ...kids) {
     const el = document.createElement(tag);
     if (attrs) for (const [k, v] of Object.entries(attrs)) {
@@ -701,7 +716,7 @@ window.AU = window.AU || {};
     const slots = h("div", { class: "eqslots" });
     for (const slot of Object.keys(S.equip)) {
       const id = S.equip[slot], it = id && AU.ITEMS[id];
-      slots.append(h("div", { class: "eqslot" }, h("div", { class: "eqlabel", text: AU.SLOT_LABEL[slot] }), it ? UI.itemIcon(id, 40) : null, h("div", { class: "eqname", text: it ? it.name.replace(" (임시)", "") : "비어 있음" }),
+      slots.append(h("div", { class: "eqslot" }, h("div", { class: "eqlabel", text: AU.SLOT_LABEL[slot] }), it ? UI.itemIcon(id, 40) : null, h("div", { class: "eqname" + (it ? "" : " eqempty"), text: it ? it.name.replace(" (임시)", "") : "비어 있음" }),
         it ? h("div", { class: "stat", text: Object.entries(it.stats).map(([k, v]) => statName(k) + " +" + v).join(" · ") }) : null,
         it ? btn("해제", "", () => AU.G.unequip(slot)) : null));
     }
