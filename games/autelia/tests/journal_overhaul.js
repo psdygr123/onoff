@@ -1,4 +1,4 @@
-/* 모험일지 현실 활동 개편 시험: 6개 기능(오늘·추천·전체 검색/필터·즐겨찾기·계획·기록) + 기존 저장·보상·반복·주기 보존 */
+/* 모험일지 일상 활동 개편 시험: 6개 기능(오늘·추천·전체 검색/필터·즐겨찾기·계획·기록) + 기존 저장·보상·반복·주기 보존 */
 const { chromium } = require('playwright');
 (async () => {
   const b = await chromium.launch(); let fails = 0; const ck = (k, ok, ev) => { console.log((ok ? 'PASS ' : 'FAIL ') + k + (ev ? ' :: ' + ev : '')); if (!ok) fails++; };
@@ -17,7 +17,7 @@ const { chromium } = require('playwright');
 
     // J1 탭 구성: 6개 기능 + 쉼·마음 기록 유지
     await open('missions'); const tabs = await ev(() => [...document.querySelectorAll('.real-tabs .btn, .real-tabs button')].map((x) => x.textContent));
-    ck('J1 현실 활동 탭은 3개: 내 활동·마음 기록·쉼', tabs.length === 3 && ['내 활동', '마음 기록', '쉼'].every((t) => tabs.includes(t)), tabs.join('|'));
+    ck('J1 일상 활동 탭은 3개: 내 활동·마음 기록·쉼', tabs.length === 3 && ['내 활동', '마음 기록', '쉼'].every((t) => tabs.includes(t)), tabs.join('|'));
 
 
     // J5 즐겨찾기: 등록·해제·저장 유지

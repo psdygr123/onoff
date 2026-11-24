@@ -875,7 +875,7 @@ window.AU = window.AU || {};
         // 사진·시간 기록은 질문이 아닌 첨부이므로 선택 사항으로 마지막 화면에만 둔다.
         body.push(evidencePanel.root);
         const ready = ["challenge", "meaning", "satisfaction"].every((k) => ans[k]);
-        acts.push(btn(next === "partial" ? "시도 기록하기" : "평가하고 완료하기", "primary", submit, ready ? {} : { disabled: "" }));
+        acts.push(btn(next === "partial" ? "시도 기록하기" : "기록하고 완료하기", "primary", submit, ready ? {} : { disabled: "" }));
       } else if (ans[q.key]) acts.push(btn("다음", "primary", () => go(step + 1)));
       const foot = h("div", { class: "rv-foot" }, btn("평가 없이 계속", "", () => finish(null)), btn("취소", "", close));
       wrap.append(h("div", { class: "panel modal restnote review-step" }, ...head, ...body, h("div", { class: "choices" }, ...acts), foot));
@@ -1245,7 +1245,13 @@ window.AU = window.AU || {};
       // 메인 스토리에서 자연스럽게 소개된 일상 활동
       const linkedBlock = () => {
         const linked = AU.RealBridge ? Object.entries(AU.RealBridge.suggestions()) : []; if (!linked.length) return null;
-        const rec = h("div", { class: "msummary", "data-real-bridge": "suggestions" }, h("h3", { text: "모험에서 이어진 현실 활동" }), h("p", { class: "note", text: "메인 스토리와 관련된 선택 활동입니다. 수행하지 않아도 게임을 계속할 수 있습니다." }));
+        const cnt = {}; for (const [, sg] of linked) { const mm = AU.G.mission(sg.missionId); if (!mm) continue; const st = AU.G.ms(mm.id).state; cnt[st] = (cnt[st] || 0) + 1; }
+        const open = UI.tab.linkedOpen != null ? UI.tab.linkedOpen : !!cnt.available;   // 11-24: 접었다 펼 수 있음(수락 가능한 활동이 있으면 처음엔 펼침)
+        const sum = Object.entries(cnt).map(([st, n]) => (AU.MISSION_STATES[st] || st) + " " + n).join(" · ");
+        const rec = h("div", { class: "msummary linked-fold" + (open ? "" : " folded"), "data-real-bridge": "suggestions" },
+          h("div", { class: "lf-head" }, h("h3", { text: "모험에서 이어진 일상 활동" }), h("span", { class: "note", text: sum }), btn(open ? "접기 ▲" : "펼치기 ▼", "mini", () => { UI.tab.linkedOpen = !open; UI.renderWin(); }, { "data-act": "linked-toggle" })));
+        if (!open) return rec;
+        rec.append(h("p", { class: "note", text: "메인 스토리와 관련된 선택 활동입니다. 수행하지 않아도 게임을 계속할 수 있습니다." }));
         const cards = h("div", { class: "missions" });
         for (const [key, suggestion] of linked.slice().reverse()) {
           const m = AU.G.mission(suggestion.missionId); if (!m) continue; const state = AU.G.ms(m.id).state;
@@ -1264,6 +1270,15 @@ window.AU = window.AU || {};
         const linked = linkedBlock(); if (linked) b.append(linked);
         b.append(tokenBar());
         const going = AU.MISSIONS.filter((m) => { const r = M.states[m.id] || {}; return ["accepted", "attempted", "partial"].includes(r.state) || (r.state === "available" && r.reoffer); });   // 다시 제안된 활동(재수락 대기)도 여기서 이어서 함
+        const partials = AU.MISSIONS.filter((m) => (M.states[m.id] || {}).state === "partial");   // 11-24: '일부만 했어요'만 모아 보기
+        const view = UI.tab.mineView === "partial" && partials.length ? "partial" : "going";
+        b.append(h("div", { class: "tabs mission-filter", "data-mine": "chips" }, btn("진행 중 (" + going.length + ")", view === "going" ? "on" : "", () => { UI.tab.mineView = "going"; UI.renderWin(); }, { "data-act": "mine-going" }), btn("일부만 했어요 (" + partials.length + ")", view === "partial" ? "on" : "", () => { UI.tab.mineView = "partial"; UI.renderWin(); }, { "data-act": "mine-partial" })));
+        if (view === "partial") {
+          const lastRate = (id) => { const e = (M.log || []).filter((x) => x.id === id && x.state === "partial" && x.reflection).pop(); return e ? e.reflection : null; };
+          const g = h("div", { class: "missions" });
+          for (const m of partials) { const c = missionCard(m), rf = lastRate(m.id); if (!c) continue; if (rf) c.insertBefore(h("p", { class: "note", text: "내 평가 · 만족 " + rf.satisfaction + "/5 · 의미 " + rf.meaning + "/5 · 도전 " + rf.challenge + "/5" + (rf.efficacy ? " · 해낼 자신 " + rf.efficacy + "/5" : "") }), c.querySelector(".macts") || null); g.append(c); }
+          b.append(h("div", { class: "msummary", "data-mine": "partial" }, h("b", { text: "일부만 했어요 " + partials.length + "개" }), h("p", { class: "note", text: "조금 해 본 활동이에요. 이어서 완료하거나 '다시 도전'으로 새로 시작할 수 있어요." }), g));
+        } else
         b.append(h("div", { class: "msummary", "data-mine": "going" }, h("b", { text: "진행 중인 활동 " + going.length + "개" }),
           going.length ? cardGrid(going) : h("p", { class: "empty", text: "지금 진행 중인 활동이 없어요. 아래 추천에서 하나 골라 보세요." })));
         const off = UI.tab.recoOff || 0, recos = AU.G.recommend(2, off);
@@ -1274,6 +1289,10 @@ window.AU = window.AU || {};
         const when = {}; for (const e of M.log || []) if (e.state === "done") when[e.id] = e.t;   // 완료한 날짜(최근 것부터 보여 주기 위함)
         const done = AU.MISSIONS.filter((m) => (M.states[m.id] || {}).state === "done").sort((x, y) => ((when[y.id] || "") < (when[x.id] || "") ? -1 : 1));
         b.append(h("div", { class: "permabar" }, Object.entries(AU.PERMA).map(([k, n]) => h("div", { class: "pc" }, h("b", { text: k }), h("span", { text: n }), h("em", { text: AU.G.permaCounts()[k] + "회" })))));
+        { const rs = (M.log || []).filter((e) => e.reflection && !e.repeat && ["done", "partial"].includes(e.state)), pr = rs.filter((e) => e.state === "partial");
+          const mean = (list, k) => { const v = list.map((e) => e.reflection[k]).filter((x) => Number.isFinite(x)); return v.length ? (v.reduce((a2, c2) => a2 + c2, 0) / v.length).toFixed(1) : "-"; };
+          b.append(h("div", { class: "msummary", "data-record": "avg" }, h("b", { text: "내 평가 평균 (1~5점)" }), h("p", { class: "note", text: rs.length ? "기록 " + rs.length + "건 기준 · 일부만 했어요 " + pr.length + "건 포함" : "아직 평가한 기록이 없어요. 활동을 마치고 평가를 남기면 평균이 보여요." }),
+            rs.length ? h("div", { class: "permabar" }, [["만족", "satisfaction"], ["의미", "meaning"], ["도전", "challenge"], ["해낼 자신", "efficacy"]].map(([n, k]) => h("div", { class: "pc" }, h("b", { text: mean(rs, k) }), h("span", { text: n }), h("em", { text: "일부만 " + mean(pr, k) })))) : null)); }
         b.append(h("div", { class: "msummary", "data-record": "done" }, h("b", { text: "완료한 현실 미션 " + done.length + "개" }),
           done.length ? cardGrid(done) : h("p", { class: "empty", text: "아직 완료한 활동이 없어요. '내 활동'에서 하나 시작해 보세요." })));
       }

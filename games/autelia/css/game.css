@@ -940,3 +940,5 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
 .rb-item span { font-size: 14.5px; color: #6b5a40; }
 
 .jcard p.jd-lines { white-space: pre-line; font-size: 11px; letter-spacing: -0.04em; margin: 10px 0 0; line-height: 1.6; }
+
+.linked-fold .lf-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; } .linked-fold .lf-head h3 { margin: 0; } .linked-fold .lf-head .note { margin: 0; flex: 1; } .linked-fold.folded { padding-top: 10px; padding-bottom: 10px; }
