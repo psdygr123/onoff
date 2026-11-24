@@ -333,7 +333,7 @@ window.AU = window.AU || {};
      SCENE 02 — 빛의 승리 천 년 기념제 (축제 광장)
      ============================================================ */
   /* 11-24 개편(B안): 아이를 일으켜 세우거나 지나치면, 이후 집 앞까지 자동으로 달려감 */
-  const KID = { hold: [["heroS", "비켜요! 놔요...! 아버지!"]], help: [["florist", "으윽... 다리가... 아저씨, 도, 도와주세요..."], ["heroS", "괜찮아? 일어날 수 있겠어?"], ["florist", "다, 다리가 풀려서... 고, 고맙습니다!"], ["heroS", "어서 안전한 곳으로 가! 나는 아버지께 가야 해."]] };
+  const KID = { hold: [["heroS", "비켜요! 놔요...! 아버지!"]], help: [["child", "으윽... 다리가... {이름}, 도, 도와줘요..."], ["heroS", "괜찮아? 일어날 수 있겠어?"], ["child", "다, 다리가 풀려서... 고, 고맙습니다!"], ["heroS", "어서 안전한 곳으로 가! 나는 아버지께 가야 해."]] };
   async function helpKid(kid) {
     const P = AU.Prologue, g = P.gen; if (kid.done || P.v.kidBusy) return; P.v.kidBusy = true; kid.done = true; kid.mark = false; kid.interact = null;
     await P.cutscene(async () => {
