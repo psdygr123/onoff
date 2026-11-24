@@ -73,7 +73,7 @@ window.AU = window.AU || {};
     father: { name: "아버지", portrait: "pt_pro_father", alt: "pt_smith" },
     fatherS: { name: "아버지", portrait: "pt_pro_father_smile", alt: "pt_smith" },                // 미소
     vendor: { name: "소피아", portrait: "pt_pro_baker", alt: "pt_baker" },
-    child:  { name: "야니스", portrait: "pt_pro_child", alt: "pt_villager_b" },
+    child:  { name: "야니스", portrait: "pt_pro_child" },
     elder:  { name: "마노스", portrait: "pt_pro_elder", alt: "pt_villager_a" },
     traveler: { name: "먼 마을에서 온 할머니", portrait: "pt_pro_traveler", alt: "pt_villager_a" },   // 광장 전용 인물(그림 도착 전에는 기존 주민 얼굴로 대체)
     florist:  { name: "꽃 심부름 온 사내아이", portrait: "pt_pro_florist", alt: "pt_villager_b" },
