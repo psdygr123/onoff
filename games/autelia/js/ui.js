@@ -46,11 +46,19 @@ window.AU = window.AU || {};
       AU.Ev.on("changed", () => { this.updateHud(true); if (this.cur && this.curName !== "keysettings" && this.curName !== "dev") this.renderWin(); });
       AU.Ev.on("levelup", (d) => this.levelBanner(d.level));
       AU.Ev.on("jobchange", () => { this.afterDialog.push("jobcard"); if (!this.dialog) this.flushAfter(); });
+      const wantGuide = () => { if (AU.G.S.flags.fatigueGuideSeen) return; let n = 0; const run = () => { if ((this.dialog || this.modal || this.curName) && n++ < 40) { setTimeout(run, 700); return; } this.fatigueGuide(); }; setTimeout(run, 900); };
+      AU.Ev.on("awaken", wantGuide); AU.Ev.on("jobchange", wantGuide);
       AU.Ev.on("saved", (d) => this.savedFlash(d.reason));
       AU.Ev.on("mapchange", (d) => { if (!AU.MAPS[d.id].prologue) this.mapBanner(AU.MAPS[d.id].name); });
       AU.Ev.on("dead", () => this.toast("쓰러졌습니다…", "warn"));
     },
     el(sel) { return $(sel, this.root); },
+    // 11-24: Lv.10 스킬을 배울 때 피로도를 처음 안내함(처음 시작 안내와 같은 모달 방식, 두 장)
+    async fatigueGuide() {
+      const S = AU.G.S; if (S.flags.fatigueGuideSeen || !AU.RealBridge) return; S.flags.fatigueGuideSeen = true; AU.G.save("fatigue-guide");
+      await AU.RealBridge.prompt("피로도를 알아 두세요", "스킬을 쓸 때마다 **피로도**가 조금씩 쌓여요.\n\n피로도가 가득 차면 스킬을 쓸 수 없어요. 기본 공격은 언제나 쓸 수 있어요.", [{ text: "다음", value: "next", primary: true }], { cls: "rb-intro" });
+      await AU.RealBridge.prompt("피로도는 이렇게 줄여요", "모험일지(" + keyOf("journal") + ")의 **현실 활동 ▸ 쉼**에서 쉼 활동을 하면 줄어들어요. 활동은 몇 번이든 할 수 있고, 피로도는 하루 첫 쉼 활동에서 줄어요.\n\n스킬창(" + keyOf("skills") + ")에서 **은화로 휴식**해도 줄일 수 있어요. 매주 월요일에는 저절로 풀려요.", [{ text: "알겠어요", value: "ok", primary: true }], { cls: "rb-intro" });
+    },
 
     /* ============ HUD ============ */
     buildHud() {
@@ -133,6 +141,7 @@ window.AU = window.AU || {};
       const hpv = Math.max(0, Math.ceil(S.hp));
       this.setStyle(this.hud.hp.firstChild, "hp", "width", Math.max(0, Math.min(100, S.hp / d.maxHp * 100)).toFixed(1) + "%"); this.setText(this.hud.hp.lastChild, "hpt", "HP " + hpv + " / " + d.maxHp);
       this.setStyle(this.hud.rs.firstChild, "rs", "width", (S.fatigue / S.fatigueMax * 100).toFixed(1) + "%"); this.setText(this.hud.rs.children[1], "rst", C.fatigue.name + " " + (+S.fatigue.toFixed(1)) + " / " + S.fatigueMax);
+      this.hud.rs.style.display = S.skills.unlocked.length ? "" : "none";   // 11-24: 피로도는 스킬을 배우는 Lv.10부터 보임(그 전에는 HP만)
       this.hud.rs.classList.toggle("full", S.fatigue >= S.fatigueMax - 1e-6); { const pc = S.fatigue / S.fatigueMax; this.hud.rs.classList.toggle("mid", pc >= 0.5 && pc < 0.8); this.hud.rs.classList.toggle("hot", pc >= 0.8); }
       const need = AU.expToNext(S.level), atCap = S.level >= AU.levelCap(S);
       this.setStyle(this.hud.ex.firstChild, "ex", "width", (atCap && !S.jobChanged ? 100 : Math.min(100, S.exp / need * 100)).toFixed(1) + "%");
