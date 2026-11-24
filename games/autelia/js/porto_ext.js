@@ -57,9 +57,10 @@
   AU.NPCS.npc_cabinboy = { name: "루카", title: "견습 선원", sprite: "npc_cabinboy", portrait: "pt_npc_cabinboy", idle: ["밧줄 매듭을 백 번 묶어야 갑판에 오른대요!", "저도 언젠가 먼 바다로 나가는 배를 탈 거예요."] };
 
   const add = (id, x, extra) => P.npcs.push(Object.assign({ id, x }, extra || {}));
-  add("npc_housewife", 420); add("npc_resident_f", 700, L(590, 840)); add("npc_townsman", 1180, L(900, 1500)); add("npc_peddler", 1560, L(1470, 1640)); add("npc_spicer", 2020, L(1860, 2200));
-  add("npc_netmender", 1760); add("npc_fishwife", 2500, L(2350, 2750)); add("npc_fisher", 2980, L(2800, 3200));
-  add("npc_cabinboy", 3380, L(3340, 3440)); add("npc_sailor", 3600, L(3450, 4000)); add("npc_porter", 4250, L(4050, 4850));
+  /* 11-24 재배치: 주민이 앞쪽(왼쪽)에만 몰려 있던 것을 맵 전체(주택가→어시장→선착장→중앙 부두→조선소)에 고르게 나눔. 니코스·알렉시오스·피포·브루노 자리는 그대로. */
+  add("npc_housewife", 420); add("npc_resident_f", 1020, L(900, 1150)); add("npc_townsman", 1650, L(1500, 1850)); add("npc_peddler", 2250, L(2100, 2420)); add("npc_fishwife", 2850, L(2700, 3000));
+  add("npc_spicer", 3450, L(3330, 3600)); add("npc_fisher", 4000, L(3850, 4200)); add("npc_cabinboy", 4400, L(4350, 4470)); add("npc_sailor", 4800, L(4650, 5000));
+  add("npc_porter", 6900, L(6780, 7000)); add("npc_netmender", 8400);
   // 가만히 서 있던 주민·안내인도 제자리 근처(±110)를 천천히 오가게 함
   P.npcs.forEach((n) => { if (!n.patrol) { n.patrol = [n.x - 110, n.x + 110]; n.speed = 28; } });
   add("npc_porter2", sh(2689) + 300, L(sh(2689) + 150, sh(2689) + 900)); add("npc_sailor2", sh(2689) + 1250, L(sh(2689) + 1000, sh(2689) + 1550));
