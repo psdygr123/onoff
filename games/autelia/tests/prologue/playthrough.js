@@ -45,9 +45,10 @@ const { open, sleep } = require('./lib.js');
   await T.walk(L.plaza.center + 15, 10, 20000); await sleep(1500); await T.shot('r2_s2_cs_a'); await sleep(3000); await T.shot('r2_s2_cs_b'); 
   await T.until(() => AU.Prologue.st().state === 'SCENE_03_ATTACK', 30000); await sleep(1200); await T.shot('r2_s3_a'); await T.idle(30000); log('S3 control', JSON.stringify(await T.P())); await T.shot('r2_s3_control'); lap('S2');
   // ---- S3 ----
-  await T.walkJ(L.plaza.obst[0].x - 90, 14, 30000); await T.shot('r2_s3_stall'); log('after stall', JSON.stringify(await T.P()));
-  await T.walkJ(L.plaza.exit - 10, 14, 40000); await T.idle(); log('road attack', JSON.stringify(await T.P())); await T.shot('r2_s3_road');
-  await T.until(() => AU.World.mapId === 'pro_road', 20000); await sleep(1200); await T.shot('r3_s3_roadatk'); await T.walkJ(L.road.doorX + 40, 14, 60000); await T.idle(30000); log('house', JSON.stringify(await T.P())); lap('S3');
+  // 11-24 개편: 광장은 장애물 없이 걷다가 쓰러진 아이를 지나치면(또는 도우면) 자동으로 집 앞까지 이동
+  await T.walk(L.plaza.w - 900 - 260, 14, 40000); await T.shot('r2_s3_stall');
+  await T.until(() => AU.World.mapId === 'pro_road', 30000); await sleep(1200); await T.shot('r3_s3_roadatk');
+  await T.until(() => AU.Prologue.st().state === 'SCENE_04_FATHER', 60000); await T.idle(30000); log('house', JSON.stringify(await T.P())); lap('S3');
   // ---- S4 ----
   await T.shot('r2_s4_a'); await T.walkJ(L.house.find + 30, 12, 15000); await T.until(() => AU.Prologue.closeup && AU.Prologue.closeup.a > 0.95, 40000); await T.shot('r3_s4_closeup'); await sleep(200); await T.shot('r2_s4_will_a'); await T.idle(60000); log('after will', JSON.stringify(await T.P())); await T.shot('r2_s4_after');
   await T.walk(L.house.bag, 12, 15000); log('bag prompt', (await T.P()).prompt); await p.keyboard.press('Space'); await sleep(400); await T.shot('r2_s4_bag'); log('after bag', JSON.stringify(await T.P()));
