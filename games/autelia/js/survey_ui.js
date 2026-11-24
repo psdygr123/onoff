@@ -142,6 +142,8 @@ window.AU = window.AU || {};
       v.append(key === "pss" ? pssResult(sub, cmp) : permaResult(s, sub, pre, cmp));
       if (state.phase !== "pre" && !cmp) v.append(h("p", { class: "note", text: state.phase === "check" ? "이전 기록이 쌓이면 변화를 함께 보여 드립니다." : "비교할 수 있는 ‘시작 전 설문’(같은 문항·채점 버전)이 아직 없습니다." }));
       v.append(h("p", { class: "note", text: "이 점수는 진단이 아니며 ‘정상·위험’ 같은 기준선이 없습니다. 점수가 높거나 낮다고 게임에서 달라지는 것은 없습니다. 힘든 마음이 이어진다면 믿을 수 있는 사람이나 전문가와 이야기해 보세요." }));
+      v.append(h("div", { class: "svhelp", "data-help": "lines" }, h("b", { text: "도움을 받을 수 있는 상담전화" }),
+        h("ul", null, h("li", { text: "자살예방 상담전화 109 (국번 없이, 24시간)" }), h("li", { text: "정신건강 위기상담전화 1577-0199 (24시간)" }), h("li", { text: "청소년전화 1388" }), h("li", { text: "보건복지상담센터 129" }))));   // 보건복지부·여성가족부 운영 전화(2024년 109 통합 안내 기준)
     }
     v.append(h("div", { class: "svbtns" }, btn("목록으로", "", () => toList(rerender), { "data-act": "tolist" })));
     return v;
