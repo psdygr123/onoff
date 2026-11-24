@@ -216,7 +216,7 @@ window.AU = window.AU || {};
       await P.cutscene(async () => { await P.say(T.s1b_elder2); }); } };
     async function hang(q) {
       if (q.hung) return; q.hung = true; q.mark = false; q.interact.off = true;
-      await P.cutscene(async () => { await P.walkTo(q.x - 48, 1); P.face(1); await P.wait(0.2); P.sfx("pick"); await P.tween(q, { f: 1 }, 1.0, (k) => k); P.sfx("item"); await P.wait(0.25); });
+      await P.cutscene(async () => { await P.walkTo(q.x - 48, 1); P.face(1); await P.wait(0.2); P.sfx("pick"); await P.tween(q, { f: 1 }, 1.0, (k) => k); P.sfx("flag_flap"); await P.wait(0.85); });
       st.done++; P.obj(OBJ.s1b_flags.replace("{n}", st.done));
       if (st.done < 3) return;
       await P.cutscene(async () => { await P.say(T.s1b_done); }); P.setFlag("banners_done"); P.limits = null; P.obj(OBJ.s1b_exit);
@@ -353,13 +353,13 @@ window.AU = window.AU || {};
   function setupPlaza(P, variant) {
     const v = P.v, L = LAY.plaza; P.variant = variant;
     if (variant === "peace") {
-      P.tint = { color: "#F0904F", a: 0.42 }; P.vig = 0.3; v.cheer = P.flag("plaza_cheered") ? 0.75 : 0.12;
+      P.tint = { color: "#F0904F", a: 0.42 }; P.vig = 0.3; v.cheer = 0.12;   // 환호는 소피아와 대화한 뒤 기념제 문구가 나올 때만(centerEvent)
       P.overlayFn = duskSky;   // 해 질 녘 하늘(임시: 정식 석양 배경 그림이 오면 교체)
       P.limits = { min: 40, max: L.limit, msg: "먼저 주민과 이야기를 나눠 보세요. (마을길로는 돌아갈 수 없습니다)" };
       // 광장 전용 인물: 마을길에서 만난 주민(나이 든 주민·축제 어린이)과 겹치지 않도록 새 인물을 둠(빵을 나누는 주민은 마을길에서 "광장에서 보자"고 한 인물이라 그대로)
       const sT = standing("g", "villager_a"), sF = standing("l", "villager_b");
-      // 주민과 대화를 시작하면 군중이 들뜨고(그림만, 함성 소리는 기념제 문구가 나올 때), 그 뒤로는 계속 즐겁게 들떠 있음(가라앉지 않음)
-      const joy = () => { try { if (!P.flag("plaza_cheered")) P.setFlag("plaza_cheered"); P.tween(P.v, { cheer: 0.75 }, 0.7); } catch (e) { /* 무시 */ } };
+      // 대화하는 동안 군중은 평소 모습 그대로, 환호는 소피아와 대화 후 기념제 문구에서 시작
+      const joy = () => { };   // 대화 중에는 군중이 들뜨지 않음(환호 소리·움직임은 기념제 문구에서만)
       const elder = npc(P, "traveler", "traveler", sT.sprite, L.elder, sT.h, Object.assign({}, sT.extra, { range: 100, interact: { label: "대화: 먼 마을에서 온 할머니", fn: () => { joy(); return P.cutscene(() => P.say(T.plaza_traveler)); } } }));
       const child = npc(P, "florist", "florist", sF.sprite, L.child, sF.h, Object.assign({}, sF.extra, { range: 100, interact: { label: "대화: 꽃 심부름 온 사내아이", fn: () => { joy(); return P.cutscene(() => P.say(T.plaza_florist)); } } }));
       const vendor = npc(P, "vendor", "vendor", artSpr("pc_villager_b_actions", "baker"), L.vendor, 150, { frame: A.sprFrame("pc_villager_b_actions", "cheer2"), range: 110, mark: true, interact: { label: "대화: 소피아", fn: async () => {
