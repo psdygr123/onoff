@@ -35,10 +35,14 @@ window.AU = window.AU || {};
   AR.ch.player_f_combat = { frames: 6, names: ["attack1", "attack2", "strike", "spin", "hurt", "down"], separate: {}, cw: 453, ch: 389, standH: 300, foot: 226 };
   AR.ch.father_work = { frames: 4, names: ["reach", "hold", "walk1", "walk2"], separate: {}, cw: 300, ch: 330, standH: 300, foot: 150 };
   for (const [k, cw, ch] of [["a", 186, 300], ["b", 188, 303], ["c", 156, 297], ["d", 199, 317], ["e", 148, 275], ["f", 160, 293], ["g", 160, 265], ["h", 138, 262], ["i", 220, 321], ["j", 148, 293], ["k", 156, 287], ["l", 111, 210], ["m", 182, 299]]) AR.ch["villager_" + k + "_walk"] = { frames: 4, names: ["walk1", "pass1", "walk2", "pass2"], separate: {}, cw, ch, standH: ch - 1, foot: ch - 2 };   // 마을 주민 걷기 시트(걷기 4칸)
+  // 달리기 시트(정식 그림이 오면 자동 사용 · 없으면 걷기 그림을 빠르게 재생): 칸 크기·발 위치는 이동 시트(걷기)와 같게 맞춘 6프레임(run1~run6)
+  for (const g of ["m", "f"]) if (AR.ch["player_" + g + "_locomotion"]) AR.ch["player_" + g + "_run"] = Object.assign({}, AR.ch["player_" + g + "_locomotion"], { frames: 6, names: ["run1", "run2", "run3", "run4", "run5", "run6"] });
   for (const [f, m] of Object.entries(AR.ch || {})) {
     AU.ASSETS["pc_" + f] = { path: "assets/prologue/ch/" + f + ".webp", frames: m.frames, optional: true };
     for (const n of Object.keys(m.separate || {})) AU.ASSETS["pc_" + f.split("_")[0] + "_" + n] = { path: "assets/prologue/ch/" + f.split("_")[0] + "_" + n + ".webp", optional: true };
   }
+  // 쓰러진 아이(정식 그림이 오면 자동 사용, 없으면 임시 표시): kid_down=누운 모습, kid_run1/2=일으켜 세운 뒤 달려가는 모습
+  for (const f of ["kid_down", "kid_run1", "kid_run2"]) AU.ASSETS["pc_" + f] = { path: "assets/prologue/ch/" + f + ".webp", optional: true };
   // 추가 그림(2차 패키지, tools/build_prologue_art2.py): 장애물·이음 골조·초상화
   for (const f of ["obst_rock", "obst_log", "obst_burnt_beams", "joint_frame", "monument", "flagpole", "flag_0", "flag_1", "flag_2"]) AU.ASSETS["po_" + f] = { path: "assets/prologue/ob/" + f + ".webp", optional: true };
   for (const f of ["pt_pro_hero_m", "pt_pro_hero_f", "pt_pro_father", "pt_pro_elder", "pt_pro_baker", "pt_pro_child", "pt_pro_hero_m_surprised", "pt_pro_hero_f_surprised", "pt_pro_father_smile", "pt_pro_farmer", "pt_pro_priest", "pt_pro_musician", "pt_pro_scribe", "pt_pro_traveler", "pt_pro_florist", "pt_pro_officer", "pt_pro_raider"]) AU.ASSETS[f] = { path: "assets/prologue/pt/" + f + ".webp", optional: true };
@@ -97,19 +101,19 @@ window.AU = window.AU || {};
     vendor: [["vendor", "신전을 완성한 목수네 {자녀}이구나!"], ["vendor", "고생 많았어. 오늘만큼은 일 생각 말고 실컷 즐기렴."]],                                                       // 빵 장수를 처음 만나는 경우(마을길에서 말을 안 건 경우)
     vendor2: [["vendor", "또 만났구나! 아침에도 저녁에도 봤는데, 신전 앞에서 보니 더 반갑네."], ["vendor", "신전이 정말 다 올라갔어. {성별:사내 녀석이|아가씨가} 큰일을 해냈구나. 목수네 {자녀} 덕이지."], ["vendor", "고생 많았어. 오늘만큼은 일 생각 말고 실컷 즐기렴."]],   // 마을길에서 이미 두 번 인사했으면 첫인사를 반복하지 않음
     vendor1: [["vendor", "어서 와라, 아침에 인사했던 목수네 {자녀}! 드디어 신전이 다 올라갔구나."], ["vendor", "{성별:사내 녀석이|아가씨가} 큰일을 해냈어. 고생 많았다. 오늘만큼은 일 생각 말고 실컷 즐기렴."]],
-    child: [["child", "저렇게 큰 신전을 정말 너희가 만든 거야?"], ["child", "나도 크면 저런 걸 만들어보고 싶어!"]],
+    child: [["child", "저렇게 큰 신전을 정말 네가 만든 거야?"], ["child", "나도 크면 저런 걸 만들어보고 싶어!"]],
     elder: [["elder", "전쟁이 끝난 지도 벌써 천 년이라니."], ["elder", "이제 우리 아이들은 어둠을 옛이야기로만 알고 살아가겠지."]],
     plaza_traveler: [["traveler", "먼 마을에서 구경하러 왔는데, 이 신전이 제일 크다고들 하더구나."], ["traveler", "우리 마을에서도 천 년 기념 신전을 짓고 있지만, 이렇게 아름다운 곳은 처음 보는구나."], ["traveler", "요즘은 길드에 들어가 모험가가 되는 아이들도 많다더구나. 다섯 용사처럼 되고 싶은 게지."]],
     plaza_florist: [["florist", "축제 날에는 신전 앞에 꽃을 놓는 게 이 마을 풍습이래요!"], ["florist", "저도 엄마 심부름으로 꽃을 가져왔어요. 오늘은 정말 신나는 날이에요!"]],
     order: [["officer", "이 마을 어딘가에 용사의 후예가 숨어 있다. 낙인을 가진 자를 찾아내라."], ["officer", "빛의 신전을 무너뜨려라. 눈에 띄는 자는 하나도 살려 두지 마라. 불을 질러라!"]],
     attack: [["resA", "불이야!"], ["resB", "신전이 불타고 있어!"], ["resC", "도망쳐! 무장한 놈들이 들어왔다!"], ["raider", "불을 질러라! 이 마을에 용사의 피가 숨어 있다!"]],
     hero_dad: [["heroS", "아버지...!"]],
-    will: [["hero", "아버지...?"], ["hero", "아버지!"], ["father", "...왔구나."], ["hero", "말하지 마세요. 지금 사람을 불러올게요."], ["father", "아니... 시간이 없다."]],
+    will: [["hero", "아버지...?"], ["hero", "아버지!"], ["father", "...괜찮니, 내 {자녀}야."], ["hero", "말하지 마세요. 지금 사람을 불러올게요."], ["father", "아니... 시간이 없다."]],
     officer: [["officer", "...낙인이군. 천 년을 숨어 산 용사의 피가 정말 여기 있었나."], ["heroS", "당신들이... 아버지를!"], ["officer", "그 늙은이의 핏줄이로군. 용사의 후예는 한 명도 남기지 않는다. 여기서 끝내 주마."]],
     officer2: [["officer", "...잘 가라, 목수의 {자녀}."]],
     officer2b: [["father", "...내 {자녀}에게... 손대지 마라!"]],
     officer3: [["officer", "...쓸데없는 짓을."], ["raider", "대장, 불길이 번집니다!"], ["officer", "...가자. 도망쳐 봐라, 목수의 {자녀}. 그 피가 이어지는 한 우리는 반드시 다시 만난다."]],
-    will_brand: [["father", "이 조각은... 천 년 전, 우리 선조들이 어둠을 봉인할 때 쓰인 봉인석의 조각이다."], ["hero", "봉인...석? 선조라니, 아버지, 그게 무슨..."], ["father", "우리는... 다섯 용사의 피를 이은 후예다. 내 손목에 새겨진 이 검은 고리 낙인이 그 증거다."], ["father", "천 년을 숨어 살았는데... 그들이 끝내 우리를 찾아냈구나. 미안하다... 숨기지 못해서."]],
+    will_brand: [["father", "이 조각은... 천 년 전, 우리 선조들이 어둠을 봉인할 때 쓰인 봉인석의 조각이다."], ["hero", "봉인...석? 선조라니, 아버지, 그게 무슨..."], ["father", "우리는... 다섯 용사의 피를 이은 후예다."], ["father", "내 손목에 새겨진 이 검은 고리 낙인이 그 증거다."], ["father", "천 년을 숨어 살았는데... 그들이 끝내 우리를 찾아냈구나. 미안하다... 숨기지 못해서."]],
     will2: [["father", "도망쳐라..."], ["hero", "그런 말 하지 마세요."], ["father", "이 조각을 들고..."], ["father", "빛도 어둠도 닿지 않는 중립 구역으로 가야... 안전해..."], ["hero", "아버지, 제발..."]],
     will3: [["hero", "...아버지?"]],
     brand_hero: [["hero", "(...어? 손목이...)"], ["hero", "(희미한 검은 고리가 비친다. 아버지 손목에 있던 고리와 같다.)"], ["hero", "(...나한테도 있었던 거야?)"]],

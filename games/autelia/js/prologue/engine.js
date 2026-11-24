@@ -419,13 +419,15 @@ window.AU = window.AU || {};
       if (nm === "hammer") fr = (this.v.swing || 0) > 0.5 ? "hammer2" : "hammer1";
       else if (nm === "kneel") fr = "kneel"; else if (nm === "shrug") fr = "shrug"; else if (nm === "lookback") fr = "lookback";
       else if (!p.onGround) { sheet = "locomotion"; fr = p.vy < 0 ? "jump_up" : "jump_down"; }
+      else if (moving && this.runArt()) { sheet = "run"; fr = "run" + (1 + (Math.floor(AU.World.time * 11) % 6)); }   // 정식 달리기 그림(6프레임)
       else if (moving) { sheet = "locomotion"; fr = "walk" + (1 + (Math.floor(AU.World.time * (this.isRun() ? 15 : 9)) % 4)); }   // 달릴 때는 발 구르는 속도를 빠르게(미끄러지는 느낌 방지)
       if (hasBag && !nm && !(this.v.carry || this.v.give) && (sheet === "locomotion" || fr === "idle")) { this.bagDrawn = true; return A.spr(ctx, bk, sheet === "locomotion" ? fr : "stand", p.x, p.y, p.dir); }
       return A.spr(ctx, this.heroKey(sheet), fr, p.x, p.y, p.dir);
     },
+    runArt() { return this.isRun() && AU.Img.has(this.heroKey("run")); },   // 달리기 정식 그림이 있고 달리는 중인지
     isRun() { return !!(this.walk && AU.World.virt && AU.World.virt.k >= 1.5); },   // 컷신에서 주인공이 달리는 중인지
     poseOf(p) {
-      const q = p.pose; if (!q) { if (this.isRun() && p.onGround) { const t = AU.World.time; return { sx: 1, sy: 1, rot: 0.15 * p.dir, dx: 0, dy: -Math.abs(Math.sin(t * Math.PI * 7.5)) * 5, art: true }; } return null; } const t = q.t;   // 달리기: 몸을 앞으로 기울이고 걸음마다 위아래로 튐
+      const q = p.pose; if (!q) { if (this.isRun() && !this.runArt() && p.onGround) { const t = AU.World.time; return { sx: 1, sy: 1, rot: 0.15 * p.dir, dx: 0, dy: -Math.abs(Math.sin(t * Math.PI * 7.5)) * 5, art: true }; } return null; } const t = q.t;   // 달리기: 몸을 앞으로 기울이고 걸음마다 위아래로 튐
 
       if (this.heroArt() && q.name === "lookback") { const k = Math.min(1, t / 1.6), tr = Math.sin(t * 7) * 0.9 * k; return { sx: 1, sy: 1 - 0.035 * k, rot: 0.06 * p.dir * k, dx: tr, art: true }; }   // 고개와 어깨를 떨군 채 가늘게 떨며 마을을 바라봄(슬픔)
       if (this.heroArt()) return q.name === "stagger" ? { sx: 1, sy: 1, rot: 0.1 * p.dir, dx: 0 } : { sx: 1, sy: 1, rot: 0, dx: 0, hammer: q.name === "hammer", art: true };

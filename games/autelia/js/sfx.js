@@ -98,7 +98,7 @@ window.AU = window.AU || {};
   def("boom", "멀리서 울리는 폭발과 진동(날카롭지 않게)", (c, b, t) => { N(c, b, t, { type: "lowpass", f: 420, f2: 70, dur: 2.2, a: 0.05, vol: 0.55 }); T(c, b, t, { f: 64, f2: 26, dur: 1.7, vol: 0.4, a: 0.03 }); for (let i = 0; i < 9; i++) N(c, b, t + 0.35 + i * rnd(0.12, 0.2), { type: "highpass", f: rnd(1500, 3000), dur: 0.06, vol: rnd(0.02, 0.08) }); });
   def("collapse", "나무 기둥이 무너져 내리는 소리", (c, b, t) => { N(c, b, t, { f: 1800, q: 1.5, dur: 0.06, vol: 0.3 }); T(c, b, t, { f: 85, f2: 38, dur: 0.6, vol: 0.45 }); N(c, b, t + 0.08, { type: "lowpass", f: 800, f2: 200, dur: 0.7, vol: 0.25 }); for (let i = 0; i < 6; i++) N(c, b, t + 0.2 + i * 0.1, { f: rnd(900, 2500), dur: 0.05, vol: 0.06 }); });
   def("cloth", "현수막·천이 펄럭이는 소리", (c, b, t) => { N(c, b, t, { f: 1000, f2: 2000, q: 0.6, dur: 1.2, a: 0.25, vol: 0.12 }); N(c, b, t + 0.15, { f: 600, f2: 1400, q: 0.6, dur: 0.9, a: 0.2, vol: 0.08 }); });
-  def("flag_flap", "깃발이 바람에 펄럭이는 소리(천이 짧게 탁탁 펴지며 잦아듦)", (c, b, t) => { const k = v(); [0, 0.09, 0.2, 0.29, 0.42, 0.58, 0.78].forEach((d, i) => { const g = 1 - i * 0.12; N(c, b, t + d, { f: rnd(1700, 2600) * k, q: 1.1, dur: 0.055, a: 0.002, vol: 0.2 * g }); N(c, b, t + d, { type: "lowpass", f: rnd(450, 800), dur: 0.09, a: 0.004, vol: 0.1 * g }); });   // 천이 팽팽해질 때마다 나는 '탁'
+  def("flag_flap", "깃발이 바람에 부드럽게 펄럭이는 소리(천이 바람을 타고 '후우—ㅍ' 부풀었다 잦아듦, 날카로운 타격음 없음)", (c, b, t) => { const k = v(); [0, 0.2, 0.44, 0.72, 1.04, 1.4].forEach((d, i) => { const g = 1 - i * 0.14; N(c, b, t + d, { f: rnd(650, 1250) * k, q: 0.6, dur: 0.34, a: 0.09, vol: 0.085 * g }); N(c, b, t + d + 0.03, { type: "lowpass", f: rnd(260, 420), dur: 0.3, a: 0.1, vol: 0.06 * g }); });   // 천이 바람을 받아 부풀었다 가라앉는 느낌(부드러운 시작·긴 여운)
     N(c, b, t, { f: 900, f2: 1500, q: 0.6, dur: 0.9, a: 0.1, vol: 0.05 }); });   // 바람에 쓸리는 바탕 소리
   def("pick", "작은 물건을 집는 소리", (c, b, t) => { N(c, b, t, { f: 2200, q: 0.7, dur: 0.12, vol: 0.13 }); T(c, b, t + 0.03, { f: 2800 * v(), dur: 0.09, vol: 0.05 }); });
   def("item", "아이템 획득(작게 반짝, 한 음)", (c, b, t) => { bell(c, b, t, 1319, 0.07, 0.55, 0.3); N(c, b, t, { type: "highpass", f: 6500, dur: 0.12, vol: 0.012 }); });
@@ -269,6 +269,7 @@ window.AU = window.AU || {};
   S.raidParts = { shout, woodCrack, clang, rumble };   // 시험용(오프라인 렌더로 크기 확인)
   L.raid = raidLoop(false);
   L.raid_far = raidLoop(true);
+  L.wind_soft = (c, bus, o) => { const a = chain(c, bus, "bandpass", 450, 0.6, 0.04); o.nodes.push(a.s, lfo(c, 0.11, 260, a.f.frequency), lfo(c, 0.07, 0.015, a.g.gain)); };   // 탈출 장면용: 바람 소리를 훨씬 작게
   L.wind = (c, bus, o) => { const a = chain(c, bus, "bandpass", 450, 0.6, 0.13); o.nodes.push(a.s, lfo(c, 0.11, 260, a.f.frequency), lfo(c, 0.07, 0.05, a.g.gain)); };
   L.waves = (c, bus, o) => {
     const a = chain(c, bus, "lowpass", 560, 0.5, 0.1), b = chain(c, bus, "highpass", 2200, 0.5, 0.025);

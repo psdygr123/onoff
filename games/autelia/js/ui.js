@@ -237,13 +237,16 @@ window.AU = window.AU || {};
           else q.objectives.forEach((o, i) => box.append(h("div", { class: "to" + (AU.G.objectiveDone(q, rec, i) ? " ok" : "") }, this.objText(o, rec, i))));
           const dir = h("div", { class: "td" }); box.append(dir); this._trkDirs.push({ el: dir, id }); t.append(box);
         });
-        if (reals.length) {
-          const box = h("div", { class: "tq qk-real treal" }, h("div", { class: "tt" }, h("span", { class: "qki", text: AU.QKIND.real.icon }), h("span", { class: "qkl", text: "일상 미션" }), "진행 중 " + reals.length + "개 · 마감순"));
-          reals.forEach((m) => { const pg = AU.G.missionProgress(m.id), ov = pg && pg.overdue; const when = !pg ? "" : ov ? "기한 지남" : pg.left === 0 ? "오늘까지" : "D-" + pg.left;
+        if (reals.length) {   // 11-24: 목표창은 전체 합쳐 최대 3줄. 메인·서브 의뢰가 먼저, 남는 자리만 마감이 가까운 일상 미션. 나머지는 일지에서 보기
+          const room = Math.max(0, 3 - picks.length), shown = reals.slice(0, room);
+          const box = h("div", { class: "tq qk-real treal" }, h("div", { class: "tt" }, h("span", { class: "qki", text: AU.QKIND.real.icon }), h("span", { class: "qkl", text: "일상 미션" }), "진행 중 " + reals.length + "개 · 마감 임박순"));
+          shown.forEach((m) => { const pg = AU.G.missionProgress(m.id), ov = pg && pg.overdue; const when = !pg ? "" : ov ? "기한 지남" : pg.left === 0 ? "오늘까지" : "D-" + pg.left;
             box.append(h("button", { type: "button", class: "to treal-item" + (ov ? " overdue" : ""), title: "눌러서 모험일지에서 확인", onclick: (e) => { e.stopPropagation(); UI.tab.jg = "real"; UI.tab.j = "missions"; UI.tab.missionStatus = "active"; UI.open("journal"); } }, h("b", { text: when }), " " + m.title)); });
+          if (reals.length > shown.length) box.append(h("button", { type: "button", class: "to treal-more", onclick: (e) => { e.stopPropagation(); UI.tab.jg = "real"; UI.tab.j = "missions"; UI.tab.missionStatus = "active"; UI.open("journal"); } }, "나머지 " + (reals.length - shown.length) + "개는 모험일지에서 보기 ›"));
           t.append(box);
         }
-        if (goals.length) { const box = h("div", { class: "tq tnext" }, h("div", { class: "tt" }, "지금 할 일")); goals.forEach((g) => box.append(h("div", { class: "to", style: "white-space:pre-line" }, g))); t.append(box); }
+        const gRoom = Math.max(0, 3 - picks.length - (reals.length ? Math.min(reals.length, Math.max(0, 3 - picks.length)) : 0));   // 전체 3줄 안에서 남는 자리만
+        if (goals.length && gRoom > 0) { const box = h("div", { class: "tq tnext" }, h("div", { class: "tt" }, "지금 할 일")); goals.slice(0, gRoom).forEach((g) => box.append(h("div", { class: "to", style: "white-space:pre-line" }, g))); t.append(box); }
       }
       for (const d of this._trkDirs || []) { const txt = this.questGuide(d.id); this.setText(d.el, "trkd" + d.id, txt); d.el.style.display = txt ? "block" : "none"; }
       T.style.display = "block";

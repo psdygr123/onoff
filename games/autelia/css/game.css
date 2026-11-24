@@ -945,3 +945,6 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
 
 .qlog .toast-row { padding: 7px 10px; margin: 4px 0; border-radius: 8px; background: rgba(255, 249, 232, .75); border-left: 3px solid var(--gold); font-size: 14px; } .qlog .toast-row.warn { border-left-color: #c0562f; } .qlog .toast-row.good { border-left-color: #4b8a66; } .qlog .tr-t { color: var(--ink2); font-size: 12px; margin-right: 6px; }
 .svhelp { margin: 8px 0; padding: 10px 14px; border: 1px solid var(--line); border-radius: 10px; background: rgba(255, 249, 232, .7); font-size: 14px; color: var(--ink2); } .svhelp b { color: var(--ink); } .svhelp ul { margin: 6px 0 0; padding-left: 18px; line-height: 1.7; }
+
+.treal-more{display:block;width:100%;margin-top:4px;padding:3px 6px;text-align:left;font-size:12px;opacity:.85;background:transparent;border:0;border-top:1px dashed rgba(255,255,255,.28);color:inherit;cursor:pointer}
+.treal-more:hover{opacity:1;text-decoration:underline}

@@ -30,7 +30,7 @@ const URL = process.env.GAME_URL || 'http://localhost:8801';
   // 3. HUD 알림
   await p.evaluate(() => { AU.UI.close && AU.UI.close(); AU.UI.hud.cache.trk = null; AU.UI.updateTracker(); }); await p.waitForTimeout(200);
   const hud = await p.evaluate(() => { const t = AU.UI.hud.tracker, items = [...t.querySelectorAll('.treal-item')]; return { shown: t.style.display !== 'none', head: (t.querySelector('.treal .tt') || {}).textContent, items: items.map(x => x.textContent), overdueFirst: items[0] && items[0].classList.contains('overdue') }; });
-  T('HUD에 진행 중 일상미션 마감순 표시(기한 지남 먼저)', hud.shown && /진행 중 2개 · 마감순/.test(hud.head) && hud.items.length === 2 && /기한 지남/.test(hud.items[0]) && /D-6/.test(hud.items[1]) && hud.overdueFirst, hud);
+  T('HUD에 진행 중 일상미션 마감순 표시(기한 지남 먼저)', hud.shown && /진행 중 2개 · 마감 임박순/.test(hud.head) && hud.items.length === 2 && /기한 지남/.test(hud.items[0]) && /D-6/.test(hud.items[1]) && hud.overdueFirst, hud);
   await p.evaluate(() => document.querySelector('.treal-item').click()); await p.waitForTimeout(300);
   const open = await p.evaluate(() => ({ win: AU.UI.curName === 'journal', tab: AU.UI.tab.j, jg: AU.UI.tab.jg }));
   T('HUD 항목 클릭 → 모험일지 내 활동', open.win && open.tab === 'missions' && open.jg === 'real', open);
@@ -51,6 +51,9 @@ const URL = process.env.GAME_URL || 'http://localhost:8801';
   const how = await p.evaluate(() => { AU.UI.close(); AU.UI.tab.jg = 'real'; AU.UI.tab.j = 'missions'; AU.UI.tab.missionStatus = 'all'; AU.UI.open('journal'); return { a4: AU.UI.missionHow(AU.G.mission('m_a4')), a3: AU.UI.missionHow(AU.G.mission('m_a3')), a1: AU.UI.missionHow(AU.G.mission('m_p1')), tabs: [...document.querySelectorAll('.real-tabs .btn')].map(x => x.textContent) }; });
   T('완료 방법: 한 줄 기록·사진(선택)·타이머를 구분해 안내', /한 줄을 이 게임 안에 적어요/.test(how.a4) && /사진을 올릴 수 있어요\(선택\)/.test(how.a3) && /타이머/.test(how.a1) && /내 활동에서 '완료했어요'/.test(how.a4), how);
   T('일상 활동 탭 3개', how.tabs.length === 3 && how.tabs.join('|') === '내 활동|마음 기록|쉼', how.tabs);
+  // 목표창은 전체 합쳐 최대 3줄(11-24): 일상 미션이 13개여도 3줄 + '나머지 보기'
+  const cap = await p.evaluate(() => { AU.UI.close && AU.UI.close(); const real = AU.G.activeMissionsByDue; const base = real.call(AU.G); const many = []; for (let i = 0; i < 13; i++) many.push(Object.assign({}, base[0] || { id: 'm_e1', title: '가짜 미션 ' + i }, { id: base[0] ? base[0].id : 'm_e1' })); AU.G.activeMissionsByDue = () => many; AU.UI.hud.cache.trk = null; AU.UI.updateTracker(); const t = AU.UI.hud.tracker; const r = { n: many.length, txt: t.innerText.slice(0, 120), items: t.querySelectorAll('.treal-item').length, quests: t.querySelectorAll('.tq:not(.treal) .to').length, more: !!t.querySelector('.treal-more'), moreText: (t.querySelector('.treal-more') || {}).textContent }; AU.G.activeMissionsByDue = real; return r; });
+  T('목표창: 항목 합계 최대 3개, 넘치면 나머지 보기 버튼', cap.items + cap.quests <= 3 && cap.more, cap);
   T('페이지 오류 없음', errs.length === 0, errs);
   console.log(fail ? 'FAILED ' + fail : 'ALL PASS'); await b.close(); process.exit(fail ? 1 : 0);
 })();
