@@ -494,6 +494,15 @@ window.AU = window.AU || {};
       r.mid = { t: AU.dateStr(), text: String(text || "").trim().slice(0, 300) || "어려운 점 없음" };
       this.save("mission-mid"); this.changed(); return true;
     },
+    /* 기간형 일별 기록: 하루에 한 줄(그날 다시 적으면 덮어씀). 마감 전에 깜빡하지 않도록 매일 남길 수 있음 */
+    dailyCheck(id, text) {
+      const r = this.S.missions.states[id], m = this.mission(id); if (!r || !m || (m.span || 1) < 2 || !["accepted", "attempted", "partial"].includes(r.state)) return false;
+      r.daily = r.daily || {}; r.daily[AU.dateStr()] = String(text || "").trim().slice(0, 200) || "오늘 해 봤어요";
+      this.save("mission-daily"); this.changed(); return true;
+    },
+    dailyInfo(id) { const r = this.ms(id), d = r.daily || {}, today = AU.dateStr(); return { n: Object.keys(d).length, today: d[today] || null }; },
+    /* 4일차 이후 처음 접속했을 때 중간 점검을 한 번 물어볼 7일형 활동 */
+    pendingMidChecks() { return AU.MISSIONS.filter((m) => { const r = this.ms(m.id), pg = ["accepted", "attempted", "partial"].includes(r.state) ? this.missionProgress(m.id) : null; return pg && (m.span || 1) >= 7 && pg.day >= 4 && !pg.overdue && !r.mid && !r.midAsked; }); },
     // 다시 제시된 활동을 수락하기 전에 '성공하려면 필요한 것'을 글로 받음
     setReofferNote(id, text) {
       const r = this.S.missions.states[id]; if (!r) return false;
