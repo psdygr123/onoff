@@ -913,3 +913,8 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
 .room-home .room-center{grid-template-rows:minmax(300px,1fr)}.room-home .room-center .personalroom{min-height:300px}
 .room-home .roomshop{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.room-home .roomshopitem{padding:6px}.room-home .roomshopitem .note{display:none}.room-home .roomicon{height:34px}
 .mission .note.span-progress{font-size:12px;color:#5a4a2a;background:#fff6dc;border-radius:8px;padding:4px 8px;margin:4px 0}.mission .note.span-progress.overdue{background:#fdeaea;color:#8a2d2d}
+
+.tracker .treal .treal-item { display: block; width: 100%; text-align: left; background: none; border: 0; padding: 2px 0; color: inherit; font: inherit; cursor: pointer; pointer-events: auto; }
+.tracker .treal .treal-item b { color: #7fd1a0; margin-right: 4px; }
+.tracker .treal .treal-item.overdue b { color: #ffb36b; }
+.tracker .treal .treal-item:hover { text-decoration: underline; }

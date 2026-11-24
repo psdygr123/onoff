@@ -482,8 +482,10 @@ window.AU = window.AU || {};
     missionProgress(id) {
       const m = this.mission(id), r = this.ms(id); if (!m || !r.startDate) return null;
       const today = AU.dateStr(), span = m.span || 1, day = Math.min(span, Math.max(1, AU.daysBetween(r.startDate, today) + 1));
-      return { span, day, left: Math.max(0, AU.daysBetween(today, r.dueDate)), start: r.startDate, due: r.dueDate, overdue: today > r.dueDate, finishable: today >= r.dueDate, needMid: span >= 7 && day >= 4 && !r.mid };
+      return { span, day, left: Math.max(0, AU.daysBetween(today, r.dueDate)), start: r.startDate, due: r.dueDate, overdue: today > r.dueDate, finishable: today >= r.dueDate, needMid: span >= 7 && day >= 4 && day <= 6 && !r.mid };
     },
+    /* 진행 중인 현실미션: 마감 빠른 순(기한 지난 것이 맨 앞) */
+    activeMissionsByDue() { return AU.MISSIONS.filter((m) => { const r = this.ms(m.id); return ["accepted", "attempted", "partial"].includes(r.state) && r.startDate; }).sort((a, b) => this.ms(a.id).dueDate.localeCompare(this.ms(b.id).dueDate)); },
     overdueMissions() { return AU.MISSIONS.filter((m) => { const r = this.ms(m.id); return ["accepted", "attempted", "partial"].includes(r.state) && r.startDate && AU.dateStr() > r.dueDate; }); },
     // 7일형 중간 확인: 수행하면서 어려운 점을 글로 받음(없다고 적어도 됨)
     midCheck(id, text) {

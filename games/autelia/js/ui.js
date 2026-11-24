@@ -217,8 +217,9 @@ window.AU = window.AU || {};
       const list = Object.entries(S.quests).filter(([, r]) => r.state === "active" || r.state === "ready").sort((a, b) => (AU.QUESTS[a[0]].type === "main" ? 0 : 1) - (AU.QUESTS[b[0]].type === "main" ? 0 : 1));
       const picks = this.anyOpen() || (PR && PR.on) ? [] : list.slice(0, 3);
       const goals = picks.length < 1 && !this.anyOpen() && !(PR && PR.on) ? this.nextGoals() : [];
-      if (!picks.length && !goals.length) { T.style.display = "none"; this.hud.cache.trk = null; this._trkDirs = []; return; }
-      const key = picks.map(([id, r]) => id + AU.questKind(id) + r.state + JSON.stringify(r.prog)).join("|") + "|" + AU.G.count("fur") + "|" + goals.join("/");
+      const reals = !this.anyOpen() && !(PR && PR.on) && S.flags.missionsUnlocked ? AU.G.activeMissionsByDue() : [];
+      if (!picks.length && !goals.length && !reals.length) { T.style.display = "none"; this.hud.cache.trk = null; this._trkDirs = []; return; }
+      const key = picks.map(([id, r]) => id + AU.questKind(id) + r.state + JSON.stringify(r.prog)).join("|") + "|" + AU.G.count("fur") + "|" + goals.join("/") + "|" + reals.map((m) => m.id + AU.G.ms(m.id).dueDate + AU.G.ms(m.id).state).join(",") + AU.dateStr();
       if (this.hud.cache.trk !== key) {
         this.hud.cache.trk = key; t.innerHTML = ""; this._trkDirs = []; for (const k of Object.keys(this.hud.cache)) if (k.indexOf("trkd") === 0) delete this.hud.cache[k];
         picks.forEach(([id, rec]) => {
@@ -227,6 +228,12 @@ window.AU = window.AU || {};
           else q.objectives.forEach((o, i) => box.append(h("div", { class: "to" + (AU.G.objectiveDone(q, rec, i) ? " ok" : "") }, this.objText(o, rec, i))));
           const dir = h("div", { class: "td" }); box.append(dir); this._trkDirs.push({ el: dir, id }); t.append(box);
         });
+        if (reals.length) {
+          const box = h("div", { class: "tq qk-real treal" }, h("div", { class: "tt" }, h("span", { class: "qki", text: AU.QKIND.real.icon }), h("span", { class: "qkl", text: "현실 미션" }), "진행 중 " + reals.length + "개 · 마감순"));
+          reals.forEach((m) => { const pg = AU.G.missionProgress(m.id), ov = pg && pg.overdue; const when = !pg ? "" : ov ? "기한 지남" : pg.left === 0 ? "오늘까지" : "D-" + pg.left;
+            box.append(h("button", { type: "button", class: "to treal-item" + (ov ? " overdue" : ""), title: "눌러서 모험일지에서 확인", onclick: (e) => { e.stopPropagation(); UI.tab.jg = "real"; UI.tab.j = "missions"; UI.tab.missionStatus = "active"; UI.open("journal"); } }, h("b", { text: when }), " " + m.title)); });
+          t.append(box);
+        }
         if (goals.length) { const box = h("div", { class: "tq tnext" }, h("div", { class: "tt" }, "지금 할 일")); goals.forEach((g) => box.append(h("div", { class: "to", style: "white-space:pre-line" }, g))); t.append(box); }
       }
       for (const d of this._trkDirs || []) { const txt = this.questGuide(d.id); this.setText(d.el, "trkd" + d.id, txt); d.el.style.display = txt ? "block" : "none"; }
@@ -890,6 +897,16 @@ window.AU = window.AU || {};
       h("div", { class: "choices" }, btn("네, 다시 도전할게요", "primary", () => go(true)), btn("아니요, 다른 활동을 볼게요", "", () => go(false)), btn("닫기", "", close))));
   };
   /* 기한이 지난 활동: 상태를 골라 정리 */
+  /* 접속 안내: 기한이 지난 현실미션이 있으면 한 번 알려 줌 */
+  UI.missionNotice = function () {
+    const n = AU.G.overdueMissions().length; if (!n || UI.modal) return false;
+    const wrap = UI.modalEl; UI.modal = true; wrap.classList.remove("hidden"); wrap.innerHTML = "";
+    const close = () => { UI.modal = false; wrap.classList.add("hidden"); wrap.innerHTML = ""; };
+    wrap.append(h("div", { class: "panel modal restnote review-step missionnotice" }, h("h3", { text: "현실 미션이 있습니다" }),
+      h("p", { class: "rv-q", text: "현실 미션을 확인해 보세요." }), h("p", { class: "note", text: "기한이 지난 미션 " + n + "개가 기다리고 있어요. 부담 없이 지금 상태를 알려 주세요." }),
+      h("div", { class: "choices" }, btn("확인하러 가기", "primary", () => { close(); UI.tab.jg = "real"; UI.tab.j = "missions"; UI.tab.missionStatus = "active"; UI.open("journal"); }), btn("나중에", "", close))));
+    return true;
+  };
   UI.missionOverdue = function (m) {
     const wrap = UI.modalEl; UI.modal = true; wrap.classList.remove("hidden"); wrap.innerHTML = "";
     const close = () => { UI.modal = false; wrap.classList.add("hidden"); wrap.innerHTML = ""; UI.renderWin(); };
@@ -1040,6 +1057,7 @@ window.AU = window.AU || {};
         h("h4", { text: "보상" }), h("p", { text: rewardText(q.reward) }), h("p", { class: "note", text: "의뢰인: " + AU.NPCS[q.giver].name }));
     } else if (sel && sel.m) {
       det.append(h("h3", { text: sel.m.title }), h("div", { class: "tags" }, h("span", { class: "tag", text: "현실" }), h("span", { class: "tag", text: AU.PERMA[sel.m.perma] }), h("span", { class: "tag", text: AU.MISSION_STATES[sel.r.state] })), h("p", { text: sel.m.desc }), h("p", { class: "note", text: "상태 변경은 모험일지(" + keyOf("journal") + ")에서 합니다." }),
+        (() => { const pg = AU.G.missionProgress(sel.m.id); return pg ? h("p", { class: "note span-progress" + (pg.overdue ? " overdue" : ""), text: pg.overdue ? "기한이 지났어요 (마감 " + pg.due.slice(5).replace("-", "/") + ") · 모험일지에서 확인해 주세요" : pg.span + "일 중 " + pg.day + "일차 · " + (pg.left ? "남은 " + pg.left + "일" : "오늘까지") + " · 마감 " + pg.due.slice(5).replace("-", "/") + (pg.needMid ? " · 중간 확인할 때예요" : "") }) : null; })(),
         h("h4", { text: "이렇게 하면 완료예요" }), h("p", { text: "현실에서 해 본 뒤, 모험일지(" + keyOf("journal") + ") ▸ 현실 활동에서 이 미션의 ‘완료’(해 보기만 했다면 ‘시도’)를 눌러 기록하면 됩니다. 못 했다면 ‘건너뛰기’도 괜찮아요." }),
         (() => { // 나의 목표 적기: 이 미션으로 내가 무엇을 해 볼지 직접 적어 두는 칸(이 브라우저에 저장)
           const box = h("div", { class: "mgoal" }), inp = h("textarea", { class: "mgoal-in", rows: "2", maxlength: "120", placeholder: "예) 오늘은 책상 정리 10분만 해 보기" }), st = h("span", { class: "note" });
