@@ -90,7 +90,7 @@
         else if (spec && phase === "line") { const im = new Image(); im.alt = ""; im.src = spec.path; im.draggable = false; art.classList.add("has-img"); art.append(im); }
         else art.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + L.icon + "</svg>";
         c.append(h("i", L.open ? "chk" : "lk", L.open ? "✓" : "🔒"), art, h("b", null, L.name));
-        if (L.open && L.desc) c.append(h("p", null, L.desc));
+        if (L.open && L.desc) c.append(h("p", L.desc.indexOf("\n") >= 0 ? "jd-lines" : null, L.desc));
         if (!L.open) c.append(h("em", null, phase === "line" ? "준비 중" : "추후 공개 예정"));
         c.onclick = () => { if (!L.open) { note.textContent = phase === "line" ? L.name + " 계열은 아직 준비 중입니다." : "추후 공개 예정입니다."; return; } sel = L.id; note.textContent = ""; mark(); };
         row.append(c); els[L.id] = c;
