@@ -22,7 +22,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   note('S3', '실내 맵·부모 지역·권역·지역 연결·배경 그림 키 등록', d.interior === true && d.parent === 'jandari' && d.link && d.region && d.bgAsset, JSON.stringify({ i: d.interior, p: d.parent, l: d.link, r: d.region, a: d.bgAsset }));
   // 배경음: 골목·공방 모두 마을 묶음(끊기지 않음)
   const bg = await ev(() => { const g = (m) => { AU.World.enterMap(m, AU.MAPS[m].start || 200, true); return AU.Bgm.pickGroup(); }; return [g('jandari'), g('jandari_shop')]; });
-  note('S4', '잔다리 골목과 공방은 포르투 노바와 같은 마을 묶음 곡', bg[0] === 'town' && bg[1] === 'town', bg.join());
+  note('S4', '잔다리 골목과 공방은 골목 묶음 곡(alley)', bg[0] === 'alley' && bg[1] === 'alley', bg.join());
   // 흐름: 문 앞 ↑ → 공방
   await ev(() => AU.World.enterMap('jandari', 960, true)); await sleep(200); await ev(() => AU.World.scan());
   const pr = await ev(() => AU.World.prompt);

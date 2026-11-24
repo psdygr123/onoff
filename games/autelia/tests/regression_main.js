@@ -126,7 +126,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const wallet = () => ev(() => AU.G.galleryState().tokens);
   const token0 = await wallet();
   const clickBtn = async (txt) => { await p.locator('.window .mission:has-text("좋아하는 노래") .btn', { hasText: txt }).first().click(); await sleep(120); };
-  await ev(() => { AU.G.setMissionState('m_p1', 'accept'); AU.UI.renderWin(); }); await sleep(150); await clickBtn('해 봤어요'); await clickBtn('완료했어요'); await p.locator('.modal .btn', { hasText: '평가 없이 계속' }).click();
+  await ev(() => { const r = AU.G.S.missions.states.m_p1; if (r.state !== 'accepted') r.state = 'available'; AU.G.setMissionState('m_p1', 'accept'); AU.UI.tab.mineView = 'going'; AU.UI.renderWin(); }); await sleep(150); await clickBtn('완료했어요'); await p.locator('.modal .btn', { hasText: '평가 없이 계속' }).click(); await sleep(500);   // 저장이 끝난 뒤 지갑을 읽음
   const token1 = await wallet();
   const again = await ev(() => [AU.G.setMissionState('m_p1', 'done'), AU.G.setMissionState('m_p1', 'accept'), AU.G.setMissionState('m_p1', 'retry'), AU.G.ms('m_p1').rewarded]);
   const token2 = await wallet();
@@ -154,10 +154,11 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
   // ===== 14. 피로도(스킬로 쌓임) =====
   await goto('porto', 300); await sleep(100);
-  await ev(() => { AU.G.setFatigue(0); AU.G.S.hp = 10; AU.G.changed(); });
+  await ev(() => { AU.G.S.skills.unlocked = ['strike', 'spin', 'focus']; AU.G.S.skills.slots = ['strike', 'spin', 'focus']; AU.G.setFatigue(0); AU.G.S.hp = 10; AU.G.changed(); });   /* 버스트는 Lv.20 해금이라 시험에서 직접 열어 줌 */
   const c1 = await ev(() => [AU.G.skillCost('strike'), AU.G.skillCost('spin'), AU.G.skillCost('focus')]);
   const rA = (await S()).res; await p.keyboard.press('Control'); await sleep(150); const rBasic = (await S()).res; // 기본 공격은 소모 없음
   await p.keyboard.press('1'); await sleep(150); const rB = (await S()).res;
+  await sleep(400); await ev(() => { for (let i = 0; i < 3 && AU.UI.modal && AU.RealBridge.dismiss; i++) AU.RealBridge.dismiss(); });   // 처음 피로도가 쌓이면 뜨는 안내창 닫기
   await p.keyboard.press('1'); await sleep(100); const rC = (await S()).res; // 쿨다운 중
   await sleep(500); await p.keyboard.press('2'); await sleep(150); const rD = (await S()).res;
   await sleep(500); await p.keyboard.press('3'); await sleep(150); const sE = await S();
@@ -167,6 +168,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     `실제 증가량(의지 효율 적용) 스매시 크러셔=${c1[0]}, 크로스 슬래시=${c1[1]}, 버스트=${c1[2]} / 기본공격 후 ${rA}→${rBasic}(변화 없음), 강타 ${rA}→${rB}, 쿨다운 중 재입력 ${rB}→${rC}, 회전 베기 →${rD}, 숨 고르기 후 피로도 ${sE.res}·HP 10→${sE.hp}, 피로도 100일 때 강타 입력 후 ${rF}(증가 없음)`);
 
   // ===== 9. 키보드 설정 =====
+  await sleep(1500); await ev(() => { AU.G.S.flags.gd_dash = true; for (let i = 0; i < 3 && AU.UI.modal && AU.RealBridge.dismiss; i++) AU.RealBridge.dismiss(); }); await sleep(200);   // 이동기·피로도 안내창이 떠 있으면 닫음
   await p.keyboard.press('\\'); await sleep(120);
   await p.locator('.keyrow:has-text("점프") .keycap').click(); await p.keyboard.press('z'); await sleep(120);
   const bz = await ev(() => AU.Input.bindings.jump); const savedSet = await ev(() => JSON.parse(localStorage.getItem('autelia.settings:local')).bindings.jump);
