@@ -184,7 +184,7 @@ window.AU = window.AU || {};
       for (const d of this.drops) if (Math.abs(p.x - d.x) < 64 && Math.abs(p.y - d.y) < 110 && d.vy > -50) { if (!this.nearDrop || Math.abs(p.x - d.x) < Math.abs(p.x - this.nearDrop.x)) this.nearDrop = d; }
       for (const n of map.npcs || []) if (Math.abs(p.x - n.x) < 90) { if (!this.nearNpc || Math.abs(p.x - n.x) < Math.abs(p.x - this.nearNpc.x)) this.nearNpc = n; }
       for (const pt of map.portals || []) if (Math.abs(p.x - pt.x) < 70 && p.onGround) this.nearPortal = pt;
-      if (this.stealthOn()) for (const hs of map.hideSpots || []) if (Math.abs(p.x - hs.x) < 60 && p.onGround) this.nearHide = hs;
+      if (this.stealthOn() || this.sneakOn()) for (const hs of map.hideSpots || []) if (Math.abs(p.x - hs.x) < 60 && p.onGround) this.nearHide = hs;
       for (const sp of map.spots || []) if (Math.abs(p.x - sp.x) < 70 && p.onGround && (sp.ambient || AU.G.spotObjective(sp.id)) && (!sp.needFlag || AU.G.S.flags[sp.needFlag])) this.nearSpot = sp;   // 진행 중인 조사·수리 목표가 있는 지점만
       this.prompt = this.listen ? "귀 기울이는 중… (Space를 계속 누르세요 · 움직이면 취소)" : this.work ? "수리 중… (움직이면 멈춥니다)" : this.nearDrop ? "Space 줍기: " + AU.ITEMS[this.nearDrop.id].name.replace(" (임시)", "") + (this.nearDrop.n > 1 ? " ×" + this.nearDrop.n : "") : this.nearSpot ? "Space " + (this.nearSpot.kind === "repair" ? "수리" : this.nearSpot.listen ? "길게 눌러 귀 기울이기" : "조사") + ": " + this.nearSpot.label : this.nearNpc ? "Space 대화: " + AU.NPCS[this.nearNpc.id].name : this.nearPortal ? "↑ 이동: " + this.nearPortal.label : "";
       if (this.nearHide && !this.work && !p.dead) this.prompt = p.hidden ? "숨는 중… (움직이거나 Space로 나오기)" : "Space 숨기"; else if (p.hidden) this.prompt = "숨는 중… (움직이거나 Space로 나오기)";
@@ -193,6 +193,7 @@ window.AU = window.AU || {};
 
     /* ---------- 잠입 임무(map.stealthMission): 들키면 구역 입구에서 다시 시작. 숨는 상자(hideSpots)·시야를 막는 구조물(blockers) ---------- */
     stealthOn() { const sm = this.map && this.map.stealthMission; if (!sm || AU.G.S.flags[sm.flag]) return false; const st = AU.G.questStatus(sm.quest); return st === "active" || st === "ready" || (st === "done" && !!sm.next && AU.G.questStatus(sm.next) === "active"); },
+    sneakOn() { const sn = this.map && this.map.sneak; return !!(sn && !AU.G.S.flags[sn.flag] && AU.G.questStatus(sn.quest) === "active"); },   // 싸워도 되지만 안 들키면 건너뛸 수 있는 구역
     stealthTries() { const sm = this.map && this.map.stealthMission; return sm ? (AU.G.S.flags["stealth_tries_" + this.mapId] || 0) : 0; },
     sightMul() { if (!this.stealthOn()) return 1; const t = this.stealthTries(); return t >= 4 ? 0.6 : t >= 2 ? 0.8 : 1; }, // 들킬수록 경비 시야가 약해짐(2번 ×0.8, 4번 ×0.6)
     sightBlocked(gx, px) { const lo = Math.min(gx, px), hi = Math.max(gx, px); return (this.map.blockers || []).some((b) => b.x > lo && b.x < hi); },
@@ -209,7 +210,7 @@ window.AU = window.AU || {};
       AU.G.save && AU.G.save("map");
     },
     drawStealthProps(ctx) {
-      const m = this.map; if (!m || (!m.hideSpots && !m.blockers)) return; const y = GROUND, on = this.stealthOn();
+      const m = this.map; if (!m || (!m.hideSpots && !m.blockers)) return; const y = GROUND, on = this.stealthOn() || this.sneakOn();
       const pic = (key, x, h) => { const im = AU.Img.has(key) ? AU.Img.get(key) : null; if (!im) return false; const w = h * im.naturalWidth / im.naturalHeight; ctx.drawImage(im, x - w / 2, y - h + 6, w, h); return true; };
       for (const b of m.blockers || []) { if (pic("ob_hide_pillar", b.x, 270)) continue; ctx.fillStyle = "#2F2B27"; ctx.fillRect(b.x - 20, y - 230, 40, 230); ctx.fillStyle = "rgba(255,255,255,.08)"; ctx.fillRect(b.x - 20, y - 230, 7, 230); ctx.fillStyle = "#3F3934"; ctx.fillRect(b.x - 26, y - 238, 52, 12); }
       for (const hs of m.hideSpots || []) {
@@ -444,7 +445,7 @@ window.AU = window.AU || {};
         if (m.d.sight && m.state === "patrol") { // 경비: 바라보는 쪽 시야 안에 들어왔을 때만 발견(등 뒤·시야 밖·숨은 상태·시야를 막는 구조물 뒤는 못 봄)
           near = !p.dead && !p.hidden && dist < m.d.sight * this.sightMul() && sign(dx) === m.dir && Math.abs(p.y - m.y) < 160 && !this.sightBlocked(m.x, p.x);
           if (near) { this.spotted = true; if (this.stealthOn()) { this.caught(m); return; } this.floater(m.x, m.y - m.d.h - 30, "!", "#FF5A4D"); }
-        } else if (m.d.sight && m.state === "chase") near = !p.dead && dist < m.d.chase * 1.3 && Math.abs(p.y - m.y) < 160;
+        } else if (m.d.sight && m.state === "chase") { this.spotted = true; near = !p.dead && dist < m.d.chase * 1.3 && Math.abs(p.y - m.y) < 160; }
         if (m.state === "patrol" || m.state === "chase") {
           if (near) { m.state = "chase"; m.dir = sign(dx) || m.dir; }
           else { m.state = "patrol"; }
