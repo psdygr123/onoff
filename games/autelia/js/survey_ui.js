@@ -111,9 +111,9 @@ window.AU = window.AU || {};
       fs.append(opts); scale.append(fs);
     }
     update();
-    const hint = key === "perma" ? "0은 가장 낮은 쪽, 10은 가장 높은 쪽입니다(이 설명은 게임 안내이며 척도 원문이 아닙니다). " : "";
+    const hint = key === "perma" ? "0은 가장 낮은 쪽, 10은 가장 높은 쪽입니다. " : "";
     return h("div", null, h("h3", { text: P.label + " · " + NAMES[key] }),
-      h("p", { class: "note", text: hint + "아래 상자 안은 척도 원문입니다. 답을 고르지 않은 문항은 0점으로 처리되지 않습니다. 모두 고르면 제출할 수 있습니다." }),
+      h("p", { class: "note", text: hint + "답을 고르지 않은 문항은 0점으로 처리되지 않습니다. 모두 고르면 제출할 수 있습니다." }),
       scale, h("div", { class: "svfoot" }, prog, h("span", { class: "grow" }), btn("나중에 이어서 하기", "", () => toList(rerender), { "data-act": "later" }), next),
       h("p", { class: "note svsrc", text: "출처: " + s.source.citation }));
   }
