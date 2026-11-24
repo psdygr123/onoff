@@ -70,9 +70,10 @@ window.AU = window.AU || {};
   B.tick = function (dt) {
     const main = AU.main, S = AU.UI && AU.UI.settings;
     const want = !!(main && (main.running || B.titleShown()) && S && !S.mute && !document.hidden);
+    try { const st0 = AU.G && AU.G.S && AU.G.S.prologue && AU.G.S.prologue.state; if (!B.rPre && AU.Prologue && AU.Prologue.on && (st0 === "SCENE_01B_BANNERS" || st0 === "SCENE_02_FESTIVAL")) { B.rPre = true; fetch(TRACKS.raid).catch(() => {}); } } catch (e) {}   // 습격 곡을 축제 장면에서 미리 받아 둠(습격 일러스트와 동시에 재생되도록)
     let target = 0; const pk = B.pick(); B.track = pk.key; if (pk.g !== B.group) { B.group = pk.g; B.silentG = null; if (B.el) B.el.loop = GROUPS[pk.g].length === 1 && !ONE_SHOT[pk.g]; }
     if (B.el && B.track !== B.cur) { // 곡이 바뀌면 지금 곡을 서서히 줄인 뒤 새 곡으로 교체
-      if (B.vol > 0.002) { want && (B.vol = Math.max(0, B.vol - 0.9 * dt * CFG.vol)); B.el.volume = Math.max(0, Math.min(1, B.vol)); return; }
+      if (B.vol > 0.002 && pk.g !== "raid") { want && (B.vol = Math.max(0, B.vol - 0.9 * dt * CFG.vol)); B.el.volume = Math.max(0, Math.min(1, B.vol)); return; }
       B.el.pause(); B.el.src = TRACKS[B.track]; B.el.load(); B.cur = B.track; B.state = "idle"; B.blocked = false; return;
     }
     if (!B.el && B.track !== B.cur) B.cur = B.track;
@@ -80,7 +81,7 @@ window.AU = window.AU || {};
     if (AU.Sfx && AU.Sfx.applyVolume) AU.Sfx.applyVolume(); // 소리 끄기·효과음 음량: 효과음·환경음에 반영
     if (target === 0 && B.vol === 0 && !B.el) return;
     const a = ensure(); if (!a || B.failed) return;
-    const step = (B.vol < target ? CFG.fadeInPerSec : CFG.fadeOutPerSec) * dt * CFG.vol;
+    const step = (B.vol < target ? CFG.fadeInPerSec * (B.group === "raid" ? 4 : 1) : CFG.fadeOutPerSec) * dt * CFG.vol;   // 습격 곡은 4배 빠르게 커짐
     B.vol = B.vol < target ? Math.min(target, B.vol + step) : Math.max(target, B.vol - step);
     a.volume = Math.max(0, Math.min(1, B.vol));
     if (B.vol > 0 && a.paused && !B.blocked) {
