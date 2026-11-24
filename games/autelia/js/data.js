@@ -106,7 +106,6 @@ AU.MAPS = {
               { x: 1736, to: "guild_hall", toX: 110, label: "선창 길드" }, { x: 2080, to: "warehouse", toX: 110, label: "부두 창고" }],
     npcs: [{ id: "porto_dock", x: 600 }, { id: "guide_npc", x: 1250 }],
     spots: [
-      { id: "porto_board", img: "ob_spot_porto_board", w: 130, ambient: true, kind: "investigate", x: 230, label: "부두 게시판", lines: ["낡은 게시판에 쪽지가 여럿 붙어 있습니다. 잃어버린 고양이를 찾는다는 글, 짐꾼을 구한다는 글, 오래된 배 시간표가 보입니다.", "맨 위에는 새 종이가 한 장 붙어 있습니다. '길드 의뢰는 선창 길드 접수대에서'라고 적혀 있습니다."] },
     ],
     spawns: [], start: 160,
     area: { x: 78, y: 40, desc: "중립 항구도시입니다. 선창 길드와 부두 창고, 상점이 모여 있습니다." }
