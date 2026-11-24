@@ -37,6 +37,8 @@ AU.ASSETS = {
   ob_trace_stain: { path: "assets/object/trace_stain.webp", optional: true }, ob_trace_crate: { path: "assets/object/trace_crate.webp", optional: true }, it_guild_parcel: { path: "assets/object/guild_parcel.webp", optional: true },
   job_warrior: { path: "assets/job/warrior.webp", optional: true }, job_hero: { path: "assets/job/hero.webp", optional: true }, job_mage: { path: "assets/job/mage.webp", optional: true }, job_archer: { path: "assets/job/archer.webp", optional: true }, job_rogue: { path: "assets/job/rogue.webp", optional: true }, job_pirate: { path: "assets/job/pirate.webp", optional: true },
   mon_fox:   { path: "assets/monster/fox.webp", optional: true },
+  mon_fox_a1: { path: "assets/monster/fox_a1.webp", optional: true }, mon_fox_a2: { path: "assets/monster/fox_a2.webp", optional: true },   // 들여우 준비·도약 그림
+  mon_fox_w1: { path: "assets/monster/fox_w1.webp", optional: true }, mon_fox_w2: { path: "assets/monster/fox_w2.webp", optional: true }, mon_fox_w3: { path: "assets/monster/fox_w3.webp", optional: true }, mon_fox_w4: { path: "assets/monster/fox_w4.webp", optional: true },   // 들여우 걷기 4칸
   mon_snake: { path: "assets/monster/snake.webp", optional: true },
   mon_rat:   { path: "assets/monster/rat.webp", optional: true },
   mon_boar:  { path: "assets/monster/boar.webp", optional: true },
@@ -181,7 +183,7 @@ AU.AREA_LINKS = [["forest", "harbor_road"], ["harbor_road", "porto"], ["porto", 
 // sprite/sw: 정식 그림(assets/monster/*.webp, 투명 배경, 오른쪽을 보는 옆모습 1장)이 있으면 그 그림을 sw(가로 px)로 그리고, 없으면 임시 도형으로 표시합니다.
 // 이전 아스텔리아 기획의 사냥터 구성(들짐승→부두 쥐→게→거대 적)을 규칙으로만 재사용. 모두 임시 수치.
 AU.MONSTERS = {
-  fox:   { motion: "pounce", name: "들여우", lv: 3, hp: 88, atk: 14, speed: 85, chase: 150, w: 72, h: 50, exp: 100, silver: [2, 7], silverRate: 0.12, drops: [["fur", 0.15, 1, 2], ["fox_tail", 0.07], ["potion", 0.04], ["fox_scarf", 0.012]], color: "#F5A25D", ear: true, sprite: "mon_fox", sw: 92 },
+  fox:   { motion: "pounce", name: "들여우", lv: 3, hp: 88, atk: 14, speed: 85, chase: 150, w: 72, h: 50, exp: 100, silver: [2, 7], silverRate: 0.12, drops: [["fur", 0.15, 1, 2], ["fox_tail", 0.07], ["potion", 0.04], ["fox_scarf", 0.012]], color: "#F5A25D", ear: true, sprite: "mon_fox", walk: ["mon_fox_w1", "mon_fox_w2", "mon_fox_w3", "mon_fox_w4"], walkIdle: "mon_fox", pWind: "mon_fox_a1", pLunge: "mon_fox_a2", walkRefW: 480, frameLen: 26, sw: 92 },
   wild_boar: { motion: "leap", name: "굶주린 멧돼지", lv: 6, hp: 230, atk: 26, speed: 95, windT: 0.75, chargeT: 0.5, chargeSpd: 3.4, recoverT: 1.2, chase: 200, w: 96, h: 58, exp: 190, silver: [4, 12], silverRate: 0.14, drops: [["boar_tusk", 0.15], ["potion", 0.05]], color: "#7A5C45", sprite: "mon_boar", walk: ["mon_boar_w1", "mon_boar_w2", "mon_boar_w3", "mon_boar_w4"], walkIdle: "mon_boar", pWind: "mon_boar_a1", pLunge: "mon_boar_a2", walkRefW: 480, frameLen: 26, sw: 150 },
   snake: { motion: "coil", name: "뱀", lv: 1, hp: 51, atk: 8, speed: 70, chase: 130, w: 90, h: 34, exp: 50, silver: [1, 4], silverRate: 0.1, drops: [["snake_skin", 0.15], ["snake_fang", 0.07], ["potion", 0.05], ["snake_ring", 0.012]], color: "#7DBE6B", snake: true, sprite: "mon_snake", walk: ["mon_snake_w1", "mon_snake_w2", "mon_snake_w3", "mon_snake_w4"], walkIdle: "mon_snake", walkRefW: 250, pWind: "mon_snake_w5", pLunge: "mon_snake_w6", frameLen: 24, sw: 128 },
   rat:   { motion: "scurry", name: "부두 쥐", lv: 5, hp: 144, atk: 21, speed: 100, chase: 160, w: 70, h: 46, exp: 170, silver: [3, 10], silverRate: 0.14, drops: [["rat_tooth", 0.15, 1, 2], ["black_crystal", 0.4, 1, 1, "q_a1_variant"], ["potion", 0.05]], color: "#A79C94", ear: true, sprite: "mon_rat", walk: ["mon_rat_w1", "mon_rat_w2", "mon_rat_w3", "mon_rat_w4"], walkIdle: "mon_rat", walkRefW: 190, pWind: "mon_rat_w5", pLunge: "mon_rat_w6", frameLen: 24, sw: 88 },
@@ -239,7 +241,7 @@ AU.JOB_GROUPS = [
   { id: "soon2", name: "???", open: false, icon: '<text x="12" y="18" text-anchor="middle" font-size="18" fill="currentColor">?</text>' }
 ];
 AU.JOB_LINES = [
-  { id: "warrior", name: "전사", open: true, job: "warrior", desc: "5명의 용사 중 한 명으로 검을 통해 적을 무찌릅니다.", icon: '<path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z"/>' },
+  { id: "warrior", name: "전사", open: true, job: "warrior", desc: "검으로 싸웁니다.", icon: '<path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z"/>' },
   { id: "mage", name: "마법사", open: false, icon: '<path d="M12 2l2.6 6.2 6.7.5-5.1 4.3 1.6 6.5L12 16l-5.8 3.5 1.6-6.5L2.7 8.7l6.7-.5z"/>' },
   { id: "archer", name: "궁수", open: false, icon: '<path d="M5 3c8 3 8 15 0 18M5 3v18M3 12h17m-4-3 4 3-4 3" fill="none" stroke="currentColor" stroke-width="2"/>' },
   { id: "rogue", name: "도적", open: false, icon: '<path d="M12 2c4 2 6 6 6 10l2 9H4l2-9c0-4 2-8 6-10z"/>' },

@@ -32,9 +32,9 @@ window.AU = window.AU || {};
     bg_hideout_outer_1: BG("hideout_outer_1"), bg_hideout_outer_2: BG("hideout_outer_2"), bg_hideout_tunnel: BG("hideout_tunnel"),
     bg_hideout_lab_1: BG("hideout_lab_1"), bg_hideout_lab_2: BG("hideout_lab_2"), bg_hideout_boss: BG("hideout_boss")
   });
-  Object.assign(AU.MONSTERS, { ob_hide_crate: { path: "assets/object/hide_crate.webp", optional: true }, ob_hide_pillar: { path: "assets/object/hide_pillar.webp", optional: true } }); // 숨는 곳·시야 가림 기둥 그림(없으면 임시 도형)
+  Object.assign(AU.ASSETS, { ob_hide_crate: { path: "assets/object/hide_crate.webp", optional: true }, ob_hide_pillar: { path: "assets/object/hide_pillar.webp", optional: true } }); // 숨는 곳·시야 가림 기둥 그림(없으면 임시 도형)
   /* 조사 지점 그림(옵션): assets/object/spot_<id>.webp 파일을 넣으면 임시 도형 대신 그려집니다. 규격은 docs의 요청문 참고 */
-  Object.assign(AU.ASSETS, { ob_spot_hide_gate: { path: "assets/object/spot_hide_gate.webp", optional: true }, ob_spot_hide_cargo: { path: "assets/object/spot_hide_cargo.webp", optional: true }, ob_spot_tun_cages: { path: "assets/object/spot_tun_cages.webp", optional: true }, ob_spot_tun_notes: { path: "assets/object/spot_tun_notes.webp", optional: true }, ob_spot_lab_records: { path: "assets/object/spot_lab_records.webp", optional: true } });
+  Object.assign(AU.ASSETS, { ob_spot_lab_faustos: { path: "assets/object/spot_lab_faustos.webp", optional: true }, ob_spot_faustos_flee: { path: "assets/object/spot_faustos_flee.webp", optional: true }, ob_spot_hide_gate: { path: "assets/object/spot_hide_gate.webp", optional: true }, ob_spot_hide_cargo: { path: "assets/object/spot_hide_cargo.webp", optional: true }, ob_spot_tun_cages: { path: "assets/object/spot_tun_cages.webp", optional: true }, ob_spot_tun_notes: { path: "assets/object/spot_tun_notes.webp", optional: true }, ob_spot_lab_records: { path: "assets/object/spot_lab_records.webp", optional: true } });
   const FLOOR = { x: 0, y: 590, w: 2558 };
   const AREA = (x, y, d) => ({ x, y, desc: d });
   AU.MAPS.hide_outer = {
@@ -86,7 +86,7 @@ window.AU = window.AU || {};
         "유리 용기 사이 기록대에 두꺼운 실험 기록이 쌓여 있습니다. 표지에는 '검은 그릇 계획'이라고 쓰여 있습니다.",
         "'여러 짐승에 결정을 먹여 어둠을 쌓는다. 가장 잘 버틴 개체에게 모든 어둠을 모은다. 그 그릇이 용사의 힘과 부딪칠 때 낙인은 풀린다.'",
         L(HERO, "(몬스터들은 재료였다. 하나의 그릇을 완성하려고... 그리고 그 목적은 용사의 힘.)")] },
-      { id: "lab_faustos", img: "", x: 1850, kind: "investigate", label: "실험실 안쪽의 인기척", lines: [
+      { id: "lab_faustos", img: "ob_spot_lab_faustos", w: 200, x: 1850, kind: "investigate", label: "실험실 안쪽의 인기척", lines: [
         "깨진 유리 용기 사이로 앞치마 차림의 백발 사내가 보입니다. 한쪽 눈에 겹 렌즈를 끼고, 검은 결정이 박힌 팔로 기록을 넘기며 혼잣말을 합니다.",
         L(FA, "오오, 문이 열려 있었군. 쥐가 한 마리 들어온 줄 알았는데... 그 손목, 낙인이 아닌가. 용사가 제 발로 찾아오다니!"),
         L(FA_MAD, "내 소개를 하지. 파우스토스, 어둠의 세력에서 실험을 맡고 있네. 짐승에 어둠을 쌓는 일, 그게 내 연구야. 이 팔도 시험해 본 결과물이지. 훌륭하지 않나?"),
@@ -103,7 +103,7 @@ window.AU = window.AU || {};
     platforms: [{ x: 0, y: 590, w: 1280 }], ropes: [],
     portals: [{ x: 40, to: "hide_lab", toX: 2450, label: "실험 구역" }],
     npcs: [], spots: [
-      { id: "faustos_flee", img: "", x: 1020, kind: "investigate", label: "철수하는 파우스토스", needFlag: "boss_umbra_boss", lines: [
+      { id: "faustos_flee", img: "ob_spot_faustos_flee", w: 170, x: 1020, kind: "investigate", label: "철수하는 파우스토스", needFlag: "boss_umbra_boss", lines: [
         L(FA_SHOCK, "...움브라가 쓰러지다니. 사백 마리의 어둠이, 내 걸작이..."),
         L(FA, "실패했군. 철수하자. 기록만 챙기면 다시 시작할 수 있다."),
         L(FA_MAD, "기억해 두게, 용사. 아직 끝난 게 아니야. 그릇은 하나가 아니니까!"),
