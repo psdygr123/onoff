@@ -513,10 +513,10 @@ window.AU = window.AU || {};
       // 아버지가 마지막 힘으로 일어나 주인공 앞을 막아섬
       fa.fpose = "guard"; fa.face = 1; fa.rise = 0; P.sfx("slump"); await P.tween(fa, { rise: 1, x: fx - 6 }, 0.7, (k) => k * (2 - k)); await P.say(T.officer2b);
       // 내리치는 순간 — 아버지가 대신 맞음
-      off.pose = "slash"; const t0 = P.time; P.addEnt({ id: "slasharc", x: off.x, range: 0, layer: "front", draw(ctx, e, Q) { const k = (Q.time - t0) / 0.3; if (k > 1) { Q.ents = Q.ents.filter((q) => q !== e); return; }
+      off.pose = "slash"; P.sfx("blade_swish"); const t0 = P.time; P.addEnt({ id: "slasharc", x: off.x, range: 0, layer: "front", draw(ctx, e, Q) { const k = (Q.time - t0) / 0.3; if (k > 1) { Q.ents = Q.ents.filter((q) => q !== e); return; }
         const sx = off.x - 20, sy = G - 215, ex = fa.x + 10, ey = G - 95; ctx.save(); ctx.globalAlpha = (1 - k) * 0.9; ctx.lineCap = "round"; ctx.strokeStyle = "#fff4d0"; ctx.shadowColor = "#ffb454"; ctx.shadowBlur = 16; ctx.lineWidth = 7 * (1 - k) + 2;
         ctx.beginPath(); ctx.moveTo(sx, sy); ctx.quadraticCurveTo(sx - 70, sy + 20 + 40 * k, sx + (ex - sx) * Math.min(1, k * 2.2 + 0.25), sy + (ey - sy) * Math.min(1, k * 2.2 + 0.25)); ctx.stroke(); ctx.restore(); } });
-      await P.tween(off, { x: off.x - 26 }, 0.1, (k) => k); fa.fpose = "hit"; P.sfx("thud"); P.shake(14, 0.5); await P.flash("#ffd9a0", 0.28); P.burst("dust", fa.x, G - 70, 8); await P.wait(0.45);
+      await P.tween(off, { x: off.x - 26 }, 0.1, (k) => k); fa.fpose = "hit"; P.shake(14, 0.5); await P.flash("#ffd9a0", 0.28); P.burst("dust", fa.x, G - 70, 8); await P.wait(0.45);
       fa.fpose = "fall"; P.sfx("slump"); await P.wait(0.5);
       await P.tween(fa, { rise: 0, x: fx }, 0.5, (k) => k); fa.fpose = null; fa.rise = null; await P.wait(0.5);   // 쓰러져 누운 자리(유언 장면 위치)로
       off.pose = "ready"; await P.say(T.officer3);
