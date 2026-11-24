@@ -28,7 +28,7 @@ window.AU = window.AU || {};
     if (/^Numpad\d$/.test(code)) return "숫자패드 " + code.slice(6);
     return code;
   };
-  const FATIGUE_TIP = "피로도: 스킬을 쓸 때마다 쌓이는 수치입니다(마나와 반대로 0에서 시작해 늘어납니다). 가득 차면 스킬을 쓸 수 없지만 기본 공격은 언제나 쓸 수 있습니다. 쉼 현실 미션이나 은화로 휴식하면 줄어들고, 매주 월요일에 풀립니다.";
+  const FATIGUE_TIP = "피로도: 스킬을 쓸 때마다 쌓이는 수치입니다(마나와 반대로 0에서 시작해 늘어납니다). 가득 차면 스킬을 쓸 수 없지만 기본 공격은 언제나 쓸 수 있습니다. 쉼 활동을 하거나 피로회복제(잡화상점)를 쓰면 줄어들고, 매주 월요일에 풀립니다.";
   const proofLabel = (e) => (e && e.supplementary ? "인증 완료" : "자기보고 완료");   // 완료 기록의 인증 등급(인증하면 보상 전액)
   const keyOf = (actionId) => AU.keyLabel(AU.Input.bindings[actionId]);
 
@@ -57,7 +57,7 @@ window.AU = window.AU || {};
     async fatigueGuide() {
       const S = AU.G.S; if (S.flags.fatigueGuideSeen || !AU.RealBridge) return; S.flags.fatigueGuideSeen = true; AU.G.save("fatigue-guide");
       await AU.RealBridge.prompt("피로도를 알아 두세요", "스킬을 쓸 때마다 **피로도**가 조금씩 쌓여요.\n\n피로도가 가득 차면 스킬을 쓸 수 없어요. 기본 공격은 언제나 쓸 수 있어요.", [{ text: "다음", value: "next", primary: true }], { cls: "rb-intro" });
-      await AU.RealBridge.prompt("피로도는 이렇게 줄여요", "모험일지(" + keyOf("journal") + ")의 **현실 활동 ▸ 쉼**에서 쉼 활동을 하면 줄어들어요. 활동은 몇 번이든 할 수 있고, 피로도는 하루 첫 쉼 활동에서 줄어요.\n\n스킬창(" + keyOf("skills") + ")에서 **은화로 휴식**해도 줄일 수 있어요. 매주 월요일에는 저절로 풀려요.", [{ text: "알겠어요", value: "ok", primary: true }], { cls: "rb-intro" });
+      await AU.RealBridge.prompt("피로도는 이렇게 줄여요", "모험일지(" + keyOf("journal") + ")의 **현실 활동 ▸ 쉼**에서 쉼 활동을 하면 줄어들어요. 활동은 몇 번이든 할 수 있고, 피로도는 하루 첫 쉼 활동에서 줄어요.\n\n**피로회복제**는 잡화상점에서 은화로 살 수 있어요. 한 병에 피로도가 **" + AU.ITEMS.fatigue_tonic.relieve + "** 줄어요.\n\n매주 월요일에는 저절로 풀려요.", [{ text: "알겠어요", value: "ok", primary: true }], { cls: "rb-intro", item: "fatigue_tonic" });
     },
 
     /* ============ HUD ============ */
@@ -646,7 +646,7 @@ window.AU = window.AU || {};
     box: '<path d="M4 7l8-4 8 4v10l-8 4-8-4z"/>'
   };
   const ICON_OF = { town_scroll: "scroll", sword_a: "sword", cloth_a: "tunic", charm_a: "charm", potion: "potion", fur: "fur", fox_tail: "tail", snake_skin: "skin", snake_fang: "fang", rat_tooth: "tooth", crab_claw: "claw", crab_shell: "shell", fox_scarf: "scarf", snake_ring: "ring", crab_vest: "tunic", guild_token: "token", guild_parcel: "parcel", barsha_map: "map", jepeto_blueprint: "sheet", iron_scrap: "scrap", wolf_pelt: "pelt", metal_fragment: "shard", carpenter_bag: "bag" };
-  const HAS_ART = new Set(["black_crystal", "sword_a", "cloth_a", "charm_a", "fox_scarf", "snake_ring", "crab_vest", "fur", "fox_tail", "snake_skin", "snake_fang", "rat_tooth", "crab_claw", "crab_shell", "iron_scrap", "wolf_pelt", "potion", "guild_token", "guild_parcel", "barsha_map", "jepeto_blueprint", "metal_fragment", "carpenter_bag", "boar_tusk"]);
+  const HAS_ART = new Set(["black_crystal", "sword_a", "cloth_a", "charm_a", "fox_scarf", "snake_ring", "crab_vest", "fur", "fox_tail", "snake_skin", "snake_fang", "rat_tooth", "crab_claw", "crab_shell", "iron_scrap", "wolf_pelt", "potion", "fatigue_tonic", "guild_token", "guild_parcel", "barsha_map", "jepeto_blueprint", "metal_fragment", "carpenter_bag", "boar_tusk"]);
   UI.itemIcon = function (id, px) {
     const it = AU.ITEMS[id] || {}, size = px || 40, box = h("span", { class: "iicon r-" + (it.rarity || it.type), style: "width:" + size + "px;height:" + size + "px" });
     const art = it.img || (HAS_ART.has(id) ? "assets/item/" + id + ".webp" : null);
@@ -1088,8 +1088,8 @@ window.AU = window.AU || {};
     const state = full ? "가득 참 — 스킬을 쓸 수 없습니다" : pc >= 0.8 ? "많이 쌓였습니다 — 곧 스킬을 쓸 수 없어요" : pc >= 0.5 ? "절반을 넘었습니다" : "여유 있습니다";
     const box = h("div", { class: "fmeter " + cls }, h("div", { class: "ftop" }, h("span", { class: "fname", text: "🌀 " + C.fatigue.name }), h("span", { class: "fnum" }, h("b", { text: String(+S.fatigue.toFixed(1)) }), " / " + S.fatigueMax), h("span", { class: "fstate", text: state })),
       h("div", { class: "fbar" }, h("i", { style: "width:" + (pc * 100).toFixed(1) + "%" })));
-    if (withActions) box.append(h("div", { class: "fact" }, h("span", { class: "fhint", text: "스킬을 쓸수록 쌓이고, 쉬면 줄어듭니다." }),
-      btn("휴식하기 (은화 " + AU.G.restPrice() + " · 피로도 −" + C.fatigue.restSilverRecover + ")", "mini", () => AU.G.restWithSilver(), { title: "오늘 남은 횟수 " + AU.G.restSilverLeft() + "회" }),
+    if (withActions) box.append(h("div", { class: "fact" }, h("span", { class: "fhint", text: "스킬을 쓸수록 쌓이고, 쉼 활동이나 피로회복제로 줄어듭니다." }),
+      AU.G.count("fatigue_tonic") > 0 ? btn("피로회복제 쓰기 (보유 " + AU.G.count("fatigue_tonic") + " · −" + AU.ITEMS.fatigue_tonic.relieve + ")", "mini", () => { AU.G.useItem("fatigue_tonic"); UI.renderWin(); }) : null,
       S.flags.missionsUnlocked ? btn("쉼 현실 미션 보기", "mini", () => { UI.tab.jg = "real"; UI.tab.j = "rest"; UI.open("journal"); }) : null));
     return box;
   };
