@@ -114,7 +114,7 @@ window.AU = window.AU || {};
     ropes: [{ x: 2020, top: 385, bottom: 590, exitDir: 1 }],
     portals: [{ x: 50, to: "jandari", toX: 1380, label: "잔다리 골목" },
               { x: 560, to: "yard", toX: 90, label: "용병 하차장(잠입)", reqQuest: "q_a3_recon", reqIn: ["active", "ready", "done"], reqText: "정보상에게 먼저 이야기를 들어야 합니다." },
-              { x: 1700, to: "ridge", toX: 90, label: "중심 천막 위 바위틈", reqQuest: "q_a3_scout", reqIn: ["active", "ready", "done"], reqText: "정보상에게 중심 천막 이야기를 먼저 들어야 합니다." },
+              { x: 1700, to: "ridge", toX: 90, label: "속삭임 능선", reqQuest: "q_a3_scout", reqIn: ["active", "ready", "done"], reqText: "정보상에게 골짜기 안쪽 이야기를 먼저 들어야 합니다." },
               { x: 3150, to: "gorge", toX: 90, label: "협곡 바위틈", reqQuest: "q_a3_scout", reqIn: ["ready", "done"], reqText: "골짜기 안쪽 천막을 먼저 살펴봐야 합니다." }],
     npcs: [],
     spots: [
@@ -125,12 +125,12 @@ window.AU = window.AU || {};
   /* 중심 천막 위 바위틈: 검은 골짜기 중심 천막의 포탈로 들어오는 짧은 엿듣기 맵.
      오른쪽 끝 바위 모서리까지 걸어가 Space로 아래의 대화를 엿들으면 들킴 → 추격 → 제페토 구출 컷신이 이어지고, 끝나면 협곡의 제페토 거처로 이동합니다. */
   AU.MAPS.ridge = {
-    name: "중심 천막 위 바위틈", bg: "ridge", hint: "발소리를 죽이고 오른쪽 끝 바위 모서리로 가세요", width: 1500, safe: true,
+    name: "속삭임 능선", bg: "ridge", hint: "발소리를 죽이고 오른쪽 끝 바위 모서리로 가세요", width: 1500, safe: true,
     platforms: [{ x: 0, y: 590, w: 1500 }], ropes: [],
     portals: [{ x: 40, to: "valley", toX: 1640, label: "검은 골짜기" }],
     npcs: [],
     spots: [
-      { id: "relay_tent", portrait: "pt_scene_tent", w: 520, x: 1300, kind: "investigate", label: "중심 천막 밑 대화", cuts: [{ at: 0, src: "assets/cut/relay_peek.webp" }, { at: 7, src: "assets/cut/relay_found.webp" }, { at: 9, src: "assets/cut/relay_chase.webp" }, { at: 12, src: "assets/cut/relay_trapped.webp" }, { at: 14, src: "assets/cut/relay_rope.webp" }, { at: 17, src: "assets/cut/relay_hide.webp" }], lines: [
+      { id: "relay_tent", portrait: "pt_scene_tent", w: 520, x: 1300, kind: "investigate", label: "아래에서 들려오는 대화", cuts: [{ at: 0, src: "assets/cut/relay_peek.webp" }, { at: 7, src: "assets/cut/relay_found.webp" }, { at: 9, src: "assets/cut/relay_chase.webp" }, { at: 12, src: "assets/cut/relay_trapped.webp" }, { at: 14, src: "assets/cut/relay_rope.webp" }, { at: 17, src: "assets/cut/relay_hide.webp" }], lines: [
         "(중심 천막 아래에서 두 사람이 낮게 이야기하고 있다.)",
         "(가죽 채찍을 찬 사내는 상단 감독관 클로드. 흰 로브를 입고 핏빛 원석을 들여다보는 사내는 흰 로브의 검수관이라 불린다.)",
         L(BALTEIN, "변형이 덜 되었군. 투입량을 늘려라, 클로드. 위에서 서두르고 계신다."),
@@ -230,10 +230,10 @@ window.AU = window.AU || {};
       reward: { exp: 500, silver: 50, items: [] }
     },
     q_a3_scout: {
-      title: "중심 천막", type: "main", giver: "barsha", turnIn: "jepeto", minLevel: 8, pre: ["q_a3_crystal"],
-      area: "ridge", desc: "골짜기 안쪽 중심 천막의 포탈로 올라가 천막 위 바위틈에서 아래에서 오가는 이야기를 엿듣습니다. 들키면 도망치다 누군가의 도움으로 협곡 바위틈에 숨어들고, 그곳의 노인(제페토)에게 보고합니다.",
+      title: "속삭임 능선", type: "main", giver: "barsha", turnIn: "jepeto", minLevel: 8, pre: ["q_a3_crystal"],
+      area: "ridge", desc: "골짜기 안쪽 길 끝의 포탈로 올라가 능선 바위틈에서 아래에서 오가는 이야기를 엿듣습니다. 들키면 도망치다 누군가의 도움으로 협곡 바위틈에 숨어들고, 그곳의 노인(제페토)에게 보고합니다.",
       objectives: [{ kind: "investigate", targets: ["relay_tent"] }],
-      offer: ["골짜기 안쪽 길 끝으로 가 보게. 그쪽 어디쯤 가면 사람들의 대화 소리가 들릴 걸세. 바위 틈 위에서 몰래 귀를 기울여 보게.", "그 말소리에서 결정을 먹이는 자가 누구인지 정보를 얻어 오게. 목소리만 들어도 충분하네. 들키면 무조건 도망치게. 절벽 쪽은 막혀 있지만... 협곡 바위틈에는 나와 뜻이 같은 도편수 제페토가 있네.", "그가 도와줄 걸세. 살아서 돌아오게."],
+      offer: ["골짜기 안쪽 길 끝으로 가 보게. 그쪽 어디쯤 가면 사람들의 대화 소리가 들릴 걸세. 바위 틈 위에서 몰래 귀를 기울여 보게.", "그 말소리에서 결정을 먹이는 자가 누구인지 정보를 얻어 오게. 들키면 무조건 도망치게. 절벽 쪽은 막혀 있지만... 협곡 바위틈에는 나와 뜻이 같은 도편수 제페토가 있네.", "그를 만나 보게. 살아서 돌아오게."],
       reminder: ["골짜기 안쪽 길 끝 바위틈에서 사람들의 대화 소리를 엿들어 정보를 얻어 오게. 들키면 도망쳐 협곡 바위틈의 제페토를 만나게."],
       done: [L(J(), "무사히 빠져나왔군. 이런 척박한 골짜기까지 들어온 사람이 있을 줄은 몰랐네. 나는 제페토라 하네. 겉으로는 동부에서 궁궐을 짓던 도편수였고, 바르샤와 같은 일도 하고 있지."),
              L(J(), "...잠깐. 손목을 좀 보여 주겠나. 그 검은 고리... 역시 그렇군."),
