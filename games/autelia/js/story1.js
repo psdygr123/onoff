@@ -48,7 +48,7 @@ window.AU = window.AU || {};
   Object.assign(AU.ASSETS, { ob_spot_barsha_lens: { path: "assets/object/spot_barsha_lens.webp", optional: true }, ob_spot_barsha_map: { path: "assets/object/spot_barsha_map.webp", optional: true }, ob_spot_relay_tent: { path: "assets/object/spot_relay_tent.webp", optional: true }, pt_claude: { path: "assets/portrait/claude.webp", optional: true }, pt_baltein: { path: "assets/portrait/baltein.webp", optional: true } });
   const HERO = { get name() { return AU.Profile.name(); }, get portrait() { return AU.Profile.portraitKey(); } };
   const B = () => AU.NPCS.barsha, J = () => AU.NPCS.jepeto;
-  const CLAUDE = { name: "감독관 클로드", portrait: "pt_claude" }, BALTEIN = { name: "흰 로브의 검수관", portrait: "pt_baltein" }, VOICE = { name: "용병", portrait: "" };
+  const CLAUDE = { name: "클로드", portrait: "pt_claude" }, BALTEIN = { name: "흰 로브를 입은 남자", portrait: "pt_baltein" }, VOICE = { name: "용병", portrait: "" };
   const L = (npc, t) => ({ npc, t });
 
   /* ---------- 아이템 ---------- */
@@ -133,7 +133,7 @@ window.AU = window.AU || {};
       { id: "relay_tent", portrait: "pt_scene_tent", w: 520, x: 1300, kind: "investigate", label: "아래에서 들려오는 대화", cuts: [{ at: 0, src: "assets/cut/relay_peek.webp" }, { at: 7, src: "assets/cut/relay_found.webp" }, { at: 9, src: "assets/cut/relay_chase.webp" }, { at: 12, src: "assets/cut/relay_trapped.webp" }, { at: 14, src: "assets/cut/relay_rope.webp" }, { at: 17, src: "assets/cut/relay_hide.webp" }], lines: [
         L(HERO, "(아래에서 두 사람이 낮게 이야기하고 있다. 숨을 죽이고 들어 보자.)"),
         L(BALTEIN, "변형이 덜 되었군. 투입량을 늘려라, 클로드. 위에서 서두르고 계신다."),
-        L(CLAUDE, "우리 짐승들이 버티질 못합니다, 발테인 님. 결정을 더 먹이면 죽어 나가는 놈이 늘어요."),
+        L(CLAUDE, "우리 짐승들이 버티질 못합니다. 결정을 더 먹이면 죽어 나가는 놈이 늘어요."),
         L(BALTEIN, "죽는 놈은 버려라. 실험 구역에 넘길 물량만 맞추면 된다. 이번에 잡은 짐승들은 곧바로 아지트로 올려 보낸다."),
         L(HERO, "(몬스터를 일부러 변형시키는 실험... 이 중계소는 그 재료를 아지트로 보내는 길목이다. 아지트가 어딘가에 있다.)"),
         "(그때 발밑에서 자갈 하나가 굴러떨어졌다.)",

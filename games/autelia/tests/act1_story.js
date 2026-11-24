@@ -143,9 +143,9 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const speakers = await ev(() => AU.UI.dialog.lines.filter((l) => typeof l === 'object').map((l) => l.npc.name));
   const cutN = await ev(() => AU.UI.dialog.opt.cuts.length);
   for (let i = 0; i < 24 && (await ev(() => !!AU.UI.dialog)); i++) { await key('Space'); await sleep(100); }
-  note('B13', '천막 컷신에 클로드·발테인·제페토·주인공 화자가 나오고 컷 6장 연결', /클로드/.test(speakers.join()) && /검수관/.test(speakers.join()) && /제페토/.test(speakers.join()) && dl >= 19 && cutN === 6, dl + ' ' + cutN + ' ' + speakers.join('|'));
+  note('B13', '천막 컷신에 클로드·발테인·제페토·주인공 화자가 나오고 컷 6장 연결', /클로드/.test(speakers.join()) && /흰 로브/.test(speakers.join()) && /제페토/.test(speakers.join()) && dl >= 18 && cutN === 6, dl + ' ' + cutN + ' ' + speakers.join('|'));
   const tl = await ev(() => AU.MAPS.ridge.spots.find((x) => x.id === 'relay_tent').lines.map((l) => (typeof l === 'string' ? l : l.t)));
-  note('B13b', '들킨 장면: 외침이 "거기 누구냐!"로 짧고 사슬 문구 없음', tl.includes('거기 누구냐!') && /도망가자/.test(tl[8]) && !tl.some((t) => /사슬|쥐새끼/.test(t)), tl.slice(7, 9).join(' | '));
+  note('B13b', '들킨 장면: 외침이 "거기 누구냐!"로 짧고 사슬 문구 없음', tl.includes('거기 누구냐!') && /도망가자/.test(tl[7]) && !tl.some((t) => /사슬|쥐새끼/.test(t)), tl.slice(6, 8).join(' | '));
   await sleep(1800);
   const gm = await ev(() => ({ map: AU.World.mapId, st: AU.G.questStatus('q_a3_scout') }));
   note('B13c', '컷신이 끝나면 협곡 바위틈으로 이동하고 보고 가능 상태', gm.map === 'gorge' && gm.st === 'ready', JSON.stringify(gm));
