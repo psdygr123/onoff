@@ -458,7 +458,7 @@ window.AU = window.AU || {};
           if (Math.abs(p.x - m.x) < m.d.w / 2 + C.player.halfW && Math.abs(p.y - m.y) < m.d.h + 30) this.hurtPlayer(m, m.pat === "chain" ? 0.9 : 1);
           if (m.st >= (m.d.chargeT || 0.28)) {
             if (m.d.recoverT) { m.state = "recover"; m.st = 0; this.floater(m.x, m.y - m.d.h - 30, "헉헉…", "#FFE9A8"); } // 멧돼지: 전력 돌진 뒤 숨을 고르는 빈틈
-            else if (m.pat === "chain" && m.chain < 1) { m.chain++; m.state = "windup"; m.wt = 0.4; m.st = 0; m.dir = sign(dx) || m.dir; } // 연속 돌진: 두 번째는 짧은 예고
+            else if (m.pat === "chain" && m.chain < 1) { m.chain++; m.state = "windup"; m.wt = 0.5; m.st = 0; m.dir = sign(dx) || m.dir; } // 연속 돌진: 두 번째 예고도 0.5초(모든 패턴 0.5초 이상)
             else { m.state = "chase"; m.cd = this.attackCd(m); m.st = 0; }
           }
         }

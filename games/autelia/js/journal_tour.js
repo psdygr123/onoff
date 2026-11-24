@@ -20,19 +20,19 @@ window.AU = window.AU || {};
     { setup: { jg: "game", j: "a1" }, target: () => find(".window.win-journal .jgroup"), title: "위쪽은 두 갈래예요",
       lines: () => ["'모험 이야기'에는 지나온 장면이 정리돼요.", "'현실 활동'에서는 현실에서 해 볼 수 있는 작은 활동을 볼 수 있어요."] },
     { setup: { jg: "game", j: "a1" }, target: () => find(".window.win-journal .tabs") || find(".window.win-journal .wbody"), title: "모험 이야기는 지나온 길이에요",
-      lines: () => ["프롤로그와 1막에서 겪은 중요한 장면이 카드로 하나씩 쌓여요.", "카드마다 그때의 기분을 한두 줄로 적어 둘 수 있고, '전체 기록'에서는 지나온 일을 시간 순서로 볼 수 있어요."] },
-    { setup: { jg: "real", j: "today" }, target: () => find(".window.win-journal .realband"), title: "현실 활동은 선택이에요",
+      lines: () => ["프롤로그와 1막에서 겪은 중요한 장면이 카드로 하나씩 쌓여요.", "카드마다 나의 생각과 감정을 표현할 수 있어요.", "'전체 기록'은 시간 순으로 지나온 일을 볼 수 있어요."] },
+    { setup: { jg: "real", j: "missions" }, target: () => find(".window.win-journal .realband"), title: "현실 활동은 선택이에요",
       lines: () => ["게임 속 이야기와는 별개예요.", "하지 않아도 모험은 그대로 이어지고, 하지 않았다고 불이익도 없어요."] },
-    { setup: { jg: "real", j: "today" }, target: () => find(".window.win-journal .real-tabs"), title: "처음엔 '오늘의 활동'만 봐요",
-      lines: () => ["탭이 여러 개지만, 처음에는 '오늘의 활동'만 보면 충분해요.", "나머지는 익숙해진 뒤에 천천히 둘러보세요."] },
-    { setup: { jg: "real", j: "today" }, target: () => find('.window.win-journal [data-real-bridge="suggestions"]') || find(".window.win-journal .wbody"), title: "방금 지은 신전과 이어진 활동이에요",
+    { setup: { jg: "real", j: "missions" }, target: () => find(".window.win-journal .real-tabs"), title: "탭은 세 가지예요",
+      lines: () => ["'내 활동'은 진행 중인 활동과 추천을 보여 줘요.", "'마음 기록'은 완료한 활동, '쉼'은 피로를 풀어 주는 활동이에요."] },
+    { setup: { jg: "real", j: "missions" }, target: () => find('.window.win-journal [data-real-bridge="suggestions"]') || find(".window.win-journal .wbody"), title: "방금 지은 신전과 이어진 활동이에요",
       lines: () => { const m = mission(); return ["신전을 완성한 일에서 이어진 첫 활동이 나왔어요.", m ? "**" + m.title + "** — 약 " + m.minutes + "분이면 돼요." : "1분 안에 할 수 있는 가벼운 활동이에요."]; } },
-    { setup: { jg: "real", j: "today" }, target: () => find('.window.win-journal [data-real-bridge="suggestions"] .macts') || find(".window.win-journal .wbody"), title: "활동은 두 걸음으로 기록해요",
+    { setup: { jg: "real", j: "missions" }, target: () => find('.window.win-journal [data-real-bridge="suggestions"] .macts') || find(".window.win-journal .wbody"), title: "활동은 두 걸음으로 기록해요",
       lines: () => ["하고 나면 '완료했어요'를 눌러 남기면 돼요.", "'건너뛰기'를 눌러도 괜찮고, 나중에 다시 해도 돼요."],
       extra: () => h("div", { class: "jt-steps", "aria-label": "수락, 완료했어요" },
         [["1", "수락"], ["2", "완료했어요"]].map(([n, t], i) => [i ? h("span", { class: "jt-arrow", text: "→" }) : null, h("span", { class: "jt-step" }, h("i", { text: n }), h("b", { text: t }))])) },
-    { setup: { jg: "real", j: "today" }, target: () => tabBtn("마음 기록") || find(".window.win-journal .real-tabs"), title: "기록은 '마음 기록'에 남아요",
-      lines: () => ["활동을 완료하면 '마음 기록'에 기록이 남아요.", "이 탭에서 언제든 지나온 기록을 볼 수 있어요."],
+    { setup: { jg: "real", j: "missions" }, target: () => tabBtn("마음 기록") || find(".window.win-journal .real-tabs"), title: "기록은 '마음 기록'에 남아요",
+      lines: () => ["활동을 완료하면 '마음 기록'에 쌓여요.", "이 탭에서 완료한 활동을 모아 볼 수 있어요."],
       extra: () => h("div", { class: "jt-recap" }, h("b", { text: "기억할 것 3가지" }),
         h("ol", null, h("li", { text: "[" + keyJ() + "] 키로 모험일지를 연다" }), h("li", { text: "현실 활동은 선택이다" }), h("li", { text: "수락 → 완료했어요" }))) }
   ];
@@ -103,7 +103,7 @@ window.AU = window.AU || {};
           shade.remove(); spot.remove(); card.remove();
           if (why === "done") { if (opts.onDone) opts.onDone(); else { const F = AU.G.S.flags; F.journalTourSeen = true; F.gdw_journal = true; AU.G.save("journal-tour"); } }
           if (why !== "closed") {
-            if (opts.closeAfter) UI.close(); else { UI.tab.jg = prev.jg || "real"; UI.tab.j = prev.j || "today"; if (UI.curName === "journal") UI.renderWin(); }
+            if (opts.closeAfter) UI.close(); else { UI.tab.jg = prev.jg || "real"; UI.tab.j = prev.j || "missions"; if (UI.curName === "journal") UI.renderWin(); }
           }
           if (P && P.on) P.frozen = oldFrozen;
           AU.Input.held.clear(); this.active = false; resolve(why);

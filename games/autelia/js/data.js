@@ -195,6 +195,7 @@ AU.ITEMS = {
   charm_a: { name: "작은 부적", type: "equip", slot: "accessory", buy: 80, stats: { dodge: 1, crit: 1 }, desc: "작은 행운이 깃들었다는 부적입니다." },
   town_scroll: { name: "마을 귀환 주문서", type: "use", recall: true, buy: 60, desc: "가까운 마을로 즉시 귀환합니다. 마을 안에서는 쓸 수 없습니다." },
   potion:  { name: "작은 회복약", type: "use", heal: 50, buy: 15, desc: "HP를 50 회복합니다." },
+  fatigue_tonic: { name: "피로회복제", type: "use", relieve: 10, buy: 30, desc: "피로도를 10 회복합니다. 잡화상점에서 은화로 살 수 있습니다." },   // 11-24: 피로도는 쉼 활동 또는 이 아이템으로 줄임(은화 휴식 대체). 회복량 10은 고정값, 가격은 임시
   // 드롭 확률 원칙: 좋은 아이템일수록 확률이 낮다 — 흔함 15% · 포션 평균 5% · 드묾 7% · 희귀(장비) 0%(제작서로만 획득). 은화는 몬스터마다 silverRate 확률(10%대)로 레벨이 높을수록 커지는 범위(1~20, 균등 랜덤)가 바닥에 떨어짐
   // rarity: common(흔함) / uncommon(드묾) / rare(희귀). sell: 안전한 곳(마을)에서 팔 때 받는 은화. 재료는 팔거나 제작(AU.RECIPES)에 씀
   fur:     { name: "여우 털 뭉치", type: "etc", rarity: "common", sell: 3, desc: "부드러운 털 뭉치입니다. 팔 수 있습니다." },
@@ -215,7 +216,7 @@ AU.ITEMS = {
   black_crystal: { name: "검은 결정", type: "quest", desc: "변형된 몬스터의 몸에서 나온 각진 검은 돌입니다. 안쪽에 붉은 줄이 희미하게 비칩니다." }
 };
 // 상점: 잡화상인은 재료를 사고 소비 아이템을 팔며, 무기상인은 기본 장비를 팔고, 장비 제작은 2막부터 마을마다 있는 대장간의 대장장이가 함
-AU.SHOP = { general: { buy: ["potion", "town_scroll"] }, weapon: { buy: ["sword_a", "cloth_a", "charm_a"] } };
+AU.SHOP = { general: { buy: ["potion", "fatigue_tonic", "town_scroll"] }, weapon: { buy: ["sword_a", "cloth_a", "charm_a"] } };
 AU.RARITY = { common: { label: "흔함", color: "#D9C79A" }, uncommon: { label: "드묾", color: "#7FC8A9" }, rare: { label: "희귀", color: "#F2C14E" } };
 // 제작: 안전한 곳(마을)에서 재료와 은화로 희귀 장비를 직접 만듦(드롭보다 확실하지만 재료가 많이 듦). 제작법은 처음부터 알지 못하고, 의뢰 보상으로 받는 '제작서' 아이템을 사용해야 배움(필요 재료·수량이 그때부터 보임). 제작은 무기상인에게서 재료와 은화를 내고 함
 AU.RECIPES = []; // 제작 기능은 당분간 사용하지 않음(제작서·제작법 탭 제거)
@@ -236,7 +237,7 @@ AU.JOB_GROUPS = [
   { id: "soon2", name: "???", open: false, icon: '<text x="12" y="18" text-anchor="middle" font-size="18" fill="currentColor">?</text>' }
 ];
 AU.JOB_LINES = [
-  { id: "warrior", name: "전사", open: true, job: "warrior", desc: "검과 방패로 가까이에서 버티며 싸웁니다.", icon: '<path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z"/>' },
+  { id: "warrior", name: "전사", open: true, job: "warrior", desc: "5명의 용사 중 한 명으로 검을 통해 적을 무찌릅니다.", icon: '<path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z"/>' },
   { id: "mage", name: "마법사", open: false, icon: '<path d="M12 2l2.6 6.2 6.7.5-5.1 4.3 1.6 6.5L12 16l-5.8 3.5 1.6-6.5L2.7 8.7l6.7-.5z"/>' },
   { id: "archer", name: "궁수", open: false, icon: '<path d="M5 3c8 3 8 15 0 18M5 3v18M3 12h17m-4-3 4 3-4 3" fill="none" stroke="currentColor" stroke-width="2"/>' },
   { id: "rogue", name: "도적", open: false, icon: '<path d="M12 2c4 2 6 6 6 10l2 9H4l2-9c0-4 2-8 6-10z"/>' },

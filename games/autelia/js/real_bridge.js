@@ -64,7 +64,7 @@ window.AU = window.AU || {};
       return AU.G.setMissionState(s.missionId, "accept");
     },
     visibleInDev() { return !/[?&]dev=1(?:&|$)/.test(location.search) || /[?&]realguide=1(?:&|$)/.test(location.search); },
-    prompt(title, description, options) {
+    prompt(title, description, options, extra) {
       const UI = AU.UI;
       if (!UI || !UI.modalEl) return Promise.resolve("later");
       return new Promise(resolve => {
@@ -75,7 +75,7 @@ window.AU = window.AU || {};
         wrap.classList.remove("hidden");
         wrap.innerHTML = "";
         const card = document.createElement("div");
-        card.className = "panel modal restnote";
+        card.className = "panel modal restnote" + (extra && extra.cls ? " " + extra.cls : "");
         card.setAttribute("role", "dialog");
         card.setAttribute("aria-modal", "true");
         card.setAttribute("aria-label", title);
@@ -86,6 +86,17 @@ window.AU = window.AU || {};
           paragraph.split(/\*\*(.+?)\*\*/).forEach((part, i) => { if (!part) return; if (i % 2) { const em = document.createElement("b"); em.className = "rb-em"; em.textContent = part; p.append(em); } else p.append(document.createTextNode(part)); });   // **강조**: 현실 미션 이름이 눈에 띄게
           body.append(p);
         }
+        if (extra && extra.blocks) { // 11-24: 게임 미션 / 현실 미션을 나란히 보여 주고, 핵심 안내는 큰 띠로 강조
+          const grid = document.createElement("div"); grid.className = "rb-cards";
+          for (const [kind, name, text] of extra.blocks) { const c = document.createElement("div"); c.className = "rb-card " + kind; const h = document.createElement("b"); h.textContent = name; const t = document.createElement("p"); t.textContent = text; c.append(h, t); grid.append(c); }
+          body.append(grid);
+        }
+        if (extra && extra.item && AU.ITEMS[extra.item] && AU.UI.itemIcon) { // 아이템 그림 + 이름 + 효과 한 줄
+          const it = AU.ITEMS[extra.item], row = document.createElement("div"); row.className = "rb-item";
+          const txt = document.createElement("div"); const nm = document.createElement("b"); nm.textContent = it.name; const ef = document.createElement("span"); ef.textContent = it.relieve ? "피로도 " + it.relieve + " 회복 · 잡화상점 · 은화 " + it.buy : it.desc; txt.append(nm, ef);
+          row.append(AU.UI.itemIcon(extra.item, 84), txt); body.append(row);
+        }
+        if (extra && extra.notice) { const n = document.createElement("div"); n.className = "rb-notice"; n.textContent = extra.notice; body.append(n); }
         const actions = document.createElement("div"); actions.className = "choices";
         const finish = (value) => {
           R.dismiss = null;
@@ -114,12 +125,8 @@ window.AU = window.AU || {};
       if (S.flags.realBridgeIntroSeen || (AU.Prologue && AU.Prologue.replay)) return false;
       if (this.visibleInDev()) {
         await this.prompt("모험과 일상을 함께 기록해 보세요",
-          "아우텔리아의 메인 스토리에는 선택형 현실 활동이 함께 소개됩니다. 실제 활동은 원할 때만 진행하고, 모험일지(J)의 '현실 활동'에서 수락·시도·완료를 기록할 수 있습니다. 하지 않아도 모든 메인 스토리를 진행할 수 있습니다.",
-          [{text:"조작법 알아보기",value:"next",primary:true},{text:"안내 건너뛰기",value:"skip"}]);
-        if (!AU.Prologue || !AU.Prologue.on) return false;
-        await this.prompt("기본 조작 안내",
-          "좌우 방향키로 이동하고 Space로 NPC와 상호작용합니다. J를 누르면 모험일지가 열립니다. 안내받은 현실 활동은 언제든 모험일지에서 확인하고, '조금 해봤어요' 또는 '완료했어요'로 기록할 수 있습니다.",
-          [{text:"모험 시작하기",value:"start",primary:true}]);
+          "이야기를 따라 모험하며, 나의 하루도 한 걸음씩 돌아보는 성장형 RPG예요.",
+          [{text:"시작하기",value:"start",primary:true}], { cls: "rb-intro" });
       }
       if (!AU.Prologue || !AU.Prologue.on) return false;
       S.flags.realBridgeIntroSeen = true;
