@@ -279,7 +279,12 @@ window.AU = window.AU || {};
     },
     toast(text, kind) {
       const t = h("div", { class: "toast " + (kind || "info") }, text);
-      this.hud.toasts.append(t); while (this.hud.toasts.children.length > 5) this.hud.toasts.firstChild.remove();
+      /* 11-24: 오른쪽 위 알림은 최대 3개. 메인 스토리·레벨업·경고가 먼저, 서브·일상 미션과 획득 알림은 뒤(자리가 모자라면 낮은 것·오래된 것부터 밀려남). 진행 중 퀘스트는 [Q] 창에서 확인 */
+      const k = String(kind || ""), tx = String(text || "");
+      const pr = /qk-main/.test(k) || /메인 퀘스트|메인 스토리|★/.test(tx) ? 5 : /레벨 업|배웠습니다|전직|각성/.test(tx) ? 5 : k === "warn" ? 4 : /qk-sub/.test(k) ? 3 : /qk-real/.test(k) ? 2 : 1;
+      t.dataset.pr = pr;
+      this.hud.toasts.append(t);
+      while (this.hud.toasts.children.length > 3) { const kids = [...this.hud.toasts.children].filter((e) => !e.classList.contains("out")); if (!kids.length) break; const low = Math.min(...kids.map((e) => +e.dataset.pr || 1)); const drop = kids.find((e) => (+e.dataset.pr || 1) === low); if (!drop) break; drop.remove(); }
       setTimeout(() => { t.classList.add("out"); setTimeout(() => t.remove(), 400); }, 3600);
     },
     levelBanner(lv) {
