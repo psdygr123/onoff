@@ -36,7 +36,7 @@ AU.CONFIG = {
   // [임시] 스탯 1점당 효과. 요청서 8장 가안
   stats: {
     base: { STR: 5, VIT: 5, AGI: 5, DEX: 5, WIL: 5 },
-    perPoint: { STR: { atk: 2 }, VIT: { hp: 12 }, AGI: { dodge: 0.2 }, DEX: { crit: 0.25 }, WIL: { eff: 0.2 } },
+    perPoint: { STR: { atk: 2 }, VIT: { hp: 40 }, AGI: { dodge: 0.2 }, DEX: { crit: 0.25 }, WIL: { eff: 0.2 } },
     autoGrowth: { STR: 1, VIT: 1 }, autoGrowthRotating: ["AGI", "DEX", "WIL"], // 1~9레벨 자동 성장(임시)
     maxEfficiency: 50
   },
