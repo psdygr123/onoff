@@ -13,6 +13,7 @@ AU.ASSETS = {
   player_male:   { path: "assets/char/player_male.webp", frames: 4 },
   player_female: { path: "assets/char/player_female.webp", frames: 4 },
   villager_a:   { path: "assets/char/villager_a.webp" },
+  nikos:        { path: "assets/char/nikos.webp" },
   villager_b:   { path: "assets/char/villager_b.webp" },
   smith:        { path: "assets/char/smith.webp" },
   baker:        { path: "assets/char/baker.webp" },
@@ -48,6 +49,7 @@ AU.ASSETS = {
   pt_player_male: { path: "assets/portrait/player_male.webp" },
   pt_player_female: { path: "assets/portrait/player_female.webp" },
   pt_villager_a: { path: "assets/portrait/villager_a.webp" },
+  pt_nikos:     { path: "assets/portrait/nikos.webp" },
   pt_villager_b: { path: "assets/portrait/villager_b.webp" },
   pt_smith:      { path: "assets/portrait/smith.webp" },
   pt_baker:      { path: "assets/portrait/baker.webp" },
@@ -401,7 +403,7 @@ AU.npcQuestMark = (npcId) => {
 
 /* ---------- NPC (전부 임시 이름·대사) ---------- */
 AU.NPCS = {
-  porto_dock: { name: "니코스", sprite: "villager_a", portrait: "pt_villager_a", quests: ["q_s1_silver"],
+  porto_dock: { name: "니코스", sprite: "nikos", portrait: "pt_nikos", quests: ["q_s1_silver"],
     idle: ["길드가 궁금하면 부두 안쪽에서 카시안 님을 찾아보세요.", "부두는 새벽부터 바빠요."] },
   arche_guide: { name: "엘레니", title: "주민", sprite: "villager_a", portrait: "pt_villager_a", quests: [],
     idle: ["오늘도 평화로운 마을이에요.", "다친 곳은 없나요? 쉬어 가면서 하세요."] },
