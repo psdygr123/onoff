@@ -214,7 +214,7 @@ window.AU = window.AU || {};
       for (const hs of m.hideSpots || []) {
         const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 380);
         if (on) { const g = ctx.createRadialGradient(hs.x, y - 40, 6, hs.x, y - 40, 90); g.addColorStop(0, "rgba(255,214,120," + (0.30 + 0.25 * pulse) + ")"); g.addColorStop(1, "rgba(255,214,120,0)"); ctx.fillStyle = g; ctx.fillRect(hs.x - 90, y - 130, 180, 140); }
-        if (!pic("ob_hide_crate", hs.x, 150)) {
+        if (!pic(m.hideCrate && AU.Img.has(m.hideCrate) ? m.hideCrate : "ob_hide_crate", hs.x, 150)) {
           const bw = 96, bh = 84, bx = hs.x - bw / 2, by = y - bh;
           ctx.fillStyle = "#6A5038"; ctx.fillRect(bx, by, bw, bh); ctx.strokeStyle = "#2E2216"; ctx.lineWidth = 3; ctx.strokeRect(bx, by, bw, bh);
           ctx.fillStyle = "#7B5E42"; ctx.fillRect(bx - 4, by - 8, bw + 8, 14); ctx.strokeRect(bx - 4, by - 8, bw + 8, 14);
@@ -644,7 +644,7 @@ window.AU = window.AU || {};
         if (!act && !(done && sp.kind === "repair")) continue;
         const x = sp.x;
         // 정식 그림이 있으면 그림으로(방책은 고치기 전·후 두 장이 같은 틀), 없으면 아래 임시 도형
-        const key = sp.img === "fence" ? (done ? "ob_fence_fixed" : "ob_fence_broken") : sp.img, im = key && AU.Img.has(key) ? AU.Img.get(key) : null;
+        const key = sp.img === "fence" ? (done ? "ob_fence_fixed" : "ob_fence_broken") : sp.img, im = key && AU.Img.has(key) ? AU.Img.get(key) : (sp.imgFb && AU.Img.has(sp.imgFb) ? AU.Img.get(sp.imgFb) : null);
         if (im) { const w = sp.w || (sp.kind === "repair" ? 170 : (sp.img === "ob_trace_crate" || sp.img === "ob_trace_crystal_crate") ? 112 : 160), h = w * im.naturalHeight / im.naturalWidth; ctx.drawImage(im, x - w / 2, y - h + 6, w, h); }
         else if (sp.kind === "repair") {
           ctx.save(); ctx.lineCap = "round";
