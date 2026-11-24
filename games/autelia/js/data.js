@@ -34,7 +34,7 @@ AU.ASSETS = {
   mon_umbra_down: { path: "assets/monster/umbra_down.webp", optional: true },
   ob_rock_s: { path: "assets/object/rock_s.webp", optional: true }, ob_rock_m: { path: "assets/object/rock_m.webp", optional: true }, ob_rock_big: { path: "assets/object/rock_big.webp", optional: true }, ob_rock_tall: { path: "assets/object/rock_tall.webp", optional: true }, ob_rock_low: { path: "assets/object/rock_low.webp", optional: true },
   ob_fence_broken: { path: "assets/object/fence_broken.webp", optional: true }, ob_fence_fixed: { path: "assets/object/fence_fixed.webp", optional: true },
-  ob_trace_stain: { path: "assets/object/trace_stain.webp", optional: true }, ob_trace_crate: { path: "assets/object/trace_crate.webp", optional: true }, it_guild_parcel: { path: "assets/object/guild_parcel.webp", optional: true },
+  ob_trace_stain: { path: "assets/object/trace_stain.webp", optional: true }, ob_trace_crate: { path: "assets/object/trace_crate.webp", optional: true }, ob_trace_crystal_crate: { path: "assets/object/trace_crystal_crate.webp", optional: true }, it_guild_parcel: { path: "assets/object/guild_parcel.webp", optional: true },
   job_warrior: { path: "assets/job/warrior.webp", optional: true }, job_hero: { path: "assets/job/hero.webp", optional: true }, job_mage: { path: "assets/job/mage.webp", optional: true }, job_archer: { path: "assets/job/archer.webp", optional: true }, job_rogue: { path: "assets/job/rogue.webp", optional: true }, job_pirate: { path: "assets/job/pirate.webp", optional: true },
   mon_fox:   { path: "assets/monster/fox.webp", optional: true },
   mon_fox_a1: { path: "assets/monster/fox_a1.webp", optional: true }, mon_fox_a2: { path: "assets/monster/fox_a2.webp", optional: true },   // 들여우 준비·도약 그림
@@ -145,7 +145,7 @@ AU.MAPS = {
     npcs: [],
     spots: [
       { id: "trace_stain", img: "ob_trace_stain", x: 560, kind: "investigate", label: "바위틈의 검은 얼룩", lines: ["바위틈에 말라붙은 검은 얼룩이 있습니다. 바닷물에도 씻기지 않은 듯 끈적하게 굳어 있습니다.", "짐승이 지나간 자리마다 이 얼룩이 남아 있습니다. 어둠의 기운이 짐승의 몸을 거쳐 흘러나온 흔적처럼 보입니다."] },
-      { id: "trace_crate", img: "ob_trace_crate", x: 1140, kind: "investigate", label: "부서진 짐 상자", lines: ["부서진 짐 상자의 옆면에 불도장이 찍혀 있습니다. 파도 같은 물결무늬입니다.", "어디선가 본 듯한 모양입니다. 상자 안은 비어 있지만 바닥에 검은 가루가 남아 있습니다."] }
+      { id: "trace_crate", img: "ob_trace_crystal_crate", x: 1140, kind: "investigate", label: "검은 결정이 든 상자", lines: ["상자의 옆면에 불도장이 찍혀 있습니다. 파도 같은 물결무늬입니다. 어디선가 본 듯한 모양입니다.", "열린 상자 안에 검은 결정이 가득합니다. 결정에 닿은 나무 판자가 검게 부식되어 있습니다."] }
     ],
     spawns: [], start: 220,
     area: { x: 84, y: 34, desc: "부두 옆의 큰 창고입니다. 최근 이상한 흔적이 남는다는 소문이 있습니다." }
