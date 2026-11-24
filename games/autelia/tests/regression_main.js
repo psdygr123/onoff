@@ -91,7 +91,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await p.keyboard.press('e'); await sleep(100); await p.click('.window .detail .btn.primary'); await sleep(150); await p.keyboard.press('Escape'); const a1 = (await S()).atk;
   note('7b', '장비 장착 → 공격력 반영', a1 === a0 + 4, `공격력 ${a0} → ${a1} (견습용 검 +4)`);
 
-  // ===== 10. 10레벨 전 현실 미션 잠김 =====
+  // ===== 10. 10레벨 전 일상 미션 잠김 =====
   await ev(() => { AU.G.gainExp(AU.expToNext(AU.G.S.level) * 3, 'dev'); }); // 레벨 4~5 정도
   const lvMid = await S();
   await p.keyboard.press('j'); await sleep(150);
@@ -102,7 +102,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await p.keyboard.press('Escape'); await sleep(100); const mtxt = await ev(() => document.querySelector('.window').textContent); await p.keyboard.press('Escape');
   const openNow = await ev(() => AU.G.S.flags.missionsUnlocked === true && AU.G.restMissionAvailable(AU.REST_MISSIONS[0].id) === false);
   const apiLocked = await ev(() => { AU.G.S.flags.missionsUnlocked = false; return [AU.G.discoverMissions(), AU.G.setMissionState('m_p1', 'accept')]; });
-  note('10', '프롤로그 직후부터 현실 미션 열림(쉼 미션·피로도는 스킬 습득 전까지 잠김), 플래그 없으면 API 차단', !/🔒 현실 활동/.test(jtxt) && openNow && tabsCount === 1 && apiLocked[0] === false && apiLocked[1] === false && !lvMid.job.includes('warrior'), `Lv.${lvMid.lv}: 일지·퀘스트·메뉴 화면에 '현실' 문구 없음=${!/현실/.test(jtxt + qtxt + mtxt)}, 일지 탭 수=${tabsCount}, 강제 호출 discover=${apiLocked[0]}, accept=${apiLocked[1]}`);
+  note('10', '프롤로그 직후부터 일상 미션 열림(쉼 미션·피로도는 스킬 습득 전까지 잠김), 플래그 없으면 API 차단', !/🔒 일상 활동/.test(jtxt) && openNow && tabsCount === 1 && apiLocked[0] === false && apiLocked[1] === false && !lvMid.job.includes('warrior'), `Lv.${lvMid.lv}: 일지·퀘스트·메뉴 화면에 '현실' 문구 없음=${!/현실/.test(jtxt + qtxt + mtxt)}, 일지 탭 수=${tabsCount}, 강제 호출 discover=${apiLocked[0]}, accept=${apiLocked[1]}`);
 
   // ===== 11. 1막 최대 레벨 15 + 제페토의 힘의 각성(전직 아님) =====
   await ev(() => { AU.G.gainExp(1e6, 'dev'); });
@@ -111,9 +111,9 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await ev(() => AU.G.awaken());
   const post = await S(); const awk = await ev(() => ({ aw: AU.G.awakened(), job: AU.G.S.job, jc: AU.G.S.jobChanged, sk: AU.G.S.skills.unlocked.length, un: AU.G.S.flags.missionsUnlocked }));
   note('11', '레벨 상한 15·각성 전엔 스킬 없음·각성하면 스킬 열림(전직은 아님)', lvMax.lv === 15 && skPre === 0 && awk.aw === true && awk.jc === false && awk.job === 'apprentice' && awk.sk > 0 && awk.un === true,
-    `Lv=${lvMax.lv}, 현실 미션 해금(각성 전)=${unlPre}, 스킬(각성 전)=${skPre}, 각성 후 직업=${awk.job}, 전직=${awk.jc}, 스킬=${awk.sk}, 자유 포인트=${post.fp}`);
+    `Lv=${lvMax.lv}, 일상 미션 해금(각성 전)=${unlPre}, 스킬(각성 전)=${skPre}, 각성 후 직업=${awk.job}, 전직=${awk.jc}, 스킬=${awk.sk}, 자유 포인트=${post.fp}`);
 
-  // ===== 현실 미션 흐름 / 13. 중복 지급 방지 =====
+  // ===== 일상 미션 흐름 / 13. 중복 지급 방지 =====
   await p.keyboard.press('j'); await sleep(100); await ev(() => { AU.UI.tab.jg = 'real'; AU.UI.tab.j = 'missions'; AU.UI.renderWin(); }); await sleep(100);
   const lockedMsg = await ev(() => document.querySelector('.window .lockbox') ? document.querySelector('.window .lockbox').textContent : '');
   await p.keyboard.press('Escape');
@@ -121,7 +121,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const guideMet = await ev(() => AU.G.S.flags.guideMet);
   await p.keyboard.press('j'); await sleep(150); await ev(() => { AU.UI.tab.jg = 'real'; AU.UI.tab.j = 'missions'; AU.UI.renderWin(); }); await sleep(100); await p.screenshot({ path: SH + 'missions.png' });
   const cardCount = await ev(() => document.querySelectorAll('.window .mission').length);
-  // 새 버전: 현실 미션은 전투 훈련포인트 대신 갤러리 토큰을 지급함.
+  // 새 버전: 일상 미션은 전투 훈련포인트 대신 갤러리 토큰을 지급함.
   const tp0 = (await S()).tp;
   const wallet = () => ev(() => AU.G.galleryState().tokens);
   const token0 = await wallet();
@@ -137,10 +137,10 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await p.keyboard.press('Escape');
   note('13', '갤러리 토큰 1회 지급·중복 방지·기존 전투 포인트 분리', token1 === token0 + 1 && token2 === token1 && again[0] === false && again[1] === false && again[2] === false && token4 === token3 + 2 && tp4 === tp0,
     `토큰 ${token0}→${token1}→${token2}→${token3}→${token4}, 훈련 포인트 ${tp0}→${tp4}`);
-  note('11b', '전직 후 현실 미션 화면(발견 전 안내 → 안내인 대화 후 목록)', guideMet === true && cardCount >= 1, `발견 전 안내문="${lockedMsg.slice(0, 30)}…", 안내인 대화 후 guideMet=${guideMet}, 표시된 카드=${cardCount}`);
+  note('11b', '전직 후 일상 미션 화면(발견 전 안내 → 안내인 대화 후 목록)', guideMet === true && cardCount >= 1, `발견 전 안내문="${lockedMsg.slice(0, 30)}…", 안내인 대화 후 guideMet=${guideMet}, 표시된 카드=${cardCount}`);
 
-  // ===== 12. 현실 미션 없이도 진행 =====
-  // 새 상태에서 현실 미션을 전혀 건드리지 않고 전직 이후 11레벨 + 스탯 분배까지 가능한지 별도 검증은 아래 'noMission' 페이지에서
+  // ===== 12. 일상 미션 없이도 진행 =====
+  // 새 상태에서 일상 미션을 전혀 건드리지 않고 전직 이후 11레벨 + 스탯 분배까지 가능한지 별도 검증은 아래 'noMission' 페이지에서
   // ===== 스탯 분배 미리보기 → 적용 / 미적용 취소 =====
   const st0 = await S(); await p.keyboard.press('s'); await sleep(120);
   await p.locator('.statrow').nth(0).locator('.plus').click(); await p.locator('.statrow').nth(0).locator('.plus').click(); await p.locator('.statrow').nth(1).locator('.plus').click(); await sleep(100);
@@ -203,14 +203,14 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await p.keyboard.press('Escape'); await sleep(100); const menuOpen = await win(); await p.keyboard.press('w'); await sleep(100); const switched = await win(); await p.keyboard.press('Escape'); await p.keyboard.press('Escape'); await sleep(80);
   note('16b', '메뉴 열림 중 입력 차단·닫은 뒤 입력 정상', xw1 === xw0 && atkCDwin === 0 && xr1 === xr0 && menuOpen === '메뉴' && switched === '월드맵', `창 열린 채 → 키 이동 ${xw0}→${xw1}, Ctrl 공격쿨=${atkCDwin}, 닫은 뒤 유령 이동 ${xr0}→${xr1}, Esc=${menuOpen}, 메뉴에서 W=${switched}`);
 
-  // ===== 12. 현실 미션 없이 진행(새 저장) =====
+  // ===== 12. 일상 미션 없이 진행(새 저장) =====
   await fresh();
   await ev(() => { AU.G.S.level = 10; AU.G.S.exp = 0; AU.G.awaken(); });
   await goto('porto', 860); await sleep(100);
   const nm0 = await S(); await ev(() => { AU.G.gainExp(AU.expToNext(AU.G.S.level), 'dev'); });
   const nm1 = await S(); const msUntouched = await ev(() => Object.values(AU.G.S.missions.states).every((s) => !['accepted','attempted','partial','done'].includes(s.state)));
   await goto('docks', 400); const killed = await kill('crab'); const nm2 = await S();
-  note('12', '현실 미션 없이 메인 RPG 계속 진행', nm0.job === 'apprentice' && nm1.lv === 11 && nm1.fp === 3 + 3 && msUntouched && killed && nm2.exp > nm1.exp, `각성 직후 직업=${nm0.job}, 미션 전부 미해금 상태(건드리지 않음)=${msUntouched}, 그 상태로 11레벨 도달=${nm1.lv}(자유 포인트 ${nm1.fp}), 전투 경험치 ${nm1.exp}→${nm2.exp}`);
+  note('12', '일상 미션 없이 메인 RPG 계속 진행', nm0.job === 'apprentice' && nm1.lv === 11 && nm1.fp === 3 + 3 && msUntouched && killed && nm2.exp > nm1.exp, `각성 직후 직업=${nm0.job}, 미션 전부 미해금 상태(건드리지 않음)=${msUntouched}, 그 상태로 11레벨 도달=${nm1.lv}(자유 포인트 ${nm1.fp}), 전투 경험치 ${nm1.exp}→${nm2.exp}`);
 
   const errs1 = errs.slice();
   fs.writeFileSync((process.env.SHOTS || '/tmp') + '/results_part1.json', JSON.stringify({ R, errs: errs1 }, null, 1));
