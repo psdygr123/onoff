@@ -124,8 +124,8 @@ window.AU = window.AU || {};
       const S = AU.G.S;
       if (S.flags.realBridgeIntroSeen || (AU.Prologue && AU.Prologue.replay)) return false;
       if (this.visibleInDev()) {
-        await this.prompt("모험과 일상을 함께 기록해 보세요",
-          "이야기를 따라 모험하며, 나의 하루도 한 걸음씩 돌아보는 성장형 RPG예요.",
+        await this.prompt("모험과 일상을 함께 이어나가 보세요",
+          "게임 속 이야기를 따라가며 일상 속 작은 미션을 완수해 보세요.\\n\\n모험의 발걸음을 이어가다 보면, 나의 하루도 한 걸음씩 돌아보게 되는 성장형 RPG예요.",
           [{text:"시작하기",value:"start",primary:true}], { cls: "rb-intro" });
       }
       if (!AU.Prologue || !AU.Prologue.on) return false;
