@@ -216,9 +216,10 @@ window.AU = window.AU || {};
     const base = rnd(2400, 4200), n = Math.floor(rnd(2, 5));
     for (let i = 0; i < n; i++) T(c, bus, t + i * rnd(0.09, 0.13), { f: base * rnd(0.9, 1.1), f2: base * rnd(1.1, 1.4), dur: 0.08, vol, a: 0.01, rev: 0.4 });
   }
-  L.fire = (c, bus, o) => {
-    const a = chain(c, bus, "bandpass", 900, 0.7, 0.07), b = chain(c, bus, "lowpass", 220, 0.7, 0.13);
-    o.nodes.push(a.s, b.s); o.timers.push(setInterval(() => { if (Math.random() < 0.5) N(c, bus, c.currentTime, { type: "highpass", f: rnd(1800, 3500), dur: rnd(0.02, 0.06), vol: rnd(0.04, 0.14) }); }, 110));
+  L.fire = (c, bus, o) => {   // 불 타는 소리: 낮고 부드러운 '화르륵' 바탕 + 아주 드문 작은 탁탁(높은 치직 소리는 빗소리처럼 들려 줄임, 11-24 사용자 지시)
+    const a = chain(c, bus, "bandpass", 650, 0.6, 0.03), b = chain(c, bus, "lowpass", 240, 0.7, 0.1);
+    o.nodes.push(a.s, b.s, lfo(c, 0.35, 0.03, b.g.gain), lfo(c, 0.9, 0.012, a.g.gain));   // 불길이 일렁이듯 크기가 천천히 오르내림
+    o.timers.push(setInterval(() => { if (Math.random() < 0.22) N(c, bus, c.currentTime, { type: "bandpass", f: rnd(700, 1500), q: 1.6, dur: rnd(0.03, 0.07), vol: rnd(0.03, 0.08) }); }, 170));
   };
   /* 습격 환경음(코드로 합성한 임시 소리): 불 타는 소리 위에 비명·고함, 나무 부서지는 소리, 쇠붙이 부딪는 소리, 무너지는 둔탁한 소리를 드문드문 얹음.
      실제 녹음 파일이 오면 같은 이름의 파일로 바꿔 끼우면 됨. far=true는 멀리서 들리는 작은 버전(집 안 장면: 아버지 유언을 가리지 않게) */
