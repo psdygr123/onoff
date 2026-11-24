@@ -934,3 +934,7 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
 @media (max-width: 560px) { .rb-cards { grid-template-columns: 1fr; } }
 
 .jt-body p { word-break: keep-all; overflow-wrap: break-word; } /* 11-24: 단어 중간에서 줄이 바뀌지 않게(문장이 자연스럽게 한눈에 읽히도록) */
+
+.rb-item { display: flex; align-items: center; gap: 14px; margin: 10px 0 4px; padding: 10px 14px; background: #fff8e8; border: 2px solid #c9b48a; border-radius: 10px; }
+.rb-item b { display: block; font-size: 18px; color: #5b3b12; }
+.rb-item span { font-size: 14.5px; color: #6b5a40; }

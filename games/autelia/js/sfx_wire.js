@@ -50,7 +50,6 @@ window.AU = window.AU || {};
   wrap(G, "gainSilver", null, () => setTimeout(() => play("coin"), 120));
   wrap(G, "giveItem", null, (c, r, a) => { if (!a[2]) play("item"); });
   wrap(G, "useItem", null, (c, r, a) => { if (r) play(a && a[0] === "town_scroll" ? "scroll_return" : "potion"); });
-  wrap(G, "restWithSilver", null, (c, r) => { if (r) { play("inn_blanket"); setTimeout(() => play("inn_fire"), 500); } });   // 여관 휴식: 이불 소리 + 따뜻한 난로
   wrap(G, "equip", null, (c, r) => { if (r) play("equip"); });
   wrap(G, "startQuest", null, () => play("accept"));
   wrap(G, "turnIn", null, () => play("complete"));

@@ -91,6 +91,11 @@ window.AU = window.AU || {};
           for (const [kind, name, text] of extra.blocks) { const c = document.createElement("div"); c.className = "rb-card " + kind; const h = document.createElement("b"); h.textContent = name; const t = document.createElement("p"); t.textContent = text; c.append(h, t); grid.append(c); }
           body.append(grid);
         }
+        if (extra && extra.item && AU.ITEMS[extra.item] && AU.UI.itemIcon) { // 아이템 그림 + 이름 + 효과 한 줄
+          const it = AU.ITEMS[extra.item], row = document.createElement("div"); row.className = "rb-item";
+          const txt = document.createElement("div"); const nm = document.createElement("b"); nm.textContent = it.name; const ef = document.createElement("span"); ef.textContent = it.relieve ? "피로도 " + it.relieve + " 회복 · 잡화상점 · 은화 " + it.buy : it.desc; txt.append(nm, ef);
+          row.append(AU.UI.itemIcon(extra.item, 84), txt); body.append(row);
+        }
         if (extra && extra.notice) { const n = document.createElement("div"); n.className = "rb-notice"; n.textContent = extra.notice; body.append(n); }
         const actions = document.createElement("div"); actions.className = "choices";
         const finish = (value) => {
