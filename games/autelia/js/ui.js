@@ -11,8 +11,9 @@ window.AU = window.AU || {};
       if (k % 2) { const b = document.createElement("b"); b.className = "rb-em"; b.textContent = part; out.push(b); return; }
       part.split(/(\{\{\+?[^}]+\}\})/).forEach((chunk) => {   // {{비어 있음}}=경고색(빨강), {{+끼고 있어요}}=좋은 상태(초록)
         const st = /^\{\{(\+?)([^}]+)\}\}$/.exec(chunk); if (st) { const s2 = document.createElement("span"); s2.className = st[1] ? "gstat ok" : "gstat warn"; s2.textContent = st[2]; out.push(s2); return; }
-      chunk.split(/(\[(?:[A-Za-z0-9]{1,6}|Shift|Space|Esc|Enter|Tab|[←→↑↓])\])/).forEach((seg) => {
-        if (/^\[(?:[A-Za-z0-9]{1,6}|Shift|Space|Esc|Enter|Tab|[←→↑↓])\]$/.test(seg)) { const s = document.createElement("span"); s.className = "gkey"; s.textContent = seg.slice(1, -1); out.push(s); }
+      chunk.split(/(\[(?:[A-Za-z0-9]{1,6}|Shift|Space|Esc|Enter|Tab|[←→↑↓]|[가-힣]{1,6})\])/).forEach((seg) => {
+        if (/^\[[가-힣]{1,6}\]$/.test(seg)) { const s = document.createElement("span"); const w = seg.slice(1, -1); s.className = "gact " + (w === "장착" ? "on" : w === "해제" ? "off" : ""); s.textContent = w; out.push(s); }   // 버튼 이름: 장착=초록, 해제=빨강, 그 밖=파랑
+        else if (/^\[(?:[A-Za-z0-9]{1,6}|Shift|Space|Esc|Enter|Tab|[←→↑↓])\]$/.test(seg)) { const s = document.createElement("span"); s.className = "gkey"; s.textContent = seg.slice(1, -1); out.push(s); }
         else if (seg) out.push(document.createTextNode(seg));
       });
       });
@@ -1169,7 +1170,7 @@ window.AU = window.AU || {};
     if (!AU.G.awakened()) { b.append(h("div", { class: "lockbox" }, h("h3", { text: "아직 스킬이 열리지 않았습니다" }), h("p", { text: "10레벨에 이야기 속에서 힘이 깨어나면 스킬이 열립니다. (현재 " + AU.jobName(S) + " · Lv." + S.level + ")" }), h("p", { class: "note", text: "기본 공격(" + keyOf("attack") + ")은 " + C.fatigue.name + "가 쌓이지 않습니다." }))); return; }
     b.append(UI.fatigueMeter(S, true));
     b.append(h("p", { class: "note vigor", text: FATIGUE_TIP.replace(/^피로도: /, "피로도란? ") }));
-    const slots = h("div", { class: "skslots" }, [0, 1, 2].map((i) => { const id = S.skills.slots[i]; return h("div", { class: "skslot" }, h("div", { class: "skey", text: keyOf("skill" + (i + 1)) }), h("div", { class: "skname", text: id ? AU.SKILLS[id].name.replace(" (임시)", "") : "비어 있음" }), id ? btn("해제", "mini", () => { S.skills.slots[i] = null; AU.G.save("skill"); AU.G.changed(); }) : null); }));
+    const slots = h("div", { class: "skslots" }, [0, 1, 2].map((i) => { const id = S.skills.slots[i]; return h("div", { class: "skslot" }, h("div", { class: "skey", text: keyOf("skill" + (i + 1)) }), h("div", { class: "skname" + (id ? "" : " eqempty"), text: id ? AU.SKILLS[id].name.replace(" (임시)", "") : "비어 있음" }), id ? btn("해제", "mini", () => { S.skills.slots[i] = null; AU.G.save("skill"); AU.G.changed(); }) : null); }));
     const list = h("div", { class: "sklist" });
     for (const id of S.skills.unlocked) {
       const sk = AU.SKILLS[id], inSlot = S.skills.slots.indexOf(id);

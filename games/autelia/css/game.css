@@ -957,3 +957,8 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
 .gstat.warn{color:#B3261E;background:rgba(179,38,30,.12)}
 .gstat.ok{color:#1E7A4F;background:rgba(30,122,79,.13)}
 .eqname.eqempty{color:#B3261E;font-weight:800}
+
+/* 버튼 이름 강조: [장착]=초록 · [해제]=빨강 · 그 밖=파랑 */
+.gact{display:inline-block;padding:0 7px;margin:0 1px;border-radius:6px;font-weight:800;color:#1F4E8C;background:rgba(31,78,140,.13);border:1px solid rgba(31,78,140,.35)}
+.gact.on{color:#1E7A4F;background:rgba(30,122,79,.14);border-color:rgba(30,122,79,.4)}
+.gact.off{color:#B3261E;background:rgba(179,38,30,.12);border-color:rgba(179,38,30,.35)}

@@ -91,7 +91,7 @@ window.AU = window.AU || {};
         const show = () => {
           const S = STEPS[i];
           UI.renderWin();
-          prog.textContent = (i + 1) + " / " + STEPS.length; title.textContent = i === 0 ? "장비창은 [" + keyE() + "] 키로 열어요" : S.title;
+          prog.textContent = (i + 1) + " / " + STEPS.length; title.replaceChildren(...AU.keyRich(i === 0 ? "장비창은 [" + keyE() + "] 키로 열어요" : S.title));
           body.replaceChildren(...S.lines().map((t) => h("p", null, AU.keyRich(t))));
           extra.replaceChildren(); const ex = S.extra && S.extra(); if (ex) extra.append(ex);
           bPrev.style.visibility = i ? "visible" : "hidden"; bNext.textContent = i === STEPS.length - 1 ? "이해했어요" : "다음 ▶";
