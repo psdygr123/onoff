@@ -264,7 +264,7 @@ window.AU = window.AU || {};
         this.hud.cache.trk = key; t.innerHTML = ""; this._trkDirs = []; for (const k of Object.keys(this.hud.cache)) if (k.indexOf("trkd") === 0) delete this.hud.cache[k];
         picks.forEach(([id, rec]) => {
           const q = AU.QUESTS[id], qk = AU.questKind(id); const box = h("div", { class: "tq qk-" + qk }); box.append(h("div", { class: "tt" }, h("span", { class: "qki", text: AU.QKIND[qk].icon }), h("span", { class: "qkl", text: AU.QKIND[qk].label }), q.title.replace(" (임시)", "")));
-          if (rec.state === "ready") box.append(h("div", { class: "to ok" }, ((q.turnIn && q.turnIn !== q.giver) ? "보고하러 가기: " : "의뢰인에게 돌아가기: ") + AU.NPCS[q.turnIn || q.giver].name.replace(" (임시)", "")));
+          if (rec.state === "ready") box.append(h("div", { class: "to ok" }, ((q.turnIn && q.turnIn !== q.giver) ? (q.turnInLabel || "보고하러 가기: ") : "의뢰인에게 돌아가기: ") + AU.NPCS[q.turnIn || q.giver].name.replace(" (임시)", "")));
           else q.objectives.forEach((o, i) => box.append(h("div", { class: "to" + (AU.G.objectiveDone(q, rec, i) ? " ok" : "") }, this.objText(o, rec, i))));
           const dir = h("div", { class: "td" }); box.append(dir); this._trkDirs.push({ el: dir, id }); t.append(box);
         });
@@ -426,16 +426,17 @@ window.AU = window.AU || {};
       if (!src) { old.forEach((e) => { e.classList.remove("on"); setTimeout(() => e.remove(), 800); }); return; }
       const im = h("img", { class: "cutimg", alt: "", src });
       im.onload = () => { requestAnimationFrame(() => im.classList.add("on")); old.forEach((e) => { e.classList.remove("on"); setTimeout(() => e.remove(), 800); }); };
-      im.onerror = () => { im.remove(); };
+      im.onerror = () => { im.remove(); old.forEach((e) => { e.classList.remove("on"); setTimeout(() => e.remove(), 800); }); };
       this.cutEl.append(im);
     },
     applyCut(d) {
       const cs = d.opt && d.opt.cuts; if (!cs) { if (this.cutSrc) this.setCut(null); return; }
-      let src = null; for (const c of cs) if (c.at <= d.i) src = c.src; this.setCut(src);
+      let src = null; const fem = AU.Profile && AU.Profile.gender() === "f"; for (const c of cs) if (c.at <= d.i) src = c.hero && fem ? c.src.replace(/\.webp$/, "_f.webp") : c.src; this.setCut(src); // 주인공이 나오는 컷(hero)은 여자일 때 _f 그림(없으면 그림 없이 글씨만)
     },
     renderDialog() {
       const d = this.dialog; if (!d) return;
       this.applyCut(d);
+      const cap = !!(d.opt.narr && typeof d.lines[d.i] === "string" && /^\(.*\)$/.test(d.lines[d.i])); // 해설 문장: 초상화·이름표 없이 큰 글씨로만 표시
       const last = d.i >= d.lines.length - 1, cur = d.lines[d.i], isObj = cur && typeof cur === "object", np = isObj ? cur.npc : d.npc, text = AU.Profile.fmt(isObj ? cur.t : cur).replace(/\{(attack|jump|interact|skills)\}/g, (m, k) => keyOf(k));
       if (np.portrait && !AU.Img.has(np.portrait) && !(d.waitPt && d.waitPt[np.portrait])) { // 본래 초상화가 아직 도착 전이면 도착하는 즉시 다시 그림(11-24: 대체 주민 그림으로 굳던 문제)
         (d.waitPt = d.waitPt || {})[np.portrait] = true; AU.Img.onReady(np.portrait, () => { if (this.dialog === d) this.renderDialog(); });
@@ -444,7 +445,7 @@ window.AU = window.AU || {};
       const pend = np.portrait && AU.Img.map[np.portrait] && !AU.Img.map[np.portrait].done, ppk = AU.Img.has(np.portrait) ? np.portrait : (!pend && np.alt && AU.Img.has(np.alt) ? np.alt : np.portrait), pt = AU.Img.has(ppk) ? h("img", { src: AU.ASSETS[ppk].path, alt: "" }) : h("div", { class: "ptfallback", text: np.name.slice(0, 1) });
       const back = d.i > 0 ? btn("◀ 이전 (" + AU.keyLabel(AU.Input.bindings.left) + ")", "dback", () => this.backDialog()) : null;
       const choices = last && d.opt.choices ? h("div", { class: "choices" }, back, d.opt.choices.map((c) => btn(c.label + (keyOf(c.key) ? "  (" + keyOf(c.key) + ")" : ""), c.key === "interact" ? "primary" : "", () => this.finishDialog(c)))) : null;
-      this.dlgEl.innerHTML = ""; this.dlgEl.append(h("div", { class: "panel dlgbox" }, h("div", { class: "pt" }, pt), h("div", { class: "dtext" }, h("div", { class: "dname", text: AU.Profile.fmt(np.name) }), h("div", { class: "dline", text: text }), AU.G.S.flags.tipDlg ? null : h("div", { class: "dtip", text: keyOf("interact") + " : 다음 대사 · " + AU.keyLabel(AU.Input.bindings.left) + " : 이전 대사 (아래 버튼을 눌러도 됩니다)" }),
+      this.dlgEl.innerHTML = ""; this.dlgEl.append(h("div", { class: "panel dlgbox" + (cap ? " narr" : "") }, cap ? null : h("div", { class: "pt" }, pt), h("div", { class: "dtext" }, cap ? null : h("div", { class: "dname", text: AU.Profile.fmt(np.name) }), h("div", { class: "dline", text: cap ? text.replace(/^\(|\)$/g, "") : text }), AU.G.S.flags.tipDlg ? null : h("div", { class: "dtip", text: keyOf("interact") + " : 다음 대사 · " + AU.keyLabel(AU.Input.bindings.left) + " : 이전 대사 (아래 버튼을 눌러도 됩니다)" }),
         choices || h("div", { class: "dnext" }, back, btn(last ? "닫기 (" + keyOf("interact") + ")" : "다음 ▶ (" + keyOf("interact") + ")", "", () => this.advanceDialog())))));
     },
     backDialog() { const d = this.dialog; if (!d || d.i <= 0) return; d.i--; this.renderDialog(); },

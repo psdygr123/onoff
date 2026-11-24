@@ -124,6 +124,7 @@ window.AU = window.AU || {};
       const mv = (right ? 1 : 0) - (left ? 1 : 0);
       if (p.hidden) { if (mv !== 0 || blocked || p.dead) p.hidden = false; else p.vx = 0; } // 숨는 중: 움직이거나 Space를 누르면 풀림(시간 제한 없음)
       this.nearNpc = null; this.nearHide = null; this.nearPortal = null; if (this.work) this.updateWork(dt, blocked);
+      if (this.listen) this.updateListen(dt, blocked, left || right);
 
       if (p.rope) {
         const r = p.rope; p.x = r.x; p.vx = 0; p.vy = 0;
@@ -185,7 +186,7 @@ window.AU = window.AU || {};
       for (const pt of map.portals || []) if (Math.abs(p.x - pt.x) < 70 && p.onGround) this.nearPortal = pt;
       if (this.stealthOn()) for (const hs of map.hideSpots || []) if (Math.abs(p.x - hs.x) < 60 && p.onGround) this.nearHide = hs;
       for (const sp of map.spots || []) if (Math.abs(p.x - sp.x) < 70 && p.onGround && (sp.ambient || AU.G.spotObjective(sp.id)) && (!sp.needFlag || AU.G.S.flags[sp.needFlag])) this.nearSpot = sp;   // 진행 중인 조사·수리 목표가 있는 지점만
-      this.prompt = this.work ? "수리 중… (움직이면 멈춥니다)" : this.nearDrop ? "Space 줍기: " + AU.ITEMS[this.nearDrop.id].name.replace(" (임시)", "") + (this.nearDrop.n > 1 ? " ×" + this.nearDrop.n : "") : this.nearSpot ? "Space " + (this.nearSpot.kind === "repair" ? "수리" : "조사") + ": " + this.nearSpot.label : this.nearNpc ? "Space 대화: " + AU.NPCS[this.nearNpc.id].name : this.nearPortal ? "↑ 이동: " + this.nearPortal.label : "";
+      this.prompt = this.listen ? "귀 기울이는 중… (Space를 계속 누르세요 · 움직이면 취소)" : this.work ? "수리 중… (움직이면 멈춥니다)" : this.nearDrop ? "Space 줍기: " + AU.ITEMS[this.nearDrop.id].name.replace(" (임시)", "") + (this.nearDrop.n > 1 ? " ×" + this.nearDrop.n : "") : this.nearSpot ? "Space " + (this.nearSpot.kind === "repair" ? "수리" : this.nearSpot.listen ? "길게 눌러 귀 기울이기" : "조사") + ": " + this.nearSpot.label : this.nearNpc ? "Space 대화: " + AU.NPCS[this.nearNpc.id].name : this.nearPortal ? "↑ 이동: " + this.nearPortal.label : "";
       if (this.nearHide && !this.work && !p.dead) this.prompt = p.hidden ? "숨는 중… (움직이거나 Space로 나오기)" : "Space 숨기"; else if (p.hidden) this.prompt = "숨는 중… (움직이거나 Space로 나오기)";
       if (AU.Prologue && AU.Prologue.on) AU.Prologue.scan(this);
     },
@@ -271,9 +272,23 @@ window.AU = window.AU || {};
     useSpot(sp) {
       if (this.work) return;
       if (sp.ambient) { AU.UI.say({ name: sp.label, portrait: "" }, sp.lines || ["살펴보았습니다."], {}); return; }   // 분위기용 조사 지점: 목표와 무관, 언제나 같은 글만 보여 줌
-      if (sp.kind === "investigate") { AU.UI.say({ name: sp.label, portrait: sp.portrait || "" }, sp.lines || ["살펴보았습니다."], { cuts: sp.cuts, end: () => { AU.G.completeSpot(sp.id); if (sp.onDone) sp.onDone(this); } }); return; }
+      if (sp.kind === "investigate" && sp.listen) { this.listen = { sp, t: 0, dur: sp.listen.dur || 7, x0: this.player.x, n: 0 }; this.listenBubbles = this.listenBubbles || []; return; }   // 엿듣기: Space를 길게 눌러 게이지를 채움
+      if (sp.kind === "investigate") { AU.UI.say({ name: sp.label, portrait: sp.portrait || "" }, sp.lines || ["살펴보았습니다."], { cuts: sp.cuts, narr: sp.narr, end: () => { AU.G.completeSpot(sp.id); if (sp.onDone) sp.onDone(this); } }); return; }
       this.work = { sp, t: 0, dur: sp.dur || 1.5, x0: this.player.x };   // 목공 수리: 제자리에서 잠깐 작업. 움직이거나 맞으면 멈춤
       if (AU.Sfx && AU.Sfx.play) { try { AU.Sfx.play("hit"); } catch (e) { /* 소리 없음 */ } }
+    },
+    /* 엿듣기: Space를 누르고 있는 동안 게이지가 차오르고, 대화 조각이 말풍선으로 떠오릅니다. 떼면 멈추고, 움직이거나 맞으면 취소됩니다. */
+    updateListen(dt, blocked, moving) {
+      const L = this.listen, p = this.player; if (!L) return;
+      if (blocked || p.dead || moving || !p.onGround || AU.UI.anyOpen()) { this.listen = null; return; }
+      if (!AU.Input.isHeld("interact")) return;   // 떼면 게이지 멈춤
+      p.vx = 0; L.t += dt;
+      const fr = L.sp.listen.fragments || [], k = Math.min(fr.length, Math.floor(L.t / L.dur * (fr.length + 0.001)));
+      while (L.n < k) { this.listenBubbles.push({ text: fr[L.n], t: 0, side: L.n % 2 }); L.n++; }
+      if (L.t >= L.dur) {
+        const sp = L.sp; this.listen = null;
+        AU.UI.say({ name: sp.label, portrait: sp.portrait || "" }, sp.lines || ["엿들었습니다."], { cuts: sp.cuts, narr: sp.narr, end: () => { AU.G.completeSpot(sp.id); if (sp.onDone) sp.onDone(this); } });
+      }
     },
     updateWork(dt, blocked) {
       const w = this.work, p = this.player; if (!w) return;
@@ -658,6 +673,22 @@ window.AU = window.AU || {};
           ctx.font = "700 18px 'Noto Sans KR', sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillStyle = "#FFFFFF"; ctx.fillText(sp.kind === "repair" ? "⚒" : "?", x, by + 1); ctx.textBaseline = "alphabetic";
           this.nameTag(ctx, sp.label, x, y - 92);
         }
+      }
+      const L = this.listen; if (L) { // 엿듣기 게이지(귀 모양 + 소리 파동)
+        const p = this.player, bw = 120, k = Math.min(1, L.t / L.dur), cx = p.x, by = p.y - 190, held = AU.Input.isHeld("interact");
+        ctx.fillStyle = "rgba(30,22,15,.75)"; this.rr(ctx, cx - bw / 2 - 26, by - 4, bw + 52, 26, 13); ctx.fill();
+        ctx.fillStyle = "#FFE9B0"; ctx.font = "700 16px 'Noto Sans KR', sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("👂", cx - bw / 2 - 8, by + 10);
+        ctx.fillStyle = "rgba(255,255,255,.18)"; this.rr(ctx, cx - bw / 2 + 4, by + 5, bw, 10, 5); ctx.fill();
+        ctx.fillStyle = held ? "#F2C46B" : "#9A8A6A"; this.rr(ctx, cx - bw / 2 + 4, by + 5, Math.max(8, bw * k), 10, 5); ctx.fill();
+        for (let i = 0; i < 3; i++) { ctx.strokeStyle = "rgba(242,196,107," + (held ? (0.7 - i * 0.2) * (0.5 + 0.5 * Math.sin(L.t * 8 - i)) : 0.12) + ")"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(cx + bw / 2 + 14, by + 10, 6 + i * 5, -0.9, 0.9); ctx.stroke(); }
+        ctx.textBaseline = "alphabetic";
+      }
+      const bl = this.listenBubbles || []; for (let i = bl.length - 1; i >= 0; i--) { // 떠오르는 대화 조각
+        const b = bl[i]; b.t += 1 / 60; if (b.t > 5.5) { bl.splice(i, 1); continue; }
+        const a = Math.min(1, b.t / 0.4, (5.5 - b.t) / 1.2), x = (this.player ? this.player.x : 0) + (b.side ? 120 : -120), y = this.player ? this.player.y - 230 - b.t * 16 : 200;
+        ctx.save(); ctx.globalAlpha = a; ctx.font = "700 26px 'Noto Sans KR', sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        const tw = ctx.measureText(b.text).width + 36; ctx.fillStyle = "rgba(30,22,15,.78)"; this.rr(ctx, x - tw / 2, y - 22, tw, 44, 14); ctx.fill();
+        ctx.fillStyle = b.side ? "#FFD9A0" : "#F3F0FF"; ctx.fillText(b.text, x, y + 1); ctx.restore();
       }
       const w = this.work; if (w) { // 작업 진행 막대
         const p = this.player, bw = 90, k = Math.min(1, w.t / w.dur);

@@ -30,7 +30,7 @@ window.AU = window.AU || {};
     mon_merc_w1: { path: "assets/monster/merc_w1.webp", optional: true }, mon_merc_w2: { path: "assets/monster/merc_w2.webp", optional: true }, mon_merc_w3: { path: "assets/monster/merc_w3.webp", optional: true }, mon_merc_w4: { path: "assets/monster/merc_w4.webp", optional: true }, mon_merc_idle: { path: "assets/monster/merc_idle.webp", optional: true },   // 용병 걷기 4칸(한 걸음 주기)
     bg_yard: { path: "assets/bg/yard_long.webp", optional: true },   // 용병 하차장(잠입 맵) 배경(11-25 가로로 1.5배 늘림, 3720px)
     ob_hide_crate_brand: { path: "assets/object/hide_crate_brand.webp", optional: true },
-    ob_yard_ledger: { path: "assets/object/yard_ledger.webp", optional: true },   // 하차 장부 그림(GPT 제작 예정, docs/GPT_하차장부_요청문_1125.md). 오기 전에는 임시로 궤짝 그림   // 숨는 상자 옆면에 불도장 검은 물결 표식
+    ob_yard_ledger: { path: "assets/object/yard_ledger.webp", optional: true },   // 하차 장부 그림(GPT 제작 완료). 파일이 없으면 임시로 궤짝 그림   // 숨는 상자 옆면에 불도장 검은 물결 표식
     mon_mutfox: { path: "assets/monster/mutant_fox.webp", optional: true },
     ob_plank: { path: "assets/object/plank.webp", optional: true },
     ob_rope: { path: "assets/object/rope.webp", optional: true },
@@ -48,7 +48,7 @@ window.AU = window.AU || {};
   Object.assign(AU.ASSETS, { ob_spot_barsha_lens: { path: "assets/object/spot_barsha_lens.webp", optional: true }, ob_spot_barsha_map: { path: "assets/object/spot_barsha_map.webp", optional: true }, ob_spot_relay_tent: { path: "assets/object/spot_relay_tent.webp", optional: true }, pt_claude: { path: "assets/portrait/claude.webp", optional: true }, pt_baltein: { path: "assets/portrait/baltein.webp", optional: true } });
   const HERO = { get name() { return AU.Profile.name(); }, get portrait() { return AU.Profile.portraitKey(); } };
   const B = () => AU.NPCS.barsha, J = () => AU.NPCS.jepeto;
-  const CLAUDE = { name: "감독관 클로드", portrait: "pt_claude" }, BALTEIN = { name: "흰 로브의 검수관", portrait: "pt_baltein" }, VOICE = { name: "용병", portrait: "" };
+  const CLAUDE = { name: "클로드", portrait: "pt_claude" }, BALTEIN = { name: "흰 로브를 입은 남자", portrait: "pt_baltein" }, VOICE = { name: "용병", portrait: "" };
   const L = (npc, t) => ({ npc, t });
 
   /* ---------- 아이템 ---------- */
@@ -114,7 +114,7 @@ window.AU = window.AU || {};
     ropes: [{ x: 2020, top: 385, bottom: 590, exitDir: 1 }],
     portals: [{ x: 50, to: "jandari", toX: 1380, label: "잔다리 골목" },
               { x: 560, to: "yard", toX: 90, label: "용병 하차장(잠입)", reqQuest: "q_a3_recon", reqIn: ["active", "ready", "done"], reqText: "정보상에게 먼저 이야기를 들어야 합니다." },
-              { x: 1700, to: "ridge", toX: 90, label: "중심 천막 위 바위틈", reqQuest: "q_a3_scout", reqIn: ["active", "ready", "done"], reqText: "정보상에게 중심 천막 이야기를 먼저 들어야 합니다." },
+              { x: 1700, to: "ridge", toX: 90, label: "속삭임 능선", reqQuest: "q_a3_scout", reqIn: ["active", "ready", "done"], reqText: "정보상에게 골짜기 안쪽 이야기를 먼저 들어야 합니다." },
               { x: 3150, to: "gorge", toX: 90, label: "협곡 바위틈", reqQuest: "q_a3_scout", reqIn: ["ready", "done"], reqText: "골짜기 안쪽 천막을 먼저 살펴봐야 합니다." }],
     npcs: [],
     spots: [
@@ -125,17 +125,12 @@ window.AU = window.AU || {};
   /* 중심 천막 위 바위틈: 검은 골짜기 중심 천막의 포탈로 들어오는 짧은 엿듣기 맵.
      오른쪽 끝 바위 모서리까지 걸어가 Space로 아래의 대화를 엿들으면 들킴 → 추격 → 제페토 구출 컷신이 이어지고, 끝나면 협곡의 제페토 거처로 이동합니다. */
   AU.MAPS.ridge = {
-    name: "중심 천막 위 바위틈", bg: "ridge", hint: "발소리를 죽이고 오른쪽 끝 바위 모서리로 가세요", width: 1500, safe: true,
+    name: "속삭임 능선", bg: "ridge", hint: "발소리를 죽이고 오른쪽 끝 바위 모서리로 가서, Space를 길게 눌러 귀를 기울이세요", width: 1500, safe: true,
     platforms: [{ x: 0, y: 590, w: 1500 }], ropes: [],
     portals: [{ x: 40, to: "valley", toX: 1640, label: "검은 골짜기" }],
     npcs: [],
     spots: [
-      { id: "relay_tent", portrait: "pt_scene_tent", w: 520, x: 1300, kind: "investigate", label: "중심 천막 밑 대화", cuts: [{ at: 0, src: "assets/cut/relay_peek.webp" }, { at: 7, src: "assets/cut/relay_found.webp" }, { at: 9, src: "assets/cut/relay_chase.webp" }, { at: 12, src: "assets/cut/relay_trapped.webp" }, { at: 14, src: "assets/cut/relay_rope.webp" }, { at: 17, src: "assets/cut/relay_hide.webp" }], lines: [
-        "(중심 천막 아래에서 두 사람이 낮게 이야기하고 있다.)",
-        "(가죽 채찍을 찬 사내는 상단 감독관 클로드. 흰 로브를 입고 핏빛 원석을 들여다보는 사내는 흰 로브의 검수관이라 불린다.)",
-        L(BALTEIN, "변형이 덜 되었군. 투입량을 늘려라, 클로드. 위에서 서두르고 계신다."),
-        L(CLAUDE, "우리 짐승들이 버티질 못합니다. 결정을 더 먹이면 죽어 나가는 놈이 늘어요."),
-        L(BALTEIN, "죽는 놈은 버려라. 실험 구역에 넘길 물량만 맞추면 된다. 이번에 잡은 짐승들은 곧바로 아지트로 올려 보낸다."),
+      { id: "relay_tent", portrait: "pt_scene_tent", narr: true, w: 520, x: 1300, kind: "investigate", label: "아래에서 들려오는 대화", cuts: [{ at: 0, src: "assets/cut/relay_peek.webp" }, { at: 3, src: "assets/cut/relay_found.webp" }, { at: 5, src: "assets/cut/relay_chase.webp", hero: true }, { at: 8, src: "assets/cut/relay_trapped.webp", hero: true }, { at: 10, src: "assets/cut/relay_rope.webp", hero: true }, { at: 13, src: "assets/cut/relay_hide.webp", hero: true }], listen: { dur: 8, fragments: ["…변형이 덜 되었어. 투입량을 늘려라…", "…결정을 더 먹이면 죽어 나가는 놈이 늘어요…", "…죽는 놈은 버려라. 물량만 맞추면 된다…", "…위에서 서두르고 계신다…", "…잡은 짐승들은 곧바로 아지트로 올려 보낸다…"] }, lines: [
         L(HERO, "(몬스터를 일부러 변형시키는 실험... 이 중계소는 그 재료를 아지트로 보내는 길목이다. 아지트가 어딘가에 있다.)"),
         "(그때 발밑에서 자갈 하나가 굴러떨어졌다.)",
         L(BALTEIN, "거기 누구냐!"),
@@ -159,21 +154,21 @@ window.AU = window.AU || {};
      상자 앞에서 Space로 숨습니다. 두 곳을 조사한 뒤 입구(왼쪽 끝)로 나가면 성공입니다. */
   AU.MAPS.yard = {
     name: "용병 하차장", bg: "bg_yard", width: 3720, safe: false, stealth: true,
-    stealthMission: { quest: "q_a3_recon", flag: "yard_clear", start: 120 }, hideCrate: "ob_hide_crate_brand", hideSpots: [{ x: 540 }, { x: 1040 }, { x: 1500 }, { x: 1960 }, { x: 2420 }, { x: 2850 }, { x: 3250 }, { x: 3560 }], blockers: [],   // 11-25: 시야 막는 기둥 삭제, 상자는 검은 물결 불도장, 맵 가로 3720으로 확장
+    stealthMission: { quest: "q_a3_recon", flag: "yard_clear", start: 120 }, hideCrate: "ob_hide_crate_brand", hideSpots: [{ x: 260 }, { x: 720 }, { x: 1120 }, { x: 1560 }, { x: 1860 }, { x: 2200 }, { x: 2640 }, { x: 3040 }, { x: 3420 }, { x: 3640 }], blockers: [],   // 11-25: 시야 막는 기둥 삭제, 상자는 검은 물결 불도장, 맵 가로 3720으로 확장
     platforms: [{ x: 0, y: 590, w: 3798 }], ropes: [],
     portals: [{ x: 40, to: "valley", toX: 620, label: "검은 골짜기" }],
     npcs: [],
     spots: [
-      { id: "yard_crates", img: "ob_trace_crystal_crate", x: 1995, kind: "investigate", label: "불도장 찍힌 궤짝", lines: [
+      { id: "yard_crates", img: "ob_trace_crystal_crate", x: 1860, kind: "investigate", label: "불도장 찍힌 궤짝", lines: [
         "짐수레 곁에 궤짝이 산처럼 쌓여 있습니다. 옆면마다 불도장으로 찍힌 '검은 물결' 표식이 선명합니다.",
         "열린 궤짝 하나에는 검은 결정 원석이 가득합니다. 안쪽에 붉은 줄이 희미하게 비칩니다.",
         L(HERO, "(이 궤짝들이 전부 골짜기 안쪽으로 들어간다. 먹이는 게 결정이구나.)")] },
-      { id: "yard_ledger", img: "ob_yard_ledger", imgFb: "ob_trace_crate", x: 3450, kind: "investigate", label: "하차 장부", lines: [
+      { id: "yard_ledger", img: "ob_yard_ledger", imgFb: "ob_trace_crate", w: 200, x: 3600, kind: "investigate", label: "하차 장부", lines: [
         "리프트 아래 목탁자 위에 하차 장부가 펼쳐져 있습니다. 날짜마다 '결정 N상자, 짐승 N두'라는 숫자가 적혀 있습니다.",
         "마지막 줄에는 다른 필체로 '투입량을 올린다. 변형이 덜 된 개체는 중심 천막으로.'라고 적혀 있습니다.",
         L(HERO, "(중심 천막... 이 골짜기 안쪽에서 누가 짐승을 만지고 있다는 뜻이다. 들키기 전에 빠져나가자.)")] }
     ],
-    spawns: [{ type: "merc_sentry", x: 800, min: 660, max: 1100 }, { type: "merc_sentry", x: 1380, min: 1180, max: 1620 }, { type: "merc_sentry", x: 1950, min: 1760, max: 2200 }, { type: "merc_sentry", x: 2540, min: 2330, max: 2780 }, { type: "merc_sentry", x: 3060, min: 2900, max: 3300 }, { type: "merc_sentry", x: 3470, min: 3340, max: 3660 }],
+    spawns: [{ type: "merc_sentry", x: 560, min: 380, max: 860 }, { type: "merc_sentry", x: 1020, min: 820, max: 1260 }, { type: "merc_sentry", x: 1420, min: 1180, max: 1700 }, { type: "merc_sentry", x: 1860, min: 1620, max: 2120 }, { type: "merc_sentry", x: 2300, min: 2060, max: 2560 }, { type: "merc_sentry", x: 2720, min: 2480, max: 2960 }, { type: "merc_sentry", x: 3120, min: 2900, max: 3360 }, { type: "merc_sentry", x: 3500, min: 3300, max: 3680 }],
     area: { x: 80, y: 32, desc: "검은 골짜기 안쪽의 용병 하차장입니다. 용병에게 들키면 입구에서 다시 시작합니다. 금빛으로 빛나는 상자 앞에서 Space로 숨으세요." }
   };
   AU.MAPS.gorge = {
@@ -224,20 +219,19 @@ window.AU = window.AU || {};
       objectives: [{ kind: "kill", target: "mutfox", count: 5 }, { kind: "collect", item: "black_crystal", count: 3 }],
       offer: ["하차장 일은 잘 봤네. 이제 결정이 짐승 몸에 어떻게 박히는지 확인해야 하네.", "골짜기에는 이미 변형된 여우들이 돌아다니네. 다섯 마리를 잡고, 그 몸에서 나오는 검은 결정을 세 개 가져오게.", "변형 여우는 날쌔고 사납네. 물약을 아끼지 말게."],
       reminder: ["검은 골짜기에서 변형 여우 5마리를 처치하고, 몸에서 나온 검은 결정 3개를 가져오게."],
-      done: [L(B(), "...이게 변형 여우의 몸에서 나온 결정인가. 선창 쥐나 게에서 나온 것과 같은 결이군."),
+      done: [L(B(), "...이게 변형 여우의 몸에서 나온 결정인가. 선창 쥐에게서 나온 것과 같은 결이군."),
              L(B(), "이제 확실하네. 이 골짜기 한가운데에서 누군가 직접 결정을 먹이고 있네. 우두머리가 있다는 뜻이지."),
-             L(B(), "골짜기 안쪽에 천막이 하나 서 있네. 다음엔 거기를 보고 오게. 조심하게, 아주 조심하게.")],
+             L(B(), "이 일은 내가 따로 정리해 두겠네. 자네는 숨 좀 돌리고 오게. 곧 또 부탁할 일이 생길 걸세. 몸조심하게.")],
       reward: { exp: 500, silver: 50, items: [] }
     },
     q_a3_scout: {
-      title: "중심 천막", type: "main", giver: "barsha", turnIn: "jepeto", minLevel: 8, pre: ["q_a3_crystal"],
-      area: "ridge", desc: "골짜기 안쪽 중심 천막의 포탈로 올라가 천막 위 바위틈에서 아래에서 오가는 이야기를 엿듣습니다. 들키면 도망치다 누군가의 도움으로 협곡 바위틈에 숨어들고, 그곳의 노인(제페토)에게 보고합니다.",
+      title: "속삭임 능선", type: "main", giver: "barsha", turnIn: "jepeto", turnInLabel: "대화하러 가기: ", minLevel: 8, pre: ["q_a3_crystal"],
+      area: "ridge", desc: "골짜기 안쪽 길 끝의 포탈로 올라가 능선 바위틈에서 아래에서 오가는 이야기를 엿듣습니다. 들키면 도망치다 누군가의 도움으로 협곡 바위틈에 숨어들고, 그곳의 노인(제페토)에게 보고합니다.",
       objectives: [{ kind: "investigate", targets: ["relay_tent"] }],
-      offer: ["결정을 먹이는 자가 천막에 있을 걸세. 골짜기 안쪽 길 끝, 바위 틈 위에서 몰래 내려다볼 수 있네.", "목소리만 들어도 충분하네. 들키면 무조건 도망치게. 절벽 쪽은 막혀 있지만... 협곡 바위틈에는 나와 뜻이 같은 도편수 제페토가 있네.", "그가 도와줄 걸세. 살아서 돌아오게."],
-      reminder: ["골짜기 안쪽 천막 위 바위틈에서 아래의 대화를 엿듣게. 들키면 도망쳐 협곡 바위틈의 제페토를 만나게."],
+      offer: ["골짜기 안쪽 길 끝으로 가 보게. 그쪽 어디쯤 가면 사람들의 대화 소리가 들릴 걸세. 바위 틈 위에서 몰래 귀를 기울여 보게.", "그 말소리에서 결정을 먹이는 자가 누구인지 정보를 얻어 오게. 들키면 무조건 도망치게. 절벽 쪽은 막혀 있지만... 협곡 바위틈에는 나와 뜻이 같은 도편수 제페토가 있네.", "그를 만나 보게. 살아서 돌아오게."],
+      reminder: ["골짜기 안쪽 길 끝 바위틈에서 사람들의 대화 소리를 엿들어 정보를 얻어 오게. 들키면 도망쳐 협곡 바위틈의 제페토를 만나게."],
       done: [L(J(), "무사히 빠져나왔군. 이런 척박한 골짜기까지 들어온 사람이 있을 줄은 몰랐네. 나는 제페토라 하네. 겉으로는 동부에서 궁궐을 짓던 도편수였고, 바르샤와 같은 일도 하고 있지."),
              L(J(), "...잠깐. 손목을 좀 보여 주겠나. 그 검은 고리... 역시 그렇군."),
-             L(J(), "오오, 그렇다면 그대는 용사로군. 옛 건축물과 비석을 파다 보면 용사의 기록이 여기저기 끊겨 있다는 걸 알게 된다네."),
              L(J(), "용사란 태초의 신이 나눠 준 힘 가운데 유독 큰 힘을 지닌 이들이라네. 손목의 낙인이 그 힘을 눌러 두고 있는데, 그대가 성장하면 힘이 조금씩 깨어난다네."),
              L(HERO, "제 손목의 이것이... 힘을 누르고 있다고요?"),
              L(J(), "마침 힘이 반응하는군. 손을 내밀어 보게, {이름}. 어렵게 생각할 것 없네. 깨어나는 만큼만 쓰면 되니까.")],

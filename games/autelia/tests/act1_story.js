@@ -99,11 +99,11 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   // 하차장 잠입
   await ev(() => { AU.World.spawn = AU.World._origSpawn; AU.World.enterMap('yard', 120, true); }); await sleep(500);
   const ys = await ev(() => ({ on: AU.World.stealthOn(), n: AU.World.monsters.filter((m) => m.type === 'merc_sentry' && m.d.sight).length }));
-  note('B12b', '하차장은 잠입 중(시야 있는 경계 용병 6명)', ys.on === true && ys.n === 6, JSON.stringify(ys));
+  note('B12b', '하차장은 잠입 중(시야 있는 경계 용병 8명)', ys.on === true && ys.n === 8, JSON.stringify(ys));
   await ev(() => { AU.World.player.x = 700; AU.World.caught(AU.World.monsters[0]); }); await sleep(2200);
   const cg = await ev(() => ({ tries: AU.G.S.flags.stealth_tries_yard, map: AU.World.mapId, x: Math.round(AU.World.player.x), st: AU.G.questStatus('q_a3_recon') }));
   note('B12c', '들키면 입구에서 다시 시작(횟수 기록·퀘스트 유지)', cg.tries === 1 && cg.map === 'yard' && cg.x < 300 && cg.st === 'active', JSON.stringify(cg));
-  for (const x of [1995, 3450]) { await ev((x) => { AU.World.monsters = []; AU.World.player.x = x; AU.World.player.vx = 0; AU.World.player.hidden = false; AU.World.scan(); }, x); await sleep(100); await key('Space'); await sleep(200); for (let i = 0; i < 6 && (await ev(() => !!AU.UI.dialog)); i++) { await key('Space'); await sleep(100); } }
+  for (const x of [1860, 3600]) { await ev((x) => { AU.World.monsters = []; AU.World.player.x = x; AU.World.player.vx = 0; AU.World.player.hidden = false; AU.World.scan(); }, x); await sleep(100); await key('Space'); await sleep(200); for (let i = 0; i < 6 && (await ev(() => !!AU.UI.dialog)); i++) { await key('Space'); await sleep(100); } }
   note('B12d', '하차장 두 곳 조사 → 보고 대기', (await st('q_a3_recon')) === 'ready', await st('q_a3_recon'));
   const sb = await ev(() => AU.G.S.silver); await ev(() => { AU.Hideout.onTravel(AU.World, 'valley'); AU.World.enterMap('valley', 620, true); });
   const clr = await ev(() => ({ f: !!AU.G.S.flags.yard_clear, d: AU.G.S.silver }));
@@ -138,14 +138,18 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await ev(() => { AU.World.enterMap('ridge', 90, true); AU.World.monsters = []; AU.World.spawn = () => null; }); await sleep(300);
   const rbg = await ev(() => ({ w: AU.MAPS.ridge.width, bgm: AU.BGM && AU.BGM.groupOf ? AU.BGM.groupOf('ridge') : null }));
   await ev(() => { AU.World.player.x = 1300; AU.World.player.vx = 0; AU.World.scan(); }); await sleep(100);
-  await key('Space'); await sleep(200);
+  await key('Space'); await sleep(150);
+  const lis = await ev(() => !!AU.World.listen);
+  await p.keyboard.down('Space'); await sleep(9500); await p.keyboard.up('Space'); await sleep(300);
+  const nb = await ev(() => (AU.World.listenBubbles || []).length);
+  note('B12c', '엿듣기: Space 길게 눌러 게이지가 차고 대화 조각이 5개 떠오른 뒤 컷신', lis === true && nb >= 1, lis + ' ' + nb);
   const dl = await ev(() => AU.UI.dialog && AU.UI.dialog.lines.length);
   const speakers = await ev(() => AU.UI.dialog.lines.filter((l) => typeof l === 'object').map((l) => l.npc.name));
   const cutN = await ev(() => AU.UI.dialog.opt.cuts.length);
   for (let i = 0; i < 24 && (await ev(() => !!AU.UI.dialog)); i++) { await key('Space'); await sleep(100); }
-  note('B13', '천막 컷신에 클로드·발테인·제페토·주인공 화자가 나오고 컷 6장 연결', /클로드/.test(speakers.join()) && /검수관/.test(speakers.join()) && /제페토/.test(speakers.join()) && dl >= 19 && cutN === 6, dl + ' ' + cutN + ' ' + speakers.join('|'));
+  note('B13', '발각 컷신에 흰 로브 남자·제페토·주인공 화자가 나오고 컷 6장 연결', /흰 로브/.test(speakers.join()) && /제페토/.test(speakers.join()) && dl >= 14 && cutN === 6, dl + ' ' + cutN + ' ' + speakers.join('|'));
   const tl = await ev(() => AU.MAPS.ridge.spots.find((x) => x.id === 'relay_tent').lines.map((l) => (typeof l === 'string' ? l : l.t)));
-  note('B13b', '들킨 장면: 외침이 "거기 누구냐!"로 짧고 사슬 문구 없음', tl.includes('거기 누구냐!') && /도망가자/.test(tl[8]) && !tl.some((t) => /사슬|쥐새끼/.test(t)), tl.slice(7, 9).join(' | '));
+  note('B13b', '들킨 장면: 외침이 "거기 누구냐!"로 짧고 사슬 문구 없음', tl.includes('거기 누구냐!') && /도망가자/.test(tl[3]) && !tl.some((t) => /사슬|쥐새끼/.test(t)), tl.slice(2, 4).join(' | '));
   await sleep(1800);
   const gm = await ev(() => ({ map: AU.World.mapId, st: AU.G.questStatus('q_a3_scout') }));
   note('B13c', '컷신이 끝나면 협곡 바위틈으로 이동하고 보고 가능 상태', gm.map === 'gorge' && gm.st === 'ready', JSON.stringify(gm));
