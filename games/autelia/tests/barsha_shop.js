@@ -33,6 +33,8 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   note('S7', '정보상의 공방 안에 도착(문 안쪽)', (await ev(() => AU.World.mapId)) === 'jandari_shop', await ev(() => AU.World.mapId));
   // 대사: 첫 줄은 짧게, 야외 표현 없음
   const first = await ev(() => AU.QUESTS.q_a2_secret.offer[0]);
+  const o = await ev(() => AU.QUESTS.q_a2_secret.offer.slice(1, 4).map((l) => (typeof l === 'object' ? { hero: l.npc === AU.NPCS.hero || (l.npc && l.npc.portrait === AU.Profile.portraitKey()), t: l.t } : { t: l })));
+  note('S8b', '2~4번째: 못 보던 얼굴이군(바르샤) → 길드에 들어온 지 얼마 되지 않았습니다(주인공) → 서신 전달(주인공)', /못 보던 얼굴/.test(o[0].t) && o[1].hero && /얼마 되지 않았습니다/.test(o[1].t) && o[2].hero && /건넸다/.test(o[2].t), JSON.stringify(o));
   note('S8', '첫 대사는 "카시안이 보냈군."만 나오고 문 소리·이쪽으로·들어오게 표현 없음', /카시안이 보냈군/.test(first) && !/문 닫히는 소리|이쪽으로|들어오게/.test(first), first);
   const all = await ev(() => JSON.stringify([AU.QUESTS.q_a2_secret.offer, AU.QUESTS.q_a2_secret.reminder, AU.QUESTS.q_a2_secret.desc]));
   note('S9', '"탁자" 표현은 작업대로 정리됨', !/탁자/.test(all), all.slice(0, 120));
