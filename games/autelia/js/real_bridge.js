@@ -119,10 +119,9 @@ window.AU = window.AU || {};
       const S = AU.G.S;
       if (S.flags.realBridgeIntroSeen || (AU.Prologue && AU.Prologue.replay)) return false;
       if (this.visibleInDev()) {
-        await this.prompt("모험과 일상을 함께 기록해 보세요", "",
-          [{text:"다음",value:"next",primary:true}],
-          { cls: "rb-intro", blocks: [["game", "게임 미션", "이야기를 따라 모험하며 진행하는 미션이에요."], ["real", "현실 미션", "일상에서 직접 해 보는 선택 활동이에요. 모험일지(J)의 '현실 활동'에서 수락·시도·완료를 기록할 수 있어요."]],
-            notice: "현실 미션을 하지 않아도 모든 메인 스토리를 계속 진행할 수 있어요." });
+        await this.prompt("모험과 일상을 함께 기록해 보세요",
+          "아우텔리아는 이야기를 따라 모험하면서, 나의 하루와 마음도 함께 돌아보는 성장형 RPG입니다.",
+          [{text:"다음",value:"next",primary:true}], { cls: "rb-intro" });
         if (!AU.Prologue || !AU.Prologue.on) return false;
         await this.prompt("이동 방법", "좌우 방향키(← →)로 걸어서 이동합니다.", [{text:"모험 시작하기",value:"start",primary:true}], { cls: "rb-intro" });
       }
