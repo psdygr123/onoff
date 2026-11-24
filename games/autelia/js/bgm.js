@@ -7,16 +7,16 @@ window.AU = window.AU || {};
 (function () {
   const BG = "assets/audio/bgm/";
   const TRACKS = { main: "assets/audio/light_through_the_blinds.mp3", harbor: "assets/audio/harbor.mp3", adventure: "assets/audio/adventure.mp3",
-    arkea: BG + "arkea.mp3", porto1: BG + "porto1.mp3", porto2: BG + "porto2.mp3", porto3: BG + "porto3.mp3", store_a: BG + "store_a.mp3", store_b: BG + "store_b.mp3",
+    arkea: BG + "arkea.mp3", porto: BG + "porto_harbor.mp3?v=1", store_a: BG + "store_a.mp3", store_b: BG + "store_b.mp3",
     guild: BG + "guild.mp3", inn: BG + "inn.mp3", warehouse: BG + "warehouse.mp3", east_road: BG + "east_road.mp3", field1: BG + "field1.mp3", field2: BG + "field2.mp3",
     festival: BG + "festival.mp3", ship1: BG + "ship1.mp3", ship2: BG + "ship2.mp3", boss: BG + "boss.mp3", escort: BG + "escort.mp3", valley: BG + "valley.mp3", breath: BG + "breath.mp3", ending: BG + "ending.mp3", title: BG + "ending.mp3", intro: BG + "intro.mp3?v=5", raid: BG + "raid.mp3?v=2", elegy: BG + "elegy.mp3" };
   /* 곡 묶음(그룹): 같은 묶음 안에서는 곡이 끝나면 다음 곡으로 이어지고, 묶음 안의 다른 지역으로 옮겨도 끊기지 않고 계속 이어집니다.
-     oneShot은 한 번만 재생하고 끝납니다. 예: 포르투 노바 1·2·3번이 차례로 이어지고, 멧돼지 숲·뱀길·선창 외곽은 사냥터 1·2번이 이어집니다. */
-  const GROUPS = { main: ["main"], arkea: ["arkea"], festival: ["festival"], adventure: ["adventure"], town: ["adventure", "porto1", "porto2", "porto3"], store_a: ["store_a"], store_b: ["store_b"], guild: ["guild"], inn: ["inn"], warehouse: ["warehouse"],
+     oneShot은 한 번만 재생하고 끝납니다. 예: 포르투 노바는 새 항구 곡 1곡을 계속 반복하고, 멧돼지 숲·뱀길·선창 외곽은 사냥터 1·2번이 이어집니다. */
+  const GROUPS = { main: ["main"], arkea: ["arkea"], festival: ["festival"], adventure: ["adventure"], town: ["porto"], store_a: ["store_a"], store_b: ["store_b"], guild: ["guild"], inn: ["inn"], warehouse: ["warehouse"],
     field: ["field1", "field2"], alley: ["ship2"], relay: ["escort"], valley: ["valley"], east_road: ["east_road"], ship: ["ship1", "ship2"], boss: ["boss"], escort: ["escort"], breath: ["breath"], ending: ["ending"], title: ["title"], intro: ["intro"], raid: ["raid"], elegy: ["elegy"] };
   const ONE_SHOT = { ending: true, intro: true };
   const MAP_GROUP = { porto: "town", jandari: "alley", valley: "valley", yard: "valley", ridge: "valley", gorge: "valley", general_store: "store_a", weapon_store: "store_b", guild_hall: "guild", warehouse: "warehouse", forest: "field", harbor_road: "field", docks: "field", hide_outer: "adventure", hide_tunnel: "adventure", hide_lab: "adventure" };
-  const GAIN = { harbor: 1.7 };   // 원본 소리가 작은 곡 보정(새 곡들은 소리 크기를 맞춰 두었음)
+  const GAIN = { harbor: 1.7, porto: 1.8 };   // 원본 소리가 작은 곡 보정(새 곡들은 소리 크기를 맞춰 두었음)
   const CFG = { src: TRACKS.main, vol: 0.32, duckVol: 0.14, fadeInPerSec: 0.5, fadeOutPerSec: 1.6 };
   const B = AU.Bgm = { cfg: CFG, el: null, vol: 0, failed: false, blocked: false, state: "idle", track: "main", cur: "main", group: "main", idx: {}, silentG: null, tracks: TRACKS, groups: GROUPS };
 
@@ -37,7 +37,7 @@ window.AU = window.AU || {};
      장면별 전용 곡(BGM-05·06·07 등)이 준비되면 이 표에서 곡을 바꿔 연결합니다. */
   const RAID_MULT = 2.0;   // 습격 곡 크기(11-24 사용자 지시: 효과음은 줄이고 배경음을 더 키움, 0.85 → 1.5 → 2.0)
   const ELEGY_MULT = 1.8;   // 11-24 사용자 지시: 유언 장면의 곡을 항구도시 도착 전(탈출 장면)까지 이어 깔고, 바람 효과음은 줄이고 배경음은 키움
-  const SCENE_MULT = { SCENE_02_FESTIVAL: 1.8, SCENE_03_ATTACK: RAID_MULT, SCENE_04_FATHER: ELEGY_MULT, SCENE_05_ESCAPE: ELEGY_MULT, SCENE_06_PORT_VIEW: ELEGY_MULT };   // 습격(03)은 전용 곡(raid)을 약간 낮춰 효과음과 함께 재생(11-22 사용자 지시)
+  const SCENE_MULT = { SCENE_02_FESTIVAL: 1.8, SCENE_03_ATTACK: RAID_MULT, SCENE_04_FATHER: ELEGY_MULT, SCENE_05_ESCAPE: ELEGY_MULT};   // 습격(03)은 전용 곡(raid)을 약간 낮춰 효과음과 함께 재생(11-22 사용자 지시)
   B.sceneMult = function () {
     const P = AU.Prologue; if (!(P && P.on)) return 1;
     const st = AU.G && AU.G.S && AU.G.S.prologue && AU.G.S.prologue.state;
@@ -57,7 +57,7 @@ window.AU = window.AU || {};
   B.pickGroup = function () {
     const P = AU.Prologue;
     if (!(P && P.on) && !(AU.main && AU.main.running) && B.titleShown()) return "title";
-    if (P && P.on) { if (P.introOn) return "intro"; if (B.endShown()) return "ending"; const st = AU.G && AU.G.S && AU.G.S.prologue && AU.G.S.prologue.state; if (st === "SCENE_02_FESTIVAL" && B.hasFestival) return "festival"; return st === "SCENE_03_ATTACK" || (st === "SCENE_04_FATHER" && P.v && P.v.brawl) ? "raid" : ((st === "SCENE_04_FATHER" || st === "SCENE_05_ESCAPE" || st === "SCENE_06_PORT_VIEW") && B.hasElegy) ? "elegy" : "arkea"; }   // 11-24: 유언 → 탈출 → 항구 전경 화면까지 슬픈 곡 유지
+    if (P && P.on) { if (P.introOn) return "intro"; if (B.endShown()) return "ending"; const st = AU.G && AU.G.S && AU.G.S.prologue && AU.G.S.prologue.state; if (st === "SCENE_06_PORT_VIEW") return "town"; if (st === "SCENE_02_FESTIVAL" && B.hasFestival) return "festival"; return st === "SCENE_03_ATTACK" || (st === "SCENE_04_FATHER" && P.v && P.v.brawl) ? "raid" : ((st === "SCENE_04_FATHER" || st === "SCENE_05_ESCAPE") && B.hasElegy) ? "elegy" : "arkea"; }   // 11-24: 유언 → 탈출까지 슬픈 곡 유지, 11-25: 항구 도시 소개 장면(SCENE_06)부터는 포르투 노바 새 곡을 처음부터 재생
     const me = AU.UI && AU.UI.modalEl; if (me && !me.classList.contains("hidden") && me.querySelector(".guided")) return "breath";
     const W = AU.World, m = W && W.map; if (!m) return "main";
     if ((W.monsters || []).some((q) => q.alive && q.d && q.d.boss)) return "boss";
