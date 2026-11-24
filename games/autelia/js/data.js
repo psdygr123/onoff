@@ -10,6 +10,7 @@ AU.ASSETS = {
   harbor_road:  { path: "assets/bg/harbor_road.webp" },
   harbor:       { path: "assets/bg/harbor.webp" },
   storage:      { path: "assets/bg/storage.webp" },
+  docks_inner:  { path: "assets/bg/docks_inner.webp" },
   player_male:   { path: "assets/char/player_male.webp", frames: 4 },
   player_female: { path: "assets/char/player_female.webp", frames: 4 },
   villager_a:   { path: "assets/char/villager_a.webp" },
@@ -163,9 +164,9 @@ AU.MAPS = {
     spawns: [{ type: "rat", x: 250 }, { type: "rat", x: 430 }, { type: "rat", x: 620 }, { type: "rat", x: 780 }, { type: "rat", x: 940 }, { type: "rat", x: 1100 }],
     area: { x: 90, y: 64, desc: "항구 바깥 선창 지대입니다. 부두 쥐가 모여 사는 사냥터이고, 오른쪽 끝 통로를 지나면 집게 게가 사는 안쪽 창고가 나옵니다." }
   },
-  // 집게 게 전용 맵(11-25): 선창 외곽 오른쪽 끝 통로로 들어갑니다. 배경 그림은 GPT 제작 예정이라 그동안 선창 외곽 그림을 좌우 반전해 임시로 씁니다(완성되면 bg를 "docks_inner"로 교체).
+  // 집게 게 전용 맵(11-25): 선창 외곽 오른쪽 끝 통로로 들어갑니다. 전용 배경 그림(docks_inner.webp)을 씁니다.
   docks_inner: {
-    name: "선창 안쪽", bg: "storage", bgFlip: true, width: 1280, safe: false,
+    name: "선창 안쪽", bg: "docks_inner", width: 1280, safe: false,
     platforms: [{ x: 0, y: 590, w: 1280 }, { x: 780, y: 480, w: 200, thin: true }, { x: 540, y: 430, w: 220, thin: true }],
     ropes: [{ x: 995, top: 465, bottom: 590 }],
     portals: [{ x: 40, to: "docks", toX: 1190, label: "선창 외곽" }],
