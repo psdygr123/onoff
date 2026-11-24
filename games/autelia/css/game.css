@@ -920,3 +920,15 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
 .tracker .treal .treal-item:hover { text-decoration: underline; }
 
 .mission .note.how { color: #5b6b57; border-left: 3px solid #b9cfae; padding-left: 8px; font-size: 12.5px; line-height: 1.5; }
+
+.rb-intro { max-width: 640px; }
+.rb-intro h3 { font-size: 22px; }
+.rb-intro .note p { font-size: 17px; line-height: 1.6; }
+.rb-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 10px 0 14px; }
+.rb-card { border-radius: 10px; padding: 12px 14px; border: 2px solid #c9b48a; background: #fff8e8; }
+.rb-card b { display: block; font-size: 18px; margin-bottom: 4px; }
+.rb-card p { margin: 0; font-size: 14.5px !important; line-height: 1.5; }
+.rb-card.game { border-color: #b98a3e; } .rb-card.game b { color: #8a5a14; }
+.rb-card.real { border-color: #5f9a73; background: #f0f8ee; } .rb-card.real b { color: #2f6b45; }
+.rb-notice { background: #e4f3e1; border: 2px solid #5f9a73; color: #25573a; border-radius: 10px; padding: 12px 14px; font-size: 18px; font-weight: 700; text-align: center; line-height: 1.5; }
+@media (max-width: 560px) { .rb-cards { grid-template-columns: 1fr; } }
