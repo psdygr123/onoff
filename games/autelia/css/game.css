@@ -918,3 +918,5 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
 .tracker .treal .treal-item b { color: #7fd1a0; margin-right: 4px; }
 .tracker .treal .treal-item.overdue b { color: #ffb36b; }
 .tracker .treal .treal-item:hover { text-decoration: underline; }
+
+.mission .note.how { color: #5b6b57; border-left: 3px solid #b9cfae; padding-left: 8px; font-size: 12.5px; line-height: 1.5; }
