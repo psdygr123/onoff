@@ -100,12 +100,21 @@ window.AU = window.AU || {};
         const actions = document.createElement("div"); actions.className = "choices";
         const finish = (value) => {
           R.dismiss = null;
+          document.removeEventListener("keydown", onKey, true);
           wrap.classList.add("hidden"); wrap.innerHTML = "";
           UI.modal = wasModal;
           if (P) P.frozen = oldFrozen;
           AU.Input.held.clear();
           resolve(value);
         };
+        const onKey = (e) => {   // 스페이스로도 수락(강조된 첫 번째 선택지)
+          if (e.code !== "Space" && e.key !== " ") return;
+          e.preventDefault(); e.stopPropagation();
+          if (e.repeat) return;
+          const pick = options.find(o => o.primary) || options[0];
+          if (pick) finish(pick.value);
+        };
+        document.addEventListener("keydown", onKey, true);
         for (const option of options) {
           const b = document.createElement("button"); b.type="button";
           b.className = "btn " + (option.primary ? "primary" : "");
