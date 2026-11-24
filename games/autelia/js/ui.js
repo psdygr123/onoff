@@ -205,6 +205,20 @@ window.AU = window.AU || {};
       const pt = (m.portals || []).find((x) => x.to === hop); if (!pt) return "";
       return this.areaName(targetMap) + " 방향: " + (pt.x > p.x ? "▶ 오른쪽" : "◀ 왼쪽") + ((pt.x < 300 || pt.x > m.width - 300) ? " 끝의 '" : "의 '") + pt.label + "' 쪽으로";
     },
+    // 의뢰를 줄 때 덧붙이는 위치 안내: 지금 있는 곳에서 목표 지역까지 가는 길을 말로 풀어 줌(예: "뱀길은 선창 길드를 나가서 왼쪽 끝의 '뱀길' 쪽으로 가면 있어요.")
+    whereText(fromMap, refX, toMap) {
+      if (!fromMap || !toMap || fromMap === toMap || !AU.MAPS[toMap]) return "";
+      const jo = (w, a, b) => { const c = w.charCodeAt(w.length - 1) - 0xAC00; return w + ((c >= 0 && c <= 11171 && c % 28 !== 0) ? a : b); };
+      const parts = []; let cur = fromMap, x = refX;
+      for (let i = 0; i < 4 && cur !== toMap; i++) {
+        const hop = this.route(cur, toMap), m = AU.MAPS[cur], pt = m && (m.portals || []).find((q) => q.to === hop); if (!hop || !pt) return "";
+        if (pt.label === "나가기") parts.push(jo(this.areaName(cur), "을", "를") + " 나가서");
+        else { const edge = (pt.x < 300 || pt.x > m.width - 300), near = x != null && Math.abs(pt.x - x) < 160;
+          parts.push((near ? "바로 근처의" : (pt.x > (x == null ? 0 : x) ? "오른쪽" : "왼쪽") + (edge ? " 끝의" : "의")) + " '" + pt.label + "' 쪽으로 가면"); if (hop === toMap && pt.label === this.areaName(toMap)) parts[parts.length - 1] = parts[parts.length - 1].replace(/ '[^']*' 쪽으로 가면$/, "으로 쭉 가면").replace(/의으로/, "으로").replace("바로 근처으로", "바로 근처에 있는 입구로"); }
+        x = pt.toX; cur = hop;
+      }
+      return cur === toMap && parts.length ? jo(this.areaName(toMap), "은", "는") + " " + parts.join(" ") + " 있어요." : "";
+    },
     questGuide(id) {
       const q = AU.QUESTS[id], rec = AU.G.S.quests[id]; if (!q || !rec) return "";
       if (rec.state === "ready") { const tn = q.turnIn || q.giver, mp = this.npcMap(tn); return mp ? this.dirText(mp, tn) : ""; }
@@ -383,7 +397,7 @@ window.AU = window.AU || {};
       if (qid) {
         const q = AU.QUESTS[qid];
         if (q.fee && S.silver < q.fee) { this.toast("은화가 필요합니다. (" + q.fee + ")", "warn"); return this.say(npc, q.feeShort || ["은화가 모자랍니다."]); }
-        return this.say(npc, q.offer, { choices: [{ label: "수락", key: "interact", fn: () => AU.G.startQuest(qid) }, { label: "나중에", key: "menu", fn: () => {} }] });
+        { let wh = q.area && !/왼쪽|오른쪽|끝으로/.test(q.offer.join(" ")) ? this.whereText(AU.World.mapId, (AU.World.nearNpc || {}).x, q.area) : "";  if (wh && /(네|게|세|군)[.!?…]/.test(q.offer.join(" "))) wh = wh.replace(/있어요\.$/, "있다네."); /* 말투 맞춤: "~하게/~네"로 말하는 인물은 "있다네" */ return this.say(npc, wh ? q.offer.concat([wh]) : q.offer, { choices: [{ label: "수락", key: "interact", fn: () => AU.G.startQuest(qid) }, { label: "나중에", key: "menu", fn: () => {} }] }); }
       }
       const act = (npc.quests || []).find((id) => AU.G.questStatus(id) === "active" && AU.QUESTS[id].giver === npcId);
       if (act) return this.say(npc, ["아직 진행 중이에요. (" + AU.QUESTS[act].title.replace(" (임시)", "") + ")"].concat(AU.QUESTS[act].reminder || []));

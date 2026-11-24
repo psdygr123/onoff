@@ -60,5 +60,12 @@
   add("npc_housewife", 420); add("npc_resident_f", 700, L(590, 840)); add("npc_townsman", 1180, L(900, 1500)); add("npc_peddler", 1560, L(1470, 1640)); add("npc_spicer", 2020, L(1860, 2200));
   add("npc_netmender", 1760); add("npc_fishwife", 2500, L(2350, 2750)); add("npc_fisher", 2980, L(2800, 3200));
   add("npc_cabinboy", 3380, L(3340, 3440)); add("npc_sailor", 3600, L(3450, 4000)); add("npc_porter", 4250, L(4050, 4850));
+  // 가만히 서 있던 주민·안내인도 제자리 근처(±110)를 천천히 오가게 함
+  P.npcs.forEach((n) => { if (!n.patrol) { n.patrol = [n.x - 110, n.x + 110]; n.speed = 28; } });
   add("npc_porter2", sh(2689) + 300, L(sh(2689) + 150, sh(2689) + 900)); add("npc_sailor2", sh(2689) + 1250, L(sh(2689) + 1000, sh(2689) + 1550));
+  // 주민끼리 겹치지 않게: 이웃과의 중간선을 경계로 삼아 오가는 범위를 서로 떨어뜨림(간격 GAP 이상 유지)
+  (() => { const GAP = 140, a = P.npcs.slice().sort((p, q) => p.x - q.x);
+    a.forEach((n, i) => { const lo0 = n.patrol[0], hi0 = n.patrol[1], pv = a[i - 1], nx = a[i + 1];
+      const lo = pv ? Math.max(lo0, (pv.x + n.x) / 2 + GAP / 2) : lo0, hi = nx ? Math.min(hi0, (n.x + nx.x) / 2 - GAP / 2) : hi0;
+      n.patrol = [Math.min(lo, n.x), Math.max(hi, n.x)]; }); })();
 })();
