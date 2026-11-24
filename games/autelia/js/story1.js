@@ -130,7 +130,7 @@ window.AU = window.AU || {};
     portals: [{ x: 40, to: "valley", toX: 1640, label: "검은 골짜기" }],
     npcs: [],
     spots: [
-      { id: "relay_tent", portrait: "pt_scene_tent", narr: true, w: 520, x: 1300, kind: "investigate", label: "아래에서 들려오는 대화", cuts: [{ at: 0, src: "assets/cut/relay_peek.webp" }, { at: 7, src: "assets/cut/relay_found.webp" }, { at: 9, src: "assets/cut/relay_chase.webp" }, { at: 12, src: "assets/cut/relay_trapped.webp" }, { at: 14, src: "assets/cut/relay_rope.webp" }, { at: 17, src: "assets/cut/relay_hide.webp" }], lines: [
+      { id: "relay_tent", portrait: "pt_scene_tent", narr: true, w: 520, x: 1300, kind: "investigate", label: "아래에서 들려오는 대화", cuts: [{ at: 0, src: "assets/cut/relay_peek.webp" }, { at: 7, src: "assets/cut/relay_found.webp" }, { at: 9, src: "assets/cut/relay_chase.webp", hero: true }, { at: 12, src: "assets/cut/relay_trapped.webp", hero: true }, { at: 14, src: "assets/cut/relay_rope.webp", hero: true }, { at: 17, src: "assets/cut/relay_hide.webp", hero: true }], lines: [
         L(HERO, "(아래에서 두 사람이 낮게 이야기하고 있다. 숨을 죽이고 들어 보자.)"),
         L(BALTEIN, "변형이 덜 되었군. 투입량을 늘려라, 클로드. 위에서 서두르고 계신다."),
         L(CLAUDE, "우리 짐승들이 버티질 못합니다. 결정을 더 먹이면 죽어 나가는 놈이 늘어요."),

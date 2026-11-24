@@ -426,12 +426,12 @@ window.AU = window.AU || {};
       if (!src) { old.forEach((e) => { e.classList.remove("on"); setTimeout(() => e.remove(), 800); }); return; }
       const im = h("img", { class: "cutimg", alt: "", src });
       im.onload = () => { requestAnimationFrame(() => im.classList.add("on")); old.forEach((e) => { e.classList.remove("on"); setTimeout(() => e.remove(), 800); }); };
-      im.onerror = () => { im.remove(); };
+      im.onerror = () => { im.remove(); old.forEach((e) => { e.classList.remove("on"); setTimeout(() => e.remove(), 800); }); };
       this.cutEl.append(im);
     },
     applyCut(d) {
       const cs = d.opt && d.opt.cuts; if (!cs) { if (this.cutSrc) this.setCut(null); return; }
-      let src = null; for (const c of cs) if (c.at <= d.i) src = c.src; this.setCut(src);
+      let src = null; const fem = AU.Profile && AU.Profile.gender() === "f"; for (const c of cs) if (c.at <= d.i) src = c.hero && fem ? c.src.replace(/\.webp$/, "_f.webp") : c.src; this.setCut(src); // 주인공이 나오는 컷(hero)은 여자일 때 _f 그림(없으면 그림 없이 글씨만)
     },
     renderDialog() {
       const d = this.dialog; if (!d) return;
