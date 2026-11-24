@@ -397,7 +397,8 @@ window.AU = window.AU || {};
       const d = this.dialog; if (!d) return;
       this.applyCut(d);
       const last = d.i >= d.lines.length - 1, cur = d.lines[d.i], isObj = cur && typeof cur === "object", np = isObj ? cur.npc : d.npc, text = AU.Profile.fmt(isObj ? cur.t : cur).replace(/\{(attack|jump|interact|skills)\}/g, (m, k) => keyOf(k));
-      const ppk = AU.Img.has(np.portrait) ? np.portrait : (np.alt && AU.Img.has(np.alt) ? np.alt : np.portrait), pt = AU.Img.has(ppk) ? h("img", { src: AU.ASSETS[ppk].path, alt: "" }) : h("div", { class: "ptfallback", text: np.name.slice(0, 1) });
+      // 본래 초상화가 아직 오는 중이면 어른 대체 그림(alt) 대신 이름 첫 글자 표시(틀린 얼굴 방지). 대체 그림은 본래 그림 파일이 아예 없을 때만 사용
+      const pend = np.portrait && AU.Img.map[np.portrait] && !AU.Img.map[np.portrait].done, ppk = AU.Img.has(np.portrait) ? np.portrait : (!pend && np.alt && AU.Img.has(np.alt) ? np.alt : np.portrait), pt = AU.Img.has(ppk) ? h("img", { src: AU.ASSETS[ppk].path, alt: "" }) : h("div", { class: "ptfallback", text: np.name.slice(0, 1) });
       const back = d.i > 0 ? btn("◀ 이전 (" + AU.keyLabel(AU.Input.bindings.left) + ")", "dback", () => this.backDialog()) : null;
       const choices = last && d.opt.choices ? h("div", { class: "choices" }, back, d.opt.choices.map((c) => btn(c.label + (keyOf(c.key) ? "  (" + keyOf(c.key) + ")" : ""), c.key === "interact" ? "primary" : "", () => this.finishDialog(c)))) : null;
       this.dlgEl.innerHTML = ""; this.dlgEl.append(h("div", { class: "panel dlgbox" }, h("div", { class: "pt" }, pt), h("div", { class: "dtext" }, h("div", { class: "dname", text: AU.Profile.fmt(np.name) }), h("div", { class: "dline", text: text }), AU.G.S.flags.tipDlg ? null : h("div", { class: "dtip", text: keyOf("interact") + " : 다음 대사 · " + AU.keyLabel(AU.Input.bindings.left) + " : 이전 대사 (아래 버튼을 눌러도 됩니다)" }),
