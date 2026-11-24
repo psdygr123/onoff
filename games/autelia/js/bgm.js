@@ -9,7 +9,7 @@ window.AU = window.AU || {};
   const TRACKS = { main: "assets/audio/light_through_the_blinds.mp3", harbor: "assets/audio/harbor.mp3", adventure: "assets/audio/adventure.mp3",
     arkea: BG + "arkea.mp3", porto: BG + "porto_harbor.mp3?v=1", store_a: BG + "store_a.mp3", store_b: BG + "store_b.mp3",
     guild: BG + "guild.mp3", inn: BG + "inn.mp3", warehouse: BG + "warehouse.mp3", east_road: BG + "east_road.mp3", field1: BG + "field1.mp3", field2: BG + "field2.mp3",
-    festival: BG + "festival.mp3", ship1: BG + "ship1.mp3", ship2: BG + "ship2.mp3", boss: BG + "boss.mp3", escort: BG + "escort.mp3", valley: BG + "valley.mp3", breath: BG + "breath.mp3", ending: BG + "ending.mp3", title: BG + "ending.mp3", intro: BG + "intro.mp3?v=5", raid: BG + "raid.mp3?v=2", elegy: BG + "elegy.mp3", hide_outer: BG + "hide_outer.mp3?v=1", hide_tunnel: BG + "hide_tunnel.mp3?v=1", hide_lab: BG + "hide_lab.mp3?v=1" };
+    festival: BG + "festival.mp3", ship1: BG + "ship1.mp3", ship2: BG + "ship2.mp3", boss: BG + "boss.mp3", escort: BG + "escort.mp3", valley: BG + "valley.mp3", breath: BG + "breath.mp3", ending: BG + "ending.mp3", title: BG + "ending.mp3", intro: BG + "intro.mp3?v=5", raid: BG + "raid.mp3?v=2", elegy: BG + "elegy.mp3", hide_outer: BG + "hide_outer.mp3?v=2", hide_tunnel: BG + "hide_tunnel.mp3?v=2", hide_lab: BG + "hide_lab.mp3?v=2" };
   /* 곡 묶음(그룹): 같은 묶음 안에서는 곡이 끝나면 다음 곡으로 이어지고, 묶음 안의 다른 지역으로 옮겨도 끊기지 않고 계속 이어집니다.
      oneShot은 한 번만 재생하고 끝납니다. 예: 포르투 노바는 새 항구 곡 1곡을 계속 반복하고, 멧돼지 숲·뱀길·선창 외곽은 사냥터 1·2번이 이어집니다. */
   const GROUPS = { main: ["main"], arkea: ["arkea"], festival: ["festival"], adventure: ["adventure"], town: ["porto"], store_a: ["store_a"], store_b: ["store_b"], guild: ["guild"], inn: ["inn"], warehouse: ["warehouse"],
