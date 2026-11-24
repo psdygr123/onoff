@@ -938,3 +938,5 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
 .rb-item { display: flex; align-items: center; gap: 14px; margin: 10px 0 4px; padding: 10px 14px; background: #fff8e8; border: 2px solid #c9b48a; border-radius: 10px; }
 .rb-item b { display: block; font-size: 18px; color: #5b3b12; }
 .rb-item span { font-size: 14.5px; color: #6b5a40; }
+
+.jcard p.jd-lines { white-space: pre-line; font-size: 11px; letter-spacing: -0.04em; margin: 10px 0 0; line-height: 1.6; }
