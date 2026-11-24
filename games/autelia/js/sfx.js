@@ -223,13 +223,14 @@ window.AU = window.AU || {};
   };
   /* 습격 환경음(코드로 합성한 임시 소리): 불 타는 소리 위에 비명·고함, 나무 부서지는 소리, 쇠붙이 부딪는 소리, 무너지는 둔탁한 소리를 드문드문 얹음.
      실제 녹음 파일이 오면 같은 이름의 파일로 바꿔 끼우면 됨. far=true는 멀리서 들리는 작은 버전(집 안 장면: 아버지 유언을 가리지 않게) */
-  function shout(c, bus, t, o) { // 사람 목소리 비슷한 외침: 톱니파를 모음 필터(포르만트) 두 개에 통과시키고 음높이를 올렸다 내림
-    const dur = o.dur || rnd(0.35, 0.8), os = c.createOscillator(), g = c.createGain(), vib = c.createOscillator(), vg = c.createGain();
-    os.type = "sawtooth"; os.frequency.setValueAtTime(o.f * 0.85, t); os.frequency.linearRampToValueAtTime(o.f * 1.18, t + dur * 0.35); os.frequency.linearRampToValueAtTime(o.f * 0.8, t + dur);
-    vib.frequency.value = rnd(5, 8); vg.gain.value = o.f * 0.03; vib.connect(vg); vg.connect(os.frequency);
-    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(o.vol, t + 0.05); g.gain.setValueAtTime(o.vol, t + dur * 0.6); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    const F = o.vowel || [[760, 4], [1250, 5]]; for (const [ff, q] of F) { const f = c.createBiquadFilter(); f.type = "bandpass"; f.frequency.value = ff * rnd(0.92, 1.08); f.Q.value = q; os.connect(f); f.connect(g); }
-    g.connect(bus.out); if (o.rev) { const r = c.createGain(); r.gain.value = o.rev; g.connect(r); r.connect(bus.rev); }
+  function shout(c, bus, t, o) { // 사람이 놀라 내지르는 짧은 비명/당황한 소리("앗!", "어!", "으악!"): 빠른 어택·짧은 길이·급히 치솟았다 떨어지는 음높이 + 숨소리(귀신처럼 길게 끄는 소리가 아님)
+    const dur = Math.min(o.dur || 0.25, 0.42), os = c.createOscillator(), g = c.createGain(), vib = c.createOscillator(), vg = c.createGain();
+    os.type = "sawtooth"; os.frequency.setValueAtTime(o.f * 0.95, t); os.frequency.exponentialRampToValueAtTime(o.f * 1.4, t + dur * 0.18); os.frequency.exponentialRampToValueAtTime(o.f * 0.82, t + dur);   // 놀란 순간 확 올라갔다 내려옴
+    vib.frequency.value = rnd(6, 9); vg.gain.value = o.f * 0.012; vib.connect(vg); vg.connect(os.frequency);
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(o.vol, t + 0.012); g.gain.exponentialRampToValueAtTime(o.vol * 0.35, t + dur * 0.5); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    const F = o.vowel || [[760, 4], [1250, 5]]; for (const [ff, q] of F) { const f = c.createBiquadFilter(); f.type = "bandpass"; f.frequency.setValueAtTime(ff * rnd(0.95, 1.05) * 0.9, t); f.frequency.linearRampToValueAtTime(ff * 1.08, t + dur * 0.3); f.Q.value = q * 0.7; os.connect(f); f.connect(g); }
+    g.connect(bus.out); if (o.rev) { const r = c.createGain(); r.gain.value = o.rev * 0.4; g.connect(r); r.connect(bus.rev); }
+    N(c, bus, t, { f: rnd(1800, 2800), q: 0.7, dur: dur * 0.7, a: 0.01, vol: o.vol * 0.35 });   // 숨 섞인 거친 질감(사람 목소리 느낌)
     os.start(t); vib.start(t); os.stop(t + dur + 0.05); vib.stop(t + dur + 0.05);
   }
   function woodCrack(c, bus, t, vol, far) { // 나무가 갈라지는 딱 소리 + 부서진 조각이 떨어지는 달그락
@@ -247,9 +248,9 @@ window.AU = window.AU || {};
       L.fire(c, bus, o);
       const k = far ? 0.45 : 1, rv = far ? 0.6 : 0.25;
       o.timers.push(setInterval(() => { // 사람 외침: 남성(낮음)·여성·아이(높음), 가끔 둘이 겹침
-        const n = Math.random() < (far ? 0.3 : 0.45) ? 2 : 1;
+        const n = Math.random() < (far ? 0.2 : 0.3) ? 2 : 1;
         for (let i = 0; i < n; i++) { const kind = Math.random(), f0 = kind < 0.4 ? rnd(120, 170) : kind < 0.8 ? rnd(230, 330) : rnd(380, 520), v = [VOW.a, VOW.o, VOW.i][Math.floor(rnd(0, 3))];
-          shout(c, bus, c.currentTime + i * rnd(0.1, 0.4), { f: f0, vol: rnd(0.09, 0.17) * k * (far ? 1 : 1.0), dur: rnd(0.35, 0.9), vowel: v, rev: rv }); }   // 비명 크기: 가까운 습격 장면 1.0배(11-24 사용자 지시: 배경음과 비율 맞춤, 이전 1.9배)
+          shout(c, bus, c.currentTime + i * rnd(0.1, 0.4), { f: f0, vol: rnd(0.09, 0.17) * k * (far ? 1 : 1.0), dur: rnd(0.16, 0.38), vowel: v, rev: rv }); }   // 비명 크기: 가까운 습격 장면 1.0배(11-24 사용자 지시: 배경음과 비율 맞춤, 이전 1.9배)
       }, far ? 2300 : 950));
       o.timers.push(setInterval(() => { if (Math.random() < 0.45) woodCrack(c, bus, c.currentTime, rnd(0.1, 0.18) * k, far); }, far ? 2700 : 1600));
       o.timers.push(setInterval(() => { if (Math.random() < 0.35) clang(c, bus, c.currentTime, rnd(0.07, 0.13) * k, far); }, far ? 3100 : 1900));
