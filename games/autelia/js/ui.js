@@ -1208,7 +1208,13 @@ window.AU = window.AU || {};
       // 메인 스토리에서 자연스럽게 소개된 일상 활동
       const linkedBlock = () => {
         const linked = AU.RealBridge ? Object.entries(AU.RealBridge.suggestions()) : []; if (!linked.length) return null;
-        const rec = h("div", { class: "msummary", "data-real-bridge": "suggestions" }, h("h3", { text: "모험에서 이어진 현실 활동" }), h("p", { class: "note", text: "메인 스토리와 관련된 선택 활동입니다. 수행하지 않아도 게임을 계속할 수 있습니다." }));
+        const cnt = {}; for (const [, sg] of linked) { const mm = AU.G.mission(sg.missionId); if (!mm) continue; const st = AU.G.ms(mm.id).state; cnt[st] = (cnt[st] || 0) + 1; }
+        const open = UI.tab.linkedOpen != null ? UI.tab.linkedOpen : !!cnt.available;   // 11-24: 접었다 펼 수 있음(수락 가능한 활동이 있으면 처음엔 펼침)
+        const sum = Object.entries(cnt).map(([st, n]) => (AU.MISSION_STATES[st] || st) + " " + n).join(" · ");
+        const rec = h("div", { class: "msummary linked-fold" + (open ? "" : " folded"), "data-real-bridge": "suggestions" },
+          h("div", { class: "lf-head" }, h("h3", { text: "모험에서 이어진 일상 활동" }), h("span", { class: "note", text: sum }), btn(open ? "접기 ▲" : "펼치기 ▼", "mini", () => { UI.tab.linkedOpen = !open; UI.renderWin(); }, { "data-act": "linked-toggle" })));
+        if (!open) return rec;
+        rec.append(h("p", { class: "note", text: "메인 스토리와 관련된 선택 활동입니다. 수행하지 않아도 게임을 계속할 수 있습니다." }));
         const cards = h("div", { class: "missions" });
         for (const [key, suggestion] of linked.slice().reverse()) {
           const m = AU.G.mission(suggestion.missionId); if (!m) continue; const state = AU.G.ms(m.id).state;

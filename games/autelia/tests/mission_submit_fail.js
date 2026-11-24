@@ -1,4 +1,4 @@
-// 현실 미션 제출이 거부될 때: 사용자 안내가 나오고 첨부 사진이 남지 않는지 확인
+// 일상 미션 제출이 거부될 때: 사용자 안내가 나오고 첨부 사진이 남지 않는지 확인
 const { chromium } = require('playwright');
 const URL = process.env.GAME_URL || 'http://localhost:8801';
 (async () => {
