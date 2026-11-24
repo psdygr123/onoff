@@ -31,9 +31,9 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const names = await sfxs();
   note('S6', '문을 열고 들어가면 문 소리(door)가 남', names.includes('door'), names.join());
   note('S7', '정보상의 공방 안에 도착(문 안쪽)', (await ev(() => AU.World.mapId)) === 'jandari_shop', await ev(() => AU.World.mapId));
-  // 대사: 첫 줄에 문 닫는 말, 야외 표현 없음
+  // 대사: 첫 줄은 짧게, 야외 표현 없음
   const first = await ev(() => AU.QUESTS.q_a2_secret.offer[0]);
-  note('S8', '첫 대사는 실내 기준(문 소리·이쪽으로)이며 "들어오게" 표현 없음', /문 닫히는 소리/.test(first) && !/들어오게/.test(first), first);
+  note('S8', '첫 대사는 "카시안이 보냈군."만 나오고 문 소리·이쪽으로·들어오게 표현 없음', /카시안이 보냈군/.test(first) && !/문 닫히는 소리|이쪽으로|들어오게/.test(first), first);
   const all = await ev(() => JSON.stringify([AU.QUESTS.q_a2_secret.offer, AU.QUESTS.q_a2_secret.reminder, AU.QUESTS.q_a2_secret.desc]));
   note('S9', '"탁자" 표현은 작업대로 정리됨', !/탁자/.test(all), all.slice(0, 120));
   // 퀘스트 안내: 수락 전에는 공방 위치로, 수락 후 안 → 이 지역에서 진행
