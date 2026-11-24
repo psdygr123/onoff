@@ -214,7 +214,7 @@ window.AU = window.AU || {};
       for (const hs of m.hideSpots || []) {
         const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 380);
         if (on) { const g = ctx.createRadialGradient(hs.x, y - 40, 6, hs.x, y - 40, 90); g.addColorStop(0, "rgba(255,214,120," + (0.30 + 0.25 * pulse) + ")"); g.addColorStop(1, "rgba(255,214,120,0)"); ctx.fillStyle = g; ctx.fillRect(hs.x - 90, y - 130, 180, 140); }
-        if (!pic("ob_hide_crate", hs.x, 150)) {
+        if (!pic(m.hideCrate && AU.Img.has(m.hideCrate) ? m.hideCrate : "ob_hide_crate", hs.x, 150)) {
           const bw = 96, bh = 84, bx = hs.x - bw / 2, by = y - bh;
           ctx.fillStyle = "#6A5038"; ctx.fillRect(bx, by, bw, bh); ctx.strokeStyle = "#2E2216"; ctx.lineWidth = 3; ctx.strokeRect(bx, by, bw, bh);
           ctx.fillStyle = "#7B5E42"; ctx.fillRect(bx - 4, by - 8, bw + 8, 14); ctx.strokeRect(bx - 4, by - 8, bw + 8, 14);

@@ -28,7 +28,8 @@ window.AU = window.AU || {};
     mon_merc: { path: "assets/monster/merc.webp", optional: true },
     mon_merc_a1: { path: "assets/monster/merc_a1.webp", optional: true }, mon_merc_a2: { path: "assets/monster/merc_a2.webp", optional: true },   // 준비·공격 전용 그림
     mon_merc_w1: { path: "assets/monster/merc_w1.webp", optional: true }, mon_merc_w2: { path: "assets/monster/merc_w2.webp", optional: true }, mon_merc_w3: { path: "assets/monster/merc_w3.webp", optional: true }, mon_merc_w4: { path: "assets/monster/merc_w4.webp", optional: true }, mon_merc_idle: { path: "assets/monster/merc_idle.webp", optional: true },   // 용병 걷기 4칸(한 걸음 주기)
-    bg_yard: { path: "assets/bg/yard.webp", optional: true },   // 용병 하차장(잠입 맵) 배경
+    bg_yard: { path: "assets/bg/yard_long.webp", optional: true },   // 용병 하차장(잠입 맵) 배경(11-25 가로로 1.5배 늘림, 3720px)
+    ob_hide_crate_brand: { path: "assets/object/hide_crate_brand.webp", optional: true },   // 숨는 상자 옆면에 불도장 검은 물결 표식
     mon_mutfox: { path: "assets/monster/mutant_fox.webp", optional: true },
     ob_plank: { path: "assets/object/plank.webp", optional: true },
     ob_rope: { path: "assets/object/rope.webp", optional: true },
@@ -154,25 +155,25 @@ window.AU = window.AU || {};
     area: { x: 78, y: 26, desc: "검은 골짜기 중심 천막을 내려다보는 절벽 위 바위 능선입니다. 아래에서 블랙 웨이브 사람들의 말소리가 올라옵니다." }
   };
   /* 용병 하차장: 잠입 맵. 용병(시야 부채꼴)에게 들키면 입구에서 다시 시작하며, 안 들킬 때까지 몇 번이고 반복합니다.
-     상자 앞에서 Space로 숨고, 기둥 뒤로 시선을 피합니다. 두 곳을 조사한 뒤 입구(왼쪽 끝)로 나가면 성공입니다. */
+     상자 앞에서 Space로 숨습니다. 두 곳을 조사한 뒤 입구(왼쪽 끝)로 나가면 성공입니다. */
   AU.MAPS.yard = {
-    name: "용병 하차장", bg: "bg_yard", width: 2480, safe: false, stealth: true,
-    stealthMission: { quest: "q_a3_recon", flag: "yard_clear", start: 120 }, hideSpots: [{ x: 360 }, { x: 760 }, { x: 1100 }, { x: 1480 }, { x: 1700 }, { x: 1980 }, { x: 2200 }], blockers: [{ x: 1240 }, { x: 1800 }],
-    platforms: [{ x: 0, y: 590, w: 2558 }], ropes: [],
+    name: "용병 하차장", bg: "bg_yard", width: 3720, safe: false, stealth: true,
+    stealthMission: { quest: "q_a3_recon", flag: "yard_clear", start: 120 }, hideCrate: "ob_hide_crate_brand", hideSpots: [{ x: 540 }, { x: 1040 }, { x: 1500 }, { x: 1960 }, { x: 2420 }, { x: 2850 }, { x: 3250 }, { x: 3560 }], blockers: [],   // 11-25: 시야 막는 기둥 삭제, 상자는 검은 물결 불도장, 맵 가로 3720으로 확장
+    platforms: [{ x: 0, y: 590, w: 3798 }], ropes: [],
     portals: [{ x: 40, to: "valley", toX: 620, label: "검은 골짜기" }],
     npcs: [],
     spots: [
-      { id: "yard_crates", img: "ob_trace_crate", x: 1330, kind: "investigate", label: "불도장 찍힌 궤짝", lines: [
+      { id: "yard_crates", img: "ob_trace_crate", x: 1995, kind: "investigate", label: "불도장 찍힌 궤짝", lines: [
         "짐수레 곁에 궤짝이 산처럼 쌓여 있습니다. 옆면마다 불도장으로 찍힌 '검은 물결' 표식이 선명합니다.",
         "열린 궤짝 하나에는 검은 결정 원석이 가득합니다. 안쪽에 붉은 줄이 희미하게 비칩니다.",
         L(HERO, "(이 궤짝들이 전부 골짜기 안쪽으로 들어간다. 먹이는 게 결정이구나.)")] },
-      { id: "yard_ledger", img: "ob_trace_crate", x: 2300, kind: "investigate", label: "하차 장부", lines: [
+      { id: "yard_ledger", img: "ob_trace_crate", x: 3450, kind: "investigate", label: "하차 장부", lines: [
         "리프트 아래 목탁자 위에 하차 장부가 펼쳐져 있습니다. 날짜마다 '결정 N상자, 짐승 N두'라는 숫자가 적혀 있습니다.",
         "마지막 줄에는 다른 필체로 '투입량을 올린다. 변형이 덜 된 개체는 중심 천막으로.'라고 적혀 있습니다.",
         L(HERO, "(중심 천막... 이 골짜기 안쪽에서 누가 짐승을 만지고 있다는 뜻이다. 들키기 전에 빠져나가자.)")] }
     ],
-    spawns: [{ type: "merc_sentry", x: 560, min: 450, max: 900 }, { type: "merc_sentry", x: 1180, min: 1020, max: 1420 }, { type: "merc_sentry", x: 1700, min: 1560, max: 1950 }, { type: "merc_sentry", x: 2230, min: 2100, max: 2420 }],
-    area: { x: 80, y: 32, desc: "검은 골짜기 안쪽의 용병 하차장입니다. 용병에게 들키면 입구에서 다시 시작합니다. 금빛으로 빛나는 상자 앞에서 Space로 숨고, 기둥 뒤로 시선을 피하세요." }
+    spawns: [{ type: "merc_sentry", x: 800, min: 660, max: 1100 }, { type: "merc_sentry", x: 1380, min: 1180, max: 1620 }, { type: "merc_sentry", x: 1950, min: 1760, max: 2200 }, { type: "merc_sentry", x: 2540, min: 2330, max: 2780 }, { type: "merc_sentry", x: 3060, min: 2900, max: 3300 }, { type: "merc_sentry", x: 3470, min: 3340, max: 3660 }],
+    area: { x: 80, y: 32, desc: "검은 골짜기 안쪽의 용병 하차장입니다. 용병에게 들키면 입구에서 다시 시작합니다. 금빛으로 빛나는 상자 앞에서 Space로 숨으세요." }
   };
   AU.MAPS.gorge = {
     name: "협곡 바위틈", bg: "gorge", width: 2840, safe: false,
