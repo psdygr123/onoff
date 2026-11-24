@@ -509,7 +509,7 @@ window.AU = window.AU || {};
       await Promise.all([walkTo(r1, 575, 150), walkTo(r2, 640, 150)]);   // 길목의 부하들이 앞을 막고 붙잡음
       await P.say(KID.hold);   // 주인공: 비켜요! 놔요! 아버지!
       await P.say(T.officer.slice(2));      // 간부의 선언
-      await walkTo(off, fx + 105, 80); off.pose = "raise"; P.sfx("hammer"); await P.wait(0.5); await P.say(T.officer2);   // 간부가 검을 치켜듦
+      await walkTo(off, fx + 105, 80); off.pose = "raise"; P.sfx("blade_swish"); await P.wait(0.5); await P.say(T.officer2);   // 간부가 검을 치켜듦
       // 아버지가 마지막 힘으로 일어나 주인공 앞을 막아섬
       fa.fpose = "guard"; fa.face = 1; fa.rise = 0; P.sfx("slump"); await P.tween(fa, { rise: 1, x: fx - 6 }, 0.7, (k) => k * (2 - k)); await P.say(T.officer2b);
       // 내리치는 순간 — 아버지가 대신 맞음
