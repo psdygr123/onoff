@@ -114,6 +114,11 @@ window.AU = window.AU || {};
         const dest = m.town || "porto"; this.takeItem(id, 1); this.toast(it.name + " 사용 — " + AU.MAPS[dest].name + "(으)로 귀환합니다.", "item");
         W.enterMap(dest, AU.MAPS[dest].start || 160); this.changed(); return true;
       }
+      if (it.relieve) { // 피로회복제: 피로도를 고정값만큼 줄임(스킬을 배우기 전에는 피로도가 쌓이지 않아 쓸 일이 없음)
+        if (S.fatigue <= 0) { this.toast("지금은 피로도가 쌓이지 않았습니다.", "warn"); return false; }
+        const before = S.fatigue; this.takeItem(id, 1); this.relieve("item", it.relieve, it.name);
+        this.toast(it.name + " 사용 — 피로도 −" + Math.round((before - S.fatigue) * 10) / 10 + " (현재 " + S.fatigue + " / " + S.fatigueMax + ")", "item"); this.save("tonic"); return true;
+      }
       if (S.hp >= max) { this.toast("HP가 이미 가득 찼습니다.", "warn"); return false; }
       this.takeItem(id, 1); S.hp = Math.min(max, S.hp + it.heal);
       AU.Ev.emit("floater", { text: "+" + it.heal, color: "#6BCB77", onPlayer: true });
@@ -356,7 +361,7 @@ window.AU = window.AU || {};
       this.changed();
     },
     setFatigueMax(n) { this.S.fatigueMax = Math.max(1, Math.round(n)); this.S.fatigue = Math.min(this.S.fatigue, this.S.fatigueMax); this.changed(); },
-    // 피로도 줄이기. source = 'mission' | 'currency' | 'weekly' | 'dev'
+    // 피로도 줄이기. source = 'mission' | 'item' | 'weekly' | 'dev'
     relieve(source, amount, reason) { this.setFatigue(this.S.fatigue - amount, source); AU.Ev.emit("recover", { source, amount, reason }); },
     restMission(id) { return AU.REST_MISSIONS.find((m) => m.id === id); },
     // 선택형 '쉼' 현실 미션: 하루에 같은 미션은 한 번. 자기보고이며 마음 스탯·훈련 포인트와는 무관
@@ -378,18 +383,6 @@ window.AU = window.AU || {};
       const before = S.fatigue; if (first) { S.rest.recoverDay = AU.dateStr(); this.relieve("mission", m.recover, m.title); }
       this.log("쉼 미션 완료: " + m.title); this.toast(first ? "쉼 미션 완료! 피로도 −" + Math.round((before - S.fatigue) * 10) / 10 + " (현재 " + S.fatigue + " / " + S.fatigueMax + ")" : "쉼 활동을 기록했어요. 피로도 회복은 하루 한 번이에요.", "good");
       this.save("rest"); return true;
-    },
-    // 은화로 쉬기: 막다른 길이 없도록 현실 미션 없이도 가능. 하루 횟수 제한(임시)
-    restPrice() { return C.fatigue.restSilverBase + this.S.level * C.fatigue.restSilverPerLevel; },
-    restSilverLeft() { const t = this.S.rest.silverToday; return t.d === AU.dateStr() ? Math.max(0, C.fatigue.restDailyLimit - t.n) : C.fatigue.restDailyLimit; },
-    restWithSilver() {
-      const S = this.S, price = this.restPrice();
-      if (S.fatigue <= 0) { this.toast("지금은 피로도가 쌓이지 않았습니다.", "info"); return false; }
-      if (this.restSilverLeft() <= 0) { this.toast("오늘은 더 쉴 수 없습니다. (하루 " + C.fatigue.restDailyLimit + "회)", "warn"); return false; }
-      if (S.silver < price) { this.toast("은화가 부족합니다. (필요 " + price + ")", "warn"); return false; }
-      S.silver -= price; const t = S.rest.silverToday; if (t.d !== AU.dateStr()) { t.d = AU.dateStr(); t.n = 0; } t.n++;
-      const before = S.fatigue; this.relieve("currency", C.fatigue.restSilverRecover, "휴식");
-      this.toast("휴식했습니다. 피로도 −" + Math.round((before - S.fatigue) * 10) / 10 + " (은화 −" + price + ")", "good"); this.save("rest"); return true;
     },
     refreshWeekly(force) {
       const S = this.S, wk = AU.weekId();
