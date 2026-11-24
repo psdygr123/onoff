@@ -385,20 +385,23 @@ AU.QKIND = {
 // 색의 원본은 위 표 한 곳: CSS 변수(--qk-종류, -d, -l, -bg)로 내보내 화면 스타일이 같은 값을 씁니다.
 (() => { const r = document.documentElement.style; for (const [k, v] of Object.entries(AU.QKIND)) { r.setProperty("--qk-" + k, v.color); r.setProperty("--qk-" + k + "-d", v.colorDark); r.setProperty("--qk-" + k + "-l", v.colorLight); r.setProperty("--qk-" + k + "-bg", v.bg); } })();
 AU.questKind = (id) => { const q = AU.QUESTS[id]; return q && q.type === "sub" ? "sub" : "main"; };
-// NPC가 지금 줄 수 있는/받을 수 있는 퀘스트 표시: { mark: "?"(완료 가능)|"★"|"!", kind } 또는 null. 완료 가능이 새 의뢰보다, 메인이 서브보다 먼저 보입니다.
+// NPC 머리 위 표시(11-24 통일): 새 의뢰 = 메인 노란 ? / 서브 파란 ?, 완료·보고·대화 대상 = 주황 ▼. 반환: { mark, kind, color } 또는 null (보고 대기가 새 의뢰보다, 메인이 서브보다 먼저 보임)
+AU.QMARK = { offer: { main: "#E8B52E", sub: "#4C8DC6" }, turnin: "#E8772E" };
 AU.npcQuestMark = (npcId) => {
   const d = AU.NPCS[npcId]; if (!d) return null;
   let ready = null, avail = null;
+  const better = (cur, k) => !cur || (k === "main" && cur.kind !== "main");
   for (const id of d.quests || []) {
     const s = AU.G.questStatus(id), k = AU.questKind(id), q = AU.QUESTS[id];
-    if (s === "ready" && (q.turnIn || q.giver) === npcId && (!ready || (k === "main" && ready.kind !== "main"))) ready = { mark: "?", kind: k };
-    if (s === "available" && q.giver === npcId && (!avail || (k === "main" && avail.kind !== "main"))) avail = { mark: AU.QKIND[k].icon, kind: k };
+    if (s === "ready" && (q.turnIn || q.giver) === npcId && better(ready, k)) ready = { mark: "▼", kind: k, color: AU.QMARK.turnin };
+    if (s === "available" && q.giver === npcId && better(avail, k)) avail = { mark: "?", kind: k, color: AU.QMARK.offer[k] };
   }
-  /* 11-24: 진행 중인 의뢰에서 "이 사람에게 말을 걸어라"가 남아 있으면 머리 위에 ? 배지로 먼저 알려 줌(대화 후에 뜨던 ?를 대화 전에도 보이게. 보고 대기·새 의뢰 표시가 우선) */
+  /* 진행 중인 의뢰에서 이 NPC에게 말을 걸거나 결과를 알려야 하면(마지막 단계의 보고 포함) 머리 위에 ▼ (보고 대기·새 의뢰 표시가 우선) */
   let talk = null;
   if (!ready && !avail && AU.G && AU.G.S) for (const id of Object.keys(AU.G.S.quests || {})) {
     const rec = AU.G.S.quests[id], q = AU.QUESTS[id]; if (!q || !rec || rec.state !== "active") continue;
-    if (q.objectives.some((o, i) => o.kind === "talk" && o.target === npcId && !AU.G.objectiveDone(q, rec, i))) { const k = AU.questKind(id); if (!talk || (k === "main" && talk.kind !== "main")) talk = { mark: "?", kind: k }; }
+    const others = q.objectives.every((o, i) => o.kind === "talk" || o.kind === "choice" || AU.G.objectiveDone(q, rec, i));
+    if (q.objectives.some((o, i) => o.target === npcId && (o.kind === "talk" || (o.kind === "choice" && others)) && !AU.G.objectiveDone(q, rec, i))) { const k = AU.questKind(id); if (better(talk, k)) talk = { mark: "▼", kind: k, color: AU.QMARK.turnin }; }
   }
   return ready || avail || talk;
 };

@@ -22,16 +22,16 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
     // Q2 NPC 표시: 새 메인 → ★, 새 서브만 → !, 메인+서브 → ★(메인 우선), 완료 가능 → ?(같은 종류)
     const m1 = await ev(() => AU.npcQuestMark('porto_dock'));
-    check('Q2a 새 메인 의뢰 NPC는 ★/main', m1 && m1.mark === '★' && m1.kind === 'main', m1);
+    check('Q2a 새 메인 의뢰 NPC는 노란 ?/main', m1 && m1.mark === '?' && m1.kind === 'main' && m1.color === '#E8B52E', m1);
     await done(['q_s1_silver', 'q_s1_test', 'q_first', 'q_forest', 'q_guild_talk']); await ev(() => { AU.G.S.level = 5; });
     const m2 = await ev(() => ({ guild: AU.npcQuestMark('porto_guild'), foreman: AU.npcQuestMark('porto_foreman') }));
-    check('Q2b 길드 접수원(서브만)은 !/sub, 십장(변형의 흔적 메인 가능)은 ★', m2.guild && m2.guild.mark === '!' && m2.guild.kind === 'sub' && m2.foreman && m2.foreman.mark === '★' && m2.foreman.kind === 'main', m2);
+    check('Q2b 길드 접수원(서브만)은 !/sub, 십장(변형의 흔적 메인 가능)은 ★', m2.guild && m2.guild.mark === '?' && m2.guild.color === '#4C8DC6' && m2.guild.kind === 'sub' && m2.foreman && m2.foreman.mark === '?' && m2.foreman.kind === 'main', m2);
     await done(['q_guild_rats']);
     const m3 = await ev(() => AU.npcQuestMark('porto_foreman'));
-    check('Q2c 메인+서브가 함께 있으면 메인 ★ 우선', m3 && m3.mark === '★' && m3.kind === 'main', m3);
+    check('Q2c 메인+서브가 함께 있으면 메인 ★ 우선', m3 && m3.mark === '?' && m3.kind === 'main', m3);
     await ev(() => { AU.G.S.quests.q_guild_crabs = { state: 'ready', prog: [5], spots: {} }; });
     const m4 = await ev(() => AU.npcQuestMark('porto_guild'));
-    check('Q2d 완료 가능은 ? + 같은 종류(sub)', m4 && m4.mark === '?' && m4.kind === 'sub', m4);
+    check('Q2d 완료 가능은 주황 ▼', m4 && m4.mark === '▼' && m4.kind === 'sub' && m4.color === '#E8772E', m4);
     await ev(() => { delete AU.G.S.quests.q_guild_crabs; });
 
     // Q3 알림 문구: 메인/서브 수락 알림(아이콘+종류)
