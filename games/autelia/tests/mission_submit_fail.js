@@ -13,7 +13,7 @@ const URL = process.env.GAME_URL || 'http://localhost:8801';
   await p.setInputFiles('.modal input[type=file]', { name: 'a.png', mimeType: 'image/png', buffer: png });
   const sels = await p.$$('.modal select'); for (const s of sels) await s.selectOption('3');
   await p.evaluate(() => AU.G.setMissionState('m_e5', 'skip'));   // 제출 직전에 상태가 바뀐 상황
-  await p.click('text=평가하고 완료하기'); await p.waitForTimeout(600);
+  await p.click('text=기록하고 완료하기'); await p.waitForTimeout(600);
   const r = await p.evaluate(async () => {
     const db = await AU.MissionEvidence.db(); const n = await new Promise(res => { const q = db.transaction('photos').objectStore('photos').count(); q.onsuccess = () => res(q.result); });
     return { state: AU.G.ms('m_e5').state, photos: n, toast: document.body.innerText.includes('기록할 수 없습니다'), modalOpen: !document.querySelector('.modal') };
@@ -23,7 +23,7 @@ const URL = process.env.GAME_URL || 'http://localhost:8801';
   await p.evaluate(() => { AU.G.setMissionState('m_e5', 'retry'); AU.UI.missionReview(AU.G.mission('m_e5'), 'done', (f, e) => AU.G.setMissionState('m_e5', 'done', f, e)); });
   await p.setInputFiles('.modal input[type=file]', { name: 'a.png', mimeType: 'image/png', buffer: png });
   for (const s of await p.$$('.modal select')) await s.selectOption('4');
-  await p.click('text=평가하고 완료하기'); await p.waitForTimeout(600);
+  await p.click('text=기록하고 완료하기'); await p.waitForTimeout(600);
   const r2 = await p.evaluate(async () => { const db = await AU.MissionEvidence.db(); const n = await new Promise(res => { const q = db.transaction('photos').objectStore('photos').count(); q.onsuccess = () => res(q.result); }); return { state: AU.G.ms('m_e5').state, photos: n }; });
   T('정상 완료', r2.state === 'done', r2); T('정상 경로 사진 1장 보관', r2.photos === 1, r2.photos);
   T('페이지 오류 없음', errs.length === 0, errs); console.log(fail ? 'FAILED ' + fail : 'ALL PASS'); await b.close(); process.exit(fail ? 1 : 0);
