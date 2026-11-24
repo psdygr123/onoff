@@ -181,7 +181,7 @@ AU.MONSTERS = {
   wild_boar: { motion: "leap", name: "굶주린 멧돼지", lv: 7, hp: 230, atk: 33, speed: 95, windT: 0.75, chargeT: 0.5, chargeSpd: 3.4, recoverT: 1.2, chase: 200, w: 96, h: 58, exp: 260, silver: [4, 12], silverRate: 0.14, drops: [["boar_tusk", 0.15], ["potion", 0.05]], color: "#7A5C45", sprite: "mon_boar", walk: ["mon_boar_w1", "mon_boar_w2", "mon_boar_w3", "mon_boar_w4"], walkIdle: "mon_boar", pWind: "mon_boar_a1", pLunge: "mon_boar_a2", walkRefW: 480, frameLen: 26, sw: 150 },
   snake: { motion: "coil", name: "뱀", lv: 1, hp: 51, atk: 8, speed: 70, chase: 130, w: 90, h: 34, exp: 50, silver: [1, 4], silverRate: 0.1, drops: [["snake_skin", 0.15], ["snake_fang", 0.07], ["potion", 0.05], ["snake_ring", 0.012]], color: "#7DBE6B", snake: true, sprite: "mon_snake", walk: ["mon_snake_w1", "mon_snake_w2", "mon_snake_w3", "mon_snake_w4"], walkIdle: "mon_snake", walkRefW: 250, pWind: "mon_snake_w5", pLunge: "mon_snake_w6", frameLen: 24, sw: 128 },
   rat:   { motion: "scurry", name: "부두 쥐", lv: 5, hp: 144, atk: 22, speed: 100, chase: 160, w: 70, h: 46, exp: 170, silver: [3, 10], silverRate: 0.14, drops: [["rat_tooth", 0.15, 1, 2], ["black_crystal", 0.4, 1, 1, "q_a1_variant"], ["potion", 0.05]], color: "#A79C94", ear: true, sprite: "mon_rat", walk: ["mon_rat_w1", "mon_rat_w2", "mon_rat_w3", "mon_rat_w4"], walkIdle: "mon_rat", walkRefW: 190, pWind: "mon_rat_w5", pLunge: "mon_rat_w6", frameLen: 24, sw: 88 },
-  crab:  { motion: "sidestep", name: "집게 게", lv: 6, hp: 185, atk: 26, speed: 60, chase: 150, w: 92, h: 56, exp: 190, silver: [5, 14], silverRate: 0.16, drops: [["black_crystal", 0.35, 1, 1, "q_a1_variant"], ["crab_claw", 0.15, 1, 2], ["crab_shell", 0.07], ["potion", 0.06], ["crab_vest", 0.01]], color: "#E9777A", crab: true, sprite: "mon_crab", walk: ["mon_crab_w1", "mon_crab_w2", "mon_crab_w3", "mon_crab_w4"], walkIdle: "mon_crab", walkRefW: 250, pWind: "mon_crab_w5", pLunge: "mon_crab_w6", frameLen: 24, sw: 116 },
+  crab:  { motion: "sidestep", name: "집게 게", lv: 6, hp: 185, atk: 26, speed: 60, chase: 150, w: 92, h: 56, exp: 190, silver: [5, 14], silverRate: 0.16, drops: [["crab_claw", 0.15, 1, 2], ["crab_shell", 0.07], ["potion", 0.06], ["crab_vest", 0.01]], color: "#E9777A", crab: true, sprite: "mon_crab", walk: ["mon_crab_w1", "mon_crab_w2", "mon_crab_w3", "mon_crab_w4"], walkIdle: "mon_crab", walkRefW: 250, pWind: "mon_crab_w5", pLunge: "mon_crab_w6", frameLen: 24, sw: 116 },
   trial_boss: { name: "움브라", lv: 10, hp: 1500, atk: 44, patterns: ["lunge", "slam", "wave"], ragePatterns: ["chain"], slamR: 180, cd: 2.2, cdRage: 1.5, speed: 75, chase: 420, w: 240, h: 150, exp: 600, silver: [60, 80], silverRate: 1, drops: [], color: "#9B7FD1", boss: true, motion: "swing",
     sprite: "mon_umbra_base", sw: 300, refW: 345, poses: { idle: "mon_umbra_base", walkA: "mon_umbra_walkA", walkB: "mon_umbra_walkB", windup: "mon_umbra_windup", attack: "mon_umbra_attack", hurt: "mon_umbra_hurt", down: "mon_umbra_down" } }
 };
@@ -342,9 +342,9 @@ AU.QUESTS = {
   },
   q_a1_variant: {
     title: "변형의 흔적", type: "main", giver: "porto_foreman", minLevel: 5, pre: ["q_guild_talk"],
-    area: "docks", desc: "선창의 부두 쥐와 집게 게에게서 검은 결정 3개를 구해 길드장에게 가져갑니다.", objectives: [{ kind: "collect", item: "black_crystal", count: 3 }],
-    offer: ["이제 제법 자랐으니, 자네에게도 어려운 의뢰를 맡겨 봐야겠군.", "최근 이 일대 몬스터들이 이상하게 변하고 있네. 몇 가지 확인할 것이 있어.", "변형된 놈들의 몸에서 검은 결정이 나온다는 말이 있네. 그 결정 세 개를 구해 와 주게. 선창 쪽에서 본 놈들이 유독 수상하네. 부두의 쥐든, 외곽의 집게 게든 상관없네."],
-    reminder: ["검은 결정은 선창의 부두 쥐나 집게 게를 쓰러뜨리면 나올 걸세. 세 개를 모아 오게."],
+    area: "docks", desc: "선창 외곽의 부두 쥐에게서 검은 결정 3개를 구해 길드장에게 가져갑니다.", objectives: [{ kind: "collect", item: "black_crystal", count: 3 }],
+    offer: ["이제 제법 자랐으니, 자네에게도 어려운 의뢰를 맡겨 봐야겠군.", "최근 이 일대 몬스터들이 이상하게 변하고 있네. 몇 가지 확인할 것이 있어.", "변형된 놈들의 몸에서 검은 결정이 나온다는 말이 있네. 그 결정 세 개를 구해 와 주게. 선창 쪽에서 본 놈들이 유독 수상하네. 특히 선창 외곽의 부두 쥐를 눈여겨보게."],
+    reminder: ["검은 결정은 선창 외곽의 부두 쥐를 쓰러뜨리면 나올 걸세. 세 개를 모아 오게."],
     done: ["...이게 검은 결정인가. 만져 보니 차갑고, 안쪽에 붉은 줄이 비치는군.", "자연히 생기는 물건이 아니야. 누군가 일부러 몬스터를 변형시키고 있다는 뜻이지.", "길드가 따로 알아보겠네. 레벨이 6이 되면 다시 오게. 자네에게 맡길 일이 또 있을 걸세."],
     reward: { exp: 1000, silver: 80, items: [] }
   },
