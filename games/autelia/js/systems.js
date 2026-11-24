@@ -360,15 +360,23 @@ window.AU = window.AU || {};
     relieve(source, amount, reason) { this.setFatigue(this.S.fatigue - amount, source); AU.Ev.emit("recover", { source, amount, reason }); },
     restMission(id) { return AU.REST_MISSIONS.find((m) => m.id === id); },
     // 선택형 '쉼' 현실 미션: 하루에 같은 미션은 한 번. 자기보고이며 마음 스탯·훈련 포인트와는 무관
-    restMissionAvailable(id) { return this.S.flags.missionsUnlocked && this.S.skills.unlocked.length > 0 && this.S.rest.done[id] !== AU.dateStr(); },
+    restDaily() { // 11-24: 쉼 미션은 하루 5개씩, 날마다 다른 조합(id 순서를 5개씩 돌려 가며 보여 줌 — 같은 날엔 항상 같은 5개)
+      const pool = AU.REST_MISSIONS.slice().sort((a, b) => (a.id < b.id ? -1 : 1)), n = pool.length, cnt = Math.min(5, n);
+      const [y, mo, d] = AU.dateStr().split("-").map(Number), day = Math.floor(Date.UTC(y, mo - 1, d) / 86400000), start = (day * cnt) % n;
+      return Array.from({ length: cnt }, (_, i) => pool[(start + i) % n]);
+    },
+    restMissionAvailable(id) { return this.S.flags.missionsUnlocked && this.S.skills.unlocked.length > 0; },   // 11-24: 쉼 활동은 하루에 몇 번이든 할 수 있음(피로도 회복만 하루 1회)
+    restRecoverLeft() { return this.S.rest.recoverDay !== AU.dateStr(); },
+    restDoneToday(id) { const t = AU.dateStr(); return (this.S.rest.log || []).filter((e) => e.t === t && e.id === id).length; },
     restNoteOk(note) { return !!(note && typeof note === 'object' && ['calm', 'same', 'mixed', 'tense', 'other'].includes(note.feeling)); }, // 감정 선택 필수, 자유 소감은 선택
     doRestMission(id, note) {
       const S = this.S, m = this.restMission(id); if (!m || !this.restMissionAvailable(id)) return false;
       if (!this.restNoteOk(note)) { this.toast("활동 후 느낀 상태를 한 가지 선택해 주세요.", "warn"); return false; }
       const text = String(note.note || "").replace(/\s+/g, " ").trim().slice(0, C.fatigue.restNoteMax);
-      S.rest.done[id] = AU.dateStr(); S.rest.log.push({ t: AU.dateStr(), id, recover: m.recover, feeling: note.feeling, note: text, proof: "self_report" }); if (S.rest.log.length > 200) S.rest.log.shift();
-      const before = S.fatigue; this.relieve("mission", m.recover, m.title);
-      this.log("쉼 미션 완료: " + m.title); this.toast("쉼 미션 완료! 피로도 −" + Math.round((before - S.fatigue) * 10) / 10 + " (현재 " + S.fatigue + " / " + S.fatigueMax + ")", "good");
+      const first = this.restRecoverLeft(), rec = first ? m.recover : 0;   // 피로도 회복은 하루 첫 쉼 활동에만
+      S.rest.done[id] = AU.dateStr(); S.rest.log.push({ t: AU.dateStr(), id, recover: rec, feeling: note.feeling, note: text, proof: "self_report" }); if (S.rest.log.length > 200) S.rest.log.shift();
+      const before = S.fatigue; if (first) { S.rest.recoverDay = AU.dateStr(); this.relieve("mission", m.recover, m.title); }
+      this.log("쉼 미션 완료: " + m.title); this.toast(first ? "쉼 미션 완료! 피로도 −" + Math.round((before - S.fatigue) * 10) / 10 + " (현재 " + S.fatigue + " / " + S.fatigueMax + ")" : "쉼 활동을 기록했어요. 피로도 회복은 하루 한 번이에요.", "good");
       this.save("rest"); return true;
     },
     // 은화로 쉬기: 막다른 길이 없도록 현실 미션 없이도 가능. 하루 횟수 제한(임시)
@@ -635,7 +643,7 @@ window.AU = window.AU || {};
       const tried = {}; for (const m of AU.MISSIONS) if (M.states[m.id] && M.states[m.id].state === "done") tried[m.perma] = (tried[m.perma] || 0) + 1;
       const rows = [];
       for (const m of AU.MISSIONS) {
-        const st = (M.states[m.id] || {}).state; if (!AU.MISSION_ACTIVE.includes(st) || M.recoHidden.includes(m.id) || M.favorites.includes(m.id)) continue;
+        const st = (M.states[m.id] || {}).state; if (st !== "available" || M.recoHidden.includes(m.id) || M.favorites.includes(m.id)) continue;
         let sc = 0; const why = [];
         if (pr.areas.includes(m.functionArea)) { sc += 3; why.push("직접 고르신 관심 영역 '" + A[m.functionArea] + "'"); }
         if (pr.maxMin && m.minutes <= pr.maxMin) { sc += 2; why.push("권장 시간 " + m.minutes + "분 — 선택하신 " + pr.maxMin + "분 이내"); }

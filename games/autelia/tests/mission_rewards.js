@@ -60,7 +60,7 @@ const URL = process.env.GAME_URL || 'http://localhost:8801';
   await p.waitForTimeout(300);
   const reward = await p.evaluate(() => document.querySelector('.mission .note.reward') && document.querySelector('.mission .note.reward').textContent);
   T('진행 중 카드에 예상 보상 표시', /예상 보상/.test(reward || '') && /인증하면/.test(reward || ''), reward);
-  await p.evaluate(() => { AU.UI.tab.missionStatus = 'done'; AU.UI.renderWin(); }); await p.waitForTimeout(200);
+  await p.evaluate(() => { AU.UI.tab.j = 'record'; AU.UI.renderWin(); }); await p.waitForTimeout(200);
   const btnTxt = await p.evaluate(() => [...document.querySelectorAll('.mission[data-mid="' + window.__m + '"] .macts .btn')].map(x => x.textContent));
   T('완료 카드에 인증 버튼', btnTxt.includes('인증하고 남은 보상 받기'), btnTxt);
   const tok0 = await p.evaluate(() => AU.G.galleryState().tokens);
