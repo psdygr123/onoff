@@ -10,7 +10,7 @@ window.AU = window.AU || {};
     load() {
       for (const [key, spec] of Object.entries(AU.ASSETS)) {
         const im = new Image(); const rec = { image: im, ok: false, frames: spec.frames || 1 };
-        im.onload = () => { rec.ok = true; rec.done = true; if (!rec.orig) rec.orig = im; if (AU.Tint) AU.Tint.onLoaded(key); };
+        im.onload = () => { rec.ok = true; rec.done = true; if (!rec.orig) rec.orig = im; if (AU.Tint) AU.Tint.onLoaded(key); const w = rec.waiters; rec.waiters = null; if (w) w.forEach((f) => { try { f(); } catch (e) { /* 무시 */ } }); };
         im.onerror = () => { rec.done = true; if (spec.optional) { console.info("[아우텔리아] 선택 그림 없음(임시 도형으로 표시):", spec.path); return; } this.missing.add(key); console.warn("[아우텔리아] 이미지 누락, 대체 그래픽으로 표시:", spec.path); };
         im.src = spec.path; this.map[key] = rec;
       }
@@ -22,6 +22,8 @@ window.AU = window.AU || {};
       return new Promise((res) => { const t0 = Date.now(); const tick = () => { if (!open().length || Date.now() - t0 > (maxMs || 10000)) res(open().length); else setTimeout(tick, 80); }; tick(); });
     },
     has(key) { return !!(this.map[key] && this.map[key].ok); },
+    /* 아직 불러오는 중인 그림이 도착하면 fn 실행(대화창이 대체 그림으로 굳는 것을 막음). 이미 끝났으면 false */
+    onReady(key, fn) { const r = this.map[key]; if (!r || r.done) return false; (r.waiters = r.waiters || []).push(fn); return true; },
     get(key) { return this.map[key] && this.map[key].image; }
   };
 
