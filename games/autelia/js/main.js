@@ -3,7 +3,12 @@ window.AU = window.AU || {};
 (function () {
   const C = AU.CONFIG;
   const embedded = window.parent !== window;
-  const main = AU.main = { embedded, galleryOnly: /[?&]space=1(?:&|$)/.test(location.search), resetting: false, running: false, platform: null, post(type, payload) { if (embedded) { try { parent.postMessage({ source: "onoff-game", type, payload }, "*"); } catch (e) { /* 무시 */ } } } };
+  const main = AU.main = { embedded, galleryOnly: /[?&]space=1(?:&|$)/.test(location.search), resetting: false, running: false, platform: null, post(type, payload) { if (embedded) { try { parent.postMessage({ source: "onoff-game", type, payload }, main.targetOrigin()); } catch (e) { /* 무시 */ } } } };
+  /* 보안: 부모 창(같은 출처)에서 온 메시지만 믿고, 보낼 때도 같은 출처로만 보냅니다. file:// 처럼 출처가 "null"이면 어쩔 수 없이 "*" */
+  main.targetOrigin = () => (location.origin && location.origin !== "null" ? location.origin : "*");
+  main.trusted = (e) => e.source === window.parent && (location.origin === "null" || e.origin === location.origin);
+  /* 개발용 주소(?dev=1, F2 개발창)는 내 컴퓨터(localhost)에서만 켜집니다. */
+  main.isLocalHost = () => /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
 
   /* ---------- 설정(키 배치 등): 게임 저장과 분리 ---------- */
   main.saveSettings = function () { AU.Store.set(C.save.settingsKey, { v: 1, bindings: AU.Input.bindings, confirmUnload: AU.UI.settings.confirmUnload, reduceFx: !!AU.UI.settings.reduceFx, mute: !!AU.UI.settings.mute, volBgm: AU.UI.settings.volBgm, volSfx: AU.UI.settings.volSfx, volCombat: AU.UI.settings.volCombat }); };
@@ -29,7 +34,7 @@ window.AU = window.AU || {};
       if (!embedded) return resolve();
       let done = false; const fin = () => { if (!done) { done = true; resolve(); } };
       window.addEventListener("message", (e) => {
-        const m = e.data; if (!m || m.source !== "onoff-platform") return;
+        if (!main.trusted(e)) return; const m = e.data; if (!m || m.source !== "onoff-platform") return;
         if (m.type === "init") { main.platform = m; if (m.saveKey) AU.Store.ns = "onoff:" + String(m.saveKey).slice(0, 80); fin(); }
       });
       main.post("ready"); setTimeout(fin, 900);
@@ -76,7 +81,7 @@ window.AU = window.AU || {};
     fit(); window.addEventListener("resize", fit);
     AU.Img.load();
     await handshake();
-    AU.UI.devVisible = /[?&]dev=1/.test(location.search);
+    AU.UI.devVisible = main.isLocalHost() && /[?&]dev=1/.test(location.search);
     main.slot = main.activeSlot(); C.save.key = main.slotKey(main.slot);
     const saved = AU.G.load(), state = saved || AU.newState();
     AU.G.init(state);
@@ -88,7 +93,7 @@ window.AU = window.AU || {};
     AU.Input.attach();
     AU.Input.handlers.push((id) => { if (!main.running) return; if (AU.UI.onAction(id)) return; AU.World.onAction(id); });
     AU.Input.rawHandlers.push((e) => {
-      if (e.code === "F2" && main.running) { AU.UI.devVisible = true; AU.UI.toggleWin("dev"); return true; }
+      if (e.code === "F2" && main.running && main.isLocalHost()) { AU.UI.devVisible = true; AU.UI.toggleWin("dev"); return true; }
       return false;
     });
 
@@ -106,7 +111,7 @@ window.AU = window.AU || {};
     window.addEventListener("beforeunload", (e) => { flush(); if (main.running && !main.resetting && AU.UI.settings.confirmUnload && !embedded) { e.preventDefault(); e.returnValue = ""; } });
     AU.Ev.on("levelup", main.reportProgress); AU.Ev.on("jobchange", main.reportProgress);
     AU.Ev.on("saved", (d) => { if (d.reason !== "autosave") main.reportProgress(); });
-    window.addEventListener("message", (e) => { const m = e.data; if (m && m.source === "onoff-platform" && m.type === "pause") AU.Input.held.clear(); });
+    window.addEventListener("message", (e) => { if (!main.trusted(e)) return; const m = e.data; if (m && m.source === "onoff-platform" && m.type === "pause") AU.Input.held.clear(); });
 
     // 누락 이미지 경고: 멈추지 않고 대체 그래픽으로 표시
     setTimeout(() => { if (AU.Img.missing.size) AU.UI.toast("이미지 " + AU.Img.missing.size + "개를 불러오지 못해 대체 그래픽으로 표시 중입니다.", "warn"); }, 2500);

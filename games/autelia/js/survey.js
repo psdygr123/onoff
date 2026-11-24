@@ -16,7 +16,7 @@ window.AU = window.AU || {};
     PHASES, KEYS,
     scale(key) { return AU.SCALES[KEYS[key]]; },
     keyOfInstrument(id) { return Object.keys(KEYS).find((k) => this.scale(k).id === id); },
-    enabled() { return !!(C.survey.enabled || /[?&]survey=1/.test(location.search) || this._on === true); },
+    enabled() { return !!(C.survey.enabled || (/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname) && /[?&]survey=1/.test(location.search)) || this._on === true); },
     setEnabled(v) { this._on = !!v; AU.Ev && AU.Ev.emit("changed"); },
 
     /* ---------- 저장: 게임 저장과 다른 키 ---------- */
