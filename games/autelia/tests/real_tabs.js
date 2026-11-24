@@ -1,4 +1,4 @@
-/* 현실 활동 탭 3개(내 활동·마음 기록·쉼) 시험: 진행 중 + 추천 1~2개, 완료 목록, 쉼 하루 5개·날마다 다름 */
+/* 일상 활동 탭 3개(내 활동·마음 기록·쉼) 시험: 진행 중 + 추천 1~2개, 완료 목록, 쉼 하루 5개·날마다 다름 */
 const { chromium } = require('playwright');
 (async () => {
   const b = await chromium.launch(); let fails = 0; const ck = (k, ok, ev) => { console.log((ok ? 'PASS ' : 'FAIL ') + k + (ev ? ' :: ' + ev : '')); if (!ok) fails++; };

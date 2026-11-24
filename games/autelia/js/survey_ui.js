@@ -62,7 +62,7 @@ window.AU = window.AU || {};
 
   function listView(d, rerender) {
     const v = h("div", null, h("h3", { text: "나의 마음 점검" }),
-      h("p", { class: "note", text: "원할 때마다 척도를 해 보고, 시간이 지나며 내가 어떻게 달라지는지 그래프로 확인하는 개인 기록입니다. 횟수 제한이 없고, 하지 않아도 모험에는 아무 영향이 없으며 피로도·은화·전투 능력에도 반영되지 않습니다. 위의 ‘마음 능력치’(현실 미션 활동 기록)와는 별개의 기록입니다." }));
+      h("p", { class: "note", text: "원할 때마다 척도를 해 보고, 시간이 지나며 내가 어떻게 달라지는지 그래프로 확인하는 개인 기록입니다. 횟수 제한이 없고, 하지 않아도 모험에는 아무 영향이 없으며 피로도·은화·전투 능력에도 반영되지 않습니다. 위의 ‘마음 능력치’(일상 미션 활동 기록)와는 별개의 기록입니다." }));
     for (const key of Object.keys(S.KEYS)) {
       const s = S.scale(key), hist = S.history(key), dr = d.drafts[S.dk(key, "check")], n = dr ? Object.keys(dr.responses).length : 0;
       const sec = h("div", { class: "svlist", "data-scale": key }, h("h4", { class: "svh4", text: NAMES[key] + " · " + s.itemCount + "문항" }));
@@ -94,7 +94,7 @@ window.AU = window.AU || {};
 
   function formView(rerender) {
     const key = state.key, s = S.scale(key), P = S.PHASES.find((p) => p.id === state.phase), dr = S.draftFor(key, state.phase);
-    const prog = h("span", { class: "svprog", "aria-live": "polite" }), next = btn("답을 확인하고 제출하기", "primary", () => { state.view = "confirm"; rerender(); }, { "data-act": "review" });
+    const prog = h("span", { class: "svprog", "aria-live": "polite" }), next = btn("응답 제출하기", "primary", () => { state.view = "confirm"; rerender(); }, { "data-act": "review" });
     const update = () => { const n = Object.keys(S.draftFor(key, state.phase).responses).length; prog.textContent = "응답 " + n + " / " + s.itemCount; next.disabled = n < s.itemCount; };
     const scale = h("div", { class: "svscale" + (key === "perma" ? " sv11" : ""), role: "group", "aria-label": s.title });
     if (s.instruction) scale.append(h("p", { class: "svinst", text: s.instruction }));
@@ -111,9 +111,9 @@ window.AU = window.AU || {};
       fs.append(opts); scale.append(fs);
     }
     update();
-    const hint = key === "perma" ? "0은 가장 낮은 쪽, 10은 가장 높은 쪽입니다(이 설명은 게임 안내이며 척도 원문이 아닙니다). " : "";
+    const hint = key === "perma" ? "0은 가장 낮은 쪽, 10은 가장 높은 쪽입니다. " : "";
     return h("div", null, h("h3", { text: P.label + " · " + NAMES[key] }),
-      h("p", { class: "note", text: hint + "아래 상자 안은 척도 원문입니다. 답을 고르지 않은 문항은 0점으로 처리되지 않습니다. 모두 고르면 제출할 수 있습니다." }),
+      h("p", { class: "note", text: hint + "답을 고르지 않은 문항은 0점으로 처리되지 않습니다. 모두 고르면 제출할 수 있습니다." }),
       scale, h("div", { class: "svfoot" }, prog, h("span", { class: "grow" }), btn("나중에 이어서 하기", "", () => toList(rerender), { "data-act": "later" }), next),
       h("p", { class: "note svsrc", text: "출처: " + s.source.citation }));
   }
@@ -129,7 +129,7 @@ window.AU = window.AU || {};
     }, { "data-act": "submit" });
     go.disabled = !r.valid;
     return h("div", null, h("h3", { text: "제출 전 확인" }), h("p", { class: "svmsg", text: msg }), memoBox,
-      h("div", { class: "svbtns" }, btn("돌아가서 고치기", "", () => { state.view = "form"; rerender(); }, { "data-act": "back" }), go));
+      h("div", { class: "svbtns" }, btn("다시 한 번 검토하기", "", () => { state.view = "form"; rerender(); }, { "data-act": "back" }), go));
   }
 
   function resultView(d, rerender) {
@@ -142,6 +142,8 @@ window.AU = window.AU || {};
       v.append(key === "pss" ? pssResult(sub, cmp) : permaResult(s, sub, pre, cmp));
       if (state.phase !== "pre" && !cmp) v.append(h("p", { class: "note", text: state.phase === "check" ? "이전 기록이 쌓이면 변화를 함께 보여 드립니다." : "비교할 수 있는 ‘시작 전 설문’(같은 문항·채점 버전)이 아직 없습니다." }));
       v.append(h("p", { class: "note", text: "이 점수는 진단이 아니며 ‘정상·위험’ 같은 기준선이 없습니다. 점수가 높거나 낮다고 게임에서 달라지는 것은 없습니다. 힘든 마음이 이어진다면 믿을 수 있는 사람이나 전문가와 이야기해 보세요." }));
+      v.append(h("div", { class: "svhelp", "data-help": "lines" }, h("b", { text: "도움을 받을 수 있는 상담전화" }),
+        h("ul", null, h("li", { text: "자살예방 상담전화 109 (국번 없이, 24시간)" }), h("li", { text: "정신건강 위기상담전화 1577-0199 (24시간)" }), h("li", { text: "청소년전화 1388" }), h("li", { text: "보건복지상담센터 129" }))));   // 보건복지부·여성가족부 운영 전화(2024년 109 통합 안내 기준)
     }
     v.append(h("div", { class: "svbtns" }, btn("목록으로", "", () => toList(rerender), { "data-act": "tolist" })));
     return v;

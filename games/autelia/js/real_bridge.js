@@ -1,4 +1,4 @@
-/* 메인 스토리와 연결하는 선택형 현실 활동 안내. 프롤로그 전개 조건과 무관. */
+/* 메인 스토리와 연결하는 선택형 일상 활동 안내. 프롤로그 전개 조건과 무관. */
 window.AU = window.AU || {};
 (function () {
   "use strict";
@@ -13,7 +13,7 @@ window.AU = window.AU || {};
       if (!S.flags.guideMet) G.discoverMissions();
       return true;
     },
-    // 이야기의 특정 지점을 현실 활동과 연결하되 스토리 완료 조건에 영향을 주지 않습니다.
+    // 이야기의 특정 지점을 일상 활동과 연결하되 스토리 완료 조건에 영향을 주지 않습니다.
     PLACEMENTS: Object.freeze({
       "prologue-temple-complete": { missionId: "m_a3", moment: "신전 건축 완료", mode: "journal", story: "신전을 완성하고 작업을 마무리했습니다." },
       "prologue-banners": { missionId: "m_a4", moment: "축제 깃발 설치 시작", mode: "prompt", story: "축제를 위해 깃발 세 개를 달기로 했습니다." },
@@ -52,7 +52,7 @@ window.AU = window.AU || {};
       if (!cfg) return false;
       const added = this.queue(key, cfg.missionId);
       if (added && AU.G.ms(cfg.missionId).state === "available") {
-        AU.G.toast("모험일지에 선택형 현실 활동을 추천했습니다.", "info");
+        AU.G.toast("모험일지에 선택형 일상 활동을 추천했습니다.", "info");
       }
       return added;
     },
@@ -83,10 +83,10 @@ window.AU = window.AU || {};
         const body = document.createElement("div"); body.className = "note";
         for (const paragraph of description.split("\\n\\n")) {
           const p = document.createElement("p");
-          paragraph.split(/\*\*(.+?)\*\*/).forEach((part, i) => { if (!part) return; if (i % 2) { const em = document.createElement("b"); em.className = "rb-em"; em.textContent = part; p.append(em); } else p.append(document.createTextNode(part)); });   // **강조**: 현실 미션 이름이 눈에 띄게
+          paragraph.split(/\*\*(.+?)\*\*/).forEach((part, i) => { if (!part) return; if (i % 2) { const em = document.createElement("b"); em.className = "rb-em"; em.textContent = part; p.append(em); } else p.append(document.createTextNode(part)); });   // **강조**: 일상 미션 이름이 눈에 띄게
           body.append(p);
         }
-        if (extra && extra.blocks) { // 11-24: 게임 미션 / 현실 미션을 나란히 보여 주고, 핵심 안내는 큰 띠로 강조
+        if (extra && extra.blocks) { // 11-24: 게임 미션 / 일상 미션을 나란히 보여 주고, 핵심 안내는 큰 띠로 강조
           const grid = document.createElement("div"); grid.className = "rb-cards";
           for (const [kind, name, text] of extra.blocks) { const c = document.createElement("div"); c.className = "rb-card " + kind; const h = document.createElement("b"); h.textContent = name; const t = document.createElement("p"); t.textContent = text; c.append(h, t); grid.append(c); }
           body.append(grid);
@@ -155,9 +155,9 @@ window.AU = window.AU || {};
       AU.G.revealMission(missionId);   // 제안을 보여주는 활동은 슬롯과 무관하게 열어 둠
       let answer = "later";
       if (this.visibleInDev()) {
-        answer = await this.prompt("메인 퀘스트와 함께하는 현실 활동",
-          (this.PLACEMENTS[key] ? this.PLACEMENTS[key].story : "메인 스토리 퀘스트를 시작했습니다.") + "\n\n함께 해볼 수 있는 선택형 현실 미션: **" + m.title + " (약 " + m.minutes + "분)** " + m.desc + "\n\n현실 미션을 하지 않아도 메인 스토리는 그대로 진행됩니다.",
-          [{text:"현실 미션도 수락",value:"accept",primary:true},{text:"게임만 진행하기",value:"later"}]);
+        answer = await this.prompt("메인 퀘스트와 함께하는 일상 활동",
+          (this.PLACEMENTS[key] ? this.PLACEMENTS[key].story : "메인 스토리 퀘스트를 시작했습니다.") + "\n\n함께 해볼 수 있는 선택형 일상 미션: **" + m.title + " (약 " + m.minutes + "분)** " + m.desc + "\n\n일상 미션을 하지 않아도 메인 스토리는 그대로 진행됩니다.",
+          [{text:"일상 미션도 수락",value:"accept",primary:true},{text:"게임만 진행하기",value:"later"}]);
       }
       if (answer === "accept") {
         const r = AU.G.ms(missionId);
