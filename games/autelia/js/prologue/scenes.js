@@ -333,21 +333,21 @@ window.AU = window.AU || {};
      SCENE 02 — 빛의 승리 천 년 기념제 (축제 광장)
      ============================================================ */
   /* 11-24 개편(B안): 아이를 일으켜 세우거나 지나치면, 이후 집 앞까지 자동으로 달려감 */
-  const KID = { hold: [["heroS", "비켜요! 놔요...! 아버지!"]], help: [["heroS", "괜찮아? 일어날 수 있겠어?"], ["florist", "아, 아저씨... 다리가 풀려서... 고, 고맙습니다!"], ["heroS", "어서 안전한 곳으로 가! 나는 아버지께 가야 해."]] };
+  const KID = { hold: [["heroS", "비켜요! 놔요...! 아버지!"]], help: [["florist", "으윽... 다리가... 아저씨, 도, 도와주세요..."], ["heroS", "괜찮아? 일어날 수 있겠어?"], ["florist", "다, 다리가 풀려서... 고, 고맙습니다!"], ["heroS", "어서 안전한 곳으로 가! 나는 아버지께 가야 해."]] };
   async function helpKid(kid) {
     const P = AU.Prologue, g = P.gen; if (kid.done || P.v.kidBusy) return; P.v.kidBusy = true; kid.done = true; kid.mark = false; kid.interact = null;
     await P.cutscene(async () => {
-      await P.walkTo(kid.x + 75, 1.4); P.face(-1); P.pose("kneel"); await P.wait(0.4); await P.say(KID.help.slice(0, 1));
-      P.sfx("bag"); await P.tween(kid, { fall: 0 }, 0.8); P.pose(null); await P.say(KID.help.slice(1, 3)); kid.run = true; await P.wait(1.0);
+      await P.walkTo(kid.x + 75, 1.4); P.face(-1); P.pose("kneel"); await P.wait(0.4); await P.say(KID.help.slice(0, 2));
+      P.sfx("bag"); await P.tween(kid, { fall: 0 }, 0.8); P.pose(null); await P.say(KID.help.slice(2, 4)); kid.run = true; await P.wait(1.0);
     }, { bars: false });
     if (!live(P, g)) return; P.setFlag("fallen_kid_helped"); P.v.kidBusy = false; autoRun();
   }
   async function autoRun() {
     const P = AU.Prologue, g = P.gen; if (P.v.autoRun) return; P.v.autoRun = true;
-    await P.cutscene(async () => { P.obj(""); await P.walkTo(70, 2.8); }, { bars: false });
+    await P.cutscene(async () => { P.obj(""); await P.walkTo(70, 2.0); }, { bars: false });
     if (!live(P, g)) return; await go(P, "pro_road", LAY.road.w - 100, (P) => setupRoad(P, "attack", 3));
     if (!live(P, g)) return; P.v.roadAuto = true; P.v.autoRun = false;
-    await P.cutscene(async () => { await P.walkTo(LAY.road.doorX + 70, 2.8); }, { bars: false });
+    await P.cutscene(async () => { await P.walkTo(LAY.road.doorX + 70, 2.0); }, { bars: false });
     if (live(P, g)) houseDoor();
   }
   function setupPlaza(P, variant) {
@@ -377,13 +377,20 @@ window.AU = window.AU || {};
       runnerSpawner(P, 1.6);
       P.setPlatforms([]);   // 11-24 개편: 광장·마을길은 직접 달려 넘지 않고, 쓰러진 아이를 만난 뒤 자동으로 집 앞까지 이동(점프는 탈출 장면에서 안내)
       const kid = P.addEnt({ id: "fallen_kid", x: L.w - 900, range: 120, mark: true, layer: "mid", fall: 1, run: false,
-        interact: { label: "쓰러진 아이를 일으켜 세운다", fn: () => helpKid(kid) },
+        interact: { label: "대화: 쓰러진 아이", fn: () => helpKid(kid) },
         update(e, dt, Q) { if (e.run) { e.x += 280 * dt; if (e.x > L.w + 200) Q.ents = Q.ents.filter((q) => q !== e); } },
-        draw(ctx, e, Q) { const sheet = "pc_villager_b_actions"; ctx.save(); ctx.translate(e.x, G - 4 - (e.run ? Math.abs(Math.sin(Q.time * 11)) * 3 : 0)); ctx.rotate(-Math.PI / 2 * (e.fall || 0));
-          if (!A.spr(ctx, sheet, e.run ? (Math.floor(Q.time * 5.5) % 2 ? "run1" : "run2") : "run1", 0, 0, e.run ? 1 : -1, 0.8)) { ctx.fillStyle = "#9A6F7A"; ctx.fillRect(-14, -70, 28, 60); ctx.fillStyle = "#E8C4A0"; ctx.beginPath(); ctx.arc(0, -82, 13, 0, 7); ctx.fill(); }
+        draw(ctx, e, Q) {   // 11-24: 쓰러진 아이는 어른 시트를 눕히지 않고 아이 그림을 씀(정식 그림 pc_kid_down / pc_kid_run1·2 이 오면 자동 교체, 그 전에는 축제 아이 그림으로 임시 표시)
+          const lying = (e.fall || 0) > 0.05; ctx.save();
+          if (lying && !e.run && A.has("pc_kid_down")) { ctx.translate(e.x, G + 2); A.pic(ctx, "pc_kid_down", 0, 0, 34, -1); }
+          else {
+            ctx.translate(e.x, G - 4 - (e.run ? Math.abs(Math.sin(Q.time * 11)) * 3 : 0)); ctx.rotate(-Math.PI / 2 * (e.fall || 0));
+            const rk = "pc_kid_run" + (Math.floor(Q.time * 5.5) % 2 ? 1 : 2);
+            if (e.run && A.has(rk)) A.pic(ctx, rk, 0, 4, 112, 1);
+            else if (!A.spr(ctx, "pc_festival_child", "stand", 0, 0, e.run ? 1 : -1, 1)) { ctx.fillStyle = "#9A6F7A"; ctx.fillRect(-14, -70, 28, 60); ctx.fillStyle = "#E8C4A0"; ctx.beginPath(); ctx.arc(0, -82, 13, 0, 7); ctx.fill(); }
+          }
           ctx.restore();
           if (e.mark && !Q.locked()) { const by = G - 118 + Math.sin(Q.time * 4) * 4; ctx.fillStyle = "#E8B94E"; ctx.strokeStyle = "#fff"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(e.x - 11, by - 12); ctx.lineTo(e.x + 11, by - 12); ctx.lineTo(e.x, by + 4); ctx.closePath(); ctx.fill(); ctx.stroke(); } } });
-      P.trigger({ id: "kidhint", test: (p) => p.x <= kid.x + 460, fn: () => P.hint("길에 쓰러진 아이가 있어요. 다가가 " + P.keys().act + " 키로 도울 수 있어요. 그냥 지나가도 됩니다.", 6, true) });
+      P.trigger({ id: "kidhint", test: (p) => p.x <= kid.x + 460, fn: () => P.hint("길에 쓰러진 아이가 있어요. 주황색 표시가 있는 아이에게 다가가 " + P.keys().act + " 키로 말을 걸어 보세요.", 6, true) });
       P.trigger({ id: "kidpass", test: (p) => p.x <= kid.x - 240 && !P.v.kidBusy, fn: () => autoRun() });
     }
   }
@@ -398,7 +405,7 @@ window.AU = window.AU || {};
     if (live(P, g)) { P.frozen = true; P.advance("#fff"); }
   }
   SC.SCENE_02_FESTIVAL = { name: "빛의 승리 천 년 기념제", async enter(P) {
-    const g = P.gen; P.room("pro_plaza", LAY.plaza.start, (P) => setupPlaza(P, "peace")); P.amb("crowd", true);
+    const g = P.gen; P.room("pro_plaza", LAY.plaza.start, (P) => setupPlaza(P, "peace"));   // 11-24: 파도 같은 군중 소리를 없애고 축제 배경음(festival.mp3)으로 대체
     await P.cutscene(async () => { await P.fade(0, 1.4); });   // 시작부터 박수·함성은 없음(11-17): 주민과 대화할 때 환호가 일어남
     if (!live(P, g)) return; P.obj(OBJ.s2_talk); P.hint("축제가 시작되어 마을길로는 돌아갈 수 없습니다. 광장에서 이야기를 나눠 보세요.", 6);
   } };
@@ -475,7 +482,7 @@ window.AU = window.AU || {};
     await P.cutscene(async () => { // CS-03 아버지의 유언
       P.obj(""); P.amb("raid_far", true); P.face(1);
       await P.say([T.will[0]]); await P.walkTo(Math.max(612, AU.World.player.x), 1.2); await P.say([T.will[1]]); P.pose("kneel"); P.zoomTo(1.25, 1.6, 700, 450); await P.wait(1.0);
-      await P.say(T.will.slice(2, 5)); // 아버지 "...왔구나." / 주인공 / 아버지 "아니... 시간이 없다."
+      await P.say(T.will.slice(2, 5)); // 아버지 "...괜찮니, 내 아들·딸아." / 주인공 / 아버지 "아니... 시간이 없다."
       await P.tween(father, { hand: 1 }, 1.3); father.frag = true; await P.wait(0.5);
       P.closeup = { a: 0 }; P.sfx("fragment"); await P.tween(P.closeup, { a: 1 }, 0.9); P.setFlag("metal_fragment_acquired"); P.give("metal_fragment"); father.frag = false; await P.wait(3.0); await P.tween(P.closeup, { a: 0 }, 0.8); P.closeup = null;
       await P.say(T.will_brand.slice(0, 2));
@@ -509,14 +516,14 @@ window.AU = window.AU || {};
       await Promise.all([walkTo(r1, 575, 150), walkTo(r2, 640, 150)]);   // 길목의 부하들이 앞을 막고 붙잡음
       await P.say(KID.hold);   // 주인공: 비켜요! 놔요! 아버지!
       await P.say(T.officer.slice(2));      // 간부의 선언
-      await walkTo(off, fx + 105, 80); off.pose = "raise"; P.sfx("blade_swish"); await P.wait(0.5); await P.say(T.officer2);   // 간부가 검을 치켜듦
+      await walkTo(off, fx + 64, 80); off.pose = "raise";   // 11-24: 검이 닿는 거리까지 다가선 뒤 치켜듦(멀리서 베는 어색함 제거) P.sfx("blade_swish"); await P.wait(0.5); await P.say(T.officer2);   // 간부가 검을 치켜듦
       // 아버지가 마지막 힘으로 일어나 주인공 앞을 막아섬
       fa.fpose = "guard"; fa.face = 1; fa.rise = 0; P.sfx("slump"); await P.tween(fa, { rise: 1, x: fx - 6 }, 0.7, (k) => k * (2 - k)); await P.say(T.officer2b);
       // 내리치는 순간 — 아버지가 대신 맞음
       off.pose = "slash"; P.sfx("blade_swish"); const t0 = P.time; P.addEnt({ id: "slasharc", x: off.x, range: 0, layer: "front", draw(ctx, e, Q) { const k = (Q.time - t0) / 0.3; if (k > 1) { Q.ents = Q.ents.filter((q) => q !== e); return; }
         const sx = off.x - 20, sy = G - 215, ex = fa.x + 10, ey = G - 95; ctx.save(); ctx.globalAlpha = (1 - k) * 0.9; ctx.lineCap = "round"; ctx.strokeStyle = "#fff4d0"; ctx.shadowColor = "#ffb454"; ctx.shadowBlur = 16; ctx.lineWidth = 7 * (1 - k) + 2;
         ctx.beginPath(); ctx.moveTo(sx, sy); ctx.quadraticCurveTo(sx - 70, sy + 20 + 40 * k, sx + (ex - sx) * Math.min(1, k * 2.2 + 0.25), sy + (ey - sy) * Math.min(1, k * 2.2 + 0.25)); ctx.stroke(); ctx.restore(); } });
-      await P.tween(off, { x: off.x - 26 }, 0.1, (k) => k); fa.fpose = "hit"; P.shake(14, 0.5); await P.flash("#ffd9a0", 0.28); P.burst("dust", fa.x, G - 70, 8); await P.wait(0.45);
+      await P.tween(off, { x: off.x - 22 }, 0.1, (k) => k); fa.fpose = "hit";   // 내리치며 한 걸음 더 파고듦 P.shake(14, 0.5); await P.flash("#ffd9a0", 0.28); P.burst("dust", fa.x, G - 70, 8); await P.wait(0.45);
       fa.fpose = "fall"; P.sfx("slump"); await P.wait(0.5);
       await P.tween(fa, { rise: 0, x: fx }, 0.5, (k) => k); fa.fpose = null; fa.rise = null; await P.wait(0.5);   // 쓰러져 누운 자리(유언 장면 위치)로
       off.pose = "ready"; await P.say(T.officer3);
@@ -556,7 +563,7 @@ window.AU = window.AU || {};
       P.trigger({ id: "look", test: (p) => p.x >= LAY.escape.look, fn: () => lookBack() });
       P.trigger({ id: "end", goal: LAY.escape.end, test: (p) => p.x >= LAY.escape.end, fn: () => escapeEnd() });
     });
-    P.amb("wind", true); P.amb("raid_far", true);
+    P.amb("wind_soft", true); P.amb("raid_far", true);
     await P.cutscene(async () => { await P.fade(0, 1.6); }); if (!live(P, g)) return;
     P.obj(OBJ.s5_escape); P.hint("점프 " + k.jump + " · 이동 " + k.move, 6, true);
   } };
@@ -570,7 +577,7 @@ window.AU = window.AU || {};
   async function escapeEnd() {
     const P = AU.Prologue, g = P.gen, v = P.v;
     await P.cutscene(async () => { // CS-04 아르케아와 작별 + 사흘 동안의 이동(짧은 화면 전환)
-      P.obj(""); P.setFlag("arkea_escape_complete"); await P.fade(1, 0.9); P.amb("wind", false); P.amb("raid_far", false);
+      P.obj(""); P.setFlag("arkea_escape_complete"); await P.fade(1, 0.9); P.amb("wind_soft", false); P.amb("raid_far", false);
       const t0 = { t: 0 }; P.shotFn = (ctx) => montage(ctx, P, t0.t); P.fadeS.a = 0; await P.tween(t0, { t: 10.8 }, 10.8, (k) => k); P.shotFn = null; P.fadeS.a = 1;
     }, { id: "cs04", skip: true });
     if (live(P, g)) { P.frozen = true; P.advance(); }
