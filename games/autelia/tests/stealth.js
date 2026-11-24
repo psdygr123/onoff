@@ -28,11 +28,10 @@ const URL = "http://localhost:8801/index.html?dev=1&intro=cards", sleep = (ms) =
   T("S5", "숨은 동안은 시야 안에 있어도 발각되지 않음", await ev(() => !AU.World.trans && AU.World.monsters[0].state === "patrol"), null);
   await p.keyboard.down("ArrowRight"); await sleep(150); await p.keyboard.up("ArrowRight");
   T("S6", "움직이면 숨기 해제", await ev(() => !AU.World.player.hidden), null);
-  // 시야 가림
-  await setup(); await ev(() => { const W = AU.World, m = W.monsters[0]; m.x = 1100; m.min = 1100; m.max = 1100; m.dir = 1; W.player.x = 1400; W.player.y = m.y; W.updateMonsters(0.05); });
-  T("S7", "기둥(x=1260) 뒤는 시야가 막혀 발각되지 않음", await ev(() => !AU.World.trans), null);
-  await ev(() => { const W = AU.World, m = W.monsters[0]; m.x = 1300; m.min = 1300; m.max = 1300; m.dir = 1; W.player.x = 1500; W.updateMonsters(0.05); });
-  T("S8", "기둥이 없는 구간에서는 정상 발각", await ev(() => !!(AU.World.trans && AU.World.trans.caught)), null);
+  // 기둥은 제거됨(11-25): 시야를 막는 구조물이 없어야 함
+  await setup(); T("S7", "외곽에 시야를 가리는 기둥이 없음", await ev(() => !(AU.World.map.blockers && AU.World.map.blockers.length)), null);
+  await ev(() => { const W = AU.World, m = W.monsters[0]; m.x = 1300; m.min = 1300; m.max = 1300; m.dir = 1; m.state = "patrol"; W.player.x = 1500; W.player.y = m.y; W.updateMonsters(0.05); });
+  T("S8", "시야 안에서는 어디서든 정상 발각", await ev(() => !!(AU.World.trans && AU.World.trans.caught)), null);
   // 3회 이상 실패 도움
   await setup(); await ev(() => { AU.G.S.flags.stealth_tries_hide_outer = 3; });
   T("S9", "3회 실패 후 시야 배율 0.8", await ev(() => AU.World.sightMul() === 0.8), null);

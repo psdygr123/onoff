@@ -209,6 +209,11 @@ window.AU = window.AU || {};
       if (next === "ready" && q.autoDone) this.turnIn(id);   // 현장 완료형: 의뢰인에게 돌아가지 않고 그 자리에서 완료
     },
     refreshCollectQuests() { for (const id of Object.keys(this.S.quests)) this.refreshQuest(id); },
+    sneakFill(id) { // 잠입 성공: 처치 목표를 채워 줌
+      const rec = this.S.quests[id], q = AU.QUESTS[id]; if (!rec || !q) return;
+      q.objectives.forEach((o, i) => { if (o.kind === "kill") rec.prog[i] = o.count; });
+      this.refreshQuest(id); this.changed();
+    },
     onKill(type) {
       for (const [id, rec] of Object.entries(this.S.quests)) {
         if (rec.state !== "active") continue;

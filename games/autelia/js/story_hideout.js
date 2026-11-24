@@ -14,7 +14,7 @@ window.AU = window.AU || {};
   /* ---------- 적 ---------- */
   Object.assign(AU.MONSTERS, {
     hide_guard:  { name: "아지트 경비병", lv: 11, hp: 320, atk: 43, speed: 85, chase: 230, sight: 330, w: 60, h: 112, exp: 280, silver: [9, 18], silverRate: 0.17, drops: [["iron_scrap", 0.15, 1, 2], ["potion", 0.05]], color: "#3A3340", motion: "swing", sprite: "mon_hide_guard", walk: ["mon_hide_guard_w1", "mon_hide_guard_w2", "mon_hide_guard_w3", "mon_hide_guard_w4"], walkIdle: "mon_hide_guard", pWind: "mon_hide_guard_a1", pLunge: "mon_hide_guard_a2", walkRefW: 163, frameLen: 22, sw: 72 },
-    hide_beast:  { name: "실험체 늑대", lv: 12, hp: 380, atk: 47, speed: 118, chase: 250, w: 88, h: 54, exp: 330, silver: [10, 19], silverRate: 0.18, drops: [["wolf_pelt", 0.15, 1, 2], ["black_crystal", 0.3], ["potion", 0.05]], color: "#4A3A52", ear: true, motion: "leap", sprite: "mon_hide_beast", walk: ["mon_hide_beast_w1", "mon_hide_beast_w2", "mon_hide_beast_w3", "mon_hide_beast_w4"], walkIdle: "mon_hide_beast", pWind: "mon_hide_beast_a1", pLunge: "mon_hide_beast_a2", walkRefW: 480, frameLen: 26, sw: 140 },
+    hide_beast:  { name: "실험체 늑대", lv: 12, hp: 380, atk: 47, speed: 118, chase: 250, sight: 280, w: 88, h: 54, exp: 330, silver: [10, 19], silverRate: 0.18, drops: [["wolf_pelt", 0.15, 1, 2], ["black_crystal", 0.3], ["potion", 0.05]], color: "#4A3A52", ear: true, motion: "leap", sprite: "mon_hide_beast", walk: ["mon_hide_beast_w1", "mon_hide_beast_w2", "mon_hide_beast_w3", "mon_hide_beast_w4"], walkIdle: "mon_hide_beast", pWind: "mon_hide_beast_a1", pLunge: "mon_hide_beast_a2", walkRefW: 480, frameLen: 26, sw: 140 },
     hide_keeper: { name: "연구소 감시병", lv: 13, hp: 440, atk: 50, speed: 92, chase: 240, sight: 340, w: 60, h: 112, exp: 390, silver: [12, 20], silverRate: 0.19, drops: [["iron_scrap", 0.15, 1, 3], ["black_crystal", 0.25], ["potion", 0.05]], color: "#35303E", motion: "swing", sprite: "mon_hide_keeper", walk: ["mon_hide_keeper_w1", "mon_hide_keeper_w2", "mon_hide_keeper_w3", "mon_hide_keeper_w4"], walkIdle: "mon_hide_keeper", pWind: "mon_hide_keeper_a1", pLunge: "mon_hide_keeper_a2", walkRefW: 116, frameLen: 22, sw: 52 },
     umbra_boss:  { name: "움브라", lv: 15, hp: 3000, atk: 63, cd: 2.8, cdRage: 1.9, patterns: ["lunge", "slam", "wave"], ragePatterns: ["chain", "slam"], slamR: 210, speed: 80, chase: 520, w: 240, h: 150, exp: 1500, silver: [120, 160], silverRate: 1, drops: [["black_crystal", 1, 2, 3], ["potion", 1, 2, 3]], color: "#9B7FD1", boss: true, motion: "swing",
       sprite: "mon_umbra_base", sw: 300, refW: 345, poses: { idle: "mon_umbra_base", walkA: "mon_umbra_walkA", walkB: "mon_umbra_walkB", windup: "mon_umbra_windup", attack: "mon_umbra_attack", hurt: "mon_umbra_hurt", down: "mon_umbra_down" } }
@@ -39,7 +39,7 @@ window.AU = window.AU || {};
   const AREA = (x, y, d) => ({ x, y, desc: d });
   AU.MAPS.hide_outer = {
     name: "검은 아지트 외곽", bg: "bg_hideout_outer_1", bgs: ["bg_hideout_outer_1", "bg_hideout_outer_2"], width: 2558, safe: false, stealth: true,
-    stealthMission: { quest: "q_h1a", next: "q_h1b", flag: "hide_outer_clear", start: 120 }, hideSpots: [{ x: 960 }, { x: 1490 }, { x: 2030 }], blockers: [{ x: 1260 }, { x: 1800 }],
+    stealthMission: { quest: "q_h1a", next: "q_h1b", flag: "hide_outer_clear", start: 120 }, hideSpots: [{ x: 960 }, { x: 1490 }, { x: 2030 }],
     platforms: [FLOOR], ropes: [],
     portals: [{ x: 40, to: "gorge", toX: 2740, label: "협곡 바위틈" },
               { x: 2510, to: "hide_tunnel", toX: 90, label: "갱도 입구", reqQuest: "q_h1a", reqIn: ["active", "ready", "done"], reqText: "제페토의 부탁을 받아야 안으로 들어갈 수 있습니다." }],
@@ -55,10 +55,11 @@ window.AU = window.AU || {};
         L(HERO, "(이 수가 전부 안쪽으로 들어갔다는 뜻이다. 서둘러야 한다.)")] }
     ],
     spawns: [{ type: "hide_guard", x: 560, min: 450, max: 900 }, { type: "hide_guard", x: 1180, min: 1020, max: 1420 }, { type: "hide_guard", x: 1700, min: 1560, max: 1950 }, { type: "hide_guard", x: 2230, min: 2100, max: 2420 }],
-    area: AREA(88, 6, "협곡 안쪽 깊은 곳에 숨은 검은 아지트의 바깥 구역입니다. 경비에게 들키면 입구에서 다시 시작합니다. 상자 앞에서 Space로 숨고, 기둥 뒤로 시선을 피하세요.")
+    area: AREA(88, 6, "협곡 안쪽 깊은 곳에 숨은 검은 아지트의 바깥 구역입니다. 경비에게 들키면 입구에서 다시 시작합니다. 금빛 상자 앞에서 Space로 숨어 시선을 피하세요.")
   };
   AU.MAPS.hide_tunnel = {
-    name: "검은 아지트 갱도", bg: "bg_hideout_tunnel", width: 1280, safe: false,
+    name: "검은 아지트 갱도", bg: "bg_hideout_tunnel", width: 1280, safe: false, stealth: true,
+    sneak: { quest: "q_h1b", flag: "hide_tunnel_clear" }, hideSpots: [{ x: 340 }, { x: 760 }, { x: 1080 }],
     platforms: [{ x: 0, y: 590, w: 1280 }], ropes: [],
     portals: [{ x: 40, to: "hide_outer", toX: 2450, label: "아지트 외곽" }, { x: 1240, to: "hide_lab", toX: 90, label: "실험 구역" }],
     npcs: [],
@@ -77,6 +78,7 @@ window.AU = window.AU || {};
   };
   AU.MAPS.hide_lab = {
     name: "검은 아지트 실험 구역", bg: "bg_hideout_lab_1", bgs: ["bg_hideout_lab_1", "bg_hideout_lab_2"], width: 2558, safe: false, stealth: true,
+    sneak: { quest: "q_h1c", flag: "hide_lab_clear" }, hideSpots: [{ x: 620 }, { x: 1180 }, { x: 1700 }, { x: 2080 }],
     platforms: [FLOOR], ropes: [],
     portals: [{ x: 40, to: "hide_tunnel", toX: 1190, label: "갱도" },
               { x: 2510, to: "hide_boss", toX: 90, label: "보스의 방", reqQuest: "q_h1e", reqIn: ["done"], reqText: "파우스토스가 풀어 놓은 변형체들을 먼저 쓰러뜨려야 합니다." }],
@@ -125,21 +127,21 @@ window.AU = window.AU || {};
     desc: "협곡 안쪽 아지트 외곽으로 숨어듭니다. 경비의 시선을 피해 초소 장부와 빈 수송 우리를 조사한 뒤 갱도 입구로 향합니다.",
     objectives: [{ kind: "investigate", targets: ["hide_gate", "hide_cargo"] }],
     offer: [L(J(), "때가 되었네. 협곡 안쪽의 길을 열었네. 저 바위 너머가 어둠 세력의 아지트일세."),
-            L(J(), "바깥은 경비병이 지키고 있네. 붉은 시선에 걸리면 잡히니, 입구로 돌려보내질 걸세. 상자 앞에서 Space를 눌러 숨고, 기둥 뒤로 지나가게. 몇 번을 다시 해도 잃는 건 없네."),
+            L(J(), "바깥은 경비병이 지키고 있네. 붉은 시선에 걸리면 잡히니, 입구로 돌려보내질 걸세. 금빛 상자 앞에서 Space를 눌러 숨으며 지나가게. 몇 번을 다시 해도 잃는 건 없네."),
             L(J(), "길을 쭉 가다보면 갱도가 나올 걸세. 거기에서 무슨 일이 벌어지는지 꼭 알아오게.")],
-    reminder: ["초소의 장부와 빈 수송 우리를 살피고 갱도 입구로 가게. 경비의 시선은 상자와 기둥으로 피하게."],
+    reminder: ["초소의 장부와 빈 수송 우리를 살피고 갱도 입구로 가게. 경비의 시선은 금빛 상자 앞에서 Space로 숨어 피하게."],
     reward: { exp: 400, silver: 40, items: [] }
   });
   AU.QUESTS.q_h1b = Object.assign({}, STEP, {
     title: "탈주한 12번", pre: ["q_h1a"], area: "hide_tunnel", autoDone: true, next: "q_h1c",
-    desc: "갱도의 빈 우리와 기록판을 조사하고, 우리에서 풀려난 실험체 늑대 4마리를 물리칩니다.",
+    desc: "갱도의 빈 우리와 기록판을 조사하고, 우리에서 풀려난 실험체 늑대 4마리를 물리칩니다. 늑대의 시선에 한 번도 걸리지 않고 갱도를 지나 실험 구역으로 가면 싸우지 않고도 완료됩니다.",
     objectives: [{ kind: "investigate", targets: ["tun_cages", "tun_notes"] }, { kind: "kill", target: "hide_beast", count: 4 }],
     reminder: ["갱도의 우리와 기록판을 살피고, 돌아다니는 실험체 늑대 네 마리를 물리치게."],
     reward: { exp: 600, silver: 50, items: [] }
   });
   AU.QUESTS.q_h1c = Object.assign({}, STEP, {
     title: "기록 빼내기", pre: ["q_h1b"], area: "hide_lab", autoDone: true, next: "q_h1d",
-    desc: "실험 구역의 연구소 감시병 2명을 처치하고, 실험 기록대에서 '검은 그릇 계획' 기록을 확인합니다.",
+    desc: "실험 구역의 연구소 감시병 2명을 처치하고, 실험 기록대에서 '검은 그릇 계획' 기록을 확인합니다. 감시병과 실험체의 시선에 걸리지 않고 안쪽(기록대 너머)까지 가면 싸우지 않고도 완료됩니다.",
     objectives: [{ kind: "kill", target: "hide_keeper", count: 2 }, { kind: "investigate", targets: ["lab_records"] }],
     reminder: ["실험 구역의 감시병 둘을 쓰러뜨리고 실험 기록대를 살펴보게."],
     reward: { exp: 700, silver: 50, items: [] }
@@ -215,6 +217,16 @@ window.AU = window.AU || {};
     if (m.type !== "umbra_boss") return;
     W.fx.push({ kind: "runner", tag: "faustos", img: "faustos", x: 1020, y: 590, h: 190, vx: 0, t: 0, dur: 9999 });
   };
+
+  /* 싸우지 않고 깨기(11-25 사용자 지시): 갱도·실험 구역은 시선에 한 번도 걸리지 않으면 처치 목표를 건너뜀. 들켜도 불이익은 없고(전투로 이어짐), 지역을 나갔다 다시 들어오면 새로 도전 */
+  H.sneakPass = function (qid, flag, msg) {
+    const S = AU.G.S; if (S.flags[flag] || AU.G.questStatus(qid) !== "active") return false;
+    S.flags[flag] = true; AU.G.sneakFill(qid); AU.G.toast(msg, "good"); return true;
+  };
+  setInterval(() => {   // 실험 구역: 기록대를 확인하고 안쪽(x≥1750)까지 들키지 않고 도착
+    const W = AU.World; if (!W || W.mapId !== "hide_lab" || W.spotted || !AU.G || !AU.G.S || W.player.dead) return;
+    if (W.player.x >= 1750 && AU.G.spotDone("lab_records")) H.sneakPass("q_h1c", "hide_lab_clear", "들키지 않고 실험 구역을 가로질렀습니다! 싸우지 않고 기록을 빼냈습니다.");
+  }, 300);
   // 외곽에서 안 들키고 갱도에 도착하면 보너스(한 번만)
   H.onTravel = function (W, to) {
     if (to === "yard" && !AU.G.S.flags.yard_hint) { AU.G.S.flags.yard_hint = true; setTimeout(() => AU.UI.toast("금빛으로 빛나는 상자 앞에서 Space를 누르면 숨을 수 있습니다. 용병의 붉은 시야를 피해 가세요.", "info"), 1200); } // 첫 입장 안내
@@ -226,6 +238,8 @@ window.AU = window.AU || {};
       }
       return;
     }
+    if (W.mapId === "hide_tunnel" && to === "hide_lab" && !W.spotted && AU.G.spotDone("tun_cages") && AU.G.spotDone("tun_notes")) H.sneakPass("q_h1b", "hide_tunnel_clear", "들키지 않고 갱도를 지났습니다! 싸우지 않고 우리의 흔적을 확인했습니다.");
+    if ((to === "hide_tunnel" || to === "hide_lab") && AU.G.questStatus(to === "hide_tunnel" ? "q_h1b" : "q_h1c") === "active" && !AU.G.S.flags[to === "hide_tunnel" ? "hide_tunnel_clear" : "hide_lab_clear"]) setTimeout(() => AU.UI.toast("실험체의 시선(붉은 부채꼴)에 걸리지 않고 지나가면 싸우지 않고도 완료됩니다. 금빛 상자 앞에서 Space로 숨을 수 있어요.", "info"), 900);
     if (W.mapId !== "hide_outer" || to !== "hide_tunnel") return;
     const S = AU.G.S; if (!AU.G.questStatus || S.flags.hide_outer_clear) return;
     S.flags.hide_outer_clear = true; // 외곽 잠입 구간 통과: 이후 경비는 평소처럼 행동
