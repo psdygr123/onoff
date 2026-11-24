@@ -45,7 +45,7 @@ AU.CONFIG = {
   fatigue: { name: "피로도", max: 100, weeklyReset: true, weekStartsOn: 1, restSilverBase: 20, restSilverPerLevel: 4, restSilverRecover: 40, restDailyLimit: 3, restNoteMin: 0, restNoteMax: 200 },
 
   // [미정] 지급 기준·주간 한도는 설정으로만 관리. 값은 임시
-  missions: { weeklyPointCap: 6, partialPoints: 0 },
+  missions: { weeklyPointCap: 10, partialPoints: 0 },
 
   save: { key: "autelia.save", settingsKey: "autelia.settings", version: 2, autosaveSec: 30 }
 };

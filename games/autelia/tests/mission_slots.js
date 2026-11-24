@@ -89,7 +89,7 @@ const URL = process.env.GAME_URL || 'http://localhost:8801';
   });
   T('증거 없음 → self_report', lab.plainSup === false && lab.plainProof === 'self_report', lab);
   T('증거 있음 → evidence(인증)', lab.evSup === true && lab.evProof === 'evidence', lab);
-  T('토큰은 인증 여부와 무관하게 동일(+1)', lab.tokPlain === 1 && lab.tokEv === 1, lab);
+  T('토큰: 인증 시 전액 > 미인증 일부(등급표 기준)', lab.tokPlain === 1 && lab.tokEv === 2 && lab.tokEv > lab.tokPlain, lab);
   await p.evaluate(() => { AU.UI.close(); AU.UI.tab.jg = 'real'; AU.UI.tab.j = 'missions'; AU.UI.tab.missionStatus = 'done'; AU.UI.open('journal'); }); await p.waitForTimeout(300);
   const tags = await p.evaluate((l) => ({ ev: document.querySelector('.mission[data-mid="' + l.evId + '"] .tag.proof').textContent, plain: document.querySelector('.mission[data-mid="' + l.plainId + '"] .tag.proof').textContent }), lab);
   T('완료 창 라벨: 인증 완료 / 자기보고 완료', tags.ev === '인증 완료' && tags.plain === '자기보고 완료', tags);
