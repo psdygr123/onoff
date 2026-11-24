@@ -88,7 +88,7 @@ window.AU = window.AU || {};
         };
         const show = () => {
           const S = ST[i];
-          if (S.setup) { UI.tab.jg = S.setup.jg; UI.tab.j = S.setup.j; }
+          if (S.setup) Object.assign(UI.tab, S.setup);
           UI.curName = S.win || "journal"; UI.renderWin();
           prog.textContent = (i + 1) + " / " + ST.length; title.textContent = S.title;
           body.replaceChildren(...S.lines().map((t) => h("p", null, t.split(/\*\*(.+?)\*\*/).map((part, k) => (k % 2 ? h("b", { class: "rb-em", text: part }) : part)))));   // **강조**: 현실 활동 이름

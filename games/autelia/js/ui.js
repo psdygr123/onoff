@@ -29,7 +29,7 @@ window.AU = window.AU || {};
     return code;
   };
   const FATIGUE_TIP = "피로도: 스킬을 쓸 때마다 쌓이는 수치입니다(마나와 반대로 0에서 시작해 늘어납니다). 가득 차면 스킬을 쓸 수 없지만 기본 공격은 언제나 쓸 수 있습니다. 쉼 현실 미션이나 은화로 휴식하면 줄어들고, 매주 월요일에 풀립니다.";
-  const proofLabel = (e) => (e && e.supplementary ? "인증 완료" : "자기보고 완료");   // 완료 기록의 인증 등급. 보상 차이는 없음
+  const proofLabel = (e) => (e && e.supplementary ? "인증 완료" : "자기보고 완료");   // 완료 기록의 인증 등급(인증하면 보상 전액)
   const keyOf = (actionId) => AU.keyLabel(AU.Input.bindings[actionId]);
 
   const UI = AU.UI = {
@@ -483,13 +483,6 @@ window.AU = window.AU || {};
       h("div", { class: "choices" },
         ...AU.main.SLOTS.map(n => { const info = AU.main.slotInfo(n); return btn(n + "번 " + (info ? info.name : "새 캐릭터") + (n === AU.main.slot ? " ✓" : ""), n === AU.main.slot ? "on" : "mini", () => { if (n !== AU.main.slot) AU.main.setSlot(n); }, { disabled: n === AU.main.slot ? "" : null }); }),
         btn("공간에서 나가기", "", () => AU.main.exitGame()))) : null;
-    const left = panel("room-left", "오늘의 활동",
-      galleryArt("mission", "gallery-panel-head-art", ""), h("div", { class: "room-date", text: dateLabel }),
-      h("p", { class: "room-greeting", text: "오늘의 작은 시도도 소중한 경험으로 남습니다." }),
-      h("h4", { text: "현실 미션" }),
-      h("div", { class: "roomactivities" }, ...missionList),
-      btn("내 활동 보기", "mini", openJournal),
-      h("p", { class: "room-affirmation", text: "끝내지 못한 경험도 이 공간에 남길 수 있습니다." }));
     const frames = h("div", { class: "roomframes" },
       ...[0,1,2].map(i => { const entry = lastThree[i], m = entry && mission(entry);
         return h("div", { class: "roomframe" },
@@ -505,58 +498,49 @@ window.AU = window.AU || {};
           h("div", { class: "roomcrest", text: "✦" }),
           frames,
           h("div", { class: "roomdecors" }, ...items.filter(item => selected.has(item.id)).map(item => h("span", { class: "room-decor-set", title: item.name }, galleryArt(item.id, "gallery-decor-img", item.name))))),
-        h("div", { class: "roomfloor" }, h("div", { class: "roomrug", text: "나의 이야기" }))),
-      h("div", { class: "room-recent" }, h("h3", null, galleryArt("journal", "gallery-inline-art", ""), " 최근 기록"),
-        h("p", { class: "note", text: "시도한 경험도, 완료한 경험도 함께 남습니다." }),
-        h("div", { class: "room-recent-grid" }, ...[0,1,2].map(i => card(lastThree[i],i)))));
-    const makeChart = () => {
-      const ns = "http://www.w3.org/2000/svg", svg = document.createElementNS(ns, "svg");
-      svg.setAttribute("viewBox", "0 0 240 205"); svg.setAttribute("role", "img"); svg.setAttribute("aria-label", "현실 미션 실천 기록에 따른 PERMA 영역별 성장치");
-      const xy = (i, pct) => { const angle = -Math.PI/2 + i*2*Math.PI/5; return [120 + Math.cos(angle)*86*pct, 98 + Math.sin(angle)*83*pct]; };
-      const poly = (points, fill, stroke, opacity) => { const p = document.createElementNS(ns,"polygon"); p.setAttribute("points",points.map(v=>v.join(",")).join(" "));p.setAttribute("fill",fill);p.setAttribute("stroke",stroke);p.setAttribute("stroke-width","1.5");if(opacity)p.setAttribute("opacity",opacity);svg.appendChild(p); return p; };
-      for (const t of [.25,.5,.75,1]) poly(dailyRows.map((_,i)=>xy(i,t)),"none","#baaf8e","0.7");
-      dailyRows.forEach((d,i)=>{const line=document.createElementNS(ns,"line");const [x,y]=xy(i,1);line.setAttribute("x1","120");line.setAttribute("y1","98");line.setAttribute("x2",x);line.setAttribute("y2",y);line.setAttribute("stroke","#c8baa0");svg.appendChild(line);});
-      const tr = AU.G.mindTrend();
-      const pp = poly(dailyRows.map((d,i)=>xy(i,Math.max(0,Math.min(1,tr[d.key].prevPct/100)))),"none","#6f6a5a","1"); pp.setAttribute("stroke-dasharray","2 4"); pp.setAttribute("stroke-width","2.2"); pp.setAttribute("stroke-linecap","round");
-      const cp = poly(dailyRows.map((d,i)=>xy(i,Math.max(0,Math.min(1,d.pct/100)))),"rgba(216,182,107,.28)","#8a5f1c","1"); cp.setAttribute("stroke-width","2.6");
-      dailyRows.forEach((d,i)=>{const [x,y]=xy(i,1.16);const label=document.createElementNS(ns,"text");label.setAttribute("x",x);label.setAttribute("y",y+4);label.setAttribute("text-anchor","middle");label.setAttribute("font-size","15");label.setAttribute("font-weight","700");label.setAttribute("fill","#70552d");label.textContent=d.key;svg.appendChild(label);});
-      return svg;
+        h("div", { class: "roomfloor" }, h("div", { class: "roomrug", text: "나의 이야기" }))));
+    const gal = ["room", "rec", "change"].includes(UI.tab.gal) ? UI.tab.gal : "room";
+    const goTab = (k) => { UI.tab.gal = k; UI.renderWin(); };
+    // 내 기록: 완료·시도한 현실 미션을 PERMA 영역별로 정리(미션마다 가장 최근 1건)
+    const recPanel = () => {
+      const box = h("div", { class: "room-rec" }), latest = new Map();
+      for (const e of S.missions.log.filter(x => ["done", "partial", "attempted"].includes(x.state) && !x.repeat)) latest.set(e.id, e);
+      let total = 0;
+      for (const k of ["P", "E", "R", "M", "A"]) {
+        const rows = [...latest.values()].filter(e => (e.perma || (mission(e) || {}).perma) === k).reverse(); total += rows.length;
+        box.append(h("section", { class: "rec-perma perma-" + k, "data-perma": k },
+          h("h4", null, h("b", { text: k }), " " + AU.PERMA[k] + " ", h("span", { class: "rec-n", text: rows.length + "개" })),
+          rows.length ? rows.map(e => {
+            const m = mission(e), st = S.missions.states[e.id], rw = st && st.reward;
+            return h("div", { class: "rec-row" },
+              h("div", { class: "rec-main" }, h("strong", { text: m ? m.title : "나의 경험" }), h("small", { text: e.t + " · " + statusName(e) + (e.state === "done" && m ? " · " + AU.G.missionReward(m).name : "") })),
+              e.state === "done" ? h("span", { class: "tag proof", text: proofLabel(e) }) : null,
+              e.state === "done" && rw && !rw.verified ? btn("인증하기", "mini", () => UI.missionVerify(m)) : null);
+          }) : h("p", { class: "note", text: "아직 이 영역의 기록이 없어요." })));
+      }
+      if (!total) box.prepend(h("p", { class: "empty", text: "아직 현실 미션 기록이 없어요. 첫 활동을 마치면 여기에 영역별로 쌓여요." }));
+      return box;
     };
-    const radar = h("div", { class: "room-radar" }, makeChart(),
-      h("div", { class: "mleg room-leg" }, h("span", { class: "lg cur", text: "이번 주 (실선)" }), h("span", { class: "lg prev", text: "지난주 (점선)" })),
-      h("div", { class: "room-perma-legend" }, ...dailyRows.map(d => h("div", { class: "room-perma-row" },
-        h("strong", { text: d.key }), h("span", { text: d.label }), h("b", { text: d.value + "점" })))));
-    const right = h("aside", { class: "room-right" },
-      panel("room-growth", "마음 성장",
-        h("p", { class: "note", text: "현실 활동의 누적 실천 점수입니다. 심리검사 결과나 행복 수준을 뜻하지 않습니다." }),
-        galleryArt("memory", "gallery-panel-head-art", ""), radar,
-        h("div", { class: "room-perma-bars" }, ...dailyRows.map(d => h("div", { class: "room-perma-meter" },
-          h("span", { text: d.key }), h("div", { class: "room-meter-track" }, h("i", { style: "width:" + d.pct + "%" })), h("small", { text: d.pct + "%" }))))),
-      h("div", { class: "room-counter-grid" },
-        panel("room-token-panel", "갤러리 토큰", galleryArt("token", "gallery-counter-icon", ""), h("b", { class: "room-big-number", text: g.tokens + "개" })),
-        panel("room-visit-panel", "오늘 방문 기록", galleryArt("rest", "gallery-counter-icon", ""), h("b", { class: "room-big-number", text: attended ? "방문 완료" : "미기록" }),
-          h("small", { text: "누적 " + g.attendance.length + "일" }))),
-      btn(attended ? "오늘 방문 기록 완료" : "오늘 방문 기록하기 (+1)", "primary room-visit-btn", () => AU.G.galleryCheckin(), { disabled: attended ? "" : null }),
-      panel("room-decor-panel", "공간 꾸미기",
-        h("div", { class: "room-decor-icons" }, ...items.slice(0,3).map(item => h("span", { title: item.name }, galleryArt(item.id, "gallery-decor-preview", item.name)))),
-        btn("장식 관리 " + (UI.tab.galleryShop ? "접기" : "열기"), "mini", toggleShop)));
-    b.append(h("div", { class: "room-a-layout" },
-      h("div", { class: "room-a-heading" }, galleryArt("frame", "gallery-heading-art", ""), h("div", null,
-        h("h2", { text: "나만의 공간" }), h("p", { text: "오늘의 경험이 쌓여 만들어지는 나만의 기억 갤러리" })),
-        h("span", { class: "room-a-tag", text: "아우텔리아 · 성장 기록" })),
-      slots,
-      h("div", { class: "room-a-columns" }, left, center, right),
-      UI.tab.galleryShop ? panel("room-shop-panel", "꾸미기 상점 · 전시 설정",
+    const tabs = h("div", { class: "tabs room-tabs", role: "tablist" },
+      ...[["room", "내 방"], ["rec", "내 기록"], ["change", "내 변화"]].map(([k, l]) => h("button", { type: "button", role: "tab", "aria-selected": String(gal === k), class: "btn" + (gal === k ? " on" : ""), "data-gtab": k, onclick: () => goTab(k) }, l)),
+      h("span", { class: "room-token", text: "토큰 " + g.tokens + "개" }),
+      gal === "room" ? btn(attended ? "방문 기록 완료" : "오늘 방문 +1", "mini", () => AU.G.galleryCheckin(), { disabled: attended ? "" : null, title: "누적 " + g.attendance.length + "일 · 하루 한 번 토큰 +1" }) : null);
+    let body;
+    if (gal === "rec") body = recPanel();
+    else if (gal === "change") body = h("div", { class: "room-change" }, UI.mindBlock());
+    else body = h("div", { class: "room-home" }, center,
+      panel("room-shop-panel", "꾸미기 · 토큰으로 장식 얻기",
         h("div", { class: "roomshop" }, ...items.map(item => h("div", { class: "roomshopitem" },
           galleryArt(item.id, "roomicon", item.name), h("b", { text: item.name }), h("p", { class: "note", text: item.desc }),
           btn(unlocked.has(item.id) ? (selected.has(item.id) ? "전시 중 · 숨기기" : "전시하기") : "토큰 " + item.cost + "개로 획득",
             "mini", () => unlocked.has(item.id) ? AU.G.galleryToggle(item.id) : AU.G.galleryBuy(item.id),
-            { disabled: !unlocked.has(item.id) && g.tokens < item.cost ? "" : null }))))) : null,
+            { disabled: !unlocked.has(item.id) && g.tokens < item.cost ? "" : null }))))));
+    b.append(h("div", { class: "room-a-layout" },
+      h("div", { class: "room-a-heading" }, galleryArt("frame", "gallery-heading-art", ""), h("div", null,
+        h("h2", { text: "나만의 공간" }), h("p", { text: "지금까지의 활동을 돌아보고, 보상으로 공간을 꾸며요" }))),
+      slots, tabs, body,
       h("div", { class: "room-a-actions" },
-        btn("공간 꾸미기", "primary", toggleShop),
-        btn("기록 보기", "", openJournal),
         btn("사용법 보기", "", () => AU.FirstMissionGuide && AU.FirstMissionGuide.start()),
-        btn("방문 기록", "", () => { if (!attended) AU.G.galleryCheckin(); }),
         btn("나가기", "", () => AU.main && AU.main.galleryOnly ? AU.main.exitGame() : UI.close()))));
   };
 
@@ -738,6 +722,17 @@ window.AU = window.AU || {};
     box.append(h("p", { class: "note", text: "이것은 게임 속 활동 점수이며 행복이나 건강 상태를 재는 검사 점수가 아닙니다. 전투에는 영향을 주지 않습니다." }));
     if (AU.G.rollMindWeek()) AU.G.save("mind");
     return box;
+  };
+
+  /* 모험일지에서 보이는 '내 방' 연동 카드: 나만의 공간의 세 칸(내 방·내 기록·내 변화)으로 바로 가는 입구 */
+  UI.roomLink = function () {
+    const g = AU.G.galleryState(), S = AU.G.S, done = new Set(S.missions.log.filter(e => e.state === "done" && !e.repeat).map(e => e.id)).size, tr = AU.G.mindTrend();
+    const up = Object.keys(AU.PERMA).reduce((n, k) => n + Math.max(0, tr[k].diff || 0), 0), go = (k) => { UI.tab.gal = k; UI.open("gallery"); };
+    return h("div", { class: "roomlink mindbox" }, h("h3", { text: "내 방" }),
+      h("p", { class: "note", text: "완료한 현실 미션이 모이고, 받은 토큰으로 꾸미는 나만의 공간이에요." }),
+      h("div", { class: "roomlink-stats" },
+        h("span", { text: "완료한 활동 " + done + "개" }), h("span", { text: "토큰 " + g.tokens + "개" }), h("span", { text: "이번 주 마음 +" + up })),
+      h("div", { class: "macts" }, btn("내 방 열기", "primary", () => go("room")), btn("내 기록 (영역별)", "", () => go("rec")), btn("내 변화 (오각형)", "", () => go("change"))));
   };
 
   UI.heroPreview = function (fallback) { // 설정한 외형(성별·머리·조끼·바지 색) 그대로의 전신 모습. 그림이 안 그려지면 초상화로 대체
@@ -1186,7 +1181,7 @@ window.AU = window.AU || {};
       b.append(grid);
     } else if (tab === "record") {
       const cnt = AU.G.permaCounts();
-      b.append(UI.mindBlock());
+      b.append(UI.roomLink());
       if (AU.Survey && AU.Survey.enabled() && UI.surveyPanel) b.append(UI.surveyPanel());
       b.append(h("div", { class: "permabar" }, Object.entries(AU.PERMA).map(([k, n]) => h("div", { class: "pc" }, h("b", { text: k }), h("span", { text: n }), h("em", { text: cnt[k] + "회" })))));
       const rows = S.missions.log.slice().reverse();

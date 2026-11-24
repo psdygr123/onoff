@@ -9,7 +9,7 @@ const { chromium } = require('playwright');
     await page.waitForFunction(() => window.AU && AU.G && AU.UI && AU.UI.curName === 'gallery');
     const first = await page.evaluate(() => ({ running: AU.main.running, standalone: AU.main.galleryOnly, titleHidden: document.querySelector('#title').classList.contains('hidden'), slot: AU.main.slot, startingTokens: AU.G.galleryState().tokens }));
     check('DUAL1 standalone access without RPG start', !first.running && first.standalone && first.titleHidden, first);
-    await page.getByRole('button', { name: /오늘 방문 기록하기/ }).click();
+    await page.getByRole('button', { name: /오늘 방문 \+1/ }).click();
     const saved = await page.evaluate(() => ({ token: AU.G.galleryState().tokens, date: AU.G.galleryState().attendance.at(-1) }));
     check('DUAL2 standalone attendance saved', saved.token === first.startingTokens + 1 && !!saved.date, saved);
     await page.goto(base + '/index.html?dev=1&intro=cards');

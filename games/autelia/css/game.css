@@ -904,3 +904,11 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
 .mission .note.reward{font-size:12px;color:#2d6e45;background:#eef6ef;border-radius:8px;padding:5px 8px;margin:4px 0}
 .room-leg{margin:2px 0 6px}
 .room-leg .lg.cur::before{border-top-color:#8a5f1c}.room-leg .lg.prev::before{border-top-color:#6f6a5a}
+
+.room-tabs{display:flex;gap:6px;align-items:center;margin:6px 0 10px}.room-tabs .btn.on{background:#8a5f1c;color:#fff}.room-token{margin-left:auto;font-weight:600;color:#6b4a14;background:#fff6dc;border:1px solid #d8b66b;border-radius:14px;padding:2px 12px;font-size:13px}
+.room-home{display:flex;flex-direction:column;gap:10px}.room-visit{text-align:right}
+.room-rec{display:flex;flex-direction:column;gap:10px}.rec-perma{background:#fffaf0;border:1px solid #e3d3ac;border-radius:10px;padding:8px 12px}.rec-perma h4{margin:0 0 6px;font-size:14px;color:#6b4a14}.rec-n{font-weight:400;font-size:12px;color:#8a7a55}
+.rec-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-top:1px dashed #e3d3ac}.rec-main{flex:1;display:flex;flex-direction:column}.rec-main small{color:#7a6a45;font-size:12px}
+.roomlink-stats{display:flex;gap:12px;flex-wrap:wrap;font-size:13px;margin:6px 0 8px}
+.room-home .room-center{grid-template-rows:minmax(300px,1fr)}.room-home .room-center .personalroom{min-height:300px}
+.room-home .roomshop{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.room-home .roomshopitem{padding:6px}.room-home .roomshopitem .note{display:none}.room-home .roomicon{height:34px}

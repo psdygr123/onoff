@@ -69,14 +69,22 @@ const URL = process.env.GAME_URL || 'http://localhost:8801';
   const after = await p.evaluate(() => ({ tok: AU.G.galleryState().tokens, v: AU.G.S.missions.states[window.__m].reward.verified, btn: !![...document.querySelectorAll('.mission[data-mid="' + window.__m + '"] .macts .btn')].find(x => x.textContent.includes('인증하고')) }));
   T('모달에서 인증 → 소급 지급·버튼 사라짐', after.v && after.tok > tok0 && !after.btn, { tok0, after });
 
-  // 6. 오각형: 범례(이번 주 실선/지난주 점선) + 점선 다각형
-  await p.evaluate(() => { AU.UI.tab.j = 'record'; AU.UI.renderWin(); }); await p.waitForTimeout(300);
+  // 6. 나만의 공간 3탭: 내 방 / 내 기록(PERMA별) / 내 변화(오각형 이번 주 실선·지난주 점선)
+  await p.evaluate(() => { AU.UI.close(); AU.UI.tab.gal = 'room'; AU.UI.open('gallery'); }); await p.waitForTimeout(400);
+  T('3탭: 내 방·내 기록·내 변화', (await p.evaluate(() => [...document.querySelectorAll('.room-tabs [data-gtab]')].map(x => x.textContent).join('|'))) === '내 방|내 기록|내 변화');
+  await p.screenshot({ path: '/tmp/room_tab_room.png' });
+  await p.click('[data-gtab="rec"]'); await p.waitForTimeout(250);
+  const rec = await p.evaluate(() => ({ sections: [...document.querySelectorAll('.rec-perma')].map(x => x.dataset.perma).join(''), rows: document.querySelectorAll('.rec-row').length, verify: [...document.querySelectorAll('.rec-row .btn')].map(x => x.textContent) }));
+  T('내 기록: PERMA 5개 영역으로 정리', rec.sections === 'PERMA', rec);
+  await p.screenshot({ path: '/tmp/room_tab_rec.png' });
+  await p.click('[data-gtab="change"]'); await p.waitForTimeout(250);
   const rad = await p.evaluate(() => ({ leg: [...document.querySelectorAll('.mleg .lg')].map(x => x.textContent), dotted: !!document.querySelector('.mradsvg polygon[stroke-dasharray]'), cur: document.querySelector('.mradsvg .rcur').getAttribute('fill') }));
-  T('일지 오각형: 이번 주(실선)·지난주(점선), 옅은 채움', rad.leg.join('|') === '이번 주 (실선)|지난주 (점선)' && rad.dotted && /\.16/.test(rad.cur), rad);
-  await p.evaluate(() => { AU.UI.close(); AU.UI.open('gallery'); }); await p.waitForTimeout(400);
-  const room = await p.evaluate(() => ({ leg: [...document.querySelectorAll('.room-leg .lg')].map(x => x.textContent), dotted: !!document.querySelector('.room-radar svg polygon[stroke-dasharray]') }));
-  T('나만의 공간 오각형도 지난주 점선 + 범례', room.leg.length === 2 && room.dotted, room);
-  await p.screenshot({ path: '/tmp/room_radar.png' });
+  T('내 변화: 이번 주(실선)·지난주(점선), 옅은 채움', rad.leg.join('|') === '이번 주 (실선)|지난주 (점선)' && rad.dotted && /\.16/.test(rad.cur), rad);
+  await p.screenshot({ path: '/tmp/room_tab_change.png' });
+  await p.evaluate(() => { AU.UI.close(); AU.UI.tab.jg = 'real'; AU.UI.tab.j = 'record'; AU.UI.open('journal'); }); await p.waitForTimeout(300);
+  T('일지 마음 기록 탭: 내 방 바로가기(오각형은 없음)', await p.evaluate(() => !!document.querySelector('.roomlink') && !document.querySelector('.mradsvg')));
+  await p.evaluate(() => [...document.querySelectorAll('.roomlink .btn')].find(x => x.textContent.includes('내 변화')).click()); await p.waitForTimeout(300);
+  T('바로가기 → 내 변화 탭이 열림', await p.evaluate(() => AU.UI.curName === 'gallery' && !!document.querySelector('.mradsvg')));
 
   T('페이지 오류 없음', errs.length === 0, errs);
   console.log(fail ? 'FAILED ' + fail : 'ALL PASS');
