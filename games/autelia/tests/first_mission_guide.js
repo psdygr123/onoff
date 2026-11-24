@@ -1,4 +1,4 @@
-// 첫 현실미션 완료 안내: 첫 완료 직후 한 번만 자동 표시, 건너뛰어도 재표시 없음, 나만의 공간에서 다시 보기
+// 첫 일상미션 완료 안내: 첫 완료 직후 한 번만 자동 표시, 건너뛰어도 재표시 없음, 나만의 공간에서 다시 보기
 const { chromium } = require('playwright');
 const URL = process.env.GAME_URL || 'http://localhost:8801';
 (async () => {
