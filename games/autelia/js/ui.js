@@ -650,7 +650,7 @@ window.AU = window.AU || {};
     box: '<path d="M4 7l8-4 8 4v10l-8 4-8-4z"/>'
   };
   const ICON_OF = { town_scroll: "scroll", sword_a: "sword", cloth_a: "tunic", charm_a: "charm", potion: "potion", fur: "fur", fox_tail: "tail", snake_skin: "skin", snake_fang: "fang", rat_tooth: "tooth", crab_claw: "claw", crab_shell: "shell", fox_scarf: "scarf", snake_ring: "ring", crab_vest: "tunic", guild_token: "token", guild_parcel: "parcel", barsha_map: "map", jepeto_blueprint: "sheet", iron_scrap: "scrap", wolf_pelt: "pelt", metal_fragment: "shard", carpenter_bag: "bag" };
-  const HAS_ART = new Set(["black_crystal", "sword_a", "cloth_a", "charm_a", "fox_scarf", "snake_ring", "crab_vest", "fur", "fox_tail", "snake_skin", "snake_fang", "rat_tooth", "crab_claw", "crab_shell", "iron_scrap", "wolf_pelt", "potion", "fatigue_tonic", "guild_token", "guild_parcel", "barsha_map", "jepeto_blueprint", "metal_fragment", "carpenter_bag", "boar_tusk"]);
+  const HAS_ART = new Set(["black_crystal", "sword_a", "cloth_a", "charm_a", "fox_scarf", "snake_ring", "crab_vest", "fur", "fox_tail", "snake_skin", "snake_fang", "rat_tooth", "crab_claw", "crab_shell", "iron_scrap", "wolf_pelt", "potion", "fatigue_tonic", "guild_token", "guild_parcel", "barsha_map", "jepeto_blueprint", "metal_fragment", "carpenter_bag", "boar_tusk", "town_scroll", "teodoros_letter"]);
   UI.itemIcon = function (id, px) {
     const it = AU.ITEMS[id] || {}, size = px || 40, box = h("span", { class: "iicon r-" + (it.rarity || it.type), style: "width:" + size + "px;height:" + size + "px" });
     const art = it.img || (HAS_ART.has(id) ? "assets/item/" + id + ".webp" : null);
