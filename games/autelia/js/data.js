@@ -155,23 +155,34 @@ AU.MAPS = {
     // thin: 위에 올라설 수 있고 ↓+점프로 내려올 수 있는 얇은 발판(임시 그래픽)
     platforms: [{ x: 0, y: 590, w: 1280 }, { x: 300, y: 480, w: 200, thin: true }, { x: 520, y: 430, w: 220, thin: true }],
     ropes: [{ x: 285, top: 465, bottom: 590 }],
-    portals: [{ x: 40, to: "porto", toX: 2540, label: "포르투 노바" }],
+    portals: [{ x: 40, to: "porto", toX: 2540, label: "포르투 노바" }, { x: 1240, to: "docks_inner", toX: 90, label: "선창 안쪽" }],
     npcs: [],
     // 조사·수리 지점: 해당 목표가 진행 중일 때만 표시됩니다(kind: repair=목공 수리 / investigate=조사)
     spots: [
     ],
-    spawns: [{ type: "rat", x: 250 }, { type: "rat", x: 430 }, { type: "rat", x: 620 }, { type: "rat", x: 780 }, { type: "crab", x: 920 }, { type: "crab", x: 1060 }, { type: "crab", x: 1190 }],
-    area: { x: 90, y: 64, desc: "항구 바깥 선창 지대입니다. 입구 쪽에는 부두 쥐가, 안쪽에는 집게 게가 삽니다. 길드 의뢰의 사냥터입니다." }
+    spawns: [{ type: "rat", x: 250 }, { type: "rat", x: 430 }, { type: "rat", x: 620 }, { type: "rat", x: 780 }, { type: "rat", x: 940 }, { type: "rat", x: 1100 }],
+    area: { x: 90, y: 64, desc: "항구 바깥 선창 지대입니다. 부두 쥐가 모여 사는 사냥터이고, 오른쪽 끝 통로를 지나면 집게 게가 사는 안쪽 창고가 나옵니다." }
+  },
+  // 집게 게 전용 맵(11-25): 선창 외곽 오른쪽 끝 통로로 들어갑니다. 배경 그림은 GPT 제작 예정이라 그동안 선창 외곽 그림을 좌우 반전해 임시로 씁니다(완성되면 bg를 "docks_inner"로 교체).
+  docks_inner: {
+    name: "선창 안쪽", bg: "storage", bgFlip: true, width: 1280, safe: false,
+    platforms: [{ x: 0, y: 590, w: 1280 }, { x: 780, y: 480, w: 200, thin: true }, { x: 540, y: 430, w: 220, thin: true }],
+    ropes: [{ x: 995, top: 465, bottom: 590 }],
+    portals: [{ x: 40, to: "docks", toX: 1190, label: "선창 외곽" }],
+    npcs: [],
+    spots: [],
+    spawns: [{ type: "crab", x: 330 }, { type: "crab", x: 500 }, { type: "crab", x: 670 }, { type: "crab", x: 840 }, { type: "crab", x: 1000 }, { type: "crab", x: 1160 }],
+    area: { x: 94, y: 68, desc: "선창 외곽 안쪽의 눅눅한 창고입니다. 집게 게가 모여 살며, 길드 의뢰 '집게 게 퇴치'의 사냥터입니다." }
   }
 };
 /* 대륙 지도: 이름은 아직 정해지지 않음(미정). 열리지 않은 권역은 이름 대신 방향만 보여 줌(스포일러 방지). maps는 지역 지도 id */
 AU.WORLD_REGIONS = [
-  { id: "south", name: "남부 해안", x: 50, y: 82, open: true, maps: ["forest", "harbor_road", "porto", "docks", "jandari", "general_store", "weapon_store", "guild_hall", "warehouse"], desc: "대륙 최남단의 해안 지대입니다. 정보와 상인의 자유 항구도시 포르투 노바가 있습니다." },
+  { id: "south", name: "남부 해안", x: 50, y: 82, open: true, maps: ["forest", "harbor_road", "porto", "docks", "docks_inner", "jandari", "general_store", "weapon_store", "guild_hall", "warehouse"], desc: "대륙 최남단의 해안 지대입니다. 정보와 상인의 자유 항구도시 포르투 노바가 있습니다." },
   { id: "west", name: "서부", x: 20, y: 52, open: false, desc: "아직 가 보지 않은 땅입니다. 이야기가 진행되면 길이 열립니다." },
   { id: "north", name: "북부", x: 48, y: 18, open: false, desc: "아직 가 보지 않은 땅입니다. 이야기가 진행되면 길이 열립니다." },
   { id: "east", name: "동부", x: 80, y: 44, open: false, desc: "아직 가 보지 않은 땅입니다. 이야기가 진행되면 길이 열립니다." }
 ];
-AU.AREA_LINKS = [["forest", "harbor_road"], ["harbor_road", "porto"], ["porto", "docks"], ["porto", "general_store"], ["porto", "weapon_store"], ["porto", "guild_hall"], ["porto", "warehouse"]];
+AU.AREA_LINKS = [["forest", "harbor_road"], ["harbor_road", "porto"], ["porto", "docks"], ["docks", "docks_inner"], ["porto", "general_store"], ["porto", "weapon_store"], ["porto", "guild_hall"], ["porto", "warehouse"]];
 
 /* ---------- 적 ---------- */
 // sprite/sw: 정식 그림(assets/monster/*.webp, 투명 배경, 오른쪽을 보는 옆모습 1장)이 있으면 그 그림을 sw(가로 px)로 그리고, 없으면 임시 도형으로 표시합니다.
@@ -308,16 +319,16 @@ AU.QUESTS = {
   q_guild_rats: {
     title: "부두 쥐 소탕", type: "sub", giver: "porto_guild", minLevel: 4, pre: ["q_guild_talk"],
     area: "docks", desc: "선창 외곽의 부두 쥐를 8마리 처치합니다.", objectives: [{ kind: "kill", target: "rat", count: 8 }],
-    offer: ["선창 길드의 첫 의뢰예요. 선창 외곽에 부두 쥐가 꼬여 곡식 자루를 갉아서 골치예요. 안쪽에는 집게 게도 있으니 입구 쪽에서 상대해 주세요.", "쥐를 8마리만 줄여 주세요."],
-    reminder: ["선창 외곽 입구 쪽의 부두 쥐 8마리예요. 안쪽의 집게 게는 더 세니 조심하세요."],
+    offer: ["선창 길드의 첫 의뢰예요. 선창 외곽에 부두 쥐가 꼬여 곡식 자루를 갉아서 골치예요. 오른쪽 끝 통로 너머에는 집게 게도 있지만, 지금은 쥐만 상대해 주세요.", "쥐를 8마리만 줄여 주세요."],
+    reminder: ["선창 외곽의 부두 쥐 8마리예요. 안쪽 통로 너머의 집게 게는 더 세니 조심하세요."],
     done: ["확인했어요. 수고하셨어요. 보수와 길드 증표예요.", "참, 카시안 님이 일이 있다고 하셨어요. 레벨이 5쯤 되면 들러 보세요."],
     reward: { exp: 800, silver: 120, items: [["charm_a", 1], ["guild_token", 1]] }
   },
   q_guild_crabs: {
     title: "집게 게 퇴치", type: "sub", giver: "porto_guild", minLevel: 7, pre: ["q_guild_rats"],
-    area: "docks", desc: "선창 외곽의 집게 게를 5마리 처치합니다.", objectives: [{ kind: "kill", target: "crab", count: 5 }],
-    offer: ["선창 외곽에서 집게 게가 짐을 자꾸 상하게 해요. 다섯 마리만 처리해 주세요."],
-    reminder: ["선창 외곽의 집게 게 다섯 마리예요. 집게에 조심하세요."],
+    area: "docks_inner", desc: "선창 안쪽의 집게 게를 5마리 처치합니다.", objectives: [{ kind: "kill", target: "crab", count: 5 }],
+    offer: ["선창 외곽 안쪽 창고에서 집게 게가 짐을 자꾸 상하게 해요. 외곽 오른쪽 끝 통로로 들어가면 있어요. 다섯 마리만 처리해 주세요."],
+    reminder: ["선창 안쪽의 집게 게 다섯 마리예요. 외곽 오른쪽 끝 통로로 들어가세요. 집게에 조심하세요."],
     done: ["수고하셨어요. 이번 보수예요.", "게딱지가 단단해서 조끼로 쓸 만하다고들 해요. 아주 가끔 그런 물건이 나오니 눈여겨보세요."],
     reward: { exp: 2000, silver: 260 }
   },
