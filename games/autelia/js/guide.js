@@ -67,7 +67,16 @@ window.AU = window.AU || {};
   };
   AU.Ev.on("levelup", () => G.trigger("levelup"));
   AU.Ev.on("jobchange", () => G.trigger("skill"));
-  AU.Ev.on("levelup", (e) => { if (e && e.level === AU.CONFIG.dash.level) { AU.G.toast("이동기를 배웠습니다! [" + K("dash") + "] 키 — 최대 3번 충전, 10초마다 1번 충전", "good"); } });
+  AU.Ev.on("levelup", (e) => {
+    if (!e || e.level !== AU.CONFIG.dash.level) return;
+    AU.G.toast("이동기를 배웠습니다! [" + K("dash") + "] 키 — 최대 3번 충전, 10초마다 1번 충전", "good");
+    if (off() || flags().gd_dash || !AU.RealBridge || !AU.RealBridge.prompt) return;
+    flags().gd_dash = true; AU.G.save("guide");
+    const D = AU.CONFIG.dash;   // Lv.5 이동기 설명(한 번만): 레벨업 연출이 끝난 뒤 안내창을 띄움
+    setTimeout(() => AU.RealBridge.prompt("새 기술: 이동기를 배웠어요",
+      "바라보는 방향으로 짧게 빠르게 달려 나가는 기술입니다.\n\n[" + K("dash") + "] 키를 누르면 쓸 수 있고, 달리는 동안은 잠깐 공격을 받지 않습니다.\n\n최대 **" + D.max + "번**까지 모아 둘 수 있고, **" + D.recharge + "초마다 1번**씩 다시 채워집니다. 화면 아래 이동기 칸의 ●○로 남은 횟수를 볼 수 있어요.\n\n몬스터의 공격을 피하거나 먼 거리를 빠르게 지나갈 때 써 보세요.",
+      [{ text: "알겠어요", value: "ok", primary: true }]), 2800);
+  });
   AU.Ev.on("awaken", () => G.trigger("skill"));
   AU.Ev.on("mapchange", () => { if (AU.G && AU.G.S && AU.G.S.map && AU.MAPS[AU.G.S.map] && !AU.MAPS[AU.G.S.map].safe) G.trigger("map"); });
 })();
