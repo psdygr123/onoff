@@ -121,12 +121,12 @@ window.AU = window.AU || {};
   const STEP = { type: "main", giver: "jepeto", minLevel: 10 };
   const rec = (fl) => AU.G.S.flags[fl];
   AU.QUESTS.q_h1a = Object.assign({}, STEP, {
-    title: "그림자 속으로", pre: ["q_a3_jepeto"], area: "hide_outer", autoDone: true, next: "q_h1b",
+    title: "그림자 속으로", pre: ["q_a3_jepeto"], area: "hide_outer", noWhere: true, autoDone: true, next: "q_h1b",
     desc: "협곡 안쪽 아지트 외곽으로 숨어듭니다. 경비의 시선을 피해 초소 장부와 빈 수송 우리를 조사한 뒤 갱도 입구로 향합니다.",
     objectives: [{ kind: "investigate", targets: ["hide_gate", "hide_cargo"] }],
     offer: [L(J(), "때가 되었네. 협곡 안쪽의 길을 열었네. 저 바위 너머가 어둠 세력의 아지트일세."),
             L(J(), "바깥은 경비병이 지키고 있네. 붉은 시선에 걸리면 잡히니, 입구로 돌려보내질 걸세. 상자 앞에서 Space를 눌러 숨고, 기둥 뒤로 지나가게. 몇 번을 다시 해도 잃는 건 없네."),
-            L(J(), "안쪽 갱도와 실험 구역에서는 싸울 각오를 하게. 그리고 무엇을 만드는지, 누가 책임자인지 꼭 눈으로 확인하고 오게.")],
+            L(J(), "길을 쭉 가다보면 갱도가 나올 걸세. 거기에서 무슨 일이 벌어지는지 꼭 알아오게.")],
     reminder: ["초소의 장부와 빈 수송 우리를 살피고 갱도 입구로 가게. 경비의 시선은 상자와 기둥으로 피하게."],
     reward: { exp: 400, silver: 40, items: [] }
   });

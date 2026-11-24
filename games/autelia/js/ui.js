@@ -398,10 +398,10 @@ window.AU = window.AU || {};
       if (qid) {
         const q = AU.QUESTS[qid];
         if (q.fee && S.silver < q.fee) { this.toast("은화가 필요합니다. (" + q.fee + ")", "warn"); return this.say(npc, q.feeShort || ["은화가 모자랍니다."]); }
-        { let wh = q.area && !/왼쪽|오른쪽|끝으로/.test(q.offer.join(" ")) ? this.whereText(AU.World.mapId, (AU.World.nearNpc || {}).x, q.area) : "";  if (wh && /(네|게|세|군)[.!?…]/.test(q.offer.join(" "))) wh = wh.replace(/있어요\.$/, "있다네."); /* 말투 맞춤: "~하게/~네"로 말하는 인물은 "있다네" */ return this.say(npc, wh ? q.offer.concat([wh]) : q.offer, { choices: [{ label: "수락", key: "interact", fn: () => AU.G.startQuest(qid) }, { label: "나중에", key: "menu", fn: () => {} }] }); }
+        { let wh = q.area && !q.noWhere && !/왼쪽|오른쪽|끝으로/.test(q.offer.join(" ")) ? this.whereText(AU.World.mapId, (AU.World.nearNpc || {}).x, q.area) : "";  if (wh && /(네|게|세|군)[.!?…]/.test(q.offer.join(" "))) wh = wh.replace(/있어요\.$/, "있다네."); /* 말투 맞춤: "~하게/~네"로 말하는 인물은 "있다네" */ return this.say(npc, wh ? q.offer.concat([wh]) : q.offer, { accept: true, choices: [{ label: "수락 (Enter)", key: "enter", primary: true, fn: () => AU.G.startQuest(qid) }, { label: "나중에", key: "menu", fn: () => {} }] }); }
       }
       const act = (npc.quests || []).find((id) => AU.G.questStatus(id) === "active" && AU.QUESTS[id].giver === npcId);
-      if (act) return this.say(npc, ["아직 진행 중이에요. (" + AU.QUESTS[act].title.replace(" (임시)", "") + ")"].concat(AU.QUESTS[act].reminder || []));
+      if (act) return this.say(npc, ["아직 진행 중이에요. (" + AU.QUESTS[act].title.replace(" (임시)", "") + ")"]);   // 11-25: 수락 뒤 다시 말을 걸면 이 한 줄만
       if (npc.shop) {
         const gen = npc.shop === "general", lines = [npc.idle[Math.floor(Math.random() * npc.idle.length)]];
         return this.say(npc, lines, { choices: [{ label: gen ? "사고 팔기" : npc.shop === "weapon" ? "장비 사기" : "장비 만들기", key: "interact", fn: () => { AU.G.openShop(npc.shop); UI.tab.shop = gen ? "sell" : npc.shop === "weapon" ? "buy" : "craft"; this.open("shop"); } }, { label: "그만두기", key: "menu", fn: () => {} }] });
@@ -444,7 +444,7 @@ window.AU = window.AU || {};
       // 본래 초상화가 아직 오는 중이면 어른 대체 그림(alt) 대신 이름 첫 글자 표시(틀린 얼굴 방지). 대체 그림은 본래 그림 파일이 아예 없을 때만 사용
       const pend = np.portrait && AU.Img.map[np.portrait] && !AU.Img.map[np.portrait].done, ppk = AU.Img.has(np.portrait) ? np.portrait : (!pend && np.alt && AU.Img.has(np.alt) ? np.alt : np.portrait), pt = AU.Img.has(ppk) ? h("img", { src: AU.ASSETS[ppk].path, alt: "" }) : h("div", { class: "ptfallback", text: np.name.slice(0, 1) });
       const back = d.i > 0 ? btn("◀ 이전 (" + AU.keyLabel(AU.Input.bindings.left) + ")", "dback", () => this.backDialog()) : null;
-      const choices = last && d.opt.choices ? h("div", { class: "choices" }, back, d.opt.choices.map((c) => btn(c.label + (keyOf(c.key) ? "  (" + keyOf(c.key) + ")" : ""), c.key === "interact" ? "primary" : "", () => this.finishDialog(c)))) : null;
+      const choices = last && d.opt.choices ? h("div", { class: "choices" }, back, d.opt.choices.map((c) => btn(c.label + (keyOf(c.key) ? "  (" + keyOf(c.key) + ")" : ""), c.key === "interact" || c.primary ? "primary" : "", () => this.finishDialog(c)))) : null;
       this.dlgEl.innerHTML = ""; this.dlgEl.append(h("div", { class: "panel dlgbox" + (cap ? " narr" : "") }, cap ? null : h("div", { class: "pt" }, pt), h("div", { class: "dtext" }, cap ? null : h("div", { class: "dname", text: AU.Profile.fmt(np.name) }), h("div", { class: "dline", text: cap ? text.replace(/^\(|\)$/g, "") : text }), AU.G.S.flags.tipDlg ? null : h("div", { class: "dtip", text: keyOf("interact") + " : 다음 대사 · " + AU.keyLabel(AU.Input.bindings.left) + " : 이전 대사 (아래 버튼을 눌러도 됩니다)" }),
         choices || h("div", { class: "dnext" }, back, btn(last ? "닫기 (" + keyOf("interact") + ")" : "다음 ▶ (" + keyOf("interact") + ")", "", () => this.advanceDialog())))));
     },
@@ -452,6 +452,7 @@ window.AU = window.AU || {};
     advanceDialog() {
       const d = this.dialog; if (!d) return;
       if (d.i < d.lines.length - 1) { d.i++; this.renderDialog(); return; }
+      if (d.opt.accept) return;   // 수락창에서는 Space로 넘어가지 않음(Enter 또는 클릭, Esc는 '나중에')
       if (d.opt.choices) { this.finishDialog(d.opt.choices[0]); return; }
       this.finishDialog(null);
     },
@@ -477,6 +478,7 @@ window.AU = window.AU || {};
     },
 
     /* ============ 키 처리(입력 → UI) ============ */
+    onEnterKey() { const d = this.dialog; if (!d || !d.opt.accept || this.modal || d.i < d.lines.length - 1) return false; this.finishDialog(d.opt.choices[0]); return true; },
     onAction(id) {
       if (this.modal) { if (id === "menu") { this.modal = false; this.modalEl.classList.add("hidden"); this.modalEl.innerHTML = ""; } return true; }
       if (this.listening) return true;
