@@ -121,9 +121,7 @@ window.AU = window.AU || {};
       if (this.visibleInDev()) {
         await this.prompt("모험과 일상을 함께 기록해 보세요",
           "이야기를 따라 모험하며, 나의 하루도 한 걸음씩 돌아보는 성장형 RPG예요.",
-          [{text:"다음",value:"next",primary:true}], { cls: "rb-intro" });
-        if (!AU.Prologue || !AU.Prologue.on) return false;
-        await this.prompt("이동 방법", "좌우 방향키(← →)로 걸어서 이동합니다.", [{text:"모험 시작하기",value:"start",primary:true}], { cls: "rb-intro" });
+          [{text:"시작하기",value:"start",primary:true}], { cls: "rb-intro" });
       }
       if (!AU.Prologue || !AU.Prologue.on) return false;
       S.flags.realBridgeIntroSeen = true;
