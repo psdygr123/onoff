@@ -450,6 +450,32 @@ window.AU = window.AU || {};
       S.flags.guideMet = true; this.initMissions();
       this.save("mission"); this.changed(); return true;
     },
+    /* ---------- 현실 미션 보상: 난이도(1~3) + 시간(0~2) + 기간(0~2) 합산으로 3등급 ----------
+       인증(보조 기록)을 하면 full, 안 하면 part만 지급하고 나중에 인증하면 차액을 소급 지급합니다. */
+    missionTier(m) {
+      const d = Math.max(1, Math.min(3, m.difficulty || 1)), t = (m.minutes || 0) <= 5 ? 0 : m.minutes <= 15 ? 1 : 2, sp = m.span || 1, g = sp >= 7 ? 2 : sp >= 2 ? 1 : 0;
+      const score = d + t + g; return { score, tier: score <= 3 ? 1 : score <= 5 ? 2 : 3 };
+    },
+    missionReward(m) {
+      const { score, tier } = this.missionTier(m), T = AU.MISSION_REWARD[tier];
+      return { score, tier, name: T.name, full: { tokens: T.full[0], mind: T.full[1] }, part: { tokens: T.part[0], mind: T.part[1] }, extra: { tokens: T.full[0] - T.part[0], mind: T.full[1] - T.part[1] } };
+    },
+    // 완료했지만 인증하지 않은 활동에 나중에 인증을 붙이면 남은 보상을 지급
+    verifyMission(id, evidence) {
+      const S = this.S, m = this.mission(id), r = S.missions.states[id];
+      if (!m || !r || r.state !== "done" || !r.reward || r.reward.verified) return false;
+      const sup = AU.MissionEvidence ? AU.MissionEvidence.clean(evidence, m) : null; if (!sup) return false;
+      const rw = this.missionReward(m), ex = { tokens: rw.full.tokens - r.reward.tokens, mind: rw.full.mind - r.reward.mind };
+      const e = S.missions.log.slice().reverse().find((x) => x.id === id && x.state === "done" && !x.repeat); if (!e) return false;
+      if (!S.gallery) S.gallery = { tokens: 0, unlocked: [], selected: [], attendance: [] };
+      if (ex.tokens > 0) S.gallery.tokens += ex.tokens;
+      let gained = 0; if (ex.mind > 0) gained = this.gainMind(m.perma, ex.mind);
+      r.reward = { tier: rw.tier, verified: true, tokens: rw.full.tokens, mind: rw.full.mind };
+      e.supplementary = sup; e.proof = "evidence"; e.galleryTokens = (e.galleryTokens || 0) + Math.max(0, ex.tokens); e.mindGained = (e.mindGained || 0) + gained; e.verifiedLate = AU.dateStr();
+      this.log("현실 미션 인증: " + m.title);
+      this.toast("인증 완료! 남은 보상 토큰 +" + Math.max(0, ex.tokens) + (gained ? " · 마음 [" + AU.PERMA[m.perma] + "] +" + gained : ""), "good");
+      this.save("mission-verify"); this.changed(); return true;
+    },
     setMissionState(id, next, feedback, evidence) {
       const S = this.S; if (!S.flags.missionsUnlocked) return false;
       this.initMissions();
@@ -478,15 +504,19 @@ window.AU = window.AU || {};
         r.state = "done";
         if (!r.rewarded) { // 같은 미션의 보상은 한 번만 지급
           if (S.missions.weekId !== AU.weekId()) { S.missions.weekId = AU.weekId(); S.missions.weekPoints = 0; }
+          // 난이도·시간·기간으로 등급을 정하고, 인증(보조 기록)을 하면 전액·안 하면 일부만 지급합니다. 나중에 인증하면 나머지를 소급 지급(verifyMission).
+          const rw = this.missionReward(m), verified = !!(AU.MissionEvidence && AU.MissionEvidence.clean(evidence, m));
+          const pay = verified ? rw.full : rw.part;
           const room = Math.max(0, C.missions.weeklyPointCap - S.missions.weekPoints);
-          points = Math.min(m.points, room); capped = points < m.points;
+          points = Math.min(pay.mind, room); capped = points < pay.mind;
           // 새 현실 미션 보상은 전투 스탯과 독립된 개인 공간 장식 재화로 지급합니다.
           // 구 저장의 trainingPoints 및 이미 배분한 스탯은 삭제하지 않습니다.
           if (!S.gallery) S.gallery = { tokens: 0, unlocked: [], selected: [], attendance: [] };
-          earnedTokens = 1;
+          earnedTokens = pay.tokens;
           S.gallery.tokens += earnedTokens;
           S.missions.weekPoints += points; r.rewarded = true;
-          gained = this.gainMind(m.perma, m.points); // 평가 응답 여부 및 점수와 무관하게 동일 보상
+          r.reward = { tier: rw.tier, verified, tokens: earnedTokens, mind: pay.mind };
+          gained = this.gainMind(m.perma, pay.mind); // 평가 응답 여부와 무관하게 동일 보상
         }
       }
       // 자기보고와 선택적인 보조 기록을 분리. 사진 원본은 저장 파일에 포함하지 않음.
@@ -496,7 +526,9 @@ window.AU = window.AU || {};
       if (next === "done") {
         this.log("현실 미션 완료: " + m.title);
         const mindTxt = gained ? " · 마음 [" + AU.PERMA[m.perma] + "] +" + gained : "";
-        this.toast("현실 미션 완료! 갤러리 토큰 +" + earnedTokens + mindTxt, "good");
+        const rr = S.missions.states[id].reward, rw = this.missionReward(m);
+        const more = rr && !rr.verified && (rw.full.tokens - rr.tokens || rw.full.mind - rr.mind) ? " · 인증하면 토큰 +" + (rw.full.tokens - rr.tokens) + (rw.full.mind - rr.mind ? "·마음 +" + (rw.full.mind - rr.mind) : "") + " 더" : "";
+        this.toast("현실 미션 완료! [" + rw.name + "] 갤러리 토큰 +" + earnedTokens + mindTxt + more, "good");
       }
       this.save("mission"); this.changed(); return true;
     },
@@ -646,7 +678,7 @@ window.AU = window.AU || {};
       return n;
     },
     // 영역별 현재 목록에서 얻을 수 있는 최대치(막대 길이 기준). 미션이 늘면 자동으로 늘어남
-    mindMax(k) { return AU.MISSIONS.filter((m) => m.perma === k).reduce((a, m) => a + m.points, 0); },
+    mindMax(k) { return AU.MISSIONS.filter((m) => m.perma === k).reduce((a, m) => a + this.missionReward(m).full.mind, 0); },
     // 영역별(PERMA) 주간 완료 횟수: 마음 기록 화면용
     permaCounts() {
       const out = {}; for (const k of Object.keys(AU.PERMA)) out[k] = 0;

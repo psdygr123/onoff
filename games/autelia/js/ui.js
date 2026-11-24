@@ -513,14 +513,17 @@ window.AU = window.AU || {};
       const ns = "http://www.w3.org/2000/svg", svg = document.createElementNS(ns, "svg");
       svg.setAttribute("viewBox", "0 0 240 205"); svg.setAttribute("role", "img"); svg.setAttribute("aria-label", "현실 미션 실천 기록에 따른 PERMA 영역별 성장치");
       const xy = (i, pct) => { const angle = -Math.PI/2 + i*2*Math.PI/5; return [120 + Math.cos(angle)*86*pct, 98 + Math.sin(angle)*83*pct]; };
-      const poly = (points, fill, stroke, opacity) => { const p = document.createElementNS(ns,"polygon"); p.setAttribute("points",points.map(v=>v.join(",")).join(" "));p.setAttribute("fill",fill);p.setAttribute("stroke",stroke);p.setAttribute("stroke-width","1.5");if(opacity)p.setAttribute("opacity",opacity);svg.appendChild(p); };
+      const poly = (points, fill, stroke, opacity) => { const p = document.createElementNS(ns,"polygon"); p.setAttribute("points",points.map(v=>v.join(",")).join(" "));p.setAttribute("fill",fill);p.setAttribute("stroke",stroke);p.setAttribute("stroke-width","1.5");if(opacity)p.setAttribute("opacity",opacity);svg.appendChild(p); return p; };
       for (const t of [.25,.5,.75,1]) poly(dailyRows.map((_,i)=>xy(i,t)),"none","#baaf8e","0.7");
       dailyRows.forEach((d,i)=>{const line=document.createElementNS(ns,"line");const [x,y]=xy(i,1);line.setAttribute("x1","120");line.setAttribute("y1","98");line.setAttribute("x2",x);line.setAttribute("y2",y);line.setAttribute("stroke","#c8baa0");svg.appendChild(line);});
-      poly(dailyRows.map((d,i)=>xy(i,Math.max(0,Math.min(1,d.pct/100)))),"#d8b66b","#a87b32","0.85");
+      const tr = AU.G.mindTrend();
+      const pp = poly(dailyRows.map((d,i)=>xy(i,Math.max(0,Math.min(1,tr[d.key].prevPct/100)))),"none","#6f6a5a","1"); pp.setAttribute("stroke-dasharray","2 4"); pp.setAttribute("stroke-width","2.2"); pp.setAttribute("stroke-linecap","round");
+      const cp = poly(dailyRows.map((d,i)=>xy(i,Math.max(0,Math.min(1,d.pct/100)))),"rgba(216,182,107,.28)","#8a5f1c","1"); cp.setAttribute("stroke-width","2.6");
       dailyRows.forEach((d,i)=>{const [x,y]=xy(i,1.16);const label=document.createElementNS(ns,"text");label.setAttribute("x",x);label.setAttribute("y",y+4);label.setAttribute("text-anchor","middle");label.setAttribute("font-size","15");label.setAttribute("font-weight","700");label.setAttribute("fill","#70552d");label.textContent=d.key;svg.appendChild(label);});
       return svg;
     };
     const radar = h("div", { class: "room-radar" }, makeChart(),
+      h("div", { class: "mleg room-leg" }, h("span", { class: "lg cur", text: "이번 주 (실선)" }), h("span", { class: "lg prev", text: "지난주 (점선)" })),
       h("div", { class: "room-perma-legend" }, ...dailyRows.map(d => h("div", { class: "room-perma-row" },
         h("strong", { text: d.key }), h("span", { text: d.label }), h("b", { text: d.value + "점" })))));
     const right = h("aside", { class: "room-right" },
@@ -712,26 +715,26 @@ window.AU = window.AU || {};
     // 오각형 레이더: 바깥쪽이 영역별 만점(해당 영역 미션 점수 합). 현재(초록 면) vs 이전(회색 점선)
     const CX = 130, CY = 124, R0 = 92, pt = (i, f) => { const a = -Math.PI / 2 + i * 2 * Math.PI / keys.length; return [CX + Math.cos(a) * R0 * f, CY + Math.sin(a) * R0 * f]; };
     const poly = (f) => keys.map((k, i) => pt(i, f(k)).map((n) => n.toFixed(1)).join(",")).join(" ");
-    let svg = '<svg viewBox="0 0 260 250" role="img" aria-label="마음 능력치 레이더: 현재와 이전 비교">';
+    let svg = '<svg viewBox="0 0 260 250" role="img" aria-label="마음 능력치 레이더: 이번 주와 지난주 비교">';
     for (const r of [0.25, 0.5, 0.75, 1]) svg += '<polygon points="' + poly(() => r) + '" fill="none" stroke="#d9e0d8" stroke-width="' + (r === 1 ? 1.6 : 1) + '"/>';
     keys.forEach((k, i) => { const [x, y] = pt(i, 1), [lx, ly] = pt(i, 1.2); svg += '<line x1="' + CX + '" y1="' + CY + '" x2="' + x.toFixed(1) + '" y2="' + y.toFixed(1) + '" stroke="#d9e0d8"/><text x="' + lx.toFixed(1) + '" y="' + (ly + 5).toFixed(1) + '" text-anchor="middle" class="rl">' + k + '</text>'; });
-    svg += '<polygon points="' + poly((k) => tr[k].prevPct / 100) + '" fill="rgba(140,148,156,.10)" stroke="#8c949c" stroke-width="2" stroke-dasharray="5 4" stroke-linejoin="round"/>';
-    svg += '<polygon class="rcur" points="' + poly((k) => tr[k].curPct / 100) + '" fill="rgba(79,125,110,.38)" stroke="#4F7D6E" stroke-width="2.5" stroke-linejoin="round"/>';
+    svg += '<polygon points="' + poly((k) => tr[k].prevPct / 100) + '" fill="none" stroke="#7a828a" stroke-width="2.2" stroke-dasharray="2 4" stroke-linecap="round" stroke-linejoin="round"/>';
+    svg += '<polygon class="rcur" points="' + poly((k) => tr[k].curPct / 100) + '" fill="rgba(79,125,110,.16)" stroke="#2f6b57" stroke-width="2.6" stroke-linejoin="round"/>';
     keys.forEach((k, i) => { const [x, y] = pt(i, tr[k].curPct / 100); svg += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="3.6" fill="#4F7D6E" stroke="#fff" stroke-width="1.5"/>'; });
     svg += "</svg>";
     const chart = h("div", { class: "mrad" }), holder = h("div", { class: "mradsvg", "data-radar": "1" }); holder.innerHTML = svg;
-    chart.append(holder, h("div", { class: "mleg" }, h("span", { class: "lg cur", text: "현재" }), h("span", { class: "lg prev", text: "이전" })));
+    chart.append(holder, h("div", { class: "mleg" }, h("span", { class: "lg cur", text: "이번 주 (실선)" }), h("span", { class: "lg prev", text: "지난주 (점선)" })));
     const rows = h("div", { class: "mrows" });
     for (const k of keys) {
       const t = tr[k], fresh = last && last.k === k;
       rows.append(h("div", { class: "mrow" + (fresh ? " fresh" : ""), "data-perma": k },
         h("b", { text: k }), h("span", { class: "mn", text: AU.PERMA[k] }),
         h("div", { class: "mbar" }, h("i", { style: "width:" + t.curPct + "%" }), h("s", { class: "mprev", style: "left:" + t.prevPct + "%", title: "이전 " + t.prev })),
-        h("em", { class: "mv", text: t.cur + " / " + t.mx }), h("span", { class: "mcmp", text: "이전 " + t.prev + (t.diff ? " · " + (t.diff > 0 ? "+" : "") + t.diff : "") }),
+        h("em", { class: "mv", text: t.cur + " / " + t.mx }), h("span", { class: "mcmp", text: "지난주 " + t.prev + " → 이번 주 " + t.cur + (t.diff ? " (" + (t.diff > 0 ? "+" : "") + t.diff + ")" : "") }),
         h("span", { class: "mup", text: fresh ? "방금 +" + last.n : "" })));
     }
     box.append(h("div", { class: "mtrend" }, chart, rows));
-    box.append(h("p", { class: "note", text: "현실 활동 완료 시 기본 점수가 오르고, 자기평가 3항목을 기록하면 추가 1점이 쌓입니다. 점선·세로선의 '이전'은 이번 주가 시작될 때의 기록입니다." }));
+    box.append(h("p", { class: "note", text: "현실 활동을 완료하면 활동 등급에 따라 점수가 오르고, 인증하면 더 크게 쌓입니다. 점선은 이번 주가 시작될 때(지난주까지)의 기록입니다." }));
     box.append(h("p", { class: "note", text: "이것은 게임 속 활동 점수이며 행복이나 건강 상태를 재는 검사 점수가 아닙니다. 전투에는 영향을 주지 않습니다." }));
     if (AU.G.rollMindWeek()) AU.G.save("mind");
     return box;
@@ -851,6 +854,21 @@ window.AU = window.AU || {};
       wrap.append(h("div", { class: "panel modal restnote review-step" }, ...head, ...body, h("div", { class: "choices" }, ...acts), foot));
     }
     draw();
+  };
+
+  /* 완료한 활동을 나중에 인증하면 남은 보상을 받는 창 */
+  UI.missionVerify = function (m) {
+    const wrap = UI.modalEl; UI.modal = true; wrap.classList.remove("hidden"); wrap.innerHTML = "";
+    const panel = AU.MissionEvidence.panel(m), rw = AU.G.missionReward(m); let busy = false;
+    const close = () => { panel.dispose(); UI.modal = false; wrap.classList.add("hidden"); wrap.innerHTML = ""; UI.renderWin(); };
+    const ok = btn("인증하고 보상 받기", "primary", async () => {
+      if (busy) return; busy = true;
+      try { const ev = await panel.value(); if (!ev) { AU.G.toast("인증 내용을 입력하거나 기록해 주세요.", "info"); busy = false; return; } const done = AU.G.verifyMission(m.id, ev); if (done === false && ev.photoId) AU.MissionEvidence.remove(ev.photoId).catch(() => {}); close(); }
+      catch (e) { AU.G.toast(String(e && e.message || e), "info"); busy = false; }
+    });
+    wrap.append(h("div", { class: "panel modal restnote review-step" }, h("h3", { text: m.title + " · 인증하기" }),
+      h("p", { class: "note", text: "인증하면 남은 보상(토큰 +" + rw.extra.tokens + (rw.extra.mind ? " · 마음 +" + rw.extra.mind : "") + ")을 받습니다. 인증 내용은 이 기기에만 보관됩니다." }),
+      panel.root, h("div", { class: "choices" }, ok, btn("닫기", "", close))));
   };
 
   UI.restNote = function (m, onSubmit) {
@@ -1041,6 +1059,15 @@ window.AU = window.AU || {};
       if (!S.flags.guideMet) { b.append(h("div", { class: "lockbox" }, h("h3", { text: "현실 활동 안내" }), h("p", { text: "프롤로그에서 현실 활동의 기록 방법을 안내받으면 이곳의 미션을 선택할 수 있습니다." }))); return; }
       const M = S.missions, AREAS = AU.MISSION_FUNCTION_AREAS;
       // 활동 카드 하나: 전체·오늘·추천·즐겨찾기·계획 화면이 같은 카드를 씀(상태 버튼·반복 수행·주기 설정·즐겨찾기)
+      const rewardLine = (m, r) => {
+        const rw = AU.G.missionReward(m);
+        if (r.state === "done") {
+          if (!r.reward) return null;
+          return h("p", { class: "note reward", text: "받은 보상 · [" + rw.name + "] 토큰 " + r.reward.tokens + " · 마음 +" + r.reward.mind + (r.reward.verified ? " (인증 완료)" : " (인증하면 토큰 +" + (rw.full.tokens - r.reward.tokens) + (rw.full.mind - r.reward.mind ? " · 마음 +" + (rw.full.mind - r.reward.mind) : "") + " 더)") });
+        }
+        if (r.state === "skipped") return null;
+        return h("p", { class: "note reward", text: "예상 보상 · [" + rw.name + "] 인증하면 토큰 " + rw.full.tokens + " · 마음 +" + rw.full.mind + " / 인증 안 하면 토큰 " + rw.part.tokens + " · 마음 +" + rw.part.mind + " (나중에 인증하면 나머지를 받아요)" });
+      };
       const missionCard = (m, opts) => {
         const r = M.states[m.id]; if (!r || r.state === "locked") return null; opts = opts || {};
         const hist = r.state === "done" ? AU.G.missionRepeatStats(m.id) : null, fav = AU.G.isFavorite(m.id);
@@ -1049,7 +1076,8 @@ window.AU = window.AU || {};
         return h("div", { class: "mission st-" + r.state, "data-mid": m.id, "data-q": (m.title + " " + m.desc).toLowerCase() },
           h("div", { class: "mh" }, h("span", { class: "tag perma", text: m.perma + " · " + AU.PERMA[m.perma] }), h("span", { class: "tag", text: (AREAS[m.functionArea] || "일상 활동") + " · " + (["", "쉬움", "보통", "확장"][m.difficulty] || "선택") + " · 약 " + m.minutes + "분" }), h("span", { class: "tag" + (r.state === "done" ? " proof" : ""), text: r.state === "done" ? proofLabel(M.log.find((x) => x.id === m.id && x.state === "done" && !x.repeat)) : AU.MISSION_STATES[r.state] }), h("span", { class: "pts", text: r.rewarded ? "지급 완료" : "갤러리 토큰 +1" }),
             h("button", { type: "button", class: "favbtn" + (fav ? " on" : ""), "aria-pressed": fav ? "true" : "false", title: fav ? "즐겨찾기 해제" : "즐겨찾기에 추가", onclick: () => { AU.G.toggleFavorite(m.id); UI.renderWin(); } }, fav ? "★" : "☆")),
-          h("b", { text: m.title }), h("p", { text: m.desc }),
+          h("b", { text: m.title }), h("p", { text: m.desc }), rewardLine(m, r),
+          r.state === "done" && r.reward && !r.reward.verified ? h("div", { class: "macts" }, btn("인증하고 남은 보상 받기", "primary", () => UI.missionVerify(m))) : null,
           opts.reasons ? h("p", { class: "reco-why", text: "추천 이유 · " + opts.reasons.join(" · ") }) : null,
           hist ? h("p", { class: "note", text: "누적 " + hist.count + "회 · 최근 " + (hist.last || "—") + " · 평균 만족도 " + (hist.satisfaction == null ? "미평가" : hist.satisfaction + "/5") + " · 평균 의미 " + (hist.meaning == null ? "미평가" : hist.meaning + "/5") + " · 평균 도전 " + (hist.challenge == null ? "미평가" : hist.challenge + "/5") }) : null,
           hist ? h("p", { class: "note", text: "수행 주기: " + UI.missionPlanLabel(AU.G.missionPlan(m.id)) + (AU.G.missionPlanDue(m.id) ? " · 오늘의 계획" : "") }) : null,

@@ -1802,6 +1802,8 @@ AU.REST_MISSIONS.push(...[
     "optional": true
   }
 ]);
+// 현실 미션 보상표: [토큰, 마음 점수]. full=인증 시, part=인증 안 했을 때(나중에 인증하면 차액 소급 지급)
+AU.MISSION_REWARD = { 1: { name: "가벼운 활동", full: [2, 1], part: [1, 1] }, 2: { name: "보통 활동", full: [3, 2], part: [2, 1] }, 3: { name: "도전 활동", full: [4, 3], part: [2, 2] } };
 AU.MISSION_ACTIVE = ["available", "accepted", "attempted", "partial"]; // 슬롯을 차지하는(진행 가능한) 상태
 AU.MISSION_STATES = {
   locked: "미해금", available: "수행 가능", accepted: "수락", attempted: "시도", partial: "일부 수행", done: "완료", skipped: "건너뛰기"
