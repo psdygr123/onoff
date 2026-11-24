@@ -99,11 +99,11 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   // 하차장 잠입
   await ev(() => { AU.World.spawn = AU.World._origSpawn; AU.World.enterMap('yard', 120, true); }); await sleep(500);
   const ys = await ev(() => ({ on: AU.World.stealthOn(), n: AU.World.monsters.filter((m) => m.type === 'merc_sentry' && m.d.sight).length }));
-  note('B12b', '하차장은 잠입 중(시야 있는 경계 용병 4명)', ys.on === true && ys.n === 4, JSON.stringify(ys));
+  note('B12b', '하차장은 잠입 중(시야 있는 경계 용병 6명)', ys.on === true && ys.n === 6, JSON.stringify(ys));
   await ev(() => { AU.World.player.x = 700; AU.World.caught(AU.World.monsters[0]); }); await sleep(2200);
   const cg = await ev(() => ({ tries: AU.G.S.flags.stealth_tries_yard, map: AU.World.mapId, x: Math.round(AU.World.player.x), st: AU.G.questStatus('q_a3_recon') }));
   note('B12c', '들키면 입구에서 다시 시작(횟수 기록·퀘스트 유지)', cg.tries === 1 && cg.map === 'yard' && cg.x < 300 && cg.st === 'active', JSON.stringify(cg));
-  for (const x of [1330, 2300]) { await ev((x) => { AU.World.monsters = []; AU.World.player.x = x; AU.World.player.vx = 0; AU.World.player.hidden = false; AU.World.scan(); }, x); await sleep(100); await key('Space'); await sleep(200); for (let i = 0; i < 6 && (await ev(() => !!AU.UI.dialog)); i++) { await key('Space'); await sleep(100); } }
+  for (const x of [1995, 3450]) { await ev((x) => { AU.World.monsters = []; AU.World.player.x = x; AU.World.player.vx = 0; AU.World.player.hidden = false; AU.World.scan(); }, x); await sleep(100); await key('Space'); await sleep(200); for (let i = 0; i < 6 && (await ev(() => !!AU.UI.dialog)); i++) { await key('Space'); await sleep(100); } }
   note('B12d', '하차장 두 곳 조사 → 보고 대기', (await st('q_a3_recon')) === 'ready', await st('q_a3_recon'));
   const sb = await ev(() => AU.G.S.silver); await ev(() => { AU.Hideout.onTravel(AU.World, 'valley'); AU.World.enterMap('valley', 620, true); });
   const clr = await ev(() => ({ f: !!AU.G.S.flags.yard_clear, d: AU.G.S.silver }));
