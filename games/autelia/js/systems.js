@@ -414,14 +414,16 @@ window.AU = window.AU || {};
         }
         this.fillSlots();
       }
+      for (const m of AU.MISSIONS) { const r = M.states[m.id]; if (r && AU.MISSION_ACTIVE.includes(r.state) && r.state !== "available" && !r.startDate) this.startMissionClock(m, r); }   // 구 저장: 이미 수락한 활동은 오늘부터 기간 계산
     },
+    startMissionClock(m, r) { const t = AU.dateStr(); r.startDate = t; r.dueDate = AU.addDays(t, Math.max(1, m.span || 1) - 1); r.mid = null; },
     revealMission(id) { const r = this.S.missions.states[id]; if (r && r.state === "locked") { r.state = "available"; return true; } return false; },
     /* 미션 슬롯: 영역(P·E·R·M·A)마다 진행 가능한 활동을 1개씩만 보여 줌. 완료·건너뛰기로 자리가 비면 같은 영역의 다음 후보가 열림 */
     fillSlots(excludeId) {
       const M = this.S.missions; let opened = 0;
       for (const k of Object.keys(AU.PERMA)) {
         if (AU.MISSIONS.some((m) => m.perma === k && AU.MISSION_ACTIVE.includes((M.states[m.id] || {}).state))) continue;
-        const c = this.slotCandidate(k, excludeId); if (c) { M.states[c.id].state = "available"; opened++; }
+        const c = this.slotCandidate(k, excludeId); if (c) { const was = M.states[c.id].state; M.states[c.id].state = "available"; if (was === "skipped") M.states[c.id].reoffer = true; opened++; }
       }
       return opened;
     },
@@ -476,6 +478,36 @@ window.AU = window.AU || {};
       this.toast("인증 완료! 남은 보상 토큰 +" + Math.max(0, ex.tokens) + (gained ? " · 마음 [" + AU.PERMA[m.perma] + "] +" + gained : ""), "good");
       this.save("mission-verify"); this.changed(); return true;
     },
+    /* ---------- 기간형 진행: 며칠째인지·마감·중간 확인·기한이 지난 활동 처리 ---------- */
+    missionProgress(id) {
+      const m = this.mission(id), r = this.ms(id); if (!m || !r.startDate) return null;
+      const today = AU.dateStr(), span = m.span || 1, day = Math.min(span, Math.max(1, AU.daysBetween(r.startDate, today) + 1));
+      return { span, day, left: Math.max(0, AU.daysBetween(today, r.dueDate)), start: r.startDate, due: r.dueDate, overdue: today > r.dueDate, finishable: today >= r.dueDate, needMid: span >= 7 && day >= 4 && !r.mid };
+    },
+    overdueMissions() { return AU.MISSIONS.filter((m) => { const r = this.ms(m.id); return ["accepted", "attempted", "partial"].includes(r.state) && r.startDate && AU.dateStr() > r.dueDate; }); },
+    // 7일형 중간 확인: 수행하면서 어려운 점을 글로 받음(없다고 적어도 됨)
+    midCheck(id, text) {
+      const r = this.S.missions.states[id], m = this.mission(id); if (!r || !m || !["accepted", "attempted", "partial"].includes(r.state)) return false;
+      r.mid = { t: AU.dateStr(), text: String(text || "").trim().slice(0, 300) || "어려운 점 없음" };
+      this.save("mission-mid"); this.changed(); return true;
+    },
+    // 다시 제시된 활동을 수락하기 전에 '성공하려면 필요한 것'을 글로 받음
+    setReofferNote(id, text) {
+      const r = this.S.missions.states[id]; if (!r) return false;
+      r.reofferNote = String(text || "").trim().slice(0, 300); r.reoffer = false; this.save("mission-reoffer"); return true;
+    },
+    // 기한이 지난 활동: extend(기한 연장) · notdone(수행하지 못함: 필요한 것 기록) · quit(중도 포기: 다시 도전 여부)
+    resolveMission(id, kind, p) {
+      p = p || {}; const S = this.S, r = S.missions.states[id], m = this.mission(id);
+      if (!r || !m || !["accepted", "attempted", "partial"].includes(r.state)) return false;
+      if (kind === "extend") { r.dueDate = AU.addDays(AU.dateStr(), Math.max(1, Math.ceil((m.span || 1) / 2))); r.extended = (r.extended || 0) + 1; this.save("mission-extend"); this.changed(); return true; }
+      if (kind === "quit" && p.retry) { r.quitCount = (r.quitCount || 0) + 1; r.state = "accepted"; this.startMissionClock(m, r); this.save("mission-retry"); this.changed(); return true; }
+      if (kind !== "notdone" && kind !== "quit") return false;
+      const ok = this.setMissionState(id, "skip"); if (!ok) return false;
+      r.skipReason = kind; if (kind === "notdone") r.need = String(p.text || "").trim().slice(0, 300);
+      const e = S.missions.log[S.missions.log.length - 1]; if (e && e.id === id) e.reason = kind;
+      this.save("mission-resolve"); this.changed(); return true;
+    },
     setMissionState(id, next, feedback, evidence) {
       const S = this.S; if (!S.flags.missionsUnlocked) return false;
       this.initMissions();
@@ -487,7 +519,7 @@ window.AU = window.AU || {};
       if (!ok[next] || !ok[next].includes(r.state)) return false;
       const review = this.validMissionFeedback(feedback) ? { challenge: feedback.challenge, meaning: feedback.meaning, satisfaction: feedback.satisfaction, efficacy: (Number.isInteger(feedback.efficacy) && feedback.efficacy >= 1 && feedback.efficacy <= 5) ? feedback.efficacy : null, mood: (typeof feedback.mood === 'string' && feedback.mood.length <= 20) ? feedback.mood : null, note: String(feedback.note || '').trim().slice(0, 200) } : null;
       let points = 0, capped = false, gained = 0, earnedTokens = 0;
-      if (next === "accept") r.state = "accepted";
+      if (next === "accept") { r.state = "accepted"; this.startMissionClock(m, r); }
       else if (next === "attempt") { r.state = "attempted"; r.tries++; }
       else if (next === "partial") {
         r.state = "partial"; points = C.missions.partialPoints;
@@ -499,7 +531,7 @@ window.AU = window.AU || {};
         }
       }
       else if (next === "skip") { r.state = "skipped"; r.skipSeq = (S.missions.skipSeq = (S.missions.skipSeq || 0) + 1); }
-      else if (next === "retry") r.state = "accepted";
+      else if (next === "retry") { r.state = "accepted"; this.startMissionClock(m, r); }
       else if (next === "done") {
         r.state = "done";
         if (!r.rewarded) { // 같은 미션의 보상은 한 번만 지급

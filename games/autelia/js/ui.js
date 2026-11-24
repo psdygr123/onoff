@@ -799,7 +799,8 @@ window.AU = window.AU || {};
     const save=()=>{const x={mode:mode.value,count:Number(count.value),interval:Number(interval.value),days:days.filter(x=>x.querySelector("input").checked).map(x=>Number(x.querySelector("input").value)),remind:remind.checked};if(AU.G.setMissionPlan(m.id,x))close();else AU.G.toast("요일을 한 개 이상 선택해 주세요.","warn")};
     wrap.append(h("div",{class:"panel modal restnote"},h("h3",{text:m.title+" · 나의 수행 주기"}),h("p",{class:"note",text:"계획 변경은 자유롭습니다. 미수행 불이익과 출석 연속 기록은 없습니다."}),mode,details,h("div",{class:"choices"},btn("저장","primary",save),btn("취소","",close))));
   };
-  UI.missionReview = function (m, next, onSubmit) {
+  UI.missionReview = function (m, next, onSubmit, ropts) {
+    ropts = ropts || {};
     const wrap = UI.modalEl; UI.modal = true; wrap.classList.remove("hidden"); wrap.innerHTML = "";
     const evidencePanel = AU.MissionEvidence.panel(m);
     // 리커트 5점 척도: 진술문에 대한 동의 정도
@@ -811,11 +812,11 @@ window.AU = window.AU || {};
     ];
     const ans = { challenge: null, meaning: null, satisfaction: null };
     let step = 0, busy = false;
-    const steps = Q.map((q) => ({ q }));
+    let feelText = ""; const steps = (ropts.feeling ? [{ feeling: true }] : []).concat(Q.map((q) => ({ q })));
     const close = () => { evidencePanel.dispose(); UI.modal = false; wrap.classList.add("hidden"); wrap.innerHTML = ""; };
     const finish = async (review) => { if (busy) return; busy = true; try { const evidence = await evidencePanel.value(); close(); const ok = onSubmit(review, evidence); if (ok === false) { if (evidence && evidence.photoId && AU.MissionEvidence) AU.MissionEvidence.remove(evidence.photoId).catch(() => {}); AU.G.toast("지금은 이 활동을 기록할 수 없습니다. 상태가 바뀌었을 수 있어 목록을 새로 불러왔습니다. 첨부한 사진은 저장하지 않았습니다.", "info"); UI.renderWin && UI.renderWin(); } else if (next === "done" && AU.FirstMissionGuide) setTimeout(() => AU.FirstMissionGuide.maybeOffer(), 350); } catch (e) { busy = false; AU.G.toast(e.message || "보조 기록 저장 실패. 첨부를 제거하고 다시 시도하세요.", "info"); } };
     const submit = () => {
-      const review = { ...ans, efficacy: null, mood: null, note: "" };
+      const review = { ...ans, efficacy: null, mood: null, note: feelText.trim().slice(0, 200) };
       if (!AU.G.validMissionFeedback(review)) return;
       finish(review);
     };
@@ -836,7 +837,18 @@ window.AU = window.AU || {};
       const s = steps[step], total = steps.length;
       const dots = h("div", { class: "rv-dots", "aria-hidden": "true" }, steps.map((_, i) => h("i", { class: i < step ? "done" : i === step ? "cur" : "" })));
       const head = [h("h3", { text: m.title + " · 활동 돌아보기" }), h("div", { class: "rv-prog" }, dots, h("span", { text: (step + 1) + " / " + total }))];
-      const q = s.q, last = step === total - 1, body = [], acts = [];
+      const last = step === total - 1, body = [], acts = [];
+      if (s.feeling) {
+        const sp = AU.SPAN_LABEL[m.span || 1] || (m.span + "일"), ta = h("textarea", { class: "memo", maxlength: "200", rows: "3", placeholder: "예: 처음엔 귀찮았는데 하고 나니 가벼워졌어요." });
+        ta.value = feelText; const nb = btn("다음", "primary", () => go(step + 1), feelText.trim() ? {} : { disabled: "" });
+        ta.addEventListener("input", () => { feelText = ta.value; if (feelText.trim()) nb.removeAttribute("disabled"); else nb.setAttribute("disabled", ""); });
+        body.push(h("p", { class: "rv-q", text: sp + " 동안 수행하면서 기분이 어떠했나요?" }), h("p", { class: "note rv-hint", text: "좋았던 점, 힘들었던 점 모두 괜찮아요. 느낀 그대로 적어 주세요." }), ta);
+        acts.push(nb);
+        const foot0 = h("div", { class: "rv-foot" }, btn("취소", "", close));
+        wrap.append(h("div", { class: "panel modal restnote review-step" }, h("h3", { text: m.title + " · 활동 돌아보기" }), h("div", { class: "rv-prog" }, dots, h("span", { text: (step + 1) + " / " + total })), ...body, h("div", { class: "choices" }, ...acts), foot0));
+        return;
+      }
+      const q = s.q;
       body.push(h("p", { class: "rv-q", text: q.text }), h("p", { class: "note rv-hint", text: q.hint }), likertRow(q));
       if (step > 0) acts.push(btn("이전", "", () => go(step - 1)));
       if (last) {
@@ -849,6 +861,59 @@ window.AU = window.AU || {};
       wrap.append(h("div", { class: "panel modal restnote review-step" }, ...head, ...body, h("div", { class: "choices" }, ...acts), foot));
     }
     draw();
+  };
+
+  /* 한 줄 글 입력 창: 격려 문구 + 질문 + 입력칸. 기간형 활동의 중간 확인·수행 못함·재제시에서 같이 씀 */
+  UI.askText = function (o) {
+    const wrap = UI.modalEl; UI.modal = true; wrap.classList.remove("hidden"); wrap.innerHTML = "";
+    const ta = h("textarea", { class: "memo", maxlength: "300", rows: "3", placeholder: o.placeholder || "" }); let busy = false;
+    const close = () => { UI.modal = false; wrap.classList.add("hidden"); wrap.innerHTML = ""; UI.renderWin(); };
+    const ok = btn(o.ok || "저장", "primary", () => { const v = ta.value.trim(); if (o.required && !v) return; if (busy) return; busy = true; close(); o.onSubmit(v); }, o.required ? { disabled: "" } : {});
+    ta.addEventListener("input", () => { if (!o.required || ta.value.trim()) ok.removeAttribute("disabled"); else ok.setAttribute("disabled", ""); });
+    wrap.append(h("div", { class: "panel modal restnote review-step" }, h("h3", { text: o.title }),
+      o.lead ? h("p", { class: "note", text: o.lead }) : null, h("p", { class: "rv-q", text: o.question }), ta,
+      h("div", { class: "choices" }, ok, ...(o.extra || []), btn(o.cancel || "닫기", "", close))));
+  };
+  /* 중간 확인(7일형): 수행하면서 어려운 점 */
+  UI.missionMidCheck = function (m) {
+    UI.askText({ title: m.title + " · 중간 확인", lead: "지금까지 해 보신 것만으로도 충분해요. 잠깐 돌아봐요.", question: "수행하면서 어려운 부분이 있나요? 있다면 무엇인가요?",
+      placeholder: "없으면 비워 두셔도 돼요.", ok: "확인 기록하기", onSubmit: (v) => AU.G.midCheck(m.id, v) });
+  };
+  /* 중도 포기: 격려 + 다시 도전 의향 */
+  UI.missionQuit = function (m) {
+    const wrap = UI.modalEl; UI.modal = true; wrap.classList.remove("hidden"); wrap.innerHTML = "";
+    const close = () => { UI.modal = false; wrap.classList.add("hidden"); wrap.innerHTML = ""; UI.renderWin(); };
+    const go = (retry) => { close(); AU.G.resolveMission(m.id, "quit", { retry }); AU.G.toast(retry ? "다시 시작해요. 오늘부터 새로 기간이 시작됩니다." : "괜찮아요. 다른 활동을 먼저 준비했어요. 이 활동은 보관함에 있어요.", "info"); };
+    wrap.append(h("div", { class: "panel modal restnote review-step" }, h("h3", { text: m.title + " · 여기까지 해도 괜찮아요" }),
+      h("p", { class: "note", text: "여기까지 해 본 것만으로도 의미 있는 경험이에요. 그만두는 것도 선택이에요." }),
+      h("p", { class: "rv-q", text: "다시 도전해볼 의향이 있나요?" }),
+      h("div", { class: "choices" }, btn("네, 다시 도전할게요", "primary", () => go(true)), btn("아니요, 다른 활동을 볼게요", "", () => go(false)), btn("닫기", "", close))));
+  };
+  /* 기한이 지난 활동: 상태를 골라 정리 */
+  UI.missionOverdue = function (m) {
+    const wrap = UI.modalEl; UI.modal = true; wrap.classList.remove("hidden"); wrap.innerHTML = "";
+    const close = () => { UI.modal = false; wrap.classList.add("hidden"); wrap.innerHTML = ""; UI.renderWin(); };
+    wrap.append(h("div", { class: "panel modal restnote review-step" }, h("h3", { text: m.title + " · 기한이 지났어요" }),
+      h("p", { class: "note", text: "괜찮아요. 일이 바쁘거나 마음이 안 따라 줄 때도 있어요. 지금 어떤 상태인지 골라 주세요." }),
+      h("div", { class: "choices", style: "flex-direction:column;align-items:stretch" },
+        btn("아직 하고 있어요 (기한 늘리기)", "primary", () => { close(); AU.G.resolveMission(m.id, "extend"); AU.G.toast("기한을 늘렸어요.", "info"); }),
+        btn("끝냈어요", "", () => { close(); UI.missionReview(m, "done", (f, e) => AU.G.setMissionState(m.id, "done", f, e), { feeling: (m.span || 1) > 1 }); }),
+        btn("하다가 그만뒀어요", "", () => { close(); UI.missionQuit(m); }),
+        btn("수행하지 못했어요", "", () => { close(); UI.missionNotDone(m); }),
+        btn("닫기", "", close))));
+  };
+  /* 수행하지 못함: 격려 + 필요한 것 → 더 쉬운 활동 제시 */
+  UI.missionNotDone = function (m) {
+    UI.askText({ title: m.title + " · 시작하지 못했어도 괜찮아요", lead: "시작이 가장 어려운 법이에요. 이번엔 조금 더 가벼운 활동부터 다시 제안해 드릴게요.",
+      question: "미션을 수행하기 위해서 필요한 것이 있다면 무엇인가요?", placeholder: "예: 시간이 더 있으면, 같이 할 사람이 있으면…", ok: "기록하고 마치기", required: true,
+      onSubmit: (v) => { AU.G.resolveMission(m.id, "notdone", { text: v }); AU.G.toast("기록했어요. 더 가벼운 활동을 준비했고, 이 활동은 보관함에서 나중에 다시 만나요.", "info"); } });
+  };
+  /* 다시 제시된 활동 수락 전: 성공하려면 필요한 것 */
+  UI.missionReoffer = function (m) {
+    const r = AU.G.ms(m.id);
+    UI.askText({ title: m.title + " · 다시 만났네요", lead: r.need ? "지난번에 적어 주신 필요한 것: " + r.need : "전에 보관해 둔 활동이에요. 이번에는 어떻게 하면 해 볼 수 있을지 생각해 봐요.",
+      question: "이 활동을 성공하기 위해서 필요한 것이 무엇이라고 생각하나요?", placeholder: "예: 저녁 먹고 바로 시작하기", ok: "적고 수락하기", required: true,
+      onSubmit: (v) => { AU.G.setReofferNote(m.id, v); AU.G.setMissionState(m.id, "accept"); } });
   };
 
   /* 완료한 활동을 나중에 인증하면 남은 보상을 받는 창 */
@@ -1066,10 +1131,25 @@ window.AU = window.AU || {};
       const missionCard = (m, opts) => {
         const r = M.states[m.id]; if (!r || r.state === "locked") return null; opts = opts || {};
         const hist = r.state === "done" ? AU.G.missionRepeatStats(m.id) : null, fav = AU.G.isFavorite(m.id);
-        const acts = { available: [["수락", "primary", "accept"], ["건너뛰기", "", "skip"]], accepted: [["완료했어요", "primary", "done"], ["일부만 했어요", "", "partial"], ["건너뛰기", "", "skip"]], attempted: [["완료했어요", "primary", "done"], ["일부만 했어요", "", "partial"], ["건너뛰기", "", "skip"]],
-          partial: [["완료했어요", "primary", "done"], ["다시 도전", "", "retry"], ["건너뛰기", "", "skip"]], skipped: [["다시 도전", "", "retry"]], done: [] }[r.state] || [];
+        const pg = ["accepted", "attempted", "partial"].includes(r.state) ? AU.G.missionProgress(m.id) : null;
+        const doneBtn = ["완료했어요", "primary", "done"], partBtn = ["일부만 했어요", "", "partial"], quitBtn = ["그만하기", "", "quit"];
+        let acts;
+        if (r.state === "available") acts = [[r.reoffer ? "수락 (필요한 것 적기)" : "수락", "primary", "accept"], ["건너뛰기", "", "skip"]];
+        else if (pg && pg.overdue) acts = [["기한이 지났어요 · 확인하기", "primary", "overdue"]];
+        else if (pg && !pg.finishable) acts = [...(pg.needMid ? [["중간 확인하기", "primary", "mid"]] : []), quitBtn];
+        else if (pg) acts = [doneBtn, partBtn, quitBtn];
+        else acts = { partial: [doneBtn, ["다시 도전", "", "retry"], ["건너뛰기", "", "skip"]], skipped: [["다시 도전", "", "retry"]], done: [] }[r.state] || [];
+        const act = (a) => {
+          if (a === "done" || a === "partial") return UI.missionReview(m, a, (feedback, evidence) => AU.G.setMissionState(m.id, a, feedback, evidence), { feeling: a === "done" && (m.span || 1) > 1 });
+          if (a === "accept" && r.reoffer) return UI.missionReoffer(m);
+          if (a === "mid") return UI.missionMidCheck(m);
+          if (a === "overdue") return UI.missionOverdue(m);
+          if (a === "quit") return UI.missionQuit(m);
+          return AU.G.setMissionState(m.id, a);
+        };
+        const spanLine = pg ? h("p", { class: "note span-progress" + (pg.overdue ? " overdue" : ""), text: pg.overdue ? "기한이 지났어요 (마감 " + pg.due.slice(5).replace("-", "/") + ")" : (pg.span > 1 ? pg.span + "일 중 " + pg.day + "일차 · " : "오늘 안에 · ") + (pg.left ? "남은 " + pg.left + "일 · " : "오늘까지 · ") + "마감 " + pg.due.slice(5).replace("-", "/") + (r.mid ? " · 중간 확인 완료" : pg.needMid ? " · 중간 확인할 때예요" : "") }) : null;
         return h("div", { class: "mission st-" + r.state, "data-mid": m.id, "data-q": (m.title + " " + m.desc).toLowerCase() },
-          h("div", { class: "mh" }, h("span", { class: "tag perma", text: m.perma + " · " + AU.PERMA[m.perma] }), h("span", { class: "tag", text: (AREAS[m.functionArea] || "일상 활동") + " · " + (["", "쉬움", "보통", "확장"][m.difficulty] || "선택") + " · 약 " + m.minutes + "분" }), h("span", { class: "tag" + (r.state === "done" ? " proof" : ""), text: r.state === "done" ? proofLabel(M.log.find((x) => x.id === m.id && x.state === "done" && !x.repeat)) : AU.MISSION_STATES[r.state] }), h("span", { class: "pts", text: r.rewarded ? "지급 완료" : "갤러리 토큰 +1" }),
+          h("div", { class: "mh" }, h("span", { class: "tag perma", text: m.perma + " · " + AU.PERMA[m.perma] }), h("span", { class: "tag", text: (AREAS[m.functionArea] || "일상 활동") + " · " + (["", "쉬움", "보통", "확장"][m.difficulty] || "선택") + " · " + (m.span > 1 ? "기간 " + m.span + "일 · 1회 약 " : "약 ") + m.minutes + "분" }), h("span", { class: "tag" + (r.state === "done" ? " proof" : ""), text: r.state === "done" ? proofLabel(M.log.find((x) => x.id === m.id && x.state === "done" && !x.repeat)) : AU.MISSION_STATES[r.state] }), h("span", { class: "pts", text: r.rewarded ? "지급 완료" : AU.G.missionReward(m).name + " · 토큰 " + AU.G.missionReward(m).part.tokens + "~" + AU.G.missionReward(m).full.tokens }),
             h("button", { type: "button", class: "favbtn" + (fav ? " on" : ""), "aria-pressed": fav ? "true" : "false", title: fav ? "즐겨찾기 해제" : "즐겨찾기에 추가", onclick: () => { AU.G.toggleFavorite(m.id); UI.renderWin(); } }, fav ? "★" : "☆")),
           h("b", { text: m.title }), h("p", { text: m.desc }), rewardLine(m, r),
           r.state === "done" && r.reward && !r.reward.verified ? h("div", { class: "macts" }, btn("인증하고 남은 보상 받기", "primary", () => UI.missionVerify(m))) : null,
@@ -1077,7 +1157,8 @@ window.AU = window.AU || {};
           hist ? h("p", { class: "note", text: "누적 " + hist.count + "회 · 최근 " + (hist.last || "—") + " · 평균 만족도 " + (hist.satisfaction == null ? "미평가" : hist.satisfaction + "/5") + " · 평균 의미 " + (hist.meaning == null ? "미평가" : hist.meaning + "/5") + " · 평균 도전 " + (hist.challenge == null ? "미평가" : hist.challenge + "/5") }) : null,
           hist ? h("p", { class: "note", text: "수행 주기: " + UI.missionPlanLabel(AU.G.missionPlan(m.id)) + (AU.G.missionPlanDue(m.id) ? " · 오늘의 계획" : "") }) : null,
           hist ? h("div", { class: "macts" }, btn("다시 수행 기록", "primary", () => UI.missionReview(m, "done", (f, e) => AU.G.repeatMission(m.id, f, e))), btn("주기 설정", "", () => UI.missionPlanEditor(m))) : null,
-          acts.length ? h("div", { class: "macts" }, acts.map(([l, c, a]) => btn(l, c, () => ((a === "done" || a === "partial") ? UI.missionReview(m, a, (feedback, evidence) => AU.G.setMissionState(m.id, a, feedback, evidence)) : AU.G.setMissionState(m.id, a))))) : null,
+          spanLine,
+          acts.length ? h("div", { class: "macts" }, acts.map(([l, c, a]) => btn(l, c, () => act(a)))) : null,
           opts.hideBtn ? h("div", { class: "macts" }, btn("추천에서 빼기", "mini", () => { AU.G.hideReco(m.id); UI.renderWin(); })) : null);
       };
       const cardGrid = (list, optsOf) => { const g = h("div", { class: "missions" }); for (const m of list) { const c = missionCard(m, optsOf ? optsOf(m) : null); if (c) g.append(c); } return g; };
