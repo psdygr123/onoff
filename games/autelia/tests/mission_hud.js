@@ -50,7 +50,7 @@ const URL = process.env.GAME_URL || 'http://localhost:8801';
   // 6. 완료 방법 안내 + 탭 4개
   const how = await p.evaluate(() => { AU.UI.close(); AU.UI.tab.jg = 'real'; AU.UI.tab.j = 'missions'; AU.UI.tab.missionStatus = 'all'; AU.UI.open('journal'); return { a4: AU.UI.missionHow(AU.G.mission('m_a4')), a3: AU.UI.missionHow(AU.G.mission('m_a3')), a1: AU.UI.missionHow(AU.G.mission('m_p1')), tabs: [...document.querySelectorAll('.real-tabs .btn')].map(x => x.textContent) }; });
   T('완료 방법: 한 줄 기록·사진(선택)·타이머를 구분해 안내', /한 줄을 이 게임 안에 적어요/.test(how.a4) && /사진을 올릴 수 있어요\(선택\)/.test(how.a3) && /타이머/.test(how.a1) && /내 활동에서 '완료했어요'/.test(how.a4), how);
-  T('현실 활동 탭 4개', how.tabs.length === 4 && how.tabs.join('|') === '오늘의 활동|내 활동|활동 기록|마음 기록', how.tabs);
+  T('현실 활동 탭 3개', how.tabs.length === 3 && how.tabs.join('|') === '내 활동|마음 기록|쉼', how.tabs);
   T('페이지 오류 없음', errs.length === 0, errs);
   console.log(fail ? 'FAILED ' + fail : 'ALL PASS'); await b.close(); process.exit(fail ? 1 : 0);
 })();

@@ -90,24 +90,17 @@ const URL = process.env.GAME_URL || 'http://localhost:8801';
   T('증거 없음 → self_report', lab.plainSup === false && lab.plainProof === 'self_report', lab);
   T('증거 있음 → evidence(인증)', lab.evSup === true && lab.evProof === 'evidence', lab);
   T('토큰: 인증 시 전액 > 미인증 일부(등급표 기준)', lab.tokPlain === 1 && lab.tokEv === 2 && lab.tokEv > lab.tokPlain, lab);
-  await p.evaluate(() => { AU.UI.close(); AU.UI.tab.jg = 'real'; AU.UI.tab.j = 'missions'; AU.UI.tab.missionStatus = 'done'; AU.UI.open('journal'); }); await p.waitForTimeout(300);
+  await p.evaluate(() => { AU.UI.close(); AU.UI.tab.jg = 'real'; AU.UI.tab.j = 'record'; AU.UI.open('journal'); }); await p.waitForTimeout(300);
   const tags = await p.evaluate((l) => ({ ev: document.querySelector('.mission[data-mid="' + l.evId + '"] .tag.proof').textContent, plain: document.querySelector('.mission[data-mid="' + l.plainId + '"] .tag.proof').textContent }), lab);
   T('완료 창 라벨: 인증 완료 / 자기보고 완료', tags.ev === '인증 완료' && tags.plain === '자기보고 완료', tags);
-  await p.evaluate(() => { AU.UI.close(); AU.UI.tab.j = 'mlog'; AU.UI.open('journal'); }); await p.waitForTimeout(300);
-  T('활동 기록에도 라벨 표시', await p.evaluate(() => { const t = document.querySelector('[data-actlog]').innerText; return t.includes('인증 완료') && t.includes('자기보고 완료'); }));
-
-  // 9. 내 활동 탭: 진행 중·완료·보관함 창
+  // 9. 내 활동(진행 중 + 추천 1~2개) · 마음 기록(완료)
   await boot();
-  await p.evaluate(() => { const G = AU.G, id = AU.MISSIONS.find(m => AU.MISSION_ACTIVE.includes(G.ms(m.id).state)).id; G.setMissionState(id, 'accept'); G.setMissionState(id, 'done', { challenge: 3, meaning: 3, satisfaction: 4 }, null); const s = AU.MISSIONS.find(m => m.perma === 'E' && AU.MISSION_ACTIVE.includes(G.ms(m.id).state)).id; G.setMissionState(s, 'skip'); AU.UI.close(); AU.UI.tab.jg = 'real'; AU.UI.tab.j = 'missions'; AU.UI.tab.missionStatus = 'active'; AU.UI.open('journal'); });
+  await p.evaluate(() => { const G = AU.G, id = AU.MISSIONS.find(m => AU.MISSION_ACTIVE.includes(G.ms(m.id).state)).id; G.setMissionState(id, 'accept'); G.setMissionState(id, 'done', { challenge: 3, meaning: 3, satisfaction: 4 }, null); const s = AU.MISSIONS.find(m => m.perma === 'E' && AU.MISSION_ACTIVE.includes(G.ms(m.id).state)).id; G.setMissionState(s, 'accept'); AU.UI.close(); AU.UI.tab.jg = 'real'; AU.UI.tab.j = 'missions'; AU.UI.open('journal'); });
   await p.waitForTimeout(300);
-  const tabsTxt = await p.evaluate(() => [...document.querySelectorAll('.mission-status .btn')].map(x => x.textContent));
-  T('상태 창 3개(진행 중 5·완료 1·보관함 1)', tabsTxt.join('|') === '진행 중 (5)|완료 (1)|보관함 (1)', tabsTxt);
-  T('진행 중에는 열린 5개만 표시', (await p.evaluate(() => document.querySelectorAll('.mission[data-mid]').length)) === 5);
-  await p.click('.mission-status .btn:nth-child(2)'); await p.waitForTimeout(200);
-  T('완료 창: 1개 + 자기보고 완료 라벨', (await p.evaluate(() => document.querySelectorAll('.mission[data-mid]').length)) === 1 && (await p.evaluate(() => document.querySelector('.mission .tag.proof').textContent)) === '자기보고 완료');
-  await p.click('.mission-status .btn:nth-child(3)'); await p.waitForTimeout(200);
-  T('보관함: 건너뛴 1개 + 다시 도전 버튼', (await p.evaluate(() => document.querySelectorAll('.mission[data-mid]').length)) === 1 && (await p.evaluate(() => document.querySelector('.mission .macts').textContent.includes('다시 도전'))));
-  T('추천은 열린 활동만', await p.evaluate(() => AU.G.recommend(30, 0).every(r => AU.MISSION_ACTIVE.includes(AU.G.ms(r.m.id).state))));
+  T('내 활동: 진행 중 1개 + 추천 1~2개', await p.evaluate(() => document.querySelectorAll('[data-mine="going"] .mission[data-mid]').length === 1 && document.querySelectorAll('[data-reco="list"] .mission[data-mid]').length >= 1 && document.querySelectorAll('[data-reco="list"] .mission[data-mid]').length <= 2));
+  await p.evaluate(() => { AU.UI.tab.j = 'record'; AU.UI.renderWin(); }); await p.waitForTimeout(200);
+  T('마음 기록: 완료 1개 + 자기보고 완료 라벨', (await p.evaluate(() => document.querySelectorAll('[data-record="done"] .mission[data-mid]').length)) === 1 && (await p.evaluate(() => document.querySelector('.mission .tag.proof').textContent)) === '자기보고 완료');
+  T('추천은 아직 수락하지 않은 활동만', await p.evaluate(() => AU.G.recommend(30, 0).every(r => AU.G.ms(r.m.id).state === 'available')));
 
   T('페이지 오류 없음', errs.length === 0, errs);
   console.log(fail ? 'FAILED ' + fail : 'ALL PASS');
