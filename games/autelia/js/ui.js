@@ -279,6 +279,7 @@ window.AU = window.AU || {};
     },
     toast(text, kind) {
       const t = h("div", { class: "toast " + (kind || "info") }, text);
+      (UI._toastLog = UI._toastLog || []).push({ text: String(text || ""), kind: String(kind || "info"), t: new Date() }); if (UI._toastLog.length > 30) UI._toastLog.shift();   // [Q] 창 "최근 알림"에서 다시 볼 수 있음
       /* 11-24: 오른쪽 위 알림은 최대 3개. 메인 스토리·레벨업·경고가 먼저, 서브·일상 미션과 획득 알림은 뒤(자리가 모자라면 낮은 것·오래된 것부터 밀려남). 진행 중 퀘스트는 [Q] 창에서 확인 */
       const k = String(kind || ""), tx = String(text || "");
       const pr = /qk-main/.test(k) || /메인 퀘스트|메인 스토리|★/.test(tx) ? 5 : /레벨 업|배웠습니다|전직|각성/.test(tx) ? 5 : k === "warn" ? 4 : /qk-sub/.test(k) ? 3 : /qk-real/.test(k) ? 2 : 1;
@@ -900,7 +901,10 @@ window.AU = window.AU || {};
       h("div", { class: "choices" }, ok, ...(o.extra || []), btn(o.cancel || "닫기", "", close))));
   };
   /* 하루 타이머(기간형): 쉬기·집중처럼 '시간을 내는' 활동은 앱 안에서 N분 타이머를 돌려 실제로 해 보도록 돕고, 끝나면 오늘 기록을 자동으로 남김 */
-  UI.DAILY_TIMER = { m_p5: { min: 10, verb: "쉬기", tip: "편한 자리에 앉아 눈을 감거나 창밖을 보며 쉬어 보세요. 휴대폰은 잠시 내려두세요." }, m_e1: { min: 10, verb: "집중하기", tip: "휴대폰은 내려두고 한 가지 활동에만 집중해 보세요." } };
+  UI.DAILY_TIMER = { m_p5: { min: 10, verb: "쉬기", tip: "편한 자리에 앉아 눈을 감거나 창밖을 보며 쉬어 보세요. 휴대폰은 잠시 내려두세요." }, m_e1: { min: 10, verb: "집중하기", tip: "휴대폰은 내려두고 한 가지 활동에만 집중해 보세요." },
+    m_e2: { min: 30, verb: "몰입하기", tip: "시간 가는 줄 모르는 활동 하나를 골라 푹 빠져 보세요. 중간에 멈춰도 괜찮아요." },
+    m_m2: { min: 20, verb: "소중한 일에 쓰기", tip: "내게 의미 있는 일 하나를 골라 20분만 써 보세요." },
+    m_e6: { min: 15, verb: "연습하기", tip: "배워 보고 싶던 활동의 작은 부분만 연습해 보세요." } };
   UI.missionTimer = function (m) {
     const cfg = UI.DAILY_TIMER[m.id]; if (!cfg || UI.modal) return;
     const wrap = UI.modalEl; UI.modal = true; wrap.classList.remove("hidden"); wrap.innerHTML = "";
@@ -1101,7 +1105,13 @@ window.AU = window.AU || {};
     if (S.flags.missionsUnlocked && S.flags.guideMet) for (const m of AU.MISSIONS) { const r = S.missions.states[m.id]; if (r && ["accepted", "attempted", "partial", "done"].includes(r.state)) rows.push({ key: m.id, title: m.title, type: "real", done: r.state === "done", m, r }); }
     const list = rows.filter((r) => (tab === "done") === r.done).sort((a, b) => QORD[a.type] - QORD[b.type]); // 메인 → 서브 → 현실 순으로 묶어 보여 줌
     const sel = list.find((r) => r.key === UI.selected.q) || list[0];
-    const tabs = h("div", { class: "tabs" }, btn("진행 중 (" + rows.filter((r) => !r.done).length + ")", tab === "active" ? "on" : "", () => { UI.tab.q = "active"; UI.renderWin(); }), btn("완료 (" + rows.filter((r) => r.done).length + ")", tab === "done" ? "on" : "", () => { UI.tab.q = "done"; UI.renderWin(); }));
+    const tabs = h("div", { class: "tabs" }, btn("진행 중 (" + rows.filter((r) => !r.done).length + ")", tab === "active" ? "on" : "", () => { UI.tab.q = "active"; UI.renderWin(); }), btn("완료 (" + rows.filter((r) => r.done).length + ")", tab === "done" ? "on" : "", () => { UI.tab.q = "done"; UI.renderWin(); }), btn("최근 알림 (" + (UI._toastLog || []).length + ")", tab === "log" ? "on" : "", () => { UI.tab.q = "log"; UI.renderWin(); }, { "data-act": "q-log" }));
+    if (tab === "log") {   // 11-24: 화면 오른쪽 위에서 밀려났거나 이미 지나간 알림을 다시 확인
+      const lg = (UI._toastLog || []).slice().reverse(), pad2 = (n) => String(n).padStart(2, "0");
+      b.append(tabs, h("div", { class: "qlog" }, h("p", { class: "note", text: "최근 알림 " + lg.length + "개예요. 진행 중인 퀘스트는 '진행 중' 탭에서 볼 수 있어요." }),
+        lg.length ? h("div", null, lg.map((e) => h("div", { class: "toast-row " + e.kind.split(" ")[0] }, h("span", { class: "tr-t", text: pad2(e.t.getHours()) + ":" + pad2(e.t.getMinutes()) }), " " + e.text))) : h("p", { class: "empty", text: "아직 알림이 없어요." })));
+      return;
+    }
     const ul = h("div", { class: "qlist" }); if (!list.length) ul.append(h("p", { class: "empty", text: tab === "done" ? "완료한 퀘스트가 아직 없습니다." : "진행 중인 퀘스트가 없습니다. NPC에게 말을 걸어 보세요." }));
     let lastType = null;
     list.forEach((r) => { if (r.type !== lastType) { lastType = r.type; ul.append(h("div", { class: "qsec qk-" + r.type }, h("span", { class: "qki", text: AU.QKIND[r.type].icon }), TYPE[r.type] + (r.type === "real" ? " 미션" : " 퀘스트") + " (" + list.filter((x) => x.type === r.type).length + ")")); }
