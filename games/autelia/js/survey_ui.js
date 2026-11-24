@@ -62,7 +62,7 @@ window.AU = window.AU || {};
 
   function listView(d, rerender) {
     const v = h("div", null, h("h3", { text: "나의 마음 점검" }),
-      h("p", { class: "note", text: "원할 때마다 척도를 해 보고, 시간이 지나며 내가 어떻게 달라지는지 그래프로 확인하는 개인 기록입니다. 횟수 제한이 없고, 하지 않아도 모험에는 아무 영향이 없으며 피로도·은화·전투 능력에도 반영되지 않습니다. 위의 ‘마음 능력치’(현실 미션 활동 기록)와는 별개의 기록입니다." }));
+      h("p", { class: "note", text: "원할 때마다 척도를 해 보고, 시간이 지나며 내가 어떻게 달라지는지 그래프로 확인하는 개인 기록입니다. 횟수 제한이 없고, 하지 않아도 모험에는 아무 영향이 없으며 피로도·은화·전투 능력에도 반영되지 않습니다. 위의 ‘마음 능력치’(일상 미션 활동 기록)와는 별개의 기록입니다." }));
     for (const key of Object.keys(S.KEYS)) {
       const s = S.scale(key), hist = S.history(key), dr = d.drafts[S.dk(key, "check")], n = dr ? Object.keys(dr.responses).length : 0;
       const sec = h("div", { class: "svlist", "data-scale": key }, h("h4", { class: "svh4", text: NAMES[key] + " · " + s.itemCount + "문항" }));
