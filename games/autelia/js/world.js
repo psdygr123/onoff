@@ -635,8 +635,10 @@ window.AU = window.AU || {};
       const y = GROUND;
       for (const sp of this.map.spots || []) {
         const act = AU.G.spotObjective(sp.id), done = !act && AU.G.spotDone(sp.id);
-        if (sp.ambient && !act) { // 분위기용 지점: 가까이 갔을 때만 작은 반짝임(그림 없음)
-          if (Math.abs(this.player.x - sp.x) < 220) { const t = 0.5 + 0.5 * Math.sin(this.time * 3); ctx.save(); ctx.globalAlpha = 0.35 + 0.4 * t; ctx.fillStyle = "#F3D78B"; ctx.beginPath(); ctx.arc(sp.x, GROUND - 70 - t * 6, 5, 0, 7); ctx.fill(); ctx.restore(); }
+        if (sp.ambient && !act) { // 분위기용 지점: 그림이 있으면 항상 그려 두고, 가까이 가면 작은 반짝임
+          const aim = sp.img && AU.Img.has(sp.img) ? AU.Img.get(sp.img) : null;
+          if (aim) { const w = sp.w || 150, h = w * aim.naturalHeight / aim.naturalWidth; ctx.drawImage(aim, sp.x - w / 2, y - h + 6, w, h); }
+          if (Math.abs(this.player.x - sp.x) < 220) { const t = 0.5 + 0.5 * Math.sin(this.time * 3); ctx.save(); ctx.globalAlpha = 0.35 + 0.4 * t; ctx.fillStyle = "#F3D78B"; ctx.beginPath(); ctx.arc(sp.x, GROUND - (aim ? aim.naturalHeight * (sp.w || 150) / aim.naturalWidth + 10 : 70) - t * 6, 5, 0, 7); ctx.fill(); ctx.restore(); }
           continue;
         }
         if (!act && !(done && sp.kind === "repair")) continue;

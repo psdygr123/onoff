@@ -33,6 +33,8 @@
   to("docks", 2540, TOTAL - 470); to("jandari", 260, sh(260));
 
   // 새 주민: 오가며 일하는 사람들(patrol)과 말을 걸 수 있는 주민
+  /* 포르투 분위기 조사 지점 그림(옵션): assets/object/spot_porto_*.webp */
+  Object.assign(AU.ASSETS, { ob_spot_porto_board: { path: "assets/object/spot_porto_board.webp", optional: true },  ob_spot_porto_well: { path: "assets/object/spot_porto_well.webp", optional: true },  ob_spot_porto_fish: { path: "assets/object/spot_porto_fish.webp", optional: true },  ob_spot_porto_rope: { path: "assets/object/spot_porto_rope.webp", optional: true },  ob_spot_porto_anchor: { path: "assets/object/spot_porto_anchor.webp", optional: true },  ob_spot_porto_lamp: { path: "assets/object/spot_porto_lamp.webp", optional: true } });
   const L = (a, b) => ({ patrol: [a, b], speed: 34 });
   AU.NPCS.npc_fisher = { name: "마르코스", title: "어부", sprite: "npc_fisher", portrait: "pt_npc_fisher", idle: ["오늘은 청어가 잘 든다네.", "새벽 물때를 놓치면 하루 허탕이지.", "요즘 선창 외곽 쪽에서 이상한 소리가 들린다던데, 바다 일이나 잘 해야지."] };
   AU.NPCS.npc_sailor = { name: "카리스", title: "선원", sprite: "npc_sailor", portrait: "pt_npc_sailor", idle: ["다음 물때에 출항이오. 남쪽 항로는 파도가 거칠지.", "육지는 좋은데 오래 있으면 다리가 근질거려서 말이오."] };
