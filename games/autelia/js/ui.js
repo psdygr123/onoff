@@ -82,8 +82,8 @@ window.AU = window.AU || {};
       R.innerHTML = "";
       // 하단 중앙: 캐릭터 상태(레벨·직업·HP·피로도·경험치)
       const hp = h("div", { class: "bar hp" }, h("i"), h("b")), rs = h("div", { class: "bar rs" }, h("i"), h("b")), ex = h("div", { class: "bar ex" }, h("i"), h("b"));
-      this.hud.lv = h("div", { class: "lvbadge" }); this.hud.job = h("div", { class: "jobname" });
-      const panel = h("div", { id: "hudpanel", class: "panel hudpanel" }, h("div", { class: "hudmain" }, h("div", { class: "hudhead" }, this.hud.lv, this.hud.job), h("div", { class: "hudbars" }, hp, rs)), ex);
+      this.hud.lv = h("div", { class: "lvbadge" }); this.hud.job = h("div", { class: "jobname" }); this.hud.silver = h("div", { class: "silver hudsilver", title: "가진 은화" });
+      const panel = h("div", { id: "hudpanel", class: "panel hudpanel" }, h("div", { class: "hudmain" }, h("div", { class: "hudhead" }, this.hud.lv, this.hud.job, this.hud.silver), h("div", { class: "hudbars" }, hp, rs)), ex);
       this.hud.hp = hp; this.hud.rs = rs; this.hud.ex = ex;
       rs.title = FATIGUE_TIP; rs.style.cursor = "help"; this.hud.rsDelta = h("span", { class: "fdelta" }); rs.append(this.hud.rsDelta);
       // 좌측 상단: 미니맵 + 현재 퀘스트
@@ -159,6 +159,7 @@ window.AU = window.AU || {};
       this.setStyle(this.hud.rs.firstChild, "rs", "width", (S.fatigue / S.fatigueMax * 100).toFixed(1) + "%"); this.setText(this.hud.rs.children[1], "rst", C.fatigue.name + " " + (+S.fatigue.toFixed(1)) + " / " + S.fatigueMax);
       this.hud.rs.style.display = S.skills.unlocked.length ? "" : "none";   // 11-24: 피로도는 스킬을 배우는 Lv.10부터 보임(그 전에는 HP만)
       this.hud.rs.classList.toggle("full", S.fatigue >= S.fatigueMax - 1e-6); { const pc = S.fatigue / S.fatigueMax; this.hud.rs.classList.toggle("mid", pc >= 0.5 && pc < 0.8); this.hud.rs.classList.toggle("hot", pc >= 0.8); }
+      this.setText(this.hud.silver, "hsv", String(S.silver));   // 11-24 HUD 은화 표시
       const need = AU.expToNext(S.level), atCap = S.level >= AU.levelCap(S);
       this.setStyle(this.hud.ex.firstChild, "ex", "width", (atCap && !S.jobChanged ? 100 : Math.min(100, S.exp / need * 100)).toFixed(1) + "%");
       this.setText(this.hud.ex.lastChild, "ext", atCap && !S.jobChanged ? "EXP 최대 레벨" : "EXP " + S.exp + " / " + need + " (" + (S.exp / need * 100).toFixed(1) + "%)");
@@ -721,7 +722,7 @@ window.AU = window.AU || {};
       const it = AU.ITEMS[sel]; det.append(h("div", { class: "dhead" }, UI.itemIcon(sel, 56), h("h3", { text: it.name })), h("div", { class: "tags" }, h("span", { class: "tag", text: TYPE[it.type] }), it.slot ? h("span", { class: "tag", text: AU.SLOT_LABEL[it.slot] }) : null, it.rarity ? h("span", { class: "tag", text: (AU.RARITY[it.rarity] || {}).label }) : null, h("span", { class: "tag", text: "보유 " + S.inv[sel] })), h("p", { text: it.desc }));
       if (it.stats) det.append(h("p", { class: "stat", text: Object.entries(it.stats).map(([k, v]) => statName(k) + " +" + v).join(" · ") }));
       if (it.type === "use") det.append(btn("사용", "primary", () => AU.G.useItem(sel)));
-      if (it.type === "etc" && it.sell > 0) det.append(h("p", { class: "stat", text: "판매가 은화 " + it.sell }), h("p", { class: "note", text: "포르투 노바의 잡화상인에게 팔 수 있습니다." }));
+      if (it.type === "etc" && it.sell > 0) det.append(h("p", { class: "stat" }, "판매가 ", h("span", { class: "sv", text: String(it.sell) })), h("p", { class: "note", text: "포르투 노바의 잡화상인에게 팔 수 있습니다." }));
       if (it.type === "equip") det.append(btn("장착", "primary", () => AU.G.equip(sel)), btn("장비창에서 비교", "", () => { UI.selected.eq = sel; UI.open("equipment"); }));
       if (it.type === "quest") det.append(h("p", { class: "note", text: "퀘스트용 아이템입니다. 사용하거나 장착할 수 없습니다." }));
       if (it.type === "story") det.append(h("p", { class: "note", text: "이야기와 관련된 중요한 물건입니다. 사용하거나 버릴 수 없고, 본편에서도 계속 간직합니다." }));
@@ -1158,7 +1159,7 @@ window.AU = window.AU || {};
       const q = sel.q, rec = sel.rec;
       det.append(h("h3", { text: q.title }), h("div", { class: "tags" }, h("span", { class: "tag t-" + q.type, text: tagText(q.type) }), h("span", { class: "tag", text: rec.state === "done" ? "완료" : rec.state === "ready" ? "의뢰인에게 돌아가기" : "진행 중" })), h("p", { text: q.desc }),
         h("h4", { text: "수행 조건" }), ...q.objectives.map((o, i) => h("div", { class: "obj" + (AU.G.objectiveDone(q, rec, i) ? " ok" : "") }, (AU.G.objectiveDone(q, rec, i) ? "✔ " : "□ ") + UI.objText(o, rec, i))),
-        h("h4", { text: "보상" }), h("p", { text: rewardText(q.reward) }), h("p", { class: "note", text: "의뢰인: " + AU.NPCS[q.giver].name }));
+        h("h4", { text: "보상" }), h("p", { class: "rwline" }, ...rewardNodes(q.reward)), h("p", { class: "note", text: "의뢰인: " + AU.NPCS[q.giver].name }));
     } else if (sel && sel.m) {
       det.append(h("h3", { text: sel.m.title }), h("div", { class: "tags" }, h("span", { class: "tag", text: "일상" }), h("span", { class: "tag", text: AU.PERMA[sel.m.perma] }), h("span", { class: "tag", text: AU.MISSION_STATES[sel.r.state] })), h("p", { text: sel.m.desc }), h("p", { class: "note", text: "상태 변경은 모험일지(" + keyOf("journal") + ")에서 합니다." }),
         (() => { const pg = AU.G.missionProgress(sel.m.id); return pg ? h("p", { class: "note span-progress" + (pg.overdue ? " overdue" : ""), text: pg.overdue ? "기한이 지났어요 (마감 " + pg.due.slice(5).replace("-", "/") + ") · 모험일지에서 확인해 주세요" : pg.span + "일 중 " + pg.day + "일차 · " + (pg.left ? "남은 " + pg.left + "일" : "오늘까지") + " · 마감 " + pg.due.slice(5).replace("-", "/") + (pg.needMid ? " · 중간 확인할 때예요" : "") }) : null; })(),
@@ -1170,6 +1171,7 @@ window.AU = window.AU || {};
     } else det.append(h("p", { class: "empty", text: "퀘스트를 선택하면 자세한 내용이 표시됩니다." }));
     b.append(tabs, h("div", { class: "split q" }, ul, det));
   };
+  const rewardNodes = (r) => { const out = [], add = (x) => { if (out.length) out.push(" · "); out.push(x); }; if (r.exp) add("경험치 " + r.exp); if (r.silver) add(h("span", { class: "sv", text: String(r.silver) })); for (const [i, n] of (r.items || [])) add(AU.ITEMS[i].name + " ×" + n); return out.length ? out : ["없음"]; };
   const rewardText = (r) => [r.exp ? "경험치 " + r.exp : null, r.silver ? "은화 " + r.silver : null, ...(r.items || []).map(([i, n]) => AU.ITEMS[i].name + " ×" + n)].filter(Boolean).join(" · ") || "없음";
 
   UI.fatigueMeter = function (S, withActions) { // 스킬창·쉼 탭에 쓰는 큰 피로도 표시
