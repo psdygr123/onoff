@@ -894,6 +894,22 @@ window.AU = window.AU || {};
       o.lead ? h("p", { class: "note", text: o.lead }) : null, h("p", { class: "rv-q", text: o.question }), ta,
       h("div", { class: "choices" }, ok, ...(o.extra || []), btn(o.cancel || "닫기", "", close))));
   };
+  /* 하루 타이머(기간형): 쉬기·집중처럼 '시간을 내는' 활동은 앱 안에서 N분 타이머를 돌려 실제로 해 보도록 돕고, 끝나면 오늘 기록을 자동으로 남김 */
+  UI.DAILY_TIMER = { m_p5: { min: 10, verb: "쉬기", tip: "편한 자리에 앉아 눈을 감거나 창밖을 보며 쉬어 보세요. 휴대폰은 잠시 내려두세요." }, m_e1: { min: 10, verb: "집중하기", tip: "휴대폰은 내려두고 한 가지 활동에만 집중해 보세요." } };
+  UI.missionTimer = function (m) {
+    const cfg = UI.DAILY_TIMER[m.id]; if (!cfg || UI.modal) return;
+    const wrap = UI.modalEl; UI.modal = true; wrap.classList.remove("hidden"); wrap.innerHTML = "";
+    let left = cfg.min * 60, run = false, last = 0, iv = null, finished = false;
+    const clock = h("p", { class: "rv-q timer-clock", text: "" }), tip = h("p", { class: "note", text: cfg.tip + " 중간에 멈춰도 괜찮아요." });
+    const fmt = (n) => String(Math.floor(n / 60)).padStart(2, "0") + ":" + String(n % 60).padStart(2, "0");
+    const go = btn("시작하기", "primary", () => toggle(), { "data-act": "timer-go" });
+    const close = () => { clearInterval(iv); UI.modal = false; wrap.classList.add("hidden"); wrap.innerHTML = ""; UI.renderWin(); };
+    const paint = () => { clock.textContent = finished ? "끝났어요 · 오늘 기록을 남겼어요" : fmt(Math.max(0, Math.ceil(left))); go.textContent = finished ? "닫기" : run ? "잠시 멈춤" : left < cfg.min * 60 ? "이어서 하기" : "시작하기"; };
+    const finish = () => { finished = true; run = false; clearInterval(iv); AU.G.dailyCheck(m.id, "타이머 " + cfg.min + "분 " + cfg.verb + " 완료"); try { AU.Sfx.play("quest"); } catch (e) {} AU.G.toast("오늘 " + cfg.min + "분을 채웠어요. 기록해 두었어요.", "good"); paint(); };
+    const toggle = () => { if (finished) return close(); run = !run; last = Date.now(); clearInterval(iv); if (run) iv = setInterval(() => { const n = Date.now(); left -= (n - last) / 1000; last = n; if (left <= 0) finish(); else paint(); }, 250); paint(); };
+    paint();
+    wrap.append(h("div", { class: "panel modal restnote review-step", "data-notice": "timer" }, h("h3", { text: m.title + " · 오늘 " + cfg.min + "분 " + cfg.verb }), clock, tip, h("div", { class: "choices" }, go, btn("닫기", "", close))));
+  };
   /* 일별 기록(기간형): 오늘 한 것을 한 줄로 남김 — 수락 뒤 매일 눌러 둘 수 있는 칸 */
   UI.missionDaily = function (m) {
     const di = AU.G.dailyInfo(m.id), pg = AU.G.missionProgress(m.id);
@@ -1193,17 +1209,19 @@ window.AU = window.AU || {};
         const pg = ["accepted", "attempted", "partial"].includes(r.state) ? AU.G.missionProgress(m.id) : null;
         const doneBtn = ["완료했어요", "primary", "done"], partBtn = ["일부만 했어요", "", "partial"], quitBtn = ["그만하기", "", "quit"];
         const dinfo = pg && (m.span || 1) > 1 ? AU.G.dailyInfo(m.id) : null, dailyBtn = [dinfo && dinfo.today ? "오늘 기록 고치기" : "오늘 기록하기", dinfo && dinfo.today ? "" : "primary", "daily"];
+        const timerBtn = dinfo && UI.DAILY_TIMER[m.id] && !dinfo.today ? [UI.DAILY_TIMER[m.id].min + "분 타이머로 " + UI.DAILY_TIMER[m.id].verb, "primary", "timer"] : null;
         let acts;
         if (r.state === "available") acts = [[r.reoffer ? "수락 (필요한 것 적기)" : "수락", "primary", "accept"], ["건너뛰기", "", "skip"]];
         else if (pg && pg.overdue) acts = [["기한이 지났어요 · 확인하기", "primary", "overdue"]];
-        else if (pg && !pg.finishable) acts = [...(dinfo ? [dailyBtn] : []), ...(pg.needMid ? [["중간 확인하기", "primary", "mid"]] : []), quitBtn];
-        else if (pg) acts = [...(dinfo ? [dailyBtn] : []), doneBtn, partBtn, quitBtn];
+        else if (pg && !pg.finishable) acts = [...(timerBtn ? [timerBtn] : []), ...(dinfo ? [dailyBtn] : []), ...(pg.needMid ? [["중간 확인하기", "primary", "mid"]] : []), quitBtn];
+        else if (pg) acts = [...(timerBtn ? [timerBtn] : []), ...(dinfo ? [dailyBtn] : []), doneBtn, partBtn, quitBtn];
         else acts = { partial: [doneBtn, ["다시 도전", "", "retry"], ["건너뛰기", "", "skip"]], skipped: [["다시 도전", "", "retry"]], done: [] }[r.state] || [];
         const act = (a) => {
           if (a === "done" || a === "partial") return UI.missionReview(m, a, (feedback, evidence) => AU.G.setMissionState(m.id, a, feedback, evidence), { feeling: a === "done" && (m.span || 1) > 1 });
           if (a === "accept" && r.reoffer) return UI.missionReoffer(m);
           if (a === "mid") return UI.missionMidCheck(m);
           if (a === "daily") return UI.missionDaily(m);
+          if (a === "timer") return UI.missionTimer(m);
           if (a === "overdue") return UI.missionOverdue(m);
           if (a === "quit") return UI.missionQuit(m);
           return AU.G.setMissionState(m.id, a);
