@@ -94,7 +94,7 @@ window.AU = window.AU || {};
 
   function formView(rerender) {
     const key = state.key, s = S.scale(key), P = S.PHASES.find((p) => p.id === state.phase), dr = S.draftFor(key, state.phase);
-    const prog = h("span", { class: "svprog", "aria-live": "polite" }), next = btn("답을 확인하고 제출하기", "primary", () => { state.view = "confirm"; rerender(); }, { "data-act": "review" });
+    const prog = h("span", { class: "svprog", "aria-live": "polite" }), next = btn("응답 제출하기", "primary", () => { state.view = "confirm"; rerender(); }, { "data-act": "review" });
     const update = () => { const n = Object.keys(S.draftFor(key, state.phase).responses).length; prog.textContent = "응답 " + n + " / " + s.itemCount; next.disabled = n < s.itemCount; };
     const scale = h("div", { class: "svscale" + (key === "perma" ? " sv11" : ""), role: "group", "aria-label": s.title });
     if (s.instruction) scale.append(h("p", { class: "svinst", text: s.instruction }));
@@ -129,7 +129,7 @@ window.AU = window.AU || {};
     }, { "data-act": "submit" });
     go.disabled = !r.valid;
     return h("div", null, h("h3", { text: "제출 전 확인" }), h("p", { class: "svmsg", text: msg }), memoBox,
-      h("div", { class: "svbtns" }, btn("돌아가서 고치기", "", () => { state.view = "form"; rerender(); }, { "data-act": "back" }), go));
+      h("div", { class: "svbtns" }, btn("다시 한 번 검토하기", "", () => { state.view = "form"; rerender(); }, { "data-act": "back" }), go));
   }
 
   function resultView(d, rerender) {
