@@ -18,6 +18,8 @@ const { chromium } = require('playwright');
     const mid = await ev(() => window.__sfx.slice());
     ck('S1 주민·소피아와 대화하는 동안에는 함성 없음', !mid.includes('cheer'), JSON.stringify(mid));
     const src = require('fs').readFileSync(__dirname + '/../js/prologue/scenes.js', 'utf8');
+    const cv = await ev(() => AU.Prologue.v.cheer);
+    ck('S1b 대화 중 군중 환호 수준은 평소 그대로', cv < 0.3, String(cv));
     ck('S2 함성은 기념제 문구(cap2) 직전에만', /P\.sfx\("cheer"\); await P\.tween\(v, \{ cheer: 1 \}[^\n]*T\.cap2/.test(src) && (src.match(/sfx\("cheer"\)/g) || []).length === 1);
     ck('S3 목재 들기/내리기는 wood_lift·plank', !/P\.sfx\("pick"\)/.test(src.slice(src.indexOf('timber'), src.indexOf('timber') + 6000)) || true);
     ck('S99 오류 없음', errs.length === 0, errs.join(' | '));
