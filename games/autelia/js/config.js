@@ -27,6 +27,7 @@ AU.CONFIG = {
   levels: {
     jobLevels: [10, 30, 50],      // 1·2·3차 전직 레벨
     autoGrowthUntil: 10,          // 이 레벨까지는 기본 능력치가 자동 성장
+    hpGain: { base: 2, every: 5 },  // 레벨업마다 최대 HP가 자동으로 조금씩 늘어남: (base + 레벨÷every 의 몫)씩. 레벨이 오를수록 상승폭이 커짐(2레벨~4레벨 +2, 5~9 +3, 10~14 +4, 15~ +5)
     freePointsPerLevel: 3,        // 11레벨 이후 레벨업마다
     freePointsOnJobChange: 3,     // 10레벨 전직 시
     capWithoutJob: 15             // 전직 전(1막)에는 15레벨에서 멈춤. 10레벨에서는 전직이 아니라 제페토의 "힘의 각성"이 일어남
