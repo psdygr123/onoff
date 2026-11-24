@@ -125,16 +125,12 @@ window.AU = window.AU || {};
   /* 중심 천막 위 바위틈: 검은 골짜기 중심 천막의 포탈로 들어오는 짧은 엿듣기 맵.
      오른쪽 끝 바위 모서리까지 걸어가 Space로 아래의 대화를 엿들으면 들킴 → 추격 → 제페토 구출 컷신이 이어지고, 끝나면 협곡의 제페토 거처로 이동합니다. */
   AU.MAPS.ridge = {
-    name: "속삭임 능선", bg: "ridge", hint: "발소리를 죽이고 오른쪽 끝 바위 모서리로 가세요", width: 1500, safe: true,
+    name: "속삭임 능선", bg: "ridge", hint: "발소리를 죽이고 오른쪽 끝 바위 모서리로 가서, Space를 길게 눌러 귀를 기울이세요", width: 1500, safe: true,
     platforms: [{ x: 0, y: 590, w: 1500 }], ropes: [],
     portals: [{ x: 40, to: "valley", toX: 1640, label: "검은 골짜기" }],
     npcs: [],
     spots: [
-      { id: "relay_tent", portrait: "pt_scene_tent", narr: true, w: 520, x: 1300, kind: "investigate", label: "아래에서 들려오는 대화", cuts: [{ at: 0, src: "assets/cut/relay_peek.webp" }, { at: 7, src: "assets/cut/relay_found.webp" }, { at: 9, src: "assets/cut/relay_chase.webp", hero: true }, { at: 12, src: "assets/cut/relay_trapped.webp", hero: true }, { at: 14, src: "assets/cut/relay_rope.webp", hero: true }, { at: 17, src: "assets/cut/relay_hide.webp", hero: true }], lines: [
-        L(HERO, "(아래에서 두 사람이 낮게 이야기하고 있다. 숨을 죽이고 들어 보자.)"),
-        L(BALTEIN, "변형이 덜 되었군. 투입량을 늘려라, 클로드. 위에서 서두르고 계신다."),
-        L(CLAUDE, "우리 짐승들이 버티질 못합니다. 결정을 더 먹이면 죽어 나가는 놈이 늘어요."),
-        L(BALTEIN, "죽는 놈은 버려라. 실험 구역에 넘길 물량만 맞추면 된다. 이번에 잡은 짐승들은 곧바로 아지트로 올려 보낸다."),
+      { id: "relay_tent", portrait: "pt_scene_tent", narr: true, w: 520, x: 1300, kind: "investigate", label: "아래에서 들려오는 대화", cuts: [{ at: 0, src: "assets/cut/relay_peek.webp" }, { at: 3, src: "assets/cut/relay_found.webp" }, { at: 5, src: "assets/cut/relay_chase.webp", hero: true }, { at: 8, src: "assets/cut/relay_trapped.webp", hero: true }, { at: 10, src: "assets/cut/relay_rope.webp", hero: true }, { at: 13, src: "assets/cut/relay_hide.webp", hero: true }], listen: { dur: 8, fragments: ["…변형이 덜 되었어. 투입량을 늘려라…", "…결정을 더 먹이면 죽어 나가는 놈이 늘어요…", "…죽는 놈은 버려라. 물량만 맞추면 된다…", "…위에서 서두르고 계신다…", "…잡은 짐승들은 곧바로 아지트로 올려 보낸다…"] }, lines: [
         L(HERO, "(몬스터를 일부러 변형시키는 실험... 이 중계소는 그 재료를 아지트로 보내는 길목이다. 아지트가 어딘가에 있다.)"),
         "(그때 발밑에서 자갈 하나가 굴러떨어졌다.)",
         L(BALTEIN, "거기 누구냐!"),
@@ -229,7 +225,7 @@ window.AU = window.AU || {};
       reward: { exp: 500, silver: 50, items: [] }
     },
     q_a3_scout: {
-      title: "속삭임 능선", type: "main", giver: "barsha", turnIn: "jepeto", minLevel: 8, pre: ["q_a3_crystal"],
+      title: "속삭임 능선", type: "main", giver: "barsha", turnIn: "jepeto", turnInLabel: "대화하러 가기: ", minLevel: 8, pre: ["q_a3_crystal"],
       area: "ridge", desc: "골짜기 안쪽 길 끝의 포탈로 올라가 능선 바위틈에서 아래에서 오가는 이야기를 엿듣습니다. 들키면 도망치다 누군가의 도움으로 협곡 바위틈에 숨어들고, 그곳의 노인(제페토)에게 보고합니다.",
       objectives: [{ kind: "investigate", targets: ["relay_tent"] }],
       offer: ["골짜기 안쪽 길 끝으로 가 보게. 그쪽 어디쯤 가면 사람들의 대화 소리가 들릴 걸세. 바위 틈 위에서 몰래 귀를 기울여 보게.", "그 말소리에서 결정을 먹이는 자가 누구인지 정보를 얻어 오게. 들키면 무조건 도망치게. 절벽 쪽은 막혀 있지만... 협곡 바위틈에는 나와 뜻이 같은 도편수 제페토가 있네.", "그를 만나 보게. 살아서 돌아오게."],
