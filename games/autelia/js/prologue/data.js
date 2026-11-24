@@ -68,8 +68,8 @@ window.AU = window.AU || {};
     // portrait: 정식 초상화(2차 그림), alt: 정식 그림을 불러오지 못했을 때 쓰는 옛 초상화
     hero:   { name: "주인공", portrait: "pt_pro_hero_m", alt: "pt_player_male" },
     heroS:  { name: "주인공", portrait: "pt_pro_hero_m_surprised", alt: "pt_player_male" },     // 놀란 표정(여성형은 pt_pro_hero_f_surprised: Profile.apply)
-    officer: { name: "습격 간부", portrait: "pt_pro_officer" },
-    raider: { name: "습격자", portrait: "pt_pro_raider" },
+    officer: { name: "???", portrait: "pt_pro_officer" },
+    raider: { name: "???", portrait: "pt_pro_raider" },
     father: { name: "아버지", portrait: "pt_pro_father", alt: "pt_smith" },
     fatherS: { name: "아버지", portrait: "pt_pro_father_smile", alt: "pt_smith" },                // 미소
     vendor: { name: "소피아", portrait: "pt_pro_baker", alt: "pt_baker" },
