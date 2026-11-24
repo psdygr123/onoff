@@ -1,4 +1,4 @@
-/* 레벨 포인트는 현실 활동과 무관하게 분배 가능, 활동 보상은 선택형 */
+/* 레벨 포인트는 일상 활동과 무관하게 분배 가능, 활동 보상은 선택형 */
 const {chromium}=require('playwright');
 (async()=>{
  const b=await chromium.launch(),p=await b.newPage();
@@ -14,7 +14,7 @@ const {chromium}=require('playwright');
  await p.evaluate(()=>AU.UI.open('stats'));
  test('G2 잠금 안내 없음',!((await p.locator('.statlayout').innerText()).includes('잠겨 있습니다')));
  const z=await p.evaluate(()=>{const S=AU.G.S;S.level=15;S.freePoints=3;return AU.G.usableFree()===3&&AU.G.gateOpen();});
- test('G3 Lv15도 현실 미션 없이 분배 가능',z);
+ test('G3 Lv15도 일상 미션 없이 분배 가능',z);
  const m=await p.evaluate(()=>{AU.UI.close();AU.G.S.flags.missionsUnlocked=true;AU.G.discoverMissions();const id=AU.MISSIONS.find(x=>!x.pre).id;AU.G.setMissionState(id,'accept');AU.G.setMissionState(id,'attempt');AU.G.setMissionState(id,'done');return AU.G.galleryState().tokens>0&&AU.G.S.trainingPoints===0;});
  test('G4 선택 미션은 갤러리 토큰을 지급하고 전투 훈련 포인트는 주지 않음',m);
  }finally{await b.close();}process.exit(fail?1:0);
