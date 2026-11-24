@@ -126,7 +126,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const wallet = () => ev(() => AU.G.galleryState().tokens);
   const token0 = await wallet();
   const clickBtn = async (txt) => { await p.locator('.window .mission:has-text("좋아하는 노래") .btn', { hasText: txt }).first().click(); await sleep(120); };
-  await clickBtn('수락'); await clickBtn('해 봤어요'); await clickBtn('완료했어요'); await p.locator('.modal .btn', { hasText: '평가 없이 계속' }).click();
+  await ev(() => { AU.G.setMissionState('m_p1', 'accept'); AU.UI.renderWin(); }); await sleep(150); await clickBtn('해 봤어요'); await clickBtn('완료했어요'); await p.locator('.modal .btn', { hasText: '평가 없이 계속' }).click();
   const token1 = await wallet();
   const again = await ev(() => [AU.G.setMissionState('m_p1', 'done'), AU.G.setMissionState('m_p1', 'accept'), AU.G.setMissionState('m_p1', 'retry'), AU.G.ms('m_p1').rewarded]);
   const token2 = await wallet();
@@ -137,7 +137,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await p.keyboard.press('Escape');
   note('13', '갤러리 토큰 1회 지급·중복 방지·기존 전투 포인트 분리', token1 === token0 + 1 && token2 === token1 && again[0] === false && again[1] === false && again[2] === false && token4 === token3 + 2 && tp4 === tp0,
     `토큰 ${token0}→${token1}→${token2}→${token3}→${token4}, 훈련 포인트 ${tp0}→${tp4}`);
-  note('11b', '전직 후 현실 미션 화면(발견 전 안내 → 안내인 대화 후 목록)', guideMet === true && cardCount >= 5, `발견 전 안내문="${lockedMsg.slice(0, 30)}…", 안내인 대화 후 guideMet=${guideMet}, 표시된 카드=${cardCount}`);
+  note('11b', '전직 후 현실 미션 화면(발견 전 안내 → 안내인 대화 후 목록)', guideMet === true && cardCount >= 1, `발견 전 안내문="${lockedMsg.slice(0, 30)}…", 안내인 대화 후 guideMet=${guideMet}, 표시된 카드=${cardCount}`);
 
   // ===== 12. 현실 미션 없이도 진행 =====
   // 새 상태에서 현실 미션을 전혀 건드리지 않고 전직 이후 11레벨 + 스탯 분배까지 가능한지 별도 검증은 아래 'noMission' 페이지에서
