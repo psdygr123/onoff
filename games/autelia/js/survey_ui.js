@@ -62,7 +62,7 @@ window.AU = window.AU || {};
 
   function listView(d, rerender) {
     const v = h("div", null, h("h3", { text: "나의 마음 점검" }),
-      h("p", { class: "note", text: "원할 때마다 척도를 해 보고, 시간이 지나며 내가 어떻게 달라지는지 그래프로 확인하는 개인 기록입니다. 횟수 제한이 없고, 하지 않아도 모험에는 아무 영향이 없으며 피로도·은화·전투 능력에도 반영되지 않습니다. 위의 ‘마음 능력치’(현실 미션 활동 기록)와는 별개의 기록입니다." }));
+      h("p", { class: "note", text: "원할 때마다 척도를 해 보고, 시간이 지나며 내가 어떻게 달라지는지 그래프로 확인하는 개인 기록입니다. 횟수 제한이 없고, 하지 않아도 모험에는 아무 영향이 없으며 피로도·은화·전투 능력에도 반영되지 않습니다. 위의 ‘마음 능력치’(일상 미션 활동 기록)와는 별개의 기록입니다." }));
     for (const key of Object.keys(S.KEYS)) {
       const s = S.scale(key), hist = S.history(key), dr = d.drafts[S.dk(key, "check")], n = dr ? Object.keys(dr.responses).length : 0;
       const sec = h("div", { class: "svlist", "data-scale": key }, h("h4", { class: "svh4", text: NAMES[key] + " · " + s.itemCount + "문항" }));
@@ -94,7 +94,7 @@ window.AU = window.AU || {};
 
   function formView(rerender) {
     const key = state.key, s = S.scale(key), P = S.PHASES.find((p) => p.id === state.phase), dr = S.draftFor(key, state.phase);
-    const prog = h("span", { class: "svprog", "aria-live": "polite" }), next = btn("답을 확인하고 제출하기", "primary", () => { state.view = "confirm"; rerender(); }, { "data-act": "review" });
+    const prog = h("span", { class: "svprog", "aria-live": "polite" }), next = btn("응답 제출하기", "primary", () => { state.view = "confirm"; rerender(); }, { "data-act": "review" });
     const update = () => { const n = Object.keys(S.draftFor(key, state.phase).responses).length; prog.textContent = "응답 " + n + " / " + s.itemCount; next.disabled = n < s.itemCount; };
     const scale = h("div", { class: "svscale" + (key === "perma" ? " sv11" : ""), role: "group", "aria-label": s.title });
     if (s.instruction) scale.append(h("p", { class: "svinst", text: s.instruction }));
@@ -129,7 +129,7 @@ window.AU = window.AU || {};
     }, { "data-act": "submit" });
     go.disabled = !r.valid;
     return h("div", null, h("h3", { text: "제출 전 확인" }), h("p", { class: "svmsg", text: msg }), memoBox,
-      h("div", { class: "svbtns" }, btn("돌아가서 고치기", "", () => { state.view = "form"; rerender(); }, { "data-act": "back" }), go));
+      h("div", { class: "svbtns" }, btn("다시 한 번 검토하기", "", () => { state.view = "form"; rerender(); }, { "data-act": "back" }), go));
   }
 
   function resultView(d, rerender) {

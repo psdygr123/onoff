@@ -24,7 +24,7 @@ const {chromium}=require('playwright');
   check('BRIDGE2 decline never completes or blocks game story',afterSkip.shown&&afterSkip.unlocked&&!afterSkip.flag&&afterSkip.mission==='available',afterSkip);
   await p.evaluate(()=>{ void AU.RealBridge.offer('bridge-test-accept','m_a4'); });
   await p.waitForSelector('.modalwrap [role="dialog"]');
-  await p.getByRole('button',{name:'현실 미션도 수락'}).click();
+  await p.getByRole('button',{name:'일상 미션도 수락'}).click();
   const accepted=await p.evaluate(()=>({mission:AU.G.ms('m_a4').state,flag:AU.Prologue.flag('banners_done'),st:AU.G.S.prologue.state}));
   check('BRIDGE3 accepting reality mission does not change story objective',accepted.mission==='accepted'&&!accepted.flag&&accepted.st==='SCENE_01B_BANNERS',accepted);
   await p.evaluate(()=>AU.G.save('bridge-test'));
