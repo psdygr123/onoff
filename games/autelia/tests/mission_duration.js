@@ -106,7 +106,7 @@ const URL = process.env.GAME_URL || 'http://localhost:8801';
   await p.fill('.review-step textarea', '처음엔 힘들었는데 뿌듯해요'); await p.click('.review-step .btn.primary'); await p.waitForTimeout(200);
   for (const v of [4, 4, 5]) { await p.click('.likert-btn:nth-child(' + v + ')'); await p.waitForTimeout(320); }
   await p.fill('.review-step textarea', '타이머 기록').catch(() => {});
-  await p.evaluate(() => [...document.querySelectorAll('.review-step .btn')].find(x => x.textContent.includes('평가하고 완료')).click()); await p.waitForTimeout(500);
+  await p.evaluate(() => [...document.querySelectorAll('.review-step .btn')].find(x => x.textContent.includes('기록하고 완료')).click()); await p.waitForTimeout(500);
   const doneInfo = await p.evaluate(() => { const r = AU.G.S.missions.states.m_e1, e = AU.G.S.missions.log.find(x => x.id === 'm_e1' && x.state === 'done'); return { st: r.state, note: e && e.reflection && e.reflection.note, sat: e && e.reflection && e.reflection.satisfaction }; });
   T('완료: 기분 텍스트가 소감 note로 저장', doneInfo.st === 'done' && doneInfo.note === '처음엔 힘들었는데 뿌듯해요' && doneInfo.sat === 5, doneInfo);
 

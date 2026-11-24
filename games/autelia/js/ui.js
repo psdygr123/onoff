@@ -57,7 +57,7 @@ window.AU = window.AU || {};
     async fatigueGuide() {
       const S = AU.G.S; if (S.flags.fatigueGuideSeen || !AU.RealBridge) return; S.flags.fatigueGuideSeen = true; AU.G.save("fatigue-guide");
       await AU.RealBridge.prompt("피로도를 알아 두세요", "스킬을 쓸 때마다 **피로도**가 조금씩 쌓여요.\n\n피로도가 가득 차면 스킬을 쓸 수 없어요. 기본 공격은 언제나 쓸 수 있어요.", [{ text: "다음", value: "next", primary: true }], { cls: "rb-intro" });
-      await AU.RealBridge.prompt("피로도는 이렇게 줄여요", "모험일지(" + keyOf("journal") + ")의 **현실 활동 ▸ 쉼**에서 쉼 활동을 하면 줄어들어요. 활동은 몇 번이든 할 수 있고, 피로도는 하루 첫 쉼 활동에서 줄어요.\n\n**피로회복제**는 잡화상점에서 은화로 살 수 있어요. 한 병에 피로도가 **" + AU.ITEMS.fatigue_tonic.relieve + "** 줄어요.\n\n매주 월요일에는 저절로 풀려요.", [{ text: "알겠어요", value: "ok", primary: true }], { cls: "rb-intro", item: "fatigue_tonic" });
+      await AU.RealBridge.prompt("피로도는 이렇게 줄여요", "모험일지(" + keyOf("journal") + ")의 **일상 활동 ▸ 쉼**에서 쉼 활동을 하면 줄어들어요. 활동은 몇 번이든 할 수 있고, 피로도는 하루 첫 쉼 활동에서 줄어요.\n\n**피로회복제**는 잡화상점에서 은화로 살 수 있어요. 한 병에 피로도가 **" + AU.ITEMS.fatigue_tonic.relieve + "** 줄어요.\n\n매주 월요일에는 저절로 풀려요.", [{ text: "알겠어요", value: "ok", primary: true }], { cls: "rb-intro", item: "fatigue_tonic" });
     },
 
     /* ============ HUD ============ */
@@ -238,7 +238,7 @@ window.AU = window.AU || {};
           const dir = h("div", { class: "td" }); box.append(dir); this._trkDirs.push({ el: dir, id }); t.append(box);
         });
         if (reals.length) {
-          const box = h("div", { class: "tq qk-real treal" }, h("div", { class: "tt" }, h("span", { class: "qki", text: AU.QKIND.real.icon }), h("span", { class: "qkl", text: "현실 미션" }), "진행 중 " + reals.length + "개 · 마감순"));
+          const box = h("div", { class: "tq qk-real treal" }, h("div", { class: "tt" }, h("span", { class: "qki", text: AU.QKIND.real.icon }), h("span", { class: "qkl", text: "일상 미션" }), "진행 중 " + reals.length + "개 · 마감순"));
           reals.forEach((m) => { const pg = AU.G.missionProgress(m.id), ov = pg && pg.overdue; const when = !pg ? "" : ov ? "기한 지남" : pg.left === 0 ? "오늘까지" : "D-" + pg.left;
             box.append(h("button", { type: "button", class: "to treal-item" + (ov ? " overdue" : ""), title: "눌러서 모험일지에서 확인", onclick: (e) => { e.stopPropagation(); UI.tab.jg = "real"; UI.tab.j = "missions"; UI.tab.missionStatus = "active"; UI.open("journal"); } }, h("b", { text: when }), " " + m.title)); });
           t.append(box);
@@ -374,7 +374,7 @@ window.AU = window.AU || {};
       }
       if (npc.special === "missionGuide") {
         if (S.flags.missionsUnlocked && !S.flags.guideMet) {
-          return this.say(npc, ["처음 뵙겠어요. 이 도시에서는 모험가들이 마음을 돌보는 작은 활동도 함께 해요.", "모험일지(" + keyOf("journal") + ")의 '현실 활동'에 있어요. 걷기, 물 마시기, 기록하기처럼 오늘 바로 해 볼 수 있는 것들이에요.", "게임 속 능력치와는 별개지만, 직접 해 보면 현실의 나도 조금씩 자라요. 천천히, 하나만 해 봐도 좋아요."], { end: () => { AU.G.discoverMissions(); } });
+          return this.say(npc, ["처음 뵙겠어요. 이 도시에서는 모험가들이 마음을 돌보는 작은 활동도 함께 해요.", "모험일지(" + keyOf("journal") + ")의 '일상 활동'에 있어요. 걷기, 물 마시기, 기록하기처럼 오늘 바로 해 볼 수 있는 것들이에요.", "게임 속 능력치와는 별개지만, 직접 해 보면 일상의 나도 조금씩 자라요. 천천히, 하나만 해 봐도 좋아요."], { end: () => { AU.G.discoverMissions(); } });
         }
         if (S.flags.guideMet) return this.say(npc, ["일상 속 작은 활동은 모험일지(" + keyOf("journal") + ")에서 볼 수 있어요. 편할 때 천천히 하세요."]);
       }
@@ -503,7 +503,7 @@ window.AU = window.AU || {};
           h("strong", { text: m.title }),
           h("small", { text: state === "attempted" ? "시도 중 · 이어서 해볼 수 있어요" : state === "partial" ? "조금 해봤어요 · 경험이 남았어요" : state === "accepted" ? "선택한 활동" : "언제든 선택할 수 있어요" })),
         h("span", { class: "roomactivity-label", text: state === "attempted" || state === "partial" ? "시도함" : state === "accepted" ? "선택" : "제안" }));
-    }) : [h("p", { class: "note", text: S.flags.missionsUnlocked ? "표시할 새 미션이 없습니다. 모험일지에서 전체 기록을 확인하세요." : "현실 미션은 게임에서 안내를 받은 뒤 열립니다. 그 전에도 공간을 꾸미고 방문 기록을 남길 수 있습니다." })];
+    }) : [h("p", { class: "note", text: S.flags.missionsUnlocked ? "표시할 새 미션이 없습니다. 모험일지에서 전체 기록을 확인하세요." : "일상 미션은 게임에서 안내를 받은 뒤 열립니다. 그 전에도 공간을 꾸미고 방문 기록을 남길 수 있습니다." })];
     const slots = AU.main && AU.main.galleryOnly ? h("div", { class: "roomstandalone" },
       h("p", { class: "note", text: "RPG를 시작하지 않고 이용 중입니다. 캐릭터별 저장 공간은 서로 독립적입니다." }),
       h("div", { class: "choices" },
@@ -527,7 +527,7 @@ window.AU = window.AU || {};
         h("div", { class: "roomfloor" }, h("div", { class: "roomrug", text: "나의 이야기" }))));
     const gal = ["room", "rec", "change"].includes(UI.tab.gal) ? UI.tab.gal : "room";
     const goTab = (k) => { UI.tab.gal = k; UI.renderWin(); };
-    // 내 기록: 완료·시도한 현실 미션을 PERMA 영역별로 정리(미션마다 가장 최근 1건)
+    // 내 기록: 완료·시도한 일상 미션을 PERMA 영역별로 정리(미션마다 가장 최근 1건)
     const recPanel = () => {
       const box = h("div", { class: "room-rec" }), latest = new Map();
       for (const e of S.missions.log.filter(x => ["done", "partial", "attempted"].includes(x.state) && !x.repeat)) latest.set(e.id, e);
@@ -544,7 +544,7 @@ window.AU = window.AU || {};
               e.state === "done" && rw && !rw.verified ? btn("인증하기", "mini", () => UI.missionVerify(m)) : null);
           }) : h("p", { class: "note", text: "아직 이 영역의 기록이 없어요." })));
       }
-      if (!total) box.prepend(h("p", { class: "empty", text: "아직 현실 미션 기록이 없어요. 첫 활동을 마치면 여기에 영역별로 쌓여요." }));
+      if (!total) box.prepend(h("p", { class: "empty", text: "아직 일상 미션 기록이 없어요. 첫 활동을 마치면 여기에 영역별로 쌓여요." }));
       return box;
     };
     const tabs = h("div", { class: "tabs room-tabs", role: "tablist" },
@@ -744,7 +744,7 @@ window.AU = window.AU || {};
         h("span", { class: "mup", text: fresh ? "방금 +" + last.n : "" })));
     }
     box.append(h("div", { class: "mtrend" }, chart, rows));
-    box.append(h("p", { class: "note", text: "현실 활동을 완료하면 활동 등급에 따라 점수가 오르고, 인증하면 더 크게 쌓입니다. 점선은 이번 주가 시작될 때(지난주까지)의 기록입니다." }));
+    box.append(h("p", { class: "note", text: "일상 활동을 완료하면 활동 등급에 따라 점수가 오르고, 인증하면 더 크게 쌓입니다. 점선은 이번 주가 시작될 때(지난주까지)의 기록입니다." }));
     box.append(h("p", { class: "note", text: "이것은 게임 속 활동 점수이며 행복이나 건강 상태를 재는 검사 점수가 아닙니다. 전투에는 영향을 주지 않습니다." }));
     if (AU.G.rollMindWeek()) AU.G.save("mind");
     return box;
@@ -755,7 +755,7 @@ window.AU = window.AU || {};
     const g = AU.G.galleryState(), S = AU.G.S, done = new Set(S.missions.log.filter(e => e.state === "done" && !e.repeat).map(e => e.id)).size, tr = AU.G.mindTrend();
     const up = Object.keys(AU.PERMA).reduce((n, k) => n + Math.max(0, tr[k].diff || 0), 0), go = (k) => { UI.tab.gal = k; UI.open("gallery"); };
     return h("div", { class: "roomlink mindbox" }, h("h3", { text: "내 방" }),
-      h("p", { class: "note", text: "완료한 현실 미션이 모이고, 받은 토큰으로 꾸미는 나만의 공간이에요." }),
+      h("p", { class: "note", text: "완료한 일상 미션이 모이고, 받은 토큰으로 꾸미는 나만의 공간이에요." }),
       h("div", { class: "roomlink-stats" },
         h("span", { text: "완료한 활동 " + done + "개" }), h("span", { text: "토큰 " + g.tokens + "개" }), h("span", { text: "이번 주 마음 +" + up })),
       h("div", { class: "macts" }, btn("내 방 열기", "primary", () => go("room")), btn("내 기록 (영역별)", "", () => go("rec")), btn("내 변화 (오각형)", "", () => go("change"))));
@@ -771,7 +771,7 @@ window.AU = window.AU || {};
     } catch (e) { return fallback; }
   };
 
-  /* 시간이 필요한 현실·쉼 미션: 게임 안에서 안내와 타이머를 보여 주고, 시간이 지난 뒤에만 ‘해 봤어요’를 누를 수 있게 함 */
+  /* 시간이 필요한 일상·쉼 미션: 게임 안에서 안내와 타이머를 보여 주고, 시간이 지난 뒤에만 ‘해 봤어요’를 누를 수 있게 함 */
   UI.guided = function (title, g, onDone) {
     const wrap = UI.modalEl; UI.modal = true; wrap.classList.remove("hidden"); wrap.innerHTML = "";
     const end = Date.now() + g.secs * 1000, fmt = (s) => Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
@@ -945,9 +945,9 @@ window.AU = window.AU || {};
   UI.missionHow = function (m) {
     const k = AU.MissionEvidence ? AU.MissionEvidence.kind(m) : "record";
     const how = { timer: "③ 앱 안의 타이머를 켜고 해 보세요. 시간이 쌓이면 인증돼요.", photo: "③ 결과물 사진을 올릴 수 있어요(선택). 사진은 이 기기에만 저장되고, 올리지 않아도 완료할 수 있어요.", record: "③ 무엇을 했는지 한 줄을 이 게임 안에 적어요(선택). 적은 글은 이 기기에만 저장돼요." }[k] || "";
-    return "이렇게 해요 · ① 현실에서 직접 해 봅니다. ② 모험일지 ▸ 현실 활동 ▸ 내 활동에서 '완료했어요'를 누릅니다. " + how;
+    return "이렇게 해요 · ① 일상에서 직접 해 봅니다. ② 모험일지 ▸ 일상 활동 ▸ 내 활동에서 '완료했어요'를 누릅니다. " + how;
   };
-  /* 접속 안내: 기한이 지난 현실미션이 있으면 한 번 알려 줌 */
+  /* 접속 안내: 기한이 지난 일상미션이 있으면 한 번 알려 줌 */
   UI.missionNotice = function () {
     const n = AU.G.overdueMissions().length; if (UI.modal) return false;
     if (!n) {   // 11-24: 7일형 활동은 4일차 이후 처음 접속했을 때 중간 점검을 한 번 물어봄
@@ -963,8 +963,8 @@ window.AU = window.AU || {};
     }
     const wrap = UI.modalEl; UI.modal = true; wrap.classList.remove("hidden"); wrap.innerHTML = "";
     const close = () => { UI.modal = false; wrap.classList.add("hidden"); wrap.innerHTML = ""; };
-    wrap.append(h("div", { class: "panel modal restnote review-step missionnotice" }, h("h3", { text: "현실 미션이 있습니다" }),
-      h("p", { class: "rv-q", text: "현실 미션을 확인해 보세요." }), h("p", { class: "note", text: "기한이 지난 미션 " + n + "개가 기다리고 있어요. 부담 없이 지금 상태를 알려 주세요." }),
+    wrap.append(h("div", { class: "panel modal restnote review-step missionnotice" }, h("h3", { text: "일상 미션이 있습니다" }),
+      h("p", { class: "rv-q", text: "일상 미션을 확인해 보세요." }), h("p", { class: "note", text: "기한이 지난 미션 " + n + "개가 기다리고 있어요. 부담 없이 지금 상태를 알려 주세요." }),
       h("div", { class: "choices" }, btn("확인하러 가기", "primary", () => { close(); UI.tab.jg = "real"; UI.tab.j = "missions"; UI.tab.missionStatus = "active"; UI.open("journal"); }), btn("나중에", "", close))));
     return true;
   };
@@ -1042,8 +1042,8 @@ window.AU = window.AU || {};
     const cmp = (label, k, u, bonus) => h("div", { class: "cmp" }, h("span", { text: label }), h("b", { text: d0[k] + u }), d1[k] !== d0[k] ? h("span", { text: "→ " }) : null, d1[k] !== d0[k] ? h("b", { class: "up", text: d1[k] + u }) : null, bonus ? h("em", { text: "장비 +" + bonus + u }) : null);
     const derived = h("div", { class: "derived" }, h("h3", { text: "전투 능력치" }), cmp("공격력", "atk", "", eq.atk), cmp("최대 HP", "maxHp", "", eq.hp), cmp("회피율", "dodge", "%", eq.dodge), cmp("치명타율", "crit", "%", eq.crit), cmp("스킬 피로 감소", "eff", "%", 0));
     const actions = h("div", { class: "statactions" }, btn("초기화", "", () => { UI.resetPending(); UI.renderWin(); }, { disabled: pend ? null : "" }), btn("적용 (" + pend + "점)", "primary", () => { const a = {}; for (const k of Object.keys(P)) if (P[k]) a[k] = P[k]; if (AU.G.applyAllocation(a)) UI.resetPending(); UI.renderWin(); }, { disabled: pend ? null : "" }));
-    const locked = false, hint = pool > 0 ? "레벨 포인트는 현실 미션을 하지 않아도 사용할 수 있습니다. 기존에 획득한 훈련 포인트도 사용할 수 있습니다. ＋ 버튼으로 배분한 뒤 [적용]을 눌러 확정하세요." : (AU.G.awakened() ? "남은 포인트가 없습니다. 레벨업하면 전투 스탯을 얻으며, 현실 미션은 갤러리 토큰과 마음 성장을 제공합니다." : "1~9레벨은 능력치가 자동으로 성장합니다. 10레벨 힘의 각성 이후 직접 분배할 수 있습니다.");
-    b.append(h("div", { class: "statlayout" }, left1, h("div", { class: "statmid" }, rows, h("p", { class: "note", text: hint }), locked ? btn("현실 미션 보기", "primary", () => { UI.tab.jg = "real"; UI.tab.j = "missions"; UI.open("journal"); }) : null, actions), derived));
+    const locked = false, hint = pool > 0 ? "레벨 포인트는 일상 미션을 하지 않아도 사용할 수 있습니다. 기존에 획득한 훈련 포인트도 사용할 수 있습니다. ＋ 버튼으로 배분한 뒤 [적용]을 눌러 확정하세요." : (AU.G.awakened() ? "남은 포인트가 없습니다. 레벨업하면 전투 스탯을 얻으며, 일상 미션은 갤러리 토큰과 마음 성장을 제공합니다." : "1~9레벨은 능력치가 자동으로 성장합니다. 10레벨 힘의 각성 이후 직접 분배할 수 있습니다.");
+    b.append(h("div", { class: "statlayout" }, left1, h("div", { class: "statmid" }, rows, h("p", { class: "note", text: hint }), locked ? btn("일상 미션 보기", "primary", () => { UI.tab.jg = "real"; UI.tab.j = "missions"; UI.open("journal"); }) : null, actions), derived));
   };
 
   R.worldContinent = function (b) {
@@ -1103,7 +1103,7 @@ window.AU = window.AU || {};
     const rows = [];
     for (const [id, rec] of Object.entries(S.quests)) { const q = AU.QUESTS[id]; rows.push({ key: id, title: q.title, type: q.type, done: rec.state === "done", q, rec }); }
     if (S.flags.missionsUnlocked && S.flags.guideMet) for (const m of AU.MISSIONS) { const r = S.missions.states[m.id]; if (r && ["accepted", "attempted", "partial", "done"].includes(r.state)) rows.push({ key: m.id, title: m.title, type: "real", done: r.state === "done", m, r }); }
-    const list = rows.filter((r) => (tab === "done") === r.done).sort((a, b) => QORD[a.type] - QORD[b.type]); // 메인 → 서브 → 현실 순으로 묶어 보여 줌
+    const list = rows.filter((r) => (tab === "done") === r.done).sort((a, b) => QORD[a.type] - QORD[b.type]); // 메인 → 서브 → 일상 순으로 묶어 보여 줌
     const sel = list.find((r) => r.key === UI.selected.q) || list[0];
     const tabs = h("div", { class: "tabs" }, btn("진행 중 (" + rows.filter((r) => !r.done).length + ")", tab === "active" ? "on" : "", () => { UI.tab.q = "active"; UI.renderWin(); }), btn("완료 (" + rows.filter((r) => r.done).length + ")", tab === "done" ? "on" : "", () => { UI.tab.q = "done"; UI.renderWin(); }), btn("최근 알림 (" + (UI._toastLog || []).length + ")", tab === "log" ? "on" : "", () => { UI.tab.q = "log"; UI.renderWin(); }, { "data-act": "q-log" }));
     if (tab === "log") {   // 11-24: 화면 오른쪽 위에서 밀려났거나 이미 지나간 알림을 다시 확인
@@ -1123,9 +1123,9 @@ window.AU = window.AU || {};
         h("h4", { text: "수행 조건" }), ...q.objectives.map((o, i) => h("div", { class: "obj" + (AU.G.objectiveDone(q, rec, i) ? " ok" : "") }, (AU.G.objectiveDone(q, rec, i) ? "✔ " : "□ ") + UI.objText(o, rec, i))),
         h("h4", { text: "보상" }), h("p", { text: rewardText(q.reward) }), h("p", { class: "note", text: "의뢰인: " + AU.NPCS[q.giver].name }));
     } else if (sel && sel.m) {
-      det.append(h("h3", { text: sel.m.title }), h("div", { class: "tags" }, h("span", { class: "tag", text: "현실" }), h("span", { class: "tag", text: AU.PERMA[sel.m.perma] }), h("span", { class: "tag", text: AU.MISSION_STATES[sel.r.state] })), h("p", { text: sel.m.desc }), h("p", { class: "note", text: "상태 변경은 모험일지(" + keyOf("journal") + ")에서 합니다." }),
+      det.append(h("h3", { text: sel.m.title }), h("div", { class: "tags" }, h("span", { class: "tag", text: "일상" }), h("span", { class: "tag", text: AU.PERMA[sel.m.perma] }), h("span", { class: "tag", text: AU.MISSION_STATES[sel.r.state] })), h("p", { text: sel.m.desc }), h("p", { class: "note", text: "상태 변경은 모험일지(" + keyOf("journal") + ")에서 합니다." }),
         (() => { const pg = AU.G.missionProgress(sel.m.id); return pg ? h("p", { class: "note span-progress" + (pg.overdue ? " overdue" : ""), text: pg.overdue ? "기한이 지났어요 (마감 " + pg.due.slice(5).replace("-", "/") + ") · 모험일지에서 확인해 주세요" : pg.span + "일 중 " + pg.day + "일차 · " + (pg.left ? "남은 " + pg.left + "일" : "오늘까지") + " · 마감 " + pg.due.slice(5).replace("-", "/") + (pg.needMid ? " · 중간 확인할 때예요" : "") }) : null; })(),
-        h("h4", { text: "이렇게 하면 완료예요" }), h("p", { text: "현실에서 해 본 뒤, 모험일지(" + keyOf("journal") + ") ▸ 현실 활동에서 이 미션의 ‘완료’(해 보기만 했다면 ‘시도’)를 눌러 기록하면 됩니다. 못 했다면 ‘건너뛰기’도 괜찮아요." }),
+        h("h4", { text: "이렇게 하면 완료예요" }), h("p", { text: "일상에서 해 본 뒤, 모험일지(" + keyOf("journal") + ") ▸ 일상 활동에서 이 미션의 ‘완료’(해 보기만 했다면 ‘시도’)를 눌러 기록하면 됩니다. 못 했다면 ‘건너뛰기’도 괜찮아요." }),
         (() => { // 나의 목표 적기: 이 미션으로 내가 무엇을 해 볼지 직접 적어 두는 칸(이 브라우저에 저장)
           const box = h("div", { class: "mgoal" }), inp = h("textarea", { class: "mgoal-in", rows: "2", maxlength: "120", placeholder: "예) 오늘은 책상 정리 10분만 해 보기" }), st = h("span", { class: "note" });
           inp.value = sel.r.goal || ""; const save = btn("목표 저장", "mini", () => { sel.r.goal = inp.value.trim().slice(0, 120); AU.G.save("mission_goal"); st.textContent = sel.r.goal ? "저장했어요." : "비웠어요."; });
@@ -1142,7 +1142,7 @@ window.AU = window.AU || {};
       h("div", { class: "fbar" }, h("i", { style: "width:" + (pc * 100).toFixed(1) + "%" })));
     if (withActions) box.append(h("div", { class: "fact" }, h("span", { class: "fhint", text: "스킬을 쓸수록 쌓이고, 쉼 활동이나 피로회복제로 줄어듭니다." }),
       AU.G.count("fatigue_tonic") > 0 ? btn("피로회복제 쓰기 (보유 " + AU.G.count("fatigue_tonic") + " · −" + AU.ITEMS.fatigue_tonic.relieve + ")", "mini", () => { AU.G.useItem("fatigue_tonic"); UI.renderWin(); }) : null,
-      S.flags.missionsUnlocked ? btn("쉼 현실 미션 보기", "mini", () => { UI.tab.jg = "real"; UI.tab.j = "rest"; UI.open("journal"); }) : null));
+      S.flags.missionsUnlocked ? btn("쉼 일상 미션 보기", "mini", () => { UI.tab.jg = "real"; UI.tab.j = "rest"; UI.open("journal"); }) : null));
     return box;
   };
 
@@ -1169,8 +1169,8 @@ window.AU = window.AU || {};
   const REAL_HIDDEN = { today: "missions", reco: "missions", fav: "missions", mlog: "record", plan: "record" }; // 옛 탭 이름(저장·다른 화면의 이동 버튼)은 새 탭으로 연결
   R.journal = function (b) {
     const S = AU.G.S, un = S.flags.missionsUnlocked;
-    const grp = UI.tab.jg || "game";   // 현실 활동은 Lv.10 전직 전에도 탭이 보이고(잠금), 내용은 미리 볼 수 있지만 기능은 쓸 수 없음
-    b.append(h("div", { class: "jgroup" }, [["game", "모험 이야기"], ["real", un ? "현실 활동" : "🔒 현실 활동"]].map(([k, l]) => h("button", { type: "button", class: "jg " + k + (grp === k ? " on" : ""), onclick: () => { UI.tab.jg = k; UI.renderWin(); } }, l))));
+    const grp = UI.tab.jg || "game";   // 일상 활동은 Lv.10 전직 전에도 탭이 보이고(잠금), 내용은 미리 볼 수 있지만 기능은 쓸 수 없음
+    b.append(h("div", { class: "jgroup" }, [["game", "모험 이야기"], ["real", un ? "일상 활동" : "🔒 일상 활동"]].map(([k, l]) => h("button", { type: "button", class: "jg " + k + (grp === k ? " on" : ""), onclick: () => { UI.tab.jg = k; UI.renderWin(); } }, l))));
     let tab;
     if (grp === "game") {
       tab = ["pro", "a1", "log"].includes(UI.tab.j) ? UI.tab.j : "a1";
@@ -1198,15 +1198,15 @@ window.AU = window.AU || {};
     } else if (tab === "log") {
       b.append(logBox(logOf(null)));
     } else if (tab === "missions" || tab === "record") {
-      if (tab === "record") { // 마음 기록: 지금까지 완료한 현실 미션 + (선택) 설문·나만의 공간
+      if (tab === "record") { // 마음 기록: 지금까지 완료한 일상 미션 + (선택) 설문·나만의 공간
         b.append(UI.roomLink());
         if (AU.Survey && AU.Survey.enabled() && UI.surveyPanel) b.append(UI.surveyPanel());
       }
       if (!un) {
-        if (tab === "missions") { b.append(h("div", { class: "lockbox" }, h("h3", { text: "아직 열리지 않았어요" }), h("p", { text: "프롤로그를 진행하면 현실 활동이 열려요. 열리면 영역마다 활동이 하나씩 나타나고, 하나를 마치면 다음 활동이 열립니다." }))); }
+        if (tab === "missions") { b.append(h("div", { class: "lockbox" }, h("h3", { text: "아직 열리지 않았어요" }), h("p", { text: "프롤로그를 진행하면 일상 활동이 열려요. 열리면 영역마다 활동이 하나씩 나타나고, 하나를 마치면 다음 활동이 열립니다." }))); }
         return;
       }
-      if (!S.flags.guideMet) { b.append(h("div", { class: "lockbox" }, h("h3", { text: "현실 활동 안내" }), h("p", { text: "프롤로그에서 현실 활동의 기록 방법을 안내받으면 이곳의 미션을 선택할 수 있습니다." }))); return; }
+      if (!S.flags.guideMet) { b.append(h("div", { class: "lockbox" }, h("h3", { text: "일상 활동 안내" }), h("p", { text: "프롤로그에서 일상 활동의 기록 방법을 안내받으면 이곳의 미션을 선택할 수 있습니다." }))); return; }
       const M = S.missions, AREAS = AU.MISSION_FUNCTION_AREAS;
       // 활동 카드 하나: 전체·오늘·추천·즐겨찾기·계획 화면이 같은 카드를 씀(상태 버튼·반복 수행·주기 설정·즐겨찾기)
       const rewardLine = (m, r) => {
@@ -1308,7 +1308,7 @@ window.AU = window.AU || {};
           const mean = (list, k) => { const v = list.map((e) => e.reflection[k]).filter((x) => Number.isFinite(x)); return v.length ? (v.reduce((a2, c2) => a2 + c2, 0) / v.length).toFixed(1) : "-"; };
           b.append(h("div", { class: "msummary", "data-record": "avg" }, h("b", { text: "내 평가 평균 (1~5점)" }), h("p", { class: "note", text: rs.length ? "기록 " + rs.length + "건 기준 · 일부만 했어요 " + pr.length + "건 포함" : "아직 평가한 기록이 없어요. 활동을 마치고 평가를 남기면 평균이 보여요." }),
             rs.length ? h("div", { class: "permabar" }, [["만족", "satisfaction"], ["의미", "meaning"], ["도전", "challenge"], ["해낼 자신", "efficacy"]].map(([n, k]) => h("div", { class: "pc" }, h("b", { text: mean(rs, k) }), h("span", { text: n }), h("em", { text: "일부만 " + mean(pr, k) })))) : null)); }
-        b.append(h("div", { class: "msummary", "data-record": "done" }, h("b", { text: "완료한 현실 미션 " + done.length + "개" }),
+        b.append(h("div", { class: "msummary", "data-record": "done" }, h("b", { text: "완료한 일상 미션 " + done.length + "개" }),
           done.length ? cardGrid(done) : h("p", { class: "empty", text: "아직 완료한 활동이 없어요. '내 활동'에서 하나 시작해 보세요." })));
       }
     } else if (tab === "rest" && !un) {
@@ -1333,7 +1333,7 @@ window.AU = window.AU || {};
       h("p", { class: "helpintro", text: "처음 마을에 오면 낯선 화면이 많습니다. 아래를 한 번 읽어 두면 편합니다. 이 안내는 언제든 " + K("help") + " 키나 메뉴에서 다시 볼 수 있습니다." }),
       sec("기본 조작", [[K("left") + "·" + K("right"), "이동"], [K("jump"), "점프"], [K("attack"), "기본 공격(피로도가 쌓이지 않음)"], [K("interact"), "NPC와 대화, 물건 줍기, 포털 이동 확인"], [K("up") + "/" + K("down"), "밧줄·사다리 오르내리기, 포털 들어가기"], ["1·2·3", "스킬 슬롯(전직 후 사용)"]]),
       sec("화면 구성", [["왼쪽 위 미니맵", "내 위치(파란 점)와 NPC·몬스터·출구. 누르면 월드맵"], ["목표", "진행 중인 퀘스트와 다음에 할 일. ▾로 접고, 끌어서 옮길 수 있음(더블클릭으로 원위치)"], ["아래 가운데", "레벨, HP(체력), 피로도(스킬을 쓸수록 쌓임), EXP(경험치)"], ["이름표", "발 밑에 이름이 표시됩니다. 몬스터는 머리 위에 레벨과 이름"], ["느낌표 !", "받을 수 있는 퀘스트"], ["물음표 ?", "완료해서 보고할 수 있는 퀘스트"]]),
-      sec("창 열기", [[K("inventory"), "인벤토리: 가진 물건, 사용·장착"], [K("equipment"), "장비창: 장착한 장비와 능력치 비교"], [K("stats"), "스탯창: 능력치 보기, 포인트 분배"], [K("skills"), "스킬창: 스킬 확인·배치, 휴식으로 피로도 줄이기"], [K("quests"), "퀘스트창: 진행 중·완료 퀘스트 자세히"], [K("worldmap"), "월드맵: 갈 수 있는 지역"], [K("journal"), "모험일지: 현실 활동 미션, 마음 기록"], [K("keysettings"), "설정: 소리, 키 바꾸기"], ["Esc", "메뉴 / 열린 창 닫기"]]),
+      sec("창 열기", [[K("inventory"), "인벤토리: 가진 물건, 사용·장착"], [K("equipment"), "장비창: 장착한 장비와 능력치 비교"], [K("stats"), "스탯창: 능력치 보기, 포인트 분배"], [K("skills"), "스킬창: 스킬 확인·배치, 휴식으로 피로도 줄이기"], [K("quests"), "퀘스트창: 진행 중·완료 퀘스트 자세히"], [K("worldmap"), "월드맵: 갈 수 있는 지역"], [K("journal"), "모험일지: 일상 활동 미션, 마음 기록"], [K("keysettings"), "설정: 소리, 키 바꾸기"], ["Esc", "메뉴 / 열린 창 닫기"]]),
       sec("알아 두기", [["쓰러지면", "마을에서 일어나며 경험치를 5% 잃습니다. 문장을 하나 골라 마음을 가다듬는 시간이 있습니다."], ["마을(안전 지역)", "몬스터가 나오지 않는 곳입니다. 체력은 저절로 차지 않으니 회복약을 챙기세요."], ["상점", "상인 NPC와 대화해서 물건을 사고팝니다."], ["최대 레벨", "1막에서는 15레벨까지 오릅니다. 다음 이야기가 열리면 이어서 성장합니다."]]),
       h("div", { class: "choices" }, btn("알겠습니다", "primary", () => UI.close()))));
   };
@@ -1342,7 +1342,7 @@ window.AU = window.AU || {};
     const S = AU.G.S;
     b.append(h("div", { class: "jobcard" }, h("h2", { text: "전사로 전직했습니다!" }), h("p", { text: "견습 모험가에서 전사가 되었습니다. 다음 기능이 열렸어요." }),
       h("ul", null, h("li", { text: "스탯 분배: 포인트 " + S.freePoints + "점이 지급되었습니다. 스탯창(" + keyOf("stats") + ")에서 직접 나눠 보세요." }), h("li", { text: "스킬: 지금은 1번 스킬(" + AU.SKILLS.strike.name + ")만 열렸고, 2번은 Lv." + AU.SKILL_UNLOCK_LV.spin + ", 3번은 Lv." + AU.SKILL_UNLOCK_LV.focus + "에 열립니다. 스킬창(" + keyOf("skills") + ")에서 바꿀 수 있습니다." }), h("li", { text: "피로도: 스킬을 쓸 때마다 쌓이며, 가득 차면 스킬을 쓸 수 없습니다(기본 공격은 가능). 휴식이나 쉼 미션으로 줄일 수 있고, 매주 월요일에 풀립니다." }),
-        h("li", { text: "모험일지(" + keyOf("journal") + "): 현실 활동 미션이 열렸습니다. 선택 사항이며, 포르투 노바의 알렉시오스가 소개해 줍니다." }),
+        h("li", { text: "모험일지(" + keyOf("journal") + "): 일상 활동 미션이 열렸습니다. 선택 사항이며, 포르투 노바의 알렉시오스가 소개해 줍니다." }),
         h("li", { text: "다음 목표: " + AU.JOB_TIERS.slice(1).map((t) => "Lv." + t.level + " " + t.name).join(" / ") })),
       h("div", { class: "choices" }, btn("스탯 분배하러 가기", "primary", () => UI.open("stats")), btn("계속 모험하기", "", () => UI.close()))));
   };
