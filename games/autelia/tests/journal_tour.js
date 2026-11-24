@@ -1,4 +1,4 @@
-/* 모험일지 단계별 안내(투어): 제안 모달 → 7단계 → 완료 저장, 이전/건너뛰기/Esc/창 닫기, 입력 차단, 프롤로그 정지 복구 */
+/* 모험일지 단계별 안내(투어): 제안 모달 → 8단계 → 완료 저장, 이전/건너뛰기/Esc/창 닫기, 입력 차단, 프롤로그 정지 복구 */
 const { chromium } = require('playwright');
 const SH = (process.env.SHOTS || '/tmp') + '/';
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -20,7 +20,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     await p.getByRole('button', { name: '천천히 알려 주세요' }).click();
     await p.waitForSelector('.jt-card');
     const rects = [];
-    for (let i = 1; i <= 7; i++) {
+    for (let i = 1; i <= 8; i++) {
       await sleep(450);
       const info = await p.evaluate(() => {
         const sp = document.querySelector('.jt-spot'), c = document.querySelector('.jt-card'), st = document.getElementById('stage').getBoundingClientRect(), k = st.width / 1280;
@@ -30,14 +30,14 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
       rects.push(info); await p.screenshot({ path: SH + 'jt_' + i + '.png' });
       const inStage = info.card.x >= 0 && info.card.y >= 0 && info.card.x + info.card.w <= 1281 && info.card.y + info.card.h <= 721;
       const overlap = info.spot && !(info.card.x + info.card.w <= info.spot.x || info.card.x >= info.spot.x + info.spot.w || info.card.y + info.card.h <= info.spot.y || info.card.y >= info.spot.y + info.spot.h);
-      check('S' + i + ' ' + info.prog + ' ' + info.title, info.prog === i + ' / 7' && info.win && info.frozen && inStage && !overlap, { card: info.card, spot: info.spot, inStage, overlap });
-      if (i === 3) { await p.getByRole('button', { name: '◀ 이전' }).click(); await sleep(300); check('S3b 이전 버튼', (await p.textContent('.jt-prog')) === '2 / 7', {}); await p.keyboard.press('ArrowRight'); await sleep(300); check('S3c → 키로 다음', (await p.textContent('.jt-prog')) === '3 / 7', {}); }
-      if (i === 4) { const hp = await p.evaluate(() => AU.World.player.x); await p.keyboard.press('KeyJ'); await p.keyboard.press('KeyI'); await p.keyboard.down('ArrowUp'); await p.keyboard.up('ArrowUp'); await sleep(250); const st = await p.evaluate(() => ({ win: AU.UI.curName, x: AU.World.player.x })); check('S4b 투어 중 J·I·방향키 차단(창 종류·위치 불변)', st.win === 'journal' && st.x === hp && (await p.textContent('.jt-prog')) === '4 / 7', st); }
-      if (i < 7) { await p.getByRole('button', { name: '다음 ▶' }).click(); }
+      check('S' + i + ' ' + info.prog + ' ' + info.title, info.prog === i + ' / 8' && info.win && info.frozen && inStage && !overlap, { card: info.card, spot: info.spot, inStage, overlap });
+      if (i === 4) { await p.getByRole('button', { name: '◀ 이전' }).click(); await sleep(300); check('S3b 이전 버튼', (await p.textContent('.jt-prog')) === '3 / 8', {}); await p.keyboard.press('ArrowRight'); await sleep(300); check('S3c → 키로 다음', (await p.textContent('.jt-prog')) === '4 / 8', {}); }
+      if (i === 5) { const hp = await p.evaluate(() => AU.World.player.x); await p.keyboard.press('KeyJ'); await p.keyboard.press('KeyI'); await p.keyboard.down('ArrowUp'); await p.keyboard.up('ArrowUp'); await sleep(250); const st = await p.evaluate(() => ({ win: AU.UI.curName, x: AU.World.player.x })); check('S4b 투어 중 J·I·방향키 차단(창 종류·위치 불변)', st.win === 'journal' && st.x === hp && (await p.textContent('.jt-prog')) === '5 / 8', st); }
+      if (i < 8) { await p.getByRole('button', { name: '다음 ▶' }).click(); }
     }
     check('S5 스포트라이트가 활동 카드를 비춤', await p.evaluate(() => { const e = document.querySelector('[data-real-bridge="suggestions"]'); return !!e; }), {});
     check('S6 단계 표시 3칸', await (async () => { return true; })(), {});
-    await p.getByRole('button', { name: '마쳤어요' }).click(); await sleep(400);
+    await p.getByRole('button', { name: '이해했어요' }).click(); await sleep(400);
     const done = await p.evaluate(async () => ({ r: await window.__o, seen: AU.G.S.flags.journalTourSeen, gdw: AU.G.S.flags.gdw_journal, closed: !AU.UI.curName, card: !!document.querySelector('.jt-card'), frozen: AU.Prologue.frozen }));
     check('D1 완료 결과·플래그·창 닫힘·정지 복구', done.r === 'done' && done.seen && done.gdw && done.closed && !done.card && done.frozen === false, done);
     const again = await p.evaluate(async () => await AU.JournalTour.offer());

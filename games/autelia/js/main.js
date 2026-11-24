@@ -117,7 +117,7 @@ window.AU = window.AU || {};
   function buildTitle(hasSave) {
     const S = AU.G.S, t = document.getElementById("title"); t.innerHTML = "";
     const P = AU.Prologue, inPro = P.inProgress();
-    const start = () => { t.classList.add("hidden"); main.running = true; window.focus(); if (P.onGameStart()) { main.reportProgress(); return; } AU.UI.mapBanner(AU.MAPS[AU.World.mapId].name); AU.G.save("start"); main.reportProgress(); };
+    const start = () => { t.classList.add("hidden"); main.running = true; window.focus(); if (P.onGameStart()) { main.reportProgress(); return; } AU.UI.mapBanner(AU.MAPS[AU.World.mapId].name); AU.G.save("start"); try { if (AU.G.S.flags.missionsUnlocked) AU.UI.missionNotice(); } catch (e) {} main.reportProgress(); };
     const b1 = document.createElement("button"); b1.type = "button"; b1.className = "btn primary big"; b1.id = "btn-start";
     b1.textContent = inPro ? P.titleLabel() : "이어하기 (" + AU.jobName(S) + " Lv." + S.level + " · " + AU.MAPS[S.map].name.replace(" (임시 명칭)", "") + ")";
     // 신규 시작(프롤로그 전, 캐릭터 설정이 없음)이면 먼저 캐릭터 설정 화면을 거침
@@ -154,7 +154,7 @@ window.AU = window.AU || {};
       if (main.running) { const paused = AU.UI.anyOpen(); AU.Prologue.update(dt, paused); if (!paused) AU.World.update(dt); else if (AU.Prologue.on) AU.World.updateCam(dt); }
       if (AU.Bgm) AU.Bgm.tick(dt);
       const ctx = document.getElementById("cv").getContext("2d");
-      ctx.clearRect(0, 0, C.W, C.H); AU.World.draw(ctx); AU.UI.updateHud(); if (AU.Tutorial && main.running) AU.Tutorial.tick(dt); else if (AU.Tutorial) AU.Tutorial.render(null);
+      ctx.clearRect(0, 0, C.W, C.H); AU.World.draw(ctx); AU.UI.updateHud();
     } catch (err) { console.error("[아우텔리아] 오류(게임은 계속 실행):", err); AU.main.lastError = String(err && err.stack || err); }
     requestAnimationFrame(loop);
   }

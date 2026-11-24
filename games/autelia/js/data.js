@@ -38,6 +38,12 @@ AU.ASSETS = {
   mon_fox:   { path: "assets/monster/fox.webp", optional: true },
   mon_snake: { path: "assets/monster/snake.webp", optional: true },
   mon_rat:   { path: "assets/monster/rat.webp", optional: true },
+  mon_boar:  { path: "assets/monster/boar.webp", optional: true },
+  mon_boar_a1: { path: "assets/monster/boar_a1.webp", optional: true }, mon_boar_a2: { path: "assets/monster/boar_a2.webp", optional: true },   // 준비·공격 전용 그림
+  mon_boar_w1: { path: "assets/monster/boar_w1.webp", optional: true }, mon_boar_w2: { path: "assets/monster/boar_w2.webp", optional: true }, mon_boar_w3: { path: "assets/monster/boar_w3.webp", optional: true }, mon_boar_w4: { path: "assets/monster/boar_w4.webp", optional: true },   // 멧돼지 걷기 4칸
+  mon_snake_w1: { path: "assets/monster/snake_w1.webp", optional: true }, mon_snake_w2: { path: "assets/monster/snake_w2.webp", optional: true }, mon_snake_w3: { path: "assets/monster/snake_w3.webp", optional: true }, mon_snake_w4: { path: "assets/monster/snake_w4.webp", optional: true }, mon_snake_w5: { path: "assets/monster/snake_w5.webp", optional: true }, mon_snake_w6: { path: "assets/monster/snake_w6.webp", optional: true },   // 뱀 이동 4칸+준비·공격
+  mon_rat_w1: { path: "assets/monster/rat_w1.webp", optional: true }, mon_rat_w2: { path: "assets/monster/rat_w2.webp", optional: true }, mon_rat_w3: { path: "assets/monster/rat_w3.webp", optional: true }, mon_rat_w4: { path: "assets/monster/rat_w4.webp", optional: true }, mon_rat_w5: { path: "assets/monster/rat_w5.webp", optional: true }, mon_rat_w6: { path: "assets/monster/rat_w6.webp", optional: true },   // 쥐 이동 4칸+준비·공격
+  mon_crab_w1: { path: "assets/monster/crab_w1.webp", optional: true }, mon_crab_w2: { path: "assets/monster/crab_w2.webp", optional: true }, mon_crab_w3: { path: "assets/monster/crab_w3.webp", optional: true }, mon_crab_w4: { path: "assets/monster/crab_w4.webp", optional: true }, mon_crab_w5: { path: "assets/monster/crab_w5.webp", optional: true }, mon_crab_w6: { path: "assets/monster/crab_w6.webp", optional: true },   // 게 이동 4칸+준비·공격
   mon_crab:  { path: "assets/monster/crab.webp", optional: true },
   pt_player_male: { path: "assets/portrait/player_male.webp" },
   pt_player_female: { path: "assets/portrait/player_female.webp" },
@@ -59,42 +65,42 @@ AU.MAPS = {
     // 프롤로그 이후 이야기에서 아르케아는 습격으로 파괴된 마을이라 신규 플레이어는 갈 수 없음. 기존(프롤로그 이전) 저장을 위해 데이터는 유지.
     name: "아르케아 마을", bg: "plaza", width: 2484, safe: true, hidden: true,
     platforms: [{ x: 0, y: 590, w: 2484 }], ropes: [],
-    portals: [{ x: 2420, to: "forest", toX: 90, label: "숲길" }],
+    portals: [{ x: 2420, to: "forest", toX: 90, label: "멧돼지 숲" }],
     npcs: [{ id: "arche_guide", x: 620 }],
     spawns: [], start: 300,
     area: { x: 16, y: 64, desc: "주인공이 살던 산골 마을입니다. 모험이 시작되는 곳입니다." }
   },
   forest: {
-    name: "숲길", bg: "forest_road", width: 3000, safe: false,
+    name: "멧돼지 숲", bg: "forest_road", width: 3000, safe: false,
     // 발판·밧줄 위치는 이전 시제품의 숲길 그림에 맞춘 값을 그대로 사용
     platforms: [{ x: 0, y: 590, w: 3000 }, { x: 620, y: 542, w: 130, h: 48, img: "ob_rock_s" }, { x: 900, y: 520, w: 190, h: 70, img: "ob_rock_m" },
                 { x: 1350, y: 390, w: 650, h: 200, img: "ob_rock_big" }, { x: 2000, y: 460, w: 80, h: 130, img: "ob_rock_tall" }, { x: 2085, y: 530, w: 120, h: 60, img: "ob_rock_low" }], // h가 있으면 옆이 막힌 단단한 바위·턱(img: 눈에 보이는 바위 그림)
     ropes: [{ x: 1315, top: 370, bottom: 590 }],
-    portals: [{ x: 2950, to: "harbor_road", toX: 90, label: "항구 길" }],
+    portals: [{ x: 2950, to: "harbor_road", toX: 90, label: "뱀길" }],
     npcs: [],
     spawns: [
-      { type: "fox", x: 520 }, { type: "fox", x: 880 }, { type: "fox", x: 1250 }, { type: "fox", x: 1600, y: 390, min: 1370, max: 1990 },
-      { type: "fox", x: 1850, y: 390, min: 1370, max: 1990 }, { type: "fox", x: 2200 }, { type: "snake", x: 2450 }, { type: "snake", x: 2750 }
+      { type: "wild_boar", x: 520 }, { type: "wild_boar", x: 880 }, { type: "wild_boar", x: 1250 }, { type: "wild_boar", x: 1600, y: 390, min: 1370, max: 1990 },
+      { type: "wild_boar", x: 1850, y: 390, min: 1370, max: 1990 }, { type: "wild_boar", x: 2200 }, { type: "wild_boar", x: 2450 }, { type: "wild_boar", x: 2750 }
     ],
-    area: { x: 36, y: 46, desc: "마을과 항구를 잇는 길입니다. 들짐승이 자주 나옵니다." }
+    area: { x: 36, y: 46, desc: "뱀길 너머에 펼쳐진 숲입니다. 굶주린 멧돼지들이 삽니다." }
   },
   harbor_road: {
-    name: "항구 길", bg: "harbor_road", width: 2450, safe: false,
+    name: "뱀길", bg: "harbor_road", width: 2450, safe: false,
     platforms: [{ x: 0, y: 590, w: 2450 }], ropes: [],
-    portals: [{ x: 50, to: "forest", toX: 2860, label: "숲길" }, { x: 2400, to: "porto", toX: 90, label: "포르투 노바" }],
+    portals: [{ x: 50, to: "forest", toX: 2860, label: "멧돼지 숲" }, { x: 2400, to: "porto", toX: 90, label: "포르투 노바" }],
     npcs: [],
     spawns: [
-      { type: "snake", x: 600 }, { type: "rat", x: 900 }, { type: "rat", x: 1200 }, { type: "rat", x: 1500 },
-      { type: "snake", x: 1750 }, { type: "fox", x: 2000 }, { type: "fox", x: 2250 }
+      { type: "snake", x: 480 }, { type: "fox", x: 760 }, { type: "snake", x: 1040 }, { type: "fox", x: 1320 },
+      { type: "snake", x: 1600 }, { type: "fox", x: 1860 }, { type: "snake", x: 2100 }, { type: "fox", x: 2300 }
     ],
-    area: { x: 58, y: 56, desc: "포르투 노바로 이어지는 바닷가 길입니다." }
+    area: { x: 58, y: 56, desc: "포르투 노바로 이어지는 바닷가 길입니다. 풀숲에는 뱀이, 길가에는 날쌘 들여우가 삽니다. 뱀길이라 불립니다." }
   },
   porto: {
     name: "포르투 노바", bg: "harbor", width: 2689, safe: true,
     platforms: [{ x: 0, y: 590, w: 2689 }], ropes: [],
-    portals: [{ x: 40, to: "harbor_road", toX: 2330, label: "항구 길" }, { x: 2620, to: "docks", toX: 90, label: "선창 외곽" }, { x: 2430, to: "general_store", toX: 90, label: "해풍 잡화점" }, { x: 370, to: "weapon_store", toX: 90, label: "철파도 무기점" },
+    portals: [{ x: 40, to: "harbor_road", toX: 2330, label: "뱀길" }, { x: 2620, to: "docks", toX: 90, label: "선창 외곽" }, { x: 2430, to: "general_store", toX: 90, label: "해풍 잡화점" }, { x: 370, to: "weapon_store", toX: 90, label: "철파도 무기점" },
               { x: 1736, to: "guild_hall", toX: 110, label: "선창 길드" }, { x: 2080, to: "warehouse", toX: 110, label: "부두 창고" }],
-    npcs: [{ id: "porto_dock", x: 600 }, { id: "job_npc", x: 900 }, { id: "guide_npc", x: 1250 }],
+    npcs: [{ id: "porto_dock", x: 600 }, { id: "guide_npc", x: 1250 }],
     spots: [],
     spawns: [], start: 160,
     area: { x: 78, y: 40, desc: "중립 항구도시입니다. 선창 길드와 부두 창고, 상점이 모여 있습니다." }
@@ -115,13 +121,13 @@ AU.MAPS = {
     npcs: [{ id: "porto_armor", x: 400 }, { id: "porto_smith", x: 940, npcY: 462 }],
     fgSlice: [625, 425, 640, 175],
     spots: [], spawns: [], start: 200,
-    area: { x: 82, y: 36, desc: "포르투 노바의 무기점입니다. 기본 무기와 방어구를 살 수 있습니다. (장비 제작은 2막부터 마을마다 있는 대장간에서)" }
+    area: { x: 82, y: 36, desc: "포르투 노바의 무기점입니다. 기본 무기와 방어구를 살 수 있습니다." }
   },
   guild_hall: {
     name: "선창 길드", bg: "guild_hall", width: 1280, safe: true, interior: true, parent: "porto",
     platforms: [{ x: 0, y: 590, w: 1280 }], ropes: [],
     portals: [{ x: 100, to: "porto", toX: 1736, label: "나가기" }],
-    npcs: [{ id: "porto_foreman", x: 840 }, { id: "porto_guild", x: 1120, npcY: 505 }],
+    npcs: [{ id: "porto_foreman", x: 520 }, { id: "porto_guild", x: 1120, npcY: 505 }],
     fgSlice: [975, 425, 305, 165],   // 접수 카운터: 접수원보다 앞에 다시 그려 카운터 뒤에 서 있게 함
     spots: [],
     spawns: [], start: 220,
@@ -149,9 +155,8 @@ AU.MAPS = {
     // 조사·수리 지점: 해당 목표가 진행 중일 때만 표시됩니다(kind: repair=목공 수리 / investigate=조사)
     spots: [
     ],
-    spawns: [{ type: "crab", x: 360 }, { type: "crab", x: 600 }, { type: "rat", x: 820 }, { type: "crab", x: 1060 }],
-    boss: { type: "trial_boss", x: 980 },     // 전직 시험 중에만 등장
-    area: { x: 90, y: 64, desc: "항구 바깥 선창 지대입니다. 길드 의뢰의 사냥터입니다." }
+    spawns: [{ type: "rat", x: 250 }, { type: "rat", x: 430 }, { type: "rat", x: 620 }, { type: "rat", x: 780 }, { type: "crab", x: 920 }, { type: "crab", x: 1060 }, { type: "crab", x: 1190 }],
+    area: { x: 90, y: 64, desc: "항구 바깥 선창 지대입니다. 입구 쪽에는 부두 쥐가, 안쪽에는 집게 게가 삽니다. 길드 의뢰의 사냥터입니다." }
   }
 };
 /* 대륙 지도: 이름은 아직 정해지지 않음(미정). 열리지 않은 권역은 이름 대신 방향만 보여 줌(스포일러 방지). maps는 지역 지도 id */
@@ -167,10 +172,11 @@ AU.AREA_LINKS = [["forest", "harbor_road"], ["harbor_road", "porto"], ["porto", 
 // sprite/sw: 정식 그림(assets/monster/*.webp, 투명 배경, 오른쪽을 보는 옆모습 1장)이 있으면 그 그림을 sw(가로 px)로 그리고, 없으면 임시 도형으로 표시합니다.
 // 이전 아스텔리아 기획의 사냥터 구성(들짐승→부두 쥐→게→거대 적)을 규칙으로만 재사용. 모두 임시 수치.
 AU.MONSTERS = {
-  fox:   { motion: "pounce", name: "들여우", lv: 1, hp: 51, atk: 8, speed: 70, chase: 130, w: 72, h: 50, exp: 50, silver: [1, 4], silverRate: 0.1, drops: [["fur", 0.15, 1, 2], ["fox_tail", 0.07], ["black_crystal", 0.2, 1, 1, "q_a1_variant"], ["potion", 0.04], ["fox_scarf", 0]], color: "#F5A25D", ear: true, sprite: "mon_fox", sw: 92 },
-  snake: { motion: "coil", name: "뱀", lv: 3, hp: 88, atk: 14, speed: 85, chase: 150, w: 90, h: 34, exp: 100, silver: [2, 7], silverRate: 0.12, drops: [["snake_skin", 0.15], ["snake_fang", 0.07], ["black_crystal", 0.3, 1, 1, "q_a1_variant"], ["potion", 0.05], ["snake_ring", 0]], color: "#7DBE6B", snake: true, sprite: "mon_snake", sw: 128 },
-  rat:   { motion: "scurry", name: "부두 쥐", lv: 5, hp: 144, atk: 21, speed: 100, chase: 160, w: 70, h: 46, exp: 170, silver: [3, 10], silverRate: 0.14, drops: [["rat_tooth", 0.15, 1, 2], ["black_crystal", 0.4, 1, 1, "q_a1_variant"], ["potion", 0.05]], color: "#A79C94", ear: true, sprite: "mon_rat", sw: 88 },
-  crab:  { motion: "sidestep", name: "집게 게", lv: 8, hp: 272, atk: 36, speed: 60, chase: 150, w: 92, h: 56, exp: 260, silver: [5, 14], silverRate: 0.16, drops: [["crab_claw", 0.15, 1, 2], ["crab_shell", 0.07], ["potion", 0.06], ["crab_vest", 0]], color: "#E9777A", crab: true, sprite: "mon_crab", sw: 116 },
+  fox:   { motion: "pounce", name: "들여우", lv: 3, hp: 88, atk: 14, speed: 85, chase: 150, w: 72, h: 50, exp: 100, silver: [2, 7], silverRate: 0.12, drops: [["fur", 0.15, 1, 2], ["fox_tail", 0.07], ["potion", 0.04], ["fox_scarf", 0.012]], color: "#F5A25D", ear: true, sprite: "mon_fox", sw: 92 },
+  wild_boar: { motion: "leap", name: "굶주린 멧돼지", lv: 6, hp: 230, atk: 26, speed: 95, windT: 0.75, chargeT: 0.5, chargeSpd: 3.4, recoverT: 1.2, chase: 200, w: 96, h: 58, exp: 190, silver: [4, 12], silverRate: 0.14, drops: [["boar_tusk", 0.15], ["potion", 0.05]], color: "#7A5C45", sprite: "mon_boar", walk: ["mon_boar_w1", "mon_boar_w2", "mon_boar_w3", "mon_boar_w4"], walkIdle: "mon_boar", pWind: "mon_boar_a1", pLunge: "mon_boar_a2", walkRefW: 480, frameLen: 26, sw: 150 },
+  snake: { motion: "coil", name: "뱀", lv: 1, hp: 51, atk: 8, speed: 70, chase: 130, w: 90, h: 34, exp: 50, silver: [1, 4], silverRate: 0.1, drops: [["snake_skin", 0.15], ["snake_fang", 0.07], ["potion", 0.05], ["snake_ring", 0.012]], color: "#7DBE6B", snake: true, sprite: "mon_snake", walk: ["mon_snake_w1", "mon_snake_w2", "mon_snake_w3", "mon_snake_w4"], walkIdle: "mon_snake", walkRefW: 250, pWind: "mon_snake_w5", pLunge: "mon_snake_w6", frameLen: 24, sw: 128 },
+  rat:   { motion: "scurry", name: "부두 쥐", lv: 5, hp: 144, atk: 21, speed: 100, chase: 160, w: 70, h: 46, exp: 170, silver: [3, 10], silverRate: 0.14, drops: [["rat_tooth", 0.15, 1, 2], ["black_crystal", 0.4, 1, 1, "q_a1_variant"], ["potion", 0.05]], color: "#A79C94", ear: true, sprite: "mon_rat", walk: ["mon_rat_w1", "mon_rat_w2", "mon_rat_w3", "mon_rat_w4"], walkIdle: "mon_rat", walkRefW: 190, pWind: "mon_rat_w5", pLunge: "mon_rat_w6", frameLen: 24, sw: 88 },
+  crab:  { motion: "sidestep", name: "집게 게", lv: 8, hp: 272, atk: 36, speed: 60, chase: 150, w: 92, h: 56, exp: 260, silver: [5, 14], silverRate: 0.16, drops: [["black_crystal", 0.35, 1, 1, "q_a1_variant"], ["crab_claw", 0.15, 1, 2], ["crab_shell", 0.07], ["potion", 0.06], ["crab_vest", 0.01]], color: "#E9777A", crab: true, sprite: "mon_crab", walk: ["mon_crab_w1", "mon_crab_w2", "mon_crab_w3", "mon_crab_w4"], walkIdle: "mon_crab", walkRefW: 250, pWind: "mon_crab_w5", pLunge: "mon_crab_w6", frameLen: 24, sw: 116 },
   trial_boss: { name: "움브라", lv: 10, hp: 1500, atk: 40, patterns: ["lunge", "slam", "wave"], ragePatterns: ["chain"], slamR: 180, cd: 2.2, cdRage: 1.5, speed: 75, chase: 420, w: 240, h: 150, exp: 600, silver: [60, 80], silverRate: 1, drops: [], color: "#9B7FD1", boss: true, motion: "swing",
     sprite: "mon_umbra_base", sw: 300, refW: 345, poses: { idle: "mon_umbra_base", walkA: "mon_umbra_walkA", walkB: "mon_umbra_walkB", windup: "mon_umbra_windup", attack: "mon_umbra_attack", hurt: "mon_umbra_hurt", down: "mon_umbra_down" } }
 };
@@ -182,35 +188,31 @@ AU.ITEMS = {
   charm_a: { name: "작은 부적", type: "equip", slot: "accessory", buy: 80, stats: { dodge: 1, crit: 1 }, desc: "작은 행운이 깃들었다는 부적입니다." },
   town_scroll: { name: "마을 귀환 주문서", type: "use", recall: true, buy: 60, desc: "가까운 마을로 즉시 귀환합니다. 마을 안에서는 쓸 수 없습니다." },
   potion:  { name: "작은 회복약", type: "use", heal: 50, buy: 15, desc: "HP를 50 회복합니다." },
+  fatigue_tonic: { name: "피로회복제", type: "use", relieve: 10, buy: 30, desc: "피로도를 10 회복합니다. 잡화상점에서 은화로 살 수 있습니다." },   // 11-24: 피로도는 쉼 활동 또는 이 아이템으로 줄임(은화 휴식 대체). 회복량 10은 고정값, 가격은 임시
   // 드롭 확률 원칙: 좋은 아이템일수록 확률이 낮다 — 흔함 15% · 포션 평균 5% · 드묾 7% · 희귀(장비) 0%(제작서로만 획득). 은화는 몬스터마다 silverRate 확률(10%대)로 레벨이 높을수록 커지는 범위(1~20, 균등 랜덤)가 바닥에 떨어짐
   // rarity: common(흔함) / uncommon(드묾) / rare(희귀). sell: 안전한 곳(마을)에서 팔 때 받는 은화. 재료는 팔거나 제작(AU.RECIPES)에 씀
-  fur:     { name: "여우 털 뭉치", type: "etc", rarity: "common", sell: 3, desc: "부드러운 털 뭉치입니다. 팔거나 장신구 제작에 씁니다." },
-  fox_tail: { name: "여우 꼬리털", type: "etc", rarity: "uncommon", sell: 10, desc: "윤기가 도는 꼬리털입니다. 제작 재료로 쓰입니다." },
-  snake_skin: { name: "뱀 허물", type: "etc", rarity: "common", sell: 5, desc: "바싹 마른 뱀 허물입니다. 팔거나 제작에 씁니다." },
-  snake_fang: { name: "독니 조각", type: "etc", rarity: "uncommon", sell: 14, desc: "부러진 뱀의 이빨 조각입니다. 제작 재료로 쓰입니다." },
+  fur:     { name: "여우 털 뭉치", type: "etc", rarity: "common", sell: 3, desc: "부드러운 털 뭉치입니다. 팔 수 있습니다." },
+  boar_tusk: { name: "멧돼지 엄니", type: "etc", rarity: "common", sell: 12, desc: "굶주린 멧돼지의 굽은 엄니입니다. 상점에 팔 수 있습니다." },
+  fox_tail: { name: "여우 꼬리털", type: "etc", rarity: "uncommon", sell: 10, desc: "윤기가 도는 꼬리털입니다. 상점에 팔 수 있습니다." },
+  snake_skin: { name: "뱀 허물", type: "etc", rarity: "common", sell: 5, desc: "바싹 마른 뱀 허물입니다. 팔 수 있습니다." },
+  snake_fang: { name: "독니 조각", type: "etc", rarity: "uncommon", sell: 14, desc: "부러진 뱀의 이빨 조각입니다. 상점에 팔 수 있습니다." },
   rat_tooth: { name: "쥐 이빨", type: "etc", rarity: "common", sell: 6, desc: "작지만 단단한 이빨입니다. 팔 수 있습니다." },
-  crab_claw: { name: "게 집게 조각", type: "etc", rarity: "common", sell: 8, desc: "떨어져 나온 집게 조각입니다. 팔거나 제작에 씁니다." },
-  crab_shell: { name: "단단한 게딱지", type: "etc", rarity: "uncommon", sell: 18, desc: "바닷가 게의 단단한 껍데기입니다. 제작 재료로 쓰입니다." },
+  crab_claw: { name: "게 집게 조각", type: "etc", rarity: "common", sell: 8, desc: "떨어져 나온 집게 조각입니다. 팔 수 있습니다." },
+  crab_shell: { name: "단단한 게딱지", type: "etc", rarity: "uncommon", sell: 18, desc: "바닷가 게의 단단한 껍데기입니다. 상점에 팔 수 있습니다." },
   fox_scarf: { name: "여우 털 목도리", type: "equip", slot: "accessory", rarity: "rare", sell: 0, stats: { crit: 2, dodge: 1 }, desc: "여우 털로 짠 포근한 목도리입니다." },
   snake_ring: { name: "뱀 비늘 반지", type: "equip", slot: "accessory", rarity: "rare", sell: 0, stats: { dodge: 3 }, desc: "비늘 무늬가 새겨진 반지입니다." },
   crab_vest: { name: "게딱지 조끼", type: "equip", slot: "armor", rarity: "rare", sell: 0, stats: { hp: 40 }, desc: "단단한 게딱지를 이어 붙인 조끼입니다." },
   silver_coin: { name: "은화", type: "currency", rarity: "common", desc: "줍으면 은화가 됩니다." },
-  rcp_fox_scarf: { name: "제작서: 여우 털 목도리", type: "use", recipe: "cr_fox_scarf", desc: "읽으면 여우 털 목도리의 제작법을 배웁니다. 필요한 재료는 읽은 뒤 제작법 탭에서 확인하고, 재료와 은화를 무기상인에게 가져가면 만들어 줍니다." },
-  rcp_snake_ring: { name: "제작서: 뱀 비늘 반지", type: "use", recipe: "cr_snake_ring", desc: "읽으면 뱀 비늘 반지의 제작법을 배웁니다. 필요한 재료는 읽은 뒤 제작법 탭에서 확인하고, 재료와 은화를 무기상인에게 가져가면 만들어 줍니다." },
-  rcp_crab_vest: { name: "제작서: 집게 게 껍질 조끼", type: "use", recipe: "cr_crab_vest", desc: "읽으면 게 껍질 조끼의 제작법을 배웁니다. 필요한 재료는 읽은 뒤 제작법 탭에서 확인하고, 재료와 은화를 무기상인에게 가져가면 만들어 줍니다." },
+  teodoros_letter: { name: "카시안의 서신과 보고서", type: "quest", desc: "창고에서 본 일을 정리한 보고서와, 정보상 바르샤에게 의뢰를 맡긴다는 카시안의 서신입니다. 봉인되어 있습니다." },
   guild_token: { name: "선창 길드 증표", type: "quest", desc: "선창 길드의 의뢰를 받았다는 표시입니다." },
   guild_parcel: { name: "길드 짐 꾸러미", type: "quest", desc: "선창 길드가 전해 달라고 맡긴 작은 꾸러미입니다." },
   black_crystal: { name: "검은 결정", type: "quest", desc: "변형된 몬스터의 몸에서 나온 각진 검은 돌입니다. 안쪽에 붉은 줄이 희미하게 비칩니다." }
 };
 // 상점: 잡화상인은 재료를 사고 소비 아이템을 팔며, 무기상인은 기본 장비를 팔고, 장비 제작은 2막부터 마을마다 있는 대장간의 대장장이가 함
-AU.SHOP = { general: { buy: ["potion", "town_scroll"] }, weapon: { buy: ["sword_a", "cloth_a", "charm_a"] } };
+AU.SHOP = { general: { buy: ["potion", "fatigue_tonic", "town_scroll"] }, weapon: { buy: ["sword_a", "cloth_a", "charm_a"] } };
 AU.RARITY = { common: { label: "흔함", color: "#D9C79A" }, uncommon: { label: "드묾", color: "#7FC8A9" }, rare: { label: "희귀", color: "#F2C14E" } };
 // 제작: 안전한 곳(마을)에서 재료와 은화로 희귀 장비를 직접 만듦(드롭보다 확실하지만 재료가 많이 듦). 제작법은 처음부터 알지 못하고, 의뢰 보상으로 받는 '제작서' 아이템을 사용해야 배움(필요 재료·수량이 그때부터 보임). 제작은 무기상인에게서 재료와 은화를 내고 함
-AU.RECIPES = [
-  { id: "cr_fox_scarf", out: "fox_scarf", mats: [["fur", 8], ["fox_tail", 3]], silver: 30 },
-  { id: "cr_snake_ring", out: "snake_ring", mats: [["snake_skin", 6], ["snake_fang", 4]], silver: 40 },
-  { id: "cr_crab_vest", out: "crab_vest", mats: [["crab_claw", 6], ["crab_shell", 5]], silver: 60 }
-];
+AU.RECIPES = []; // 제작 기능은 당분간 사용하지 않음(제작서·제작법 탭 제거)
 AU.SLOT_LABEL = { weapon: "무기", armor: "방어구", accessory: "장신구" };
 
 /* ---------- 직업 ---------- */
@@ -219,7 +221,7 @@ AU.JOBS = {
   warrior: { name: "전사" }
 };
 // 2·3차 전직은 직업 이름과 계열을 임의로 정하지 않고 자리만 둠 (요청서 7장)
-/* 직업 계열: 캐릭터를 만들 때 먼저 고름. 시작 직업은 모두 견습 모험가이고, Lv.10 전직 때 고른 계열의 1차 직업이 됨.
+/* 직업 계열: 캐릭터를 만들 때 먼저 고름. 시작 직업은 모두 견습 모험가이고, 1막이 끝난 뒤 1차 전직(2막) 때 고른 계열의 1차 직업이 됨. Lv.10은 전직이 아니라 힘의 각성.
    지금 열려 있는 계열은 전사뿐(open). 나머지 넷은 세계관의 다섯 영웅 직업으로, 화면에 잠긴 채 보여 줌. icon은 그림이 오기 전 임시 도형 */
 /* 직업군(1단계): 지금은 용사만 열려 있고 나머지는 추후 공개 예정. 용사를 고르면 아래 JOB_LINES(전사·마법사…) 선택 창으로 이어짐 */
 AU.JOB_GROUPS = [
@@ -228,25 +230,30 @@ AU.JOB_GROUPS = [
   { id: "soon2", name: "???", open: false, icon: '<text x="12" y="18" text-anchor="middle" font-size="18" fill="currentColor">?</text>' }
 ];
 AU.JOB_LINES = [
-  { id: "warrior", name: "전사", open: true, job: "warrior", desc: "검과 방패로 가까이에서 버티며 싸웁니다.", icon: '<path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z"/>' },
+  { id: "warrior", name: "전사", open: true, job: "warrior", desc: "5명의 용사 중 한 명으로 검을 통해 적을 무찌릅니다.", icon: '<path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z"/>' },
   { id: "mage", name: "마법사", open: false, icon: '<path d="M12 2l2.6 6.2 6.7.5-5.1 4.3 1.6 6.5L12 16l-5.8 3.5 1.6-6.5L2.7 8.7l6.7-.5z"/>' },
   { id: "archer", name: "궁수", open: false, icon: '<path d="M5 3c8 3 8 15 0 18M5 3v18M3 12h17m-4-3 4 3-4 3" fill="none" stroke="currentColor" stroke-width="2"/>' },
   { id: "rogue", name: "도적", open: false, icon: '<path d="M12 2c4 2 6 6 6 10l2 9H4l2-9c0-4 2-8 6-10z"/>' },
   { id: "pirate", name: "해적", open: false, icon: '<path d="M12 3a2 2 0 110 4 2 2 0 010-4zm-1 5h2v9c3-.5 5-2.5 5.5-5l2 1c-1 4-4.5 7-8.5 7s-7.5-3-8.5-7l2-1c.5 2.5 2.5 4.5 5.5 5z"/>' }
 ];
 AU.JOB_TIERS = [
-  { level: 10, name: "1차 전직: 전사" },
+  { level: 10, name: "힘의 각성: 1번 스킬" },
+  { level: 15, name: "2번 스킬 (1막 최대 레벨)" },
+  { level: 20, name: "1차 전직(2막) 후 3번 스킬" },
   { level: 30, name: "2차 전직 (준비 중)" },
   { level: 50, name: "3차 전직 (준비 중)" }
 ];
 
 /* ---------- 스킬 (전사, 임시) ---------- */
 AU.SKILLS = {
-  strike: { name: "결의의 일격", cost: 8, cd: 3, mult: 2.2, range: 135, desc: "마음을 모아 앞쪽의 적에게 강한 일격을 가합니다. (공격력 220%)" },
-  spin:   { name: "소용돌이 베기", cost: 14, cd: 6, mult: 1.5, radius: 150, desc: "몸을 돌리며 주변 양쪽의 적을 한꺼번에 벱니다. (공격력 150%)" },
-  focus:  { name: "마음 다잡기", cost: 12, cd: 10, heal: 0.35, desc: "숨을 고르고 마음을 다잡아 HP를 최대 HP의 35% 회복합니다." }
+  strike: { name: "스매시 크러셔", cost: 8, cd: 3, mult: 2.2, range: 135, desc: "정면의 적에게 온 힘을 실어 강하게 내려칩니다. (공격력 220%)" },
+  spin:   { name: "크로스 슬래시", cost: 14, cd: 6, mult: 1.5, radius: 150, desc: "몸을 크게 돌려 주변 양쪽의 적을 한꺼번에 벱니다. (공격력 150%)" },
+  focus:  { name: "버스트", cost: 12, cd: 10, heal: 0.35, desc: "숨을 고르며 상처를 치유해 최대 HP의 35%를 회복합니다." }
 };
 AU.WARRIOR_SKILLS = ["strike", "spin", "focus"];
+/* 스킬은 레벨에 따라 하나씩 열림: 1번 스매시 크러셔 Lv10(힘의 각성), 2번 Lv15, 3번 Lv20(전직 이후) */
+AU.SKILL_UNLOCK_LV = { strike: 10, spin: 15, focus: 20 };
+AU.skillsForLevel = (lv) => AU.WARRIOR_SKILLS.filter((id) => lv >= AU.SKILL_UNLOCK_LV[id]);
 
 /* ---------- 퀘스트 (전부 임시 테스트 콘텐츠) ---------- */
 // kind: kill(처치) / collect(아이템 수집) / talk(대화) / deliver(물건 전달: item→target NPC) / investigate(조사 지점 targets) / repair(목공 수리 지점 targets) / choice(선택: 정답 없는 갈림길, target NPC에게 말 걸기)
@@ -254,35 +261,35 @@ AU.WARRIOR_SKILLS = ["strike", "spin", "focus"];
 AU.QUESTS = {
   q_s1_silver: {
     title: "항구도시의 첫걸음", type: "main", giver: "porto_dock", turnIn: "porto_foreman", minLevel: 1, pre: [],
-    area: "guild_hall", desc: "부두 안쪽의 선창 길드를 찾아가 십장 테오도로스를 만납니다.", objectives: [{ kind: "talk", target: "porto_foreman" }],
-    offer: ["처음 보는 얼굴이군요. 포르투 노바에 오신 걸 환영합니다. 이곳은 어느 세력에도 속하지 않은 중립 항구도시라, 무기를 든 사람도 평화롭게 지내는 곳이에요.", "배로 온 상인, 길 떠나는 용병, 갓 출발한 모험가까지 다양한 사람이 모여 있답니다.", "그대도 모험가이군요? 많은 모험가들은 길드를 통해 활동해요. 의뢰를 받고 보수를 받으며 실력을 쌓지요.", "부두 안쪽의 닻 깃발 달린 건물이 선창 길드예요. 십장 테오도로스를 찾아가 보세요."],
-    reminder: ["선창 길드는 부두 안쪽, 닻 깃발이 걸린 건물이에요. 십장 테오도로스를 찾아가 보세요."],
-    done: ["어이, 젊은이. 그대의 이름은 무엇인가?", "...{이름이}라. 좋은 이름이군. 그래, {이름은} 여기에 왜 왔지?", "길드에 들어오고 싶다고? 하하, 모험가라고 아무나 받아 주진 않네. 그렇다면 입단 테스트를 해야지.", "시험은 세 단계일세. 쉬운 것부터 차례로 어려워지니 서두르지 말게.", "우선 이 검을 빌려주지. 창고 구석에서 굴러다니던 놈일세.", "준비가 되면 다시 말을 걸게. 첫 번째 시험을 내주겠네."],
+    area: "guild_hall", desc: "부두 안쪽의 선창 길드를 찾아가 길드장 카시안을 만납니다.", objectives: [{ kind: "talk", target: "porto_foreman" }],
+    offer: ["처음 보는 얼굴이군요. 포르투 노바에 오신 걸 환영합니다. 이곳은 어느 세력에도 속하지 않은 중립 항구도시라, 무기를 든 사람도 평화롭게 지내는 곳이에요.", "배로 온 상인, 길 떠나는 용병, 갓 출발한 모험가까지 다양한 사람이 모여 있답니다.", "당신도 모험가이신가요? 모험가들은 대개 길드를 통해 활동해요. 의뢰를 받고 보수를 받으며 실력을 쌓지요.", "부두 안쪽의 닻 깃발 달린 건물이 선창 길드예요. 길드장 카시안을 찾아가 보세요."],
+    reminder: ["선창 길드는 부두 안쪽, 닻 깃발이 걸린 건물이에요. 길드장 카시안을 찾아가 보세요."],
+    done: ["어이, 젊은이. 그대의 이름은 무엇인가?", "...{이름이}라. 좋은 이름이군. 그래, {이름은} 여기에 왜 왔지?", "(길드에 들어오고 싶어서 찾아왔다고 답했다.)", "길드에 들어오고 싶다고? 하하, 모험가라고 아무나 받아 주진 않네. 그렇다면 입단 테스트를 해야지.", "시험은 세 단계일세. 쉬운 것부터 차례로 어려워지니 서두르지 말게.", "우선 이 검을 빌려주지. 창고 구석에서 굴러다니던 놈일세.", "준비가 되면 다시 말을 걸게. 첫 번째 시험을 내주겠네."],
     reward: { exp: 20, silver: 0, items: [["sword_a", 1]] }
   },
   q_s1_test: {
     title: "입단 시험 1: 첫 번째 사냥", type: "main", giver: "porto_foreman", minLevel: 1, pre: ["q_s1_silver"],
-    area: "forest", desc: "숲길 입구의 들여우를 1마리 처치합니다.", objectives: [{ kind: "kill", target: "fox", count: 1 }],
-    offer: ["첫 번째 시험일세. 항구 길 너머 숲길 입구에서 들여우 한 마리만 쫓아내 보게.", "공격은 {attack}, 점프는 {jump}일세. 위험하다 싶으면 물러서도 좋네."],
-    reminder: ["항구 길을 따라 왼쪽으로 가면 숲길일세. 들여우에게 다가가 공격 키를 눌러 보게."],
+    area: "harbor_road", desc: "뱀길의 뱀을 1마리 처치합니다.", objectives: [{ kind: "kill", target: "snake", count: 1 }],
+    offer: ["첫 번째 시험일세. 마을 왼쪽 끝으로 나가면 뱀길이 있네. 거기서 뱀 한 마리만 쫓아내 보게.", "공격은 {attack}, 점프는 {jump}일세. 위험하다 싶으면 물러서도 좋네."],
+    reminder: ["마을 왼쪽 끝으로 나가면 뱀길일세. 뱀에게 다가가 공격 키를 눌러 보게."],
     done: ["...무사히 돌아왔군. 첫 시험은 통과일세.", "다음은 조금 어려울 걸세. 숨을 돌리고 다시 말을 걸게."],
     reward: { exp: 60, silver: 10, items: [] }
   },
   q_first: {
-    title: "입단 시험 2: 해안의 짐승", type: "main", giver: "porto_foreman", minLevel: 1, pre: ["q_s1_test"],
-    desc: "숲길에서 내려오는 오염된 들여우를 3마리 처치합니다.", objectives: [{ kind: "kill", target: "fox", count: 3 }],
-    area: "forest",
-    offer: ["두 번째 시험일세. 요즘 숲길의 짐승들이 항구 쪽으로 내려와 방책과 창고를 갉아먹네.", "이번엔 들여우 세 마리를 쫓아내 주게. 한 마리보다 정신없을 걸세."],
-    reminder: ["공격은 {attack}, 점프는 {jump}, 말 걸기·줍기는 {interact}라네.", "항구 길을 따라 왼쪽으로 쭉 가면 숲길일세. 들여우에게 가까이 가 공격 키를 눌러 보게."],
+    title: "입단 시험 2: 뱀길 정리", type: "main", giver: "porto_foreman", minLevel: 1, pre: ["q_s1_test"],
+    desc: "뱀길에 늘어난 뱀을 3마리 처치합니다.", objectives: [{ kind: "kill", target: "snake", count: 3 }],
+    area: "harbor_road",
+    offer: ["두 번째 시험일세. 요즘 뱀길에 뱀이 늘어서 짐수레가 다니질 못하네.", "이번엔 뱀 세 마리를 쫓아내 주게. 한 마리보다 정신없을 걸세."],
+    reminder: ["공격은 {attack}, 점프는 {jump}, 말 걸기·줍기는 {interact}라네.", "마을 왼쪽 끝으로 나가 뱀길을 따라 걸으면 되네. 뱀에게 가까이 가 공격 키를 눌러 보게."],
     done: ["벌써 해냈나. 수고했네. 이건 보수일세.", "마지막 시험이 남았네. 준비되면 말을 걸게."],
     reward: { exp: 100, silver: 30, items: [] }
   },
   q_forest: {
-    title: "입단 시험 3: 숲길 정리", type: "main", giver: "porto_foreman", minLevel: 2, pre: ["q_first"],
-    desc: "숲길의 뱀을 5마리 처치합니다.", objectives: [{ kind: "kill", target: "snake", count: 5 }],
-    area: "forest",
-    offer: ["마지막 시험일세. 숲길 안쪽의 뱀 다섯 마리를 상대해 보게.", "가는 길에도 뱀이 있으니 조심하게. 포션을 아끼지 말고."],
-    reminder: ["숲길 안쪽의 뱀 다섯 마리일세. 가는 길에도 뱀이 있으니 포션을 아끼지 말게."],
+    title: "입단 시험 3: 여우 사냥", type: "main", giver: "porto_foreman", minLevel: 2, pre: ["q_first"],
+    desc: "뱀길의 들여우를 5마리 처치합니다.", objectives: [{ kind: "kill", target: "fox", count: 5 }],
+    area: "harbor_road",
+    offer: ["마지막 시험일세. 뱀길 안쪽으로 가면 날쌘 들여우가 있네. 다섯 마리를 상대해 보게.", "여우는 뱀보다 날쌔니 조심하게. 포션을 아끼지 말고."],
+    reminder: ["뱀길의 들여우 다섯 마리일세. 뱀보다 날쌔니 포션을 아끼지 말게."],
     done: ["고생했네. 이로써 시험은 모두 끝났네. 합격일세.", "작업복이 낡았더군. 이거라도 걸치게.", "정식으로 이름을 올리는 일이 남았네. 다시 말을 걸게."],
     reward: { exp: 400, silver: 60, items: [["cloth_a", 1]] }
   },
@@ -290,24 +297,24 @@ AU.QUESTS = {
     title: "정식 등록", type: "main", giver: "porto_foreman", turnIn: "porto_guild", minLevel: 3, pre: ["q_forest"],
     area: "guild_hall", desc: "접수의 다프네에게 가서 길드 장부에 이름을 올립니다.", objectives: [{ kind: "talk", target: "porto_guild" }],
     offer: ["이제 자네도 선창 길드의 일원일세. 접수의 다프네에게 가서 장부에 정식으로 이름을 올리게."],
-    done: ["어서 오세요. 테오도로스 님께 이야기 들었어요. 정식 등록을 도와드릴게요.", "이 장부에 이름이 올라가면 길드 의뢰를 받을 수 있어요. 의뢰를 마치면 은화로 보수가 나가요. 은화는 포르투 노바에서 장비와 물건을 사고파는 데 쓰는 돈이에요.", "그리고 모험가들은 모험일지에 마음에 남은 일을 적어 둔답니다. 일지에는 몸과 마음을 돌보는 작은 활동도 소개돼 있어요. 해 볼지는 자유예요.", "길드 의뢰는 제가 맡고 있어요. 레벨이 4가 되면 첫 의뢰를 드릴게요. 짐 심부름 같은 일은 테오도로스 님께 여쭤 보세요.", "등록을 축하해요. 이제 정식 모험가세요!"],
-    reward: { exp: 250, silver: 20, items: [["rcp_fox_scarf", 1]] }
+    done: ["어서 오세요. 카시안 님께 이야기 들었어요. 정식 등록을 도와드릴게요.", "이 장부에 이름이 올라가면 길드 의뢰를 받을 수 있어요. 의뢰를 마치면 은화로 보수가 나가요. 은화는 포르투 노바에서 장비와 물건을 사고파는 데 쓰는 돈이에요.", "그리고 모험가들은 모험일지에 마음에 남은 일을 적어 둔답니다. 일지에는 몸과 마음을 돌보는 작은 활동도 소개돼 있어요. 한번 해 보면 어때요?", "길드 의뢰는 제가 맡고 있어요. 레벨이 4가 되면 첫 의뢰를 드릴게요. 짐 심부름 같은 일은 카시안 님께 여쭤 보세요.", "등록을 축하해요. 이제 정식 모험가세요!"],
+    reward: { exp: 250, silver: 50 }
   },
   q_guild_rats: {
     title: "부두 쥐 소탕", type: "sub", giver: "porto_guild", minLevel: 4, pre: ["q_guild_talk"],
-    area: "harbor_road", desc: "항구 길의 부두 쥐를 8마리 처치합니다.", objectives: [{ kind: "kill", target: "rat", count: 8 }],
-    offer: ["선창 길드의 첫 의뢰예요. 항구 길을 돌아다니는 부두 쥐가 곡식 자루를 갉아서 골치예요.", "쥐를 8마리만 줄여 주세요."],
-    reminder: ["항구 길의 부두 쥐 8마리예요. 곡식 자루 근처에 많이 보여요."],
-    done: ["확인했어요. 수고하셨어요. 보수와 길드 증표예요.", "참, 테오도로스 님이 일이 있다고 하셨어요. 레벨이 5쯤 되면 들러 보세요."],
-    reward: { exp: 800, silver: 120, items: [["charm_a", 1], ["guild_token", 1], ["rcp_snake_ring", 1]] }
+    area: "docks", desc: "선창 외곽의 부두 쥐를 8마리 처치합니다.", objectives: [{ kind: "kill", target: "rat", count: 8 }],
+    offer: ["선창 길드의 첫 의뢰예요. 선창 외곽에 부두 쥐가 꼬여 곡식 자루를 갉아서 골치예요. 안쪽에는 집게 게도 있으니 입구 쪽에서 상대해 주세요.", "쥐를 8마리만 줄여 주세요."],
+    reminder: ["선창 외곽 입구 쪽의 부두 쥐 8마리예요. 안쪽의 집게 게는 더 세니 조심하세요."],
+    done: ["확인했어요. 수고하셨어요. 보수와 길드 증표예요.", "참, 카시안 님이 일이 있다고 하셨어요. 레벨이 5쯤 되면 들러 보세요."],
+    reward: { exp: 800, silver: 120, items: [["charm_a", 1], ["guild_token", 1]] }
   },
   q_guild_crabs: {
     title: "집게 게 퇴치", type: "sub", giver: "porto_guild", minLevel: 7, pre: ["q_guild_rats"],
     area: "docks", desc: "선창 외곽의 집게 게를 5마리 처치합니다.", objectives: [{ kind: "kill", target: "crab", count: 5 }],
     offer: ["선창 외곽에서 집게 게가 짐을 자꾸 상하게 해요. 다섯 마리만 처리해 주세요."],
     reminder: ["선창 외곽의 집게 게 다섯 마리예요. 집게에 조심하세요."],
-    done: ["수고하셨어요. 이번 보수예요.", "게 껍질로 조끼 만드는 법도 같이 적어 드렸어요. 도움이 될 거예요."],
-    reward: { exp: 2000, silver: 200, items: [["rcp_crab_vest", 1]] }
+    done: ["수고하셨어요. 이번 보수예요.", "게딱지가 단단해서 조끼로 쓸 만하다고들 해요. 아주 가끔 그런 물건이 나오니 눈여겨보세요."],
+    reward: { exp: 2000, silver: 260 }
   },
   q_a1_parcel: {
     title: "길드 짐 전하기", type: "sub", giver: "porto_foreman", minLevel: 5, pre: ["q_guild_talk"],
@@ -316,20 +323,37 @@ AU.QUESTS = {
     offer: ["심부름을 하나 부탁하겠네. 이 꾸러미를 잡화상인에게 전해 주게.", "마을 안이니 멀지 않을 걸세."],
     reminder: ["꾸러미는 잡화상인에게 전하면 되네."],
     deliver: { porto_general: ["선창 길드에서 온 꾸러미군요. 기다리고 있었어요. 고맙습니다.", "(꾸러미를 건넸습니다.)"] },
-    done: ["전했나? 수고했네. 수고비일세.", "포션이 떨어졌거든 잡화점에서 사 두게. 다음 일엔 쓸 데가 많을 걸세."],
-    reward: { exp: 500, silver: 50, items: [["potion", 2]] }
+    done: ["전했나? 수고했네. 수고비일세.", "참, 잡화상인이 답례로 부탁할 일이 있다더군. 시간 날 때 들러 보게. 포션이 떨어졌거든 거기서 사 두면 좋겠지.", "(페넬로페의 부탁을 받았습니다.)"],
+    reward: { exp: 500, silver: 50, items: [["potion", 2]] },
+    next: "q_a1_parcel_thanks"
+  },
+  q_a1_parcel_thanks: {
+    title: "페넬로페의 답례", type: "sub", giver: "porto_general", minLevel: 5, pre: ["q_a1_parcel"],
+    area: "docks", desc: "선창 외곽의 부두 쥐에게서 쥐 이빨 3개를 구해 페넬로페에게 가져다줍니다.", objectives: [{ kind: "collect", item: "rat_tooth", count: 3 }],
+    offer: ["길드 꾸러미 덕분에 한시름 놨어요. 정말 고마워요.", "받기만 하면 미안하니 답례를 하고 싶은데, 한 가지만 더 부탁해도 될까요? 부두 쥐 이빨이 약 만드는 데 필요한데, 이번엔 제가 가게를 비울 수가 없어서요.", "선창 외곽의 부두 쥐에게서 쥐 이빨 세 개만 모아 주세요. 대신 쓸 만한 물건으로 보답할게요."],
+    reminder: ["선창 외곽의 부두 쥐에게서 쥐 이빨 세 개예요. 무리하지는 마세요."],
+    done: ["세 개 다 구해 오셨네요! 덕분에 약 재료가 채워졌어요.", "이건 약소하지만 제 마음이에요. 앞으로도 가게에 자주 들러 주세요."],
+    reward: { exp: 450, silver: 60, items: [["potion", 3]] }
   },
   q_a1_variant: {
     title: "변형의 흔적", type: "main", giver: "porto_foreman", minLevel: 5, pre: ["q_guild_talk"],
-    area: "harbor_road", desc: "변형된 몬스터에게서 검은 결정 3개를 구해 십장에게 가져갑니다.", objectives: [{ kind: "collect", item: "black_crystal", count: 3 }],
-    offer: ["이제 제법 성장하였으니, 그대에게도 어려운 의뢰를 맡겨야겠군.", "최근 이 일대 몬스터들이 이상하게 변하고 있네. 몇 가지 확인할 것이 있어.", "변형된 놈들의 몸에서 검은 결정이 나온다는 말이 있네. 그 결정 세 개를 구해 와 주게. 숲길의 짐승이든 항구 길의 쥐든 상관없네."],
-    reminder: ["검은 결정은 변형된 몬스터를 쓰러뜨리면 나올 걸세. 세 개를 모아 오게."],
+    area: "docks", desc: "선창의 부두 쥐와 집게 게에게서 검은 결정 3개를 구해 길드장에게 가져갑니다.", objectives: [{ kind: "collect", item: "black_crystal", count: 3 }],
+    offer: ["이제 제법 자랐으니, 자네에게도 어려운 의뢰를 맡겨 봐야겠군.", "최근 이 일대 몬스터들이 이상하게 변하고 있네. 몇 가지 확인할 것이 있어.", "변형된 놈들의 몸에서 검은 결정이 나온다는 말이 있네. 그 결정 세 개를 구해 와 주게. 선창 쪽에서 본 놈들이 유독 수상하네. 부두의 쥐든, 외곽의 집게 게든 상관없네."],
+    reminder: ["검은 결정은 선창의 부두 쥐나 집게 게를 쓰러뜨리면 나올 걸세. 세 개를 모아 오게."],
     done: ["...이게 검은 결정인가. 만져 보니 차갑고, 안쪽에 붉은 줄이 비치는군.", "자연히 생기는 물건이 아니야. 누군가 일부러 몬스터를 변형시키고 있다는 뜻이지.", "길드가 따로 알아보겠네. 레벨이 6이 되면 다시 오게. 자네에게 맡길 일이 또 있을 걸세."],
     reward: { exp: 1000, silver: 80, items: [] }
   },
+  q_a1_boars: {
+    title: "멧돼지 숲 사냥", type: "main", giver: "porto_foreman", minLevel: 6, pre: ["q_a1_traces"],
+    area: "forest", desc: "뱀길 너머 멧돼지 숲에서 굶주린 멧돼지를 6마리 처치합니다. 정보상을 만나기 전에 실력을 보이는 일입니다.", objectives: [{ kind: "kill", target: "wild_boar", count: 6 }],
+    offer: ["서신은 잘 보관하게. 바르샤를 만나기 전에 할 일이 하나 있네.", "뱀길을 지나 더 안쪽 멧돼지 숲에 굶주린 멧돼지가 늘어 밭과 길을 헤집고 있네. 들이받으면 여우와는 비교가 안 되니 여섯 마리만 줄여 주게.", "포션은 넉넉히 챙기고, 위험하면 물러나게."],
+    reminder: ["뱀길 너머 멧돼지 숲일세. 멧돼지 여섯 마리를 줄이고 오게. 돌진이 사나우니 포션을 아끼지 말게."],
+    done: ["돌아왔군. 멧돼지를 여섯 마리나 상대하고도 멀쩡하다니 이제 믿고 보낼 수 있겠네.", "이제 바르샤에게 가도 좋네. 서신과 보고서를 잊지 말게.", "길은 이렇다네. 이 길드 앞에서 서쪽(왼쪽)으로 쭉 가면 광장 끝에 '잔다리 골목'으로 드는 길이 있네. 눈에 띄게 금빛으로 표시될 걸세.", "골목에 들어서면 오른쪽 막다른 곳에 아치문이 있네. 그게 바르샤의 공방일세. 문 앞에서 '↑' 키를 누르면 들어갈 수 있네."],
+    reward: { exp: 1500, silver: 90, items: [["potion", 3]] }
+  },
   q_a1_traces: {
     title: "창고의 흔적", type: "main", giver: "porto_foreman", minLevel: 6, pre: ["q_a1_variant"],
-    area: "warehouse", desc: "부두 창고 안에 남은 이상한 흔적 두 곳을 조사하고, 십장에게 알립니다.",
+    area: "warehouse", desc: "부두 창고 안에 남은 이상한 흔적 두 곳을 조사하고, 길드장에게 알립니다.",
     objectives: [{ kind: "investigate", targets: ["trace_stain", "trace_crate"] }, { kind: "choice", id: "traces", target: "porto_foreman" }],
     offer: ["요즘 부두 창고에 이상한 흔적이 남는다는 말이 돌아. 짐승이 지나간 자리라는데, 직접 보고 와 주겠나?", "창고 안쪽 구석과 부서진 짐 상자 쪽일세. 부두의 큰 목조 창고 말일세."],
     reminder: ["부두 창고 안쪽 구석과 부서진 상자를 살펴보고 오게."],
@@ -340,17 +364,8 @@ AU.QUESTS = {
         { label: "일단 혼자 알아본다", flag: "alone", reply: ["혼자서 말인가. 위험한 일일세. 그래도 먼저 확인해 보겠다면 말리진 않겠네.", "다만 무슨 일이든 알게 되면 귀띔은 해 주게."] }
       ]
     },
-    done: ["수고했네. 자네 덕에 창고 일이 한결 분명해졌어.", "이건 길드가 풀 수 있는 일이 아닌 것 같네. 잔다리 골목에 길드 뒷일을 맡는 자가 있으니 찾아가 보게. 내가 보냈다고 하게."],
-    reward: { exp: 1600, silver: 100, items: [] }
-  },
-  q_job: {
-    title: "전직 시험", type: "main", giver: "job_npc", minLevel: 99, pre: [],
-    area: "docks", desc: "선창 외곽에 나타나는 움브라를 처치합니다.",
-    objectives: [{ kind: "kill", target: "trial_boss", count: 1 }],
-    offer: ["10레벨이 되었군요. 전직 시험을 치르겠습니까? 선창 외곽에 움브라가 나타납니다."],
-    done: ["시험을 통과했습니다. 이제 전사의 길로 들어섭니다."],
-    reward: { exp: 0, silver: 100, items: [] },
-    jobChange: "warrior"
+    done: ["수고했네. 자네 덕에 창고 일이 한결 분명해졌어.", "이건 길드가 풀 수 있는 일이 아닌 것 같네. 길드 뒷일을 맡는 자가 있으니 그쪽에 넘겨야겠어.", "자네가 본 것을 내 장부에 옮겨 보고서로 정리했네. 내 서신과 함께 봉해 두었으니 직접 전해 주게.", "(카시안이 봉인된 서신과 보고서를 건넸다.)", "상대는 바르샤라는 정보상일세. 포르투 노바 왼쪽 잔다리 골목, 그 안쪽 공방에 있네. 낯을 가리는 사람이니 서신부터 보여 주게.", "다만 그 사람은 위험한 일을 맡기는 터라, 그 전에 실력부터 보여야 하네. 뱀길 너머 멧돼지 숲에 굶주린 멧돼지가 늘었다니 먼저 그쪽을 정리하고 오게."],
+    reward: { exp: 1600, silver: 100, items: [["teodoros_letter", 1]] }
   }
 };
 
@@ -380,24 +395,22 @@ AU.npcQuestMark = (npcId) => {
 /* ---------- NPC (전부 임시 이름·대사) ---------- */
 AU.NPCS = {
   porto_dock: { name: "니코스", sprite: "villager_a", portrait: "pt_villager_a", quests: ["q_s1_silver"],
-    idle: ["쇳조각 얘기는 잔다리 골목의 정보상이 밝지. 은화는 챙겨 가게.", "부두는 새벽부터 바쁘다네."] },
+    idle: ["길드가 궁금하면 부두 안쪽에서 카시안 님을 찾아보세요.", "부두는 새벽부터 바빠요."] },
   arche_guide: { name: "엘레니", title: "주민", sprite: "villager_a", portrait: "pt_villager_a", quests: [],
     idle: ["오늘도 평화로운 마을이에요.", "다친 곳은 없나요? 쉬어 가면서 하세요."] },
-  porto_foreman: { name: "테오도로스", sprite: "porto_foreman", portrait: "pt_porto_foreman", quests: ["q_s1_silver", "q_s1_test", "q_first", "q_forest", "q_guild_talk", "q_a1_parcel", "q_a1_variant", "q_a1_traces"],
+  porto_foreman: { name: "카시안", title: "길드장", sprite: "porto_foreman", portrait: "pt_porto_foreman", quests: ["q_s1_silver", "q_s1_test", "q_first", "q_forest", "q_guild_talk", "q_a1_parcel", "q_a1_variant", "q_a1_traces", "q_a1_boars"],
     idle: ["창고 일은 자네 덕에 한시름 놨네.", "바닷바람이 거세니 몸조심하게."] },
   porto_guild: { name: "다프네", sprite: "villager_b", portrait: "pt_villager_b", quests: ["q_guild_talk", "q_guild_rats", "q_guild_crabs"],
     idle: ["선창 길드입니다. 의뢰가 필요하면 말씀하세요.", "오늘은 부두가 조용하군요."] },
-  job_npc: { name: "레오니다스", sprite: "smith", portrait: "pt_smith", quests: ["q_job"],
-    idle: ["전직이라... 아직은 이른 이야기일세.", "더 단련하고 오게. 때가 되면 알려 주겠네."] },
   porto_armor: { name: "이리스", title: "점원", sprite: "porto_armor", portrait: "pt_porto_armor", quests: [],
     idle: ["방어구는 몸에 맞는 게 제일이에요. 천천히 구경하세요.", "무기점 주인이 망치를 잡으면 저는 갑옷을 손봅니다."] },
-  porto_general: { name: "페넬로페", sprite: "porto_general", portrait: "pt_porto_general", shop: "general",
+  porto_general: { name: "페넬로페", sprite: "porto_general", portrait: "pt_porto_general", shop: "general", quests: ["q_a1_parcel_thanks"],
     idle: ["어서 오세요. 모험에서 주워 온 재료, 제가 사들입니다.", "회복약도 있어요. 필요하면 말씀하세요."] },
   porto_smith: { name: "데메트리오스", sprite: "porto_smith", portrait: "pt_porto_smith", shop: "weapon",
     idle: ["쓸 만한 무기와 방어구라면 여기 다 있소.", "튼튼한 장비가 모험의 반이오."] },
   // 대장장이: 2막부터 마을마다 대장간에 있다(아직 맵에는 배치하지 않음). 제작서로 배운 제작법의 장비를 재료·은화를 받고 만들어 준다.
   forge_smith: { name: "대장장이", sprite: "porto_smith", portrait: "pt_porto_smith", shop: "smith",
-    idle: ["제작법을 아는 장비라면 재료와 은화로 만들어 드리죠.", "희귀한 재료는 늘 환영이오."] },
+    idle: ["쓸 만한 재료가 생기면 가져와 보시오.", "희귀한 재료는 늘 환영이오."] },
   guide_npc: { name: "알렉시오스", sprite: "baker", portrait: "pt_baker", special: "missionGuide",
     idle: ["모험은 잘 되어 가나요?"] }
 };
@@ -1790,6 +1803,9 @@ AU.REST_MISSIONS.push(...[
     "optional": true
   }
 ]);
+// 현실 미션 보상표: [토큰, 마음 점수]. full=인증 시, part=인증 안 했을 때(나중에 인증하면 차액 소급 지급)
+AU.MISSION_REWARD = { 1: { name: "가벼운 활동", full: [2, 1], part: [1, 1] }, 2: { name: "보통 활동", full: [3, 2], part: [2, 1] }, 3: { name: "도전 활동", full: [4, 3], part: [2, 2] } };
+AU.MISSION_ACTIVE = ["available", "accepted", "attempted", "partial"]; // 슬롯을 차지하는(진행 가능한) 상태
 AU.MISSION_STATES = {
   locked: "미해금", available: "수행 가능", accepted: "수락", attempted: "시도", partial: "일부 수행", done: "완료", skipped: "건너뛰기"
 };

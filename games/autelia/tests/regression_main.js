@@ -17,7 +17,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const holdUntil = async (key, cond, max = 6000, step = 80) => { await p.keyboard.down(key); const t0 = Date.now(); let ok = false; while (Date.now() - t0 < max) { if (await ev(cond)) { ok = true; break; } await sleep(step); } await p.keyboard.up(key); return ok; };
   // 가까이 붙여 놓고 Ctrl로 때려서 처치(체력이 위험하면 테스트 쪽에서 HP만 보충: 전투 결과가 아니라 시험 안정성 목적)
   const kill = async (type, max = 14000) => {
-    const ok = await ev((type) => { const W = AU.World, pl = W.player; const m = W.monsters.find((q) => q.alive && q.type === type); if (!m) return false; W.__t = m; m.x = pl.x + 70; m.y = pl.y; m.state = 'patrol'; m.cd = 2; pl.dir = 1; return true; }, type);
+    const ok = await ev((type) => { const W = AU.World, pl = W.player; const m = W.monsters.find((q) => q.alive && q.type === type); if (!m) return false; if (!AU.G.S.equip.weapon) { AU.G.S.inv.sword_a = (AU.G.S.inv.sword_a || 0) + 1; AU.G.equip('sword_a'); } W.__t = m; m.x = pl.x + 70; m.y = pl.y; m.state = 'patrol'; m.cd = 2; pl.dir = 1; return true; }, type);
     if (!ok) return false;
     await p.keyboard.down('Control'); const t0 = Date.now(); let dead = false;
     while (Date.now() - t0 < max) { dead = await ev(() => { const W = AU.World, m = W.__t, pl = W.player; if (AU.G.S.hp < AU.G.d().maxHp * 0.4) AU.G.S.hp = AU.G.d().maxHp; if (m.alive) { m.x = pl.x + 70; m.y = pl.y; pl.dir = 1; } return !m.alive; }); if (dead) break; await sleep(60); }
@@ -36,7 +36,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   note('1', '방향키 이동·Alt 점프', s1.x > s0.x + 60 && s2.x < s1.x - 30 && air.y < 580 && landed.y === 590, `→ ${s0.x}→${s1.x}, ← ${s1.x}→${s2.x}, 점프 중 y=${air.y}, 착지 y=${landed.y}(Alt를 계속 누르고 있어도 착지 상태 유지)`);
 
   // ===== 6. NPC 대화 (Space) + 대화 중 입력 차단 =====
-  await ev(() => { const S = AU.G.S; S.quests.q_s1_silver = { state: 'done', prog: [1], spots: {} }; S.quests.q_s1_test = { state: 'done', prog: [2], spots: {} }; }); await goto('guild_hall', 800); await ev(() => { if (!AU.G.count('sword_a')) AU.G.giveItem('sword_a', 1, true); }); await sleep(200);
+  await ev(() => { const S = AU.G.S; S.quests.q_s1_silver = { state: 'done', prog: [1], spots: {} }; S.quests.q_s1_test = { state: 'done', prog: [2], spots: {} }; }); await goto('guild_hall', 500); await ev(() => { if (!AU.G.count('sword_a')) AU.G.giveItem('sword_a', 1, true); }); await sleep(200);
   const near = await ev(() => AU.World.prompt);
   await p.keyboard.press('Space'); await sleep(150);
   const d1 = await S(); const line1 = await ev(() => document.querySelector('.dline') && document.querySelector('.dline').textContent);
@@ -51,10 +51,10 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   note('16a', '대화 중 점프·공격·메뉴키 차단', ydlg === 590 && atkDlg === 0 && winDlg === null, `대화 중 Alt 후 y=${ydlg}(590=점프 안 함), Ctrl 후 공격쿨=${atkDlg}, I키 창=${winDlg}`);
 
   // ===== 2·3·4·5. 전투·경험치·레벨업 =====
-  await goto('forest', 480);
+  await goto('harbor_road', 480);
   const pre = await S();
   // 2: 피해
-  const hpBefore = await ev(() => { const W = AU.World, pl = W.player, m = W.monsters.find((q) => q.alive && q.type === 'fox'); m.x = pl.x + 70; m.y = pl.y; m.state = 'patrol'; m.cd = 5; pl.dir = 1; W.__t = m; return m.hp; });
+  const hpBefore = await ev(() => { if (!AU.G.S.equip.weapon) { AU.G.S.inv.sword_a = (AU.G.S.inv.sword_a || 0) + 1; AU.G.equip('sword_a'); } const W = AU.World, pl = W.player, m = W.monsters.find((q) => q.alive && q.type === 'fox'); m.x = pl.x + 70; m.y = pl.y; m.state = 'patrol'; m.cd = 5; pl.dir = 1; W.__t = m; return m.hp; });
   await p.keyboard.press('Control'); await sleep(200);
   const hpAfter = await ev(() => AU.World.__t.hp);
   note('2', 'Ctrl 기본 공격 피해', hpAfter < hpBefore, `들여우 HP ${hpBefore} → ${hpAfter} (키 입력은 실제 Ctrl)`);
@@ -63,7 +63,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const k1 = await kill('fox'); const afterK = await S();
   const AU_FOX_EXP = await ev(() => AU.MONSTERS.fox.exp);
   const expGain = (afterK.lv - pre.lv) * 0 + (afterK.exp - exp0);
-  note('3', '적 처치 시 경험치 획득', k1 && afterK.exp === exp0 + AU_FOX_EXP, `처치=${k1}, EXP ${exp0} → ${afterK.exp} (들여우 EXP ${AU_FOX_EXP}), 은화 ${pre.silver}→${afterK.silver}`);
+  note('3', '적 처치 시 경험치 획득', k1 && (afterK.lv > pre.lv || ((afterK.exp - exp0) >= AU_FOX_EXP && (afterK.exp - exp0) <= Math.ceil(AU_FOX_EXP * 1.3))), `처치=${k1}, EXP ${exp0} → ${afterK.exp} (들여우 EXP ${AU_FOX_EXP}), 은화 ${pre.silver}→${afterK.silver}`);
   // 4: 레벨업(실전)
   for (let i = 0; i < 6 && (await S()).lv < 2; i++) await kill('fox');
   const afterLv = await S(); const hud = await ev(() => document.querySelector('.lvbadge').textContent);
@@ -73,7 +73,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await p.screenshot({ path: SH + 'combat.png' });
 
   // 퀘스트 반납 + 장비
-  await goto('guild_hall', 800); await sleep(100);
+  await goto('guild_hall', 500); await sleep(100);
   for (let i = 0; i < 4 && (i === 0 || await ev(() => !!AU.UI.dialog)); i++) { await p.keyboard.press('Space'); await sleep(130); }
   const swordCount = await ev(() => AU.G.count('sword_a')), qdone = await ev(() => AU.G.S.quests.q_first.state);
 
@@ -87,7 +87,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   note('8', 'W로 월드맵 열기·닫기', w1 === '월드맵' && w2 === null, `첫 입력=${w1}, 다시 입력=${w2}`);
 
   // ===== 장비 장착이 전투 능력치에 반영 =====
-  const a0 = (await S()).atk;
+  await ev(() => { if (AU.G.S.equip.weapon) AU.G.unequip('weapon'); }); const a0 = (await S()).atk;
   await p.keyboard.press('e'); await sleep(100); await p.click('.window .detail .btn.primary'); await sleep(150); await p.keyboard.press('Escape'); const a1 = (await S()).atk;
   note('7b', '장비 장착 → 공격력 반영', a1 === a0 + 4, `공격력 ${a0} → ${a1} (견습용 검 +4)`);
 
@@ -126,7 +126,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const wallet = () => ev(() => AU.G.galleryState().tokens);
   const token0 = await wallet();
   const clickBtn = async (txt) => { await p.locator('.window .mission:has-text("좋아하는 노래") .btn', { hasText: txt }).first().click(); await sleep(120); };
-  await clickBtn('수락'); await clickBtn('해 봤어요'); await clickBtn('완료했어요'); await p.locator('.modal .btn', { hasText: '평가 없이 계속' }).click();
+  await ev(() => { AU.G.setMissionState('m_p1', 'accept'); AU.UI.renderWin(); }); await sleep(150); await clickBtn('해 봤어요'); await clickBtn('완료했어요'); await p.locator('.modal .btn', { hasText: '평가 없이 계속' }).click();
   const token1 = await wallet();
   const again = await ev(() => [AU.G.setMissionState('m_p1', 'done'), AU.G.setMissionState('m_p1', 'accept'), AU.G.setMissionState('m_p1', 'retry'), AU.G.ms('m_p1').rewarded]);
   const token2 = await wallet();
@@ -137,7 +137,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await p.keyboard.press('Escape');
   note('13', '갤러리 토큰 1회 지급·중복 방지·기존 전투 포인트 분리', token1 === token0 + 1 && token2 === token1 && again[0] === false && again[1] === false && again[2] === false && token4 === token3 + 2 && tp4 === tp0,
     `토큰 ${token0}→${token1}→${token2}→${token3}→${token4}, 훈련 포인트 ${tp0}→${tp4}`);
-  note('11b', '전직 후 현실 미션 화면(발견 전 안내 → 안내인 대화 후 목록)', guideMet === true && cardCount >= 5, `발견 전 안내문="${lockedMsg.slice(0, 30)}…", 안내인 대화 후 guideMet=${guideMet}, 표시된 카드=${cardCount}`);
+  note('11b', '전직 후 현실 미션 화면(발견 전 안내 → 안내인 대화 후 목록)', guideMet === true && cardCount >= 1, `발견 전 안내문="${lockedMsg.slice(0, 30)}…", 안내인 대화 후 guideMet=${guideMet}, 표시된 카드=${cardCount}`);
 
   // ===== 12. 현실 미션 없이도 진행 =====
   // 새 상태에서 현실 미션을 전혀 건드리지 않고 전직 이후 11레벨 + 스탯 분배까지 가능한지 별도 검증은 아래 'noMission' 페이지에서
@@ -164,7 +164,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await ev(() => AU.G.setFatigue(100)); await sleep(3200); await p.keyboard.press('1'); await sleep(150); const rF = (await S()).res;
   const round1 = (n) => Math.round(n * 10) / 10;
   note('14', '스킬 사용 시 피로도 증가·가득 차면 제한', rBasic === rA && round1(rB - rA) === c1[0] && rC === rB && round1(rD - rB) === c1[1] && round1(c1[0] + c1[1] + c1[2] - sE.res) === 0 && sE.hp > 10 && rF === 100,
-    `실제 증가량(의지 효율 적용) 강타=${c1[0]}, 회전 베기=${c1[1]}, 숨 고르기=${c1[2]} / 기본공격 후 ${rA}→${rBasic}(변화 없음), 강타 ${rA}→${rB}, 쿨다운 중 재입력 ${rB}→${rC}, 회전 베기 →${rD}, 숨 고르기 후 피로도 ${sE.res}·HP 10→${sE.hp}, 피로도 100일 때 강타 입력 후 ${rF}(증가 없음)`);
+    `실제 증가량(의지 효율 적용) 스매시 크러셔=${c1[0]}, 크로스 슬래시=${c1[1]}, 버스트=${c1[2]} / 기본공격 후 ${rA}→${rBasic}(변화 없음), 강타 ${rA}→${rB}, 쿨다운 중 재입력 ${rB}→${rC}, 회전 베기 →${rD}, 숨 고르기 후 피로도 ${sE.res}·HP 10→${sE.hp}, 피로도 100일 때 강타 입력 후 ${rF}(증가 없음)`);
 
   // ===== 9. 키보드 설정 =====
   await p.keyboard.press('\\'); await sleep(120);

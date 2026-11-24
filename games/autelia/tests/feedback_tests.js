@@ -11,7 +11,7 @@ const note = (id, name, ok, ev) => { ok ? pass++ : fail++; console.log((ok ? 'PA
   // ===== A. 도입 글 =====
   await fresh();
   const cards = await ev(() => AU.PRO_TEXT.cards);
-  note('A1', '도입 글 카드 5장·새 문구', cards.length === 5 && cards[1][0] === '대륙의 잔잔한 계곡 사이에 위치해 있던' && cards[2][0].startsWith('빛의 승리 천 년을 기념하여') && cards[3][0].startsWith('목수인 아버지를 도와 나 역시'), JSON.stringify(cards.slice(1, 4)));
+  note('A1', '도입 글 카드 5장·새 문구', cards.length === 5 && cards[1][0] === '대륙의 잔잔한 계곡 사이에 자리 잡은' && cards[2][0].startsWith('빛의 승리 천 년을 기념하여') && cards[3][0].startsWith('목수인 아버지를 도와 나 역시'), JSON.stringify(cards.slice(1, 4)));
   note('A2', '카드 규칙(3줄·줄당 28자 이내)', cards.every((c) => c.length <= 3 && c.every((l) => l.length <= 28)), cards.map((c) => c.map((l) => l.length).join('/')).join(' | '));
   note('A3', '불타는 마을 나레이션 문구', (await ev(() => AU.PRO_TEXT.lookNarr)) === '나의 마을, 나의 아르케아가...');
   // ===== B. 이전 버튼(프롤로그 대화) =====
@@ -48,17 +48,17 @@ const note = (id, name, ok, ev) => { ok ? pass++ : fail++; console.log((ok ? 'PA
   note('D2', '퀘스트가 없을 때 새 의뢰·Lv.10 목표 안내', /목표/.test(tr0) && /새 의뢰: 항구도시의 첫걸음/.test(tr0) && /Lv\.10까지/.test(tr0), tr0.replace(/\n/g, ' / '));
   await ev(() => { const S = AU.G.S; S.quests.q_s1_silver = { state: 'done', prog: [1], spots: {} }; S.quests.q_s1_test = { state: 'done', prog: [2], spots: {} }; AU.G.startQuest('q_first'); }); await sleep(400);
   const tr1 = await ev(() => document.querySelector('.tracker').innerText);
-  note('D3', '들여우 퀘스트: 숲길까지 가는 방향(항구 길 포털) 안내', /숲길 방향: ◀ 왼쪽 끝의 '항구 길'/.test(tr1), tr1.replace(/\n/g, ' / '));
+  note('D3', '뱀 퀘스트: 뱀길까지 가는 방향 안내', /뱀길 방향: ◀ 왼쪽 끝의 '뱀길'/.test(tr1), tr1.replace(/\n/g, ' / '));
   await ev(() => { const S = AU.G.S; S.level = 8; S.quests.q_first = { state: 'done', prog: [3] }; S.quests.q_forest = { state: 'done', prog: [5] }; S.quests.q_guild_talk = { state: 'done', prog: [1] }; S.quests.q_guild_rats = { state: 'done', prog: [8] }; delete S.quests.q_first.state; S.quests.q_first.state = 'done'; AU.G.startQuest('q_guild_crabs'); AU.G.startQuest('q_a1_variant'); S.level = 10; AU.G.startQuest('q_a1_variant'); S.quests.q_guild_crabs = { state: 'ready', prog: [5] }; });
   await sleep(500);
   const tr2 = await ev(() => ({ t: document.querySelector('.tracker').innerText, n: document.querySelectorAll('.tracker .tq').length }));
-  note('D4', '퀘스트 2개(집게 게 완료·변형의 흔적 진행)가 동시에 보임', tr2.n >= 2 && /집게 게 퇴치/.test(tr2.t) && /변형의 흔적/.test(tr2.t) && /의뢰인에게 돌아가기: 다프네/.test(tr2.t) && /항구 길 방향|선창 외곽 방향|이 지역/.test(tr2.t), tr2.t.replace(/\n/g, ' / '));
+  note('D4', '퀘스트 2개(집게 게 완료·변형의 흔적 진행)가 동시에 보임', tr2.n >= 2 && /집게 게 퇴치/.test(tr2.t) && /변형의 흔적/.test(tr2.t) && /의뢰인에게 돌아가기: 다프네/.test(tr2.t) && /뱀길 방향|선창 외곽 방향|이 지역/.test(tr2.t), tr2.t.replace(/\n/g, ' / '));
   await ev(() => { AU.G.S.level = 5; });
   await sleep(300);
   const kh2 = await ev(() => getComputedStyle(document.querySelector('.keyhint')).display);
   note('D5', 'Lv.5 이상이면 조작 안내 숨김', kh2 === 'none', kh2);
   // ===== E. NPC 재방문 시 조작 안내 반복 =====
-  await ev(() => { const S = AU.G.S; S.level = 1; S.quests = { q_first: { state: 'active', prog: [0] } }; AU.World.enterMap('guild_hall', 840, true); AU.World.trans = null; AU.World.player.x = 840; });
+  await ev(() => { const S = AU.G.S; S.level = 1; S.quests = { q_first: { state: 'active', prog: [0] } }; AU.World.enterMap('guild_hall', 520, true); AU.World.trans = null; AU.World.player.x = 520; });
   await sleep(300); await p.keyboard.press('Space'); await sleep(200);
   const lines = []; for (let i = 0; i < 4; i++) { const l = await ev(() => document.querySelector('.dline') && document.querySelector('.dline').textContent); if (!l) break; lines.push(l); await p.keyboard.press('Space'); await sleep(150); }
   note('E1', '진행 중 재방문: 공격·점프 키 안내가 다시 나옴(키 이름 치환)', lines.some((l) => /공격은 .*Control.*|공격은 Ctrl|공격은 /.test(l) && !/\{attack\}/.test(l)) && !lines.some((l) => /\{/.test(l)), JSON.stringify(lines));

@@ -22,13 +22,13 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const bad = await ev(() => { const out = []; for (const k of ['fox', 'snake', 'rat', 'crab', 'merc', 'wolf', 'hide_guard', 'hide_beast', 'hide_keeper']) { const m = AU.MONSTERS[k]; if (!m || (m.lv || 1) < 3) continue; const need = AU.expToNext(m.lv || 1), r = m.exp / need; if (r > 0.12 || r < 0.003) out.push(k + ':' + r.toFixed(4)); } return out; });
   note('P-ratio', '몬스터 exp가 해당 레벨 필요량의 0.3~12% 안(Lv3+)', bad.length === 0, JSON.stringify(bad));
   // 나머지 메인(변이→흔적→비밀→정찰)은 사냥 병행이 전제이므로 레벨 게이트만 점검
-  const gates = await ev(() => ['q_a1_variant', 'q_a1_traces', 'q_a2_secret', 'q_a3_scout', 'q_a3_jepeto', 'q_h1'].map((k) => [k, AU.QUESTS[k] && AU.QUESTS[k].minLevel]));
+  const gates = await ev(() => ['q_a1_variant', 'q_a1_traces', 'q_a2_secret', 'q_a3_scout', 'q_a3_jepeto', 'q_h1a'].map((k) => [k, AU.QUESTS[k] && AU.QUESTS[k].minLevel]));
   note('P-gates', '메인 게이트 5/6/7/8/10/10', JSON.stringify(gates.map((g) => g[1])) === JSON.stringify([5, 6, 7, 8, 10, 10]), JSON.stringify(gates));
   // 정찰 보상 levelTo 10 → 보스 입장(10) / 아지트 종료 levelTo 15
   await ev(() => { AU.G.S.level = 8; AU.G.S.exp = 0; });
   await apply('q_a3_scout'); const lvS = await ev(() => AU.G.S.level);
   note('P-scout', 'q_a3_scout 보상 후 Lv ≥ 10', lvS >= 10, 'Lv' + lvS);
-  const [lvH] = await apply('q_h1'); note('P-h1', 'q_h1 보상 후 Lv 15 (1막 종료)', lvH === 15, 'Lv' + lvH);
+  const [lvH] = await apply('q_h1f'); note('P-h1', 'q_h1f 보상 후 Lv 15 (1막 종료)', lvH === 15, 'Lv' + lvH);
   const cap = await ev(() => { AU.G.gainExp(1e7, 'x'); return AU.G.S.level; });
   note('P-cap', '직업 미변경 시 레벨 상한 15 유지', cap === 15, 'Lv' + cap);
   const subs = await ev(() => ['q_guild_rats', 'q_a1_parcel', 'q_guild_crabs'].map((k) => [k, AU.QUESTS[k].reward.exp]));

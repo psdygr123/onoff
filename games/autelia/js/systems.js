@@ -52,6 +52,7 @@ window.AU = window.AU || {};
       this.toast("레벨 업! Lv." + S.level, "good");
       if (S.level > C.levels.autoGrowthUntil) this.toast("스탯 포인트 +" + C.levels.freePointsPerLevel + " (S 키)", "info");
       for (const u of AU.UNLOCKS) if (u.level === S.level) this.toast(u.text, "info");
+      this.syncSkills(true);
     },
 
     /* ---------- 재화·아이템 ---------- */
@@ -61,7 +62,8 @@ window.AU = window.AU || {};
     giveItem(id, n = 1, quiet) {
       this.S.inv[id] = (this.S.inv[id] || 0) + n;
       if (!quiet) this.toast("획득: " + AU.ITEMS[id].name + (n > 1 ? " ×" + n : ""), "item");
-      if (AU.Guide) { AU.Guide.trigger("item"); if (AU.ITEMS[id].type === "equip") AU.Guide.trigger("equip"); }
+      if (AU.Guide) { AU.Guide.trigger("item"); if (AU.ITEMS[id].type === "equip" && !(AU.EquipTour)) AU.Guide.trigger("equip"); }
+      if (!quiet && AU.ITEMS[id].type === "equip" && AU.ITEMS[id].slot === "weapon" && !this.S.equip.weapon && AU.EquipTour) AU.EquipTour.offerSoon();
       this.refreshCollectQuests(); this.changed();
     },
     // 상인과 이야기해 상점을 연 동안에만 사고팔기·제작 가능(shop: "general" 잡화 / "weapon" 무기점 / "smith" 대장간)
@@ -111,6 +113,11 @@ window.AU = window.AU || {};
         if (m.safe || m.interior) { this.toast("마을 안에서는 쓸 수 없습니다.", "warn"); return false; }
         const dest = m.town || "porto"; this.takeItem(id, 1); this.toast(it.name + " 사용 — " + AU.MAPS[dest].name + "(으)로 귀환합니다.", "item");
         W.enterMap(dest, AU.MAPS[dest].start || 160); this.changed(); return true;
+      }
+      if (it.relieve) { // 피로회복제: 피로도를 고정값만큼 줄임(스킬을 배우기 전에는 피로도가 쌓이지 않아 쓸 일이 없음)
+        if (S.fatigue <= 0) { this.toast("지금은 피로도가 쌓이지 않았습니다.", "warn"); return false; }
+        const before = S.fatigue; this.takeItem(id, 1); this.relieve("item", it.relieve, it.name);
+        this.toast(it.name + " 사용 — 피로도 −" + Math.round((before - S.fatigue) * 10) / 10 + " (현재 " + S.fatigue + " / " + S.fatigueMax + ")", "item"); this.save("tonic"); return true;
       }
       if (S.hp >= max) { this.toast("HP가 이미 가득 찼습니다.", "warn"); return false; }
       this.takeItem(id, 1); S.hp = Math.min(max, S.hp + it.heal);
@@ -163,7 +170,6 @@ window.AU = window.AU || {};
       if (rec) return rec.state;
       if (q.pre.some((p) => this.questStatus(p) !== "done")) return "locked";
       if (this.S.level < q.minLevel) return "locked";
-      if (id === "q_job" && this.S.jobChanged) return "locked";
       return "available";
     },
     objectiveDone(q, rec, i) {
@@ -178,8 +184,10 @@ window.AU = window.AU || {};
       if (q.fee) { if (this.S.silver < q.fee) { this.toast("은화가 부족합니다. (필요 " + q.fee + ")", "warn"); return false; } this.S.silver -= q.fee; this.toast("은화 -" + q.fee, "info"); }   // 수락할 때 내는 값(정보료 등)
       this.S.quests[id] = { state: "active", prog: q.objectives.map(() => 0), spots: {} };
       if (AU.Guide) AU.Guide.trigger("quest");
+      for (const [it, n] of q.takeItems || []) { this.S.inv[it] = Math.max(0, (this.S.inv[it] || 0) - n); if (!this.S.inv[it]) delete this.S.inv[it]; }
       for (const [it, n] of q.startItems || []) this.giveItem(it, n);   // 전달 퀘스트: 수락할 때 맡는 물건
       const qk = AU.questKind(id), ql = AU.QKIND[qk]; this.log(ql.label + " 퀘스트 수락: " + q.title); this.toast(ql.icon + " " + ql.label + " 퀘스트 수락: " + q.title, "quest qk-" + qk);
+      if (AU.Ev) AU.Ev.emit("questStart", { id });
       this.refreshQuest(id);
       if (AU.RealBridge) AU.RealBridge.questEvent(id, "start");
       this.save("quest"); this.changed(); return true;
@@ -188,8 +196,15 @@ window.AU = window.AU || {};
       const rec = this.qs(id), q = AU.QUESTS[id]; if (!rec || rec.state === "done") return;
       const all = q.objectives.every((o, i) => this.objectiveDone(q, rec, i));
       const next = all ? "ready" : "active";
-      if (next === "ready" && rec.state !== "ready") this.toast("목표 달성: " + q.title + " (의뢰인에게 돌아가세요)", "quest");
+      if (next === "ready" && rec.state !== "ready" && !q.autoDone) this.toast("목표 달성: " + q.title + " (의뢰인에게 돌아가세요)", "quest");
+      // 조사·수리 지점을 모두 마쳤지만 보고가 남은 경우: 한 번 크게 알림
+      if (next === "active" && !rec.noted) {
+        const wk = q.objectives.findIndex((o) => (o.kind === "investigate" || o.kind === "repair") && this.objectiveDone(q, rec, q.objectives.indexOf(o)));
+        const rest = q.objectives.find((o, i) => !this.objectiveDone(q, rec, i));
+        if (wk >= 0 && rest && rest.target && AU.NPCS[rest.target]) { rec.noted = true; this.toast("✔ " + (q.objectives[wk].kind === "repair" ? "수리" : "조사") + " 완료! " + AU.NPCS[rest.target].name.replace(" (임시)", "") + "에게 가서 결과를 알리세요.", "quest"); }
+      }
       rec.state = next;
+      if (next === "ready" && q.autoDone) this.turnIn(id);   // 현장 완료형: 의뢰인에게 돌아가지 않고 그 자리에서 완료
     },
     refreshCollectQuests() { for (const id of Object.keys(this.S.quests)) this.refreshQuest(id); },
     onKill(type) {
@@ -277,18 +292,29 @@ window.AU = window.AU || {};
       if (r.levelTo) { let g = 0; while (this.S.level < r.levelTo && g++ < 20) this.gainExp(Math.max(1, AU.expToNext(this.S.level) - this.S.exp), q.title); }
       if (q.awaken) this.awaken();
       if (AU.RealBridge) AU.RealBridge.questEvent(id, "done");
+      if (q.next) this.startQuest(q.next);   // 연속 퀘스트: 다음 단계를 바로 수락
       this.save("quest"); this.changed(); return true;
     },
-    bossActive() { const r = this.qs("q_job"); return !!r && (r.state === "active"); },
+
+    /* 레벨에 맞게 스킬을 열고 빈 슬롯에 순서대로 배치(각성·전직 이후에만). announce=true면 새 스킬을 알림 */
+    syncSkills(announce) {
+      const S = this.S; if (!this.awakened()) return;
+      const want = AU.skillsForLevel(S.level), fresh = want.filter((id) => !S.skills.unlocked.includes(id));
+      S.skills.unlocked = want.slice();
+      S.skills.slots = [0, 1, 2].map((i) => (want.includes(S.skills.slots[i]) ? S.skills.slots[i] : null));
+      for (const id of want) if (!S.skills.slots.includes(id)) { const i = S.skills.slots.indexOf(null); if (i >= 0) S.skills.slots[i] = id; }
+      if (announce) for (const id of fresh) if (id !== "strike" || S.level > AU.SKILL_UNLOCK_LV.strike) this.toast("새 스킬 '" + AU.SKILLS[id].name + "'을(를) 배웠습니다! (" + (S.skills.slots.indexOf(id) + 1) + "번 키, K 키)", "good");
+    },
 
     /* ---------- 힘의 각성(Lv10, 제페토): 전직 없이 스킬이 열리고, 피로도·쉼 미션이 시작됨 ---------- */
     awakened() { return !!(this.S.jobChanged || this.S.flags.awakened); },
     awaken() {
       const S = this.S; if (S.flags.awakened || S.jobChanged) return false;
       S.flags.awakened = true; S.freePoints += C.levels.freePointsOnJobChange;
-      S.skills.unlocked = AU.WARRIOR_SKILLS.slice(); S.skills.slots = AU.WARRIOR_SKILLS.slice(0, 3); S.hp = this.d().maxHp;
+      this.syncSkills(false); S.hp = this.d().maxHp;
       this.unlockRealMissions(false); this.log("용사의 힘이 깨어났습니다.");
-      this.toast("힘이 깨어났습니다! 스킬이 열렸습니다 (1·2·3 키, K 키)", "good");
+      this.toast("힘이 깨어났습니다! 첫 스킬 '" + AU.SKILLS.strike.name + "'이 열렸습니다 (1번 키, K 키)", "good");
+      this.toast("2번 스킬은 Lv." + AU.SKILL_UNLOCK_LV.spin + ", 3번 스킬은 Lv." + AU.SKILL_UNLOCK_LV.focus + "에 열립니다", "info");
       this.toast("스탯 포인트 +" + C.levels.freePointsOnJobChange + ". 스킬을 쓰면 피로도가 쌓이며, 모험일지의 '쉼'에서 줄일 수 있습니다", "info");
       AU.Ev.emit("awaken", {}); return true;
     },
@@ -298,12 +324,12 @@ window.AU = window.AU || {};
       const S = this.S; if (S.jobChanged) return;
       S.job = job; S.jobChanged = true;
       S.freePoints += C.levels.freePointsOnJobChange;
-      S.skills.unlocked = AU.WARRIOR_SKILLS.slice(); S.skills.slots = AU.WARRIOR_SKILLS.slice(0, 3);
+      this.syncSkills(false);
       this.unlockRealMissions(false);
       S.hp = this.d().maxHp;
       this.log("전직: " + AU.JOBS[job].name);
       this.toast("전직했습니다: " + AU.JOBS[job].name, "good");
-      this.toast("전사 스킬이 활성화되었습니다 (1·2·3 키, K 키)", "info");
+      this.toast("전사 스킬이 활성화되었습니다. 레벨에 따라 하나씩 열립니다 (K 키)", "info");
       this.toast("스탯 포인트 +" + C.levels.freePointsOnJobChange + ". 모험일지(J)의 '쉼' 미션으로 피로도를 줄일 수 있습니다", "info");
       AU.Ev.emit("jobchange", { job });
     },
@@ -335,32 +361,28 @@ window.AU = window.AU || {};
       this.changed();
     },
     setFatigueMax(n) { this.S.fatigueMax = Math.max(1, Math.round(n)); this.S.fatigue = Math.min(this.S.fatigue, this.S.fatigueMax); this.changed(); },
-    // 피로도 줄이기. source = 'mission' | 'currency' | 'weekly' | 'dev'
+    // 피로도 줄이기. source = 'mission' | 'item' | 'weekly' | 'dev'
     relieve(source, amount, reason) { this.setFatigue(this.S.fatigue - amount, source); AU.Ev.emit("recover", { source, amount, reason }); },
     restMission(id) { return AU.REST_MISSIONS.find((m) => m.id === id); },
     // 선택형 '쉼' 현실 미션: 하루에 같은 미션은 한 번. 자기보고이며 마음 스탯·훈련 포인트와는 무관
-    restMissionAvailable(id) { return this.S.flags.missionsUnlocked && this.S.skills.unlocked.length > 0 && this.S.rest.done[id] !== AU.dateStr(); },
+    restDaily() { // 11-24: 쉼 미션은 하루 5개씩, 날마다 다른 조합(id 순서를 5개씩 돌려 가며 보여 줌 — 같은 날엔 항상 같은 5개)
+      const pool = AU.REST_MISSIONS.slice().sort((a, b) => (a.id < b.id ? -1 : 1)), n = pool.length, cnt = Math.min(5, n);
+      const [y, mo, d] = AU.dateStr().split("-").map(Number), day = Math.floor(Date.UTC(y, mo - 1, d) / 86400000), start = (day * cnt) % n;
+      return Array.from({ length: cnt }, (_, i) => pool[(start + i) % n]);
+    },
+    restMissionAvailable(id) { return this.S.flags.missionsUnlocked && this.S.skills.unlocked.length > 0; },   // 11-24: 쉼 활동은 하루에 몇 번이든 할 수 있음(피로도 회복만 하루 1회)
+    restRecoverLeft() { return this.S.rest.recoverDay !== AU.dateStr(); },
+    restDoneToday(id) { const t = AU.dateStr(); return (this.S.rest.log || []).filter((e) => e.t === t && e.id === id).length; },
     restNoteOk(note) { return !!(note && typeof note === 'object' && ['calm', 'same', 'mixed', 'tense', 'other'].includes(note.feeling)); }, // 감정 선택 필수, 자유 소감은 선택
     doRestMission(id, note) {
       const S = this.S, m = this.restMission(id); if (!m || !this.restMissionAvailable(id)) return false;
       if (!this.restNoteOk(note)) { this.toast("활동 후 느낀 상태를 한 가지 선택해 주세요.", "warn"); return false; }
       const text = String(note.note || "").replace(/\s+/g, " ").trim().slice(0, C.fatigue.restNoteMax);
-      S.rest.done[id] = AU.dateStr(); S.rest.log.push({ t: AU.dateStr(), id, recover: m.recover, feeling: note.feeling, note: text, proof: "self_report" }); if (S.rest.log.length > 200) S.rest.log.shift();
-      const before = S.fatigue; this.relieve("mission", m.recover, m.title);
-      this.log("쉼 미션 완료: " + m.title); this.toast("쉼 미션 완료! 피로도 −" + Math.round((before - S.fatigue) * 10) / 10 + " (현재 " + S.fatigue + " / " + S.fatigueMax + ")", "good");
+      const first = this.restRecoverLeft(), rec = first ? m.recover : 0;   // 피로도 회복은 하루 첫 쉼 활동에만
+      S.rest.done[id] = AU.dateStr(); S.rest.log.push({ t: AU.dateStr(), id, recover: rec, feeling: note.feeling, note: text, proof: "self_report" }); if (S.rest.log.length > 200) S.rest.log.shift();
+      const before = S.fatigue; if (first) { S.rest.recoverDay = AU.dateStr(); this.relieve("mission", m.recover, m.title); }
+      this.log("쉼 미션 완료: " + m.title); this.toast(first ? "쉼 미션 완료! 피로도 −" + Math.round((before - S.fatigue) * 10) / 10 + " (현재 " + S.fatigue + " / " + S.fatigueMax + ")" : "쉼 활동을 기록했어요. 피로도 회복은 하루 한 번이에요.", "good");
       this.save("rest"); return true;
-    },
-    // 은화로 쉬기: 막다른 길이 없도록 현실 미션 없이도 가능. 하루 횟수 제한(임시)
-    restPrice() { return C.fatigue.restSilverBase + this.S.level * C.fatigue.restSilverPerLevel; },
-    restSilverLeft() { const t = this.S.rest.silverToday; return t.d === AU.dateStr() ? Math.max(0, C.fatigue.restDailyLimit - t.n) : C.fatigue.restDailyLimit; },
-    restWithSilver() {
-      const S = this.S, price = this.restPrice();
-      if (S.fatigue <= 0) { this.toast("지금은 피로도가 쌓이지 않았습니다.", "info"); return false; }
-      if (this.restSilverLeft() <= 0) { this.toast("오늘은 더 쉴 수 없습니다. (하루 " + C.fatigue.restDailyLimit + "회)", "warn"); return false; }
-      if (S.silver < price) { this.toast("은화가 부족합니다. (필요 " + price + ")", "warn"); return false; }
-      S.silver -= price; const t = S.rest.silverToday; if (t.d !== AU.dateStr()) { t.d = AU.dateStr(); t.n = 0; } t.n++;
-      const before = S.fatigue; this.relieve("currency", C.fatigue.restSilverRecover, "휴식");
-      this.toast("휴식했습니다. 피로도 −" + Math.round((before - S.fatigue) * 10) / 10 + " (은화 −" + price + ")", "good"); this.save("rest"); return true;
     },
     refreshWeekly(force) {
       const S = this.S, wk = AU.weekId();
@@ -385,30 +407,122 @@ window.AU = window.AU || {};
       if (!Array.isArray(M.prefs.areas)) M.prefs.areas = [];
       if (!Number.isFinite(M.prefs.maxMin)) M.prefs.maxMin = 0;
       if (!Array.isArray(M.recoHidden)) M.recoHidden = [];
-      for (const m of AU.MISSIONS) {
-        if (!M.states[m.id]) M.states[m.id] = { state: "locked", rewarded: false, tries: 0 };
-        // 신규 활동 및 구 저장의 미완료/잠금 미션도 안내 이후 자유롭게 선택 가능.
-        if (this.S.flags.missionsUnlocked && this.S.flags.guideMet && M.states[m.id].state === "locked") M.states[m.id].state = "available";
+      for (const m of AU.MISSIONS) if (!M.states[m.id]) M.states[m.id] = { state: "locked", rewarded: false, tries: 0 };
+      if (this.S.flags.missionsUnlocked && this.S.flags.guideMet) {
+        if (!this.S.flags.missionSlotsV2) { // 구 저장: 예전에 한꺼번에 열린 미수행 활동은 미공개로 되돌림(즐겨찾기·수행 계획에 건 활동은 유지)
+          for (const m of AU.MISSIONS) { const r = M.states[m.id]; if (r.state === "available" && !M.favorites.includes(m.id) && !M.plans[m.id]) r.state = "locked"; }
+          this.S.flags.missionSlotsV2 = true;
+        }
+        this.fillSlots();
       }
+      for (const m of AU.MISSIONS) { const r = M.states[m.id]; if (r && AU.MISSION_ACTIVE.includes(r.state) && r.state !== "available" && !r.startDate) this.startMissionClock(m, r); }   // 구 저장: 이미 수락한 활동은 오늘부터 기간 계산
+    },
+    startMissionClock(m, r) { const t = AU.dateStr(); r.startDate = t; r.dueDate = AU.addDays(t, Math.max(1, m.span || 1) - 1); r.mid = null; },
+    revealMission(id) { const r = this.S.missions.states[id]; if (r && r.state === "locked") { r.state = "available"; return true; } return false; },
+    /* 미션 슬롯: 영역(P·E·R·M·A)마다 진행 가능한 활동을 1개씩만 보여 줌. 완료·건너뛰기로 자리가 비면 같은 영역의 다음 후보가 열림 */
+    fillSlots(excludeId) {
+      const M = this.S.missions; let opened = 0;
+      for (const k of Object.keys(AU.PERMA)) {
+        if (AU.MISSIONS.some((m) => m.perma === k && AU.MISSION_ACTIVE.includes((M.states[m.id] || {}).state))) continue;
+        const c = this.slotCandidate(k, excludeId); if (c) { const was = M.states[c.id].state; M.states[c.id].state = "available"; if (was === "skipped") M.states[c.id].reoffer = true; opened++; }
+      }
+      return opened;
+    },
+    /* 다음 후보: 허용 단계 이하의 미공개 활동(쉬운 순·데이터 순) → 없으면 건너뛴 지 오래된 활동을 다시 제공. 막지는 않고 순서만 정함 */
+    slotCandidate(k, excludeId) {
+      const M = this.S.missions, st = (id) => (M.states[id] || {}).state, allowed = this.allowedDifficulty(k);
+      const locked = AU.MISSIONS.filter((m) => m.perma === k && m.id !== excludeId && st(m.id) === "locked" && (!m.pre || st(m.pre) === "done")).sort((a, b) => a.difficulty - b.difficulty);
+      const pick = locked.find((m) => m.difficulty <= allowed) || locked[0];
+      if (pick) return pick;
+      return AU.MISSIONS.filter((m) => m.perma === k && m.id !== excludeId && st(m.id) === "skipped").sort((a, b) => (M.states[a.id].skipSeq || 0) - (M.states[b.id].skipSeq || 0))[0] || null;
+    },
+    /* 같은 영역에서 낮은 단계 활동을 3종 이상 완료하고 평균 만족도 3 이상이면 다음 단계까지 허용. 평균 도전도가 4 이상이면 만족도 4 이상일 때만 올리고, 아니면 현재 단계 유지 */
+    allowedDifficulty(k) {
+      const M = this.S.missions; let allowed = 1;
+      for (let d = 1; d <= 2; d++) {
+        const rows = M.log.filter((e) => e.perma === k && e.state === "done" && !e.repeat && (this.mission(e.id) || {}).difficulty === d);
+        if (new Set(rows.map((e) => e.id)).size < 3) break;
+        const rv = rows.map((e) => e.reflection).filter((x) => x && Number.isFinite(x.satisfaction)), avg = (key) => rv.reduce((n, x) => n + x[key], 0) / rv.length;
+        if (rv.length && (avg("satisfaction") < 3 || (avg("challenge") >= 4 && avg("satisfaction") < 4))) break;
+        allowed = d + 1;
+      }
+      return allowed;
     },
     discoverMissions() {
       const S = this.S; if (!S.flags.missionsUnlocked) return false;
       S.flags.guideMet = true; this.initMissions();
-      for (const m of AU.MISSIONS) { const r = S.missions.states[m.id]; if (r.state === "locked") r.state = "available"; }
       this.save("mission"); this.changed(); return true;
+    },
+    /* ---------- 현실 미션 보상: 난이도(1~3) + 시간(0~2) + 기간(0~2) 합산으로 3등급 ----------
+       인증(보조 기록)을 하면 full, 안 하면 part만 지급하고 나중에 인증하면 차액을 소급 지급합니다. */
+    missionTier(m) {
+      const d = Math.max(1, Math.min(3, m.difficulty || 1)), t = (m.minutes || 0) <= 5 ? 0 : m.minutes <= 15 ? 1 : 2, sp = m.span || 1, g = sp >= 7 ? 2 : sp >= 2 ? 1 : 0;
+      const score = d + t + g; return { score, tier: score <= 3 ? 1 : score <= 5 ? 2 : 3 };
+    },
+    missionReward(m) {
+      const { score, tier } = this.missionTier(m), T = AU.MISSION_REWARD[tier];
+      return { score, tier, name: T.name, full: { tokens: T.full[0], mind: T.full[1] }, part: { tokens: T.part[0], mind: T.part[1] }, extra: { tokens: T.full[0] - T.part[0], mind: T.full[1] - T.part[1] } };
+    },
+    // 완료했지만 인증하지 않은 활동에 나중에 인증을 붙이면 남은 보상을 지급
+    verifyMission(id, evidence) {
+      const S = this.S, m = this.mission(id), r = S.missions.states[id];
+      if (!m || !r || r.state !== "done" || !r.reward || r.reward.verified) return false;
+      const sup = AU.MissionEvidence ? AU.MissionEvidence.clean(evidence, m) : null; if (!sup) return false;
+      const rw = this.missionReward(m), ex = { tokens: rw.full.tokens - r.reward.tokens, mind: rw.full.mind - r.reward.mind };
+      const e = S.missions.log.slice().reverse().find((x) => x.id === id && x.state === "done" && !x.repeat); if (!e) return false;
+      if (!S.gallery) S.gallery = { tokens: 0, unlocked: [], selected: [], attendance: [] };
+      if (ex.tokens > 0) S.gallery.tokens += ex.tokens;
+      let gained = 0; if (ex.mind > 0) gained = this.gainMind(m.perma, ex.mind);
+      r.reward = { tier: rw.tier, verified: true, tokens: rw.full.tokens, mind: rw.full.mind };
+      e.supplementary = sup; e.proof = "evidence"; e.galleryTokens = (e.galleryTokens || 0) + Math.max(0, ex.tokens); e.mindGained = (e.mindGained || 0) + gained; e.verifiedLate = AU.dateStr();
+      this.log("현실 미션 인증: " + m.title);
+      this.toast("인증 완료! 남은 보상 토큰 +" + Math.max(0, ex.tokens) + (gained ? " · 마음 [" + AU.PERMA[m.perma] + "] +" + gained : ""), "good");
+      this.save("mission-verify"); this.changed(); return true;
+    },
+    /* ---------- 기간형 진행: 며칠째인지·마감·중간 확인·기한이 지난 활동 처리 ---------- */
+    missionProgress(id) {
+      const m = this.mission(id), r = this.ms(id); if (!m || !r.startDate) return null;
+      const today = AU.dateStr(), span = m.span || 1, day = Math.min(span, Math.max(1, AU.daysBetween(r.startDate, today) + 1));
+      return { span, day, left: Math.max(0, AU.daysBetween(today, r.dueDate)), start: r.startDate, due: r.dueDate, overdue: today > r.dueDate, finishable: today >= r.dueDate, needMid: span >= 7 && day >= 4 && day <= 6 && !r.mid };
+    },
+    /* 진행 중인 현실미션: 마감 빠른 순(기한 지난 것이 맨 앞) */
+    activeMissionsByDue() { return AU.MISSIONS.filter((m) => { const r = this.ms(m.id); return ["accepted", "attempted", "partial"].includes(r.state) && r.startDate; }).sort((a, b) => this.ms(a.id).dueDate.localeCompare(this.ms(b.id).dueDate)); },
+    overdueMissions() { return AU.MISSIONS.filter((m) => { const r = this.ms(m.id); return ["accepted", "attempted", "partial"].includes(r.state) && r.startDate && AU.dateStr() > r.dueDate; }); },
+    // 7일형 중간 확인: 수행하면서 어려운 점을 글로 받음(없다고 적어도 됨)
+    midCheck(id, text) {
+      const r = this.S.missions.states[id], m = this.mission(id); if (!r || !m || !["accepted", "attempted", "partial"].includes(r.state)) return false;
+      r.mid = { t: AU.dateStr(), text: String(text || "").trim().slice(0, 300) || "어려운 점 없음" };
+      this.save("mission-mid"); this.changed(); return true;
+    },
+    // 다시 제시된 활동을 수락하기 전에 '성공하려면 필요한 것'을 글로 받음
+    setReofferNote(id, text) {
+      const r = this.S.missions.states[id]; if (!r) return false;
+      r.reofferNote = String(text || "").trim().slice(0, 300); r.reoffer = false; this.save("mission-reoffer"); return true;
+    },
+    // 기한이 지난 활동: extend(기한 연장) · notdone(수행하지 못함: 필요한 것 기록) · quit(중도 포기: 다시 도전 여부)
+    resolveMission(id, kind, p) {
+      p = p || {}; const S = this.S, r = S.missions.states[id], m = this.mission(id);
+      if (!r || !m || !["accepted", "attempted", "partial"].includes(r.state)) return false;
+      if (kind === "extend") { r.dueDate = AU.addDays(AU.dateStr(), Math.max(1, Math.ceil((m.span || 1) / 2))); r.extended = (r.extended || 0) + 1; this.save("mission-extend"); this.changed(); return true; }
+      if (kind === "quit" && p.retry) { r.quitCount = (r.quitCount || 0) + 1; r.state = "accepted"; this.startMissionClock(m, r); this.save("mission-retry"); this.changed(); return true; }
+      if (kind !== "notdone" && kind !== "quit") return false;
+      const ok = this.setMissionState(id, "skip"); if (!ok) return false;
+      r.skipReason = kind; if (kind === "notdone") r.need = String(p.text || "").trim().slice(0, 300);
+      const e = S.missions.log[S.missions.log.length - 1]; if (e && e.id === id) e.reason = kind;
+      this.save("mission-resolve"); this.changed(); return true;
     },
     setMissionState(id, next, feedback, evidence) {
       const S = this.S; if (!S.flags.missionsUnlocked) return false;
       this.initMissions();
       const r = S.missions.states[id], m = this.mission(id); if (!r || !m) return false;
       const ok = {
-        accept: ["available"], attempt: ["accepted"], partial: ["attempted"], done: ["accepted", "attempted", "partial"],
+        accept: ["available"], attempt: ["accepted"], partial: ["accepted", "attempted"], done: ["accepted", "attempted", "partial"],
         skip: ["available", "accepted", "attempted", "partial"], retry: ["partial", "skipped"]
       };
       if (!ok[next] || !ok[next].includes(r.state)) return false;
-      const review = this.validMissionFeedback(feedback) ? { challenge: feedback.challenge, meaning: feedback.meaning, satisfaction: feedback.satisfaction, note: String(feedback.note || '').trim().slice(0, 200) } : null;
+      const review = this.validMissionFeedback(feedback) ? { challenge: feedback.challenge, meaning: feedback.meaning, satisfaction: feedback.satisfaction, efficacy: (Number.isInteger(feedback.efficacy) && feedback.efficacy >= 1 && feedback.efficacy <= 5) ? feedback.efficacy : null, mood: (typeof feedback.mood === 'string' && feedback.mood.length <= 20) ? feedback.mood : null, note: String(feedback.note || '').trim().slice(0, 200) } : null;
       let points = 0, capped = false, gained = 0, earnedTokens = 0;
-      if (next === "accept") r.state = "accepted";
+      if (next === "accept") { r.state = "accepted"; this.startMissionClock(m, r); }
       else if (next === "attempt") { r.state = "attempted"; r.tries++; }
       else if (next === "partial") {
         r.state = "partial"; points = C.missions.partialPoints;
@@ -419,48 +533,54 @@ window.AU = window.AU || {};
           r.partialRewarded = true;
         }
       }
-      else if (next === "skip") r.state = "skipped";
-      else if (next === "retry") r.state = "accepted";
+      else if (next === "skip") { r.state = "skipped"; r.skipSeq = (S.missions.skipSeq = (S.missions.skipSeq || 0) + 1); }
+      else if (next === "retry") { r.state = "accepted"; this.startMissionClock(m, r); }
       else if (next === "done") {
         r.state = "done";
         if (!r.rewarded) { // 같은 미션의 보상은 한 번만 지급
           if (S.missions.weekId !== AU.weekId()) { S.missions.weekId = AU.weekId(); S.missions.weekPoints = 0; }
+          // 난이도·시간·기간으로 등급을 정하고, 인증(보조 기록)을 하면 전액·안 하면 일부만 지급합니다. 나중에 인증하면 나머지를 소급 지급(verifyMission).
+          const rw = this.missionReward(m), verified = !!(AU.MissionEvidence && AU.MissionEvidence.clean(evidence, m));
+          const pay = verified ? rw.full : rw.part;
           const room = Math.max(0, C.missions.weeklyPointCap - S.missions.weekPoints);
-          points = Math.min(m.points, room); capped = points < m.points;
+          points = Math.min(pay.mind, room); capped = points < pay.mind;
           // 새 현실 미션 보상은 전투 스탯과 독립된 개인 공간 장식 재화로 지급합니다.
           // 구 저장의 trainingPoints 및 이미 배분한 스탯은 삭제하지 않습니다.
           if (!S.gallery) S.gallery = { tokens: 0, unlocked: [], selected: [], attendance: [] };
-          earnedTokens = 1;
+          earnedTokens = pay.tokens;
           S.gallery.tokens += earnedTokens;
           S.missions.weekPoints += points; r.rewarded = true;
-          gained = this.gainMind(m.perma, m.points); // 평가 응답 여부 및 점수와 무관하게 동일 보상
+          r.reward = { tier: rw.tier, verified, tokens: earnedTokens, mind: pay.mind };
+          gained = this.gainMind(m.perma, pay.mind); // 평가 응답 여부와 무관하게 동일 보상
         }
-        for (const n of AU.MISSIONS) { const nr = S.missions.states[n.id]; if (n.pre === id && nr.state === "locked" && S.flags.guideMet) nr.state = "available"; }
       }
       // 자기보고와 선택적인 보조 기록을 분리. 사진 원본은 저장 파일에 포함하지 않음.
       const supplementary = (next === "done" || next === "partial") && AU.MissionEvidence ? AU.MissionEvidence.clean(evidence, m) : null;
-      S.missions.log.push({ t: AU.dateStr(), id, perma: m.perma, state: r.state, points, capped, reflection: review, mindGained: gained, galleryTokens: earnedTokens, proof: "self_report", supplementary });
+      S.missions.log.push({ t: AU.dateStr(), id, perma: m.perma, state: r.state, points, capped, reflection: review, mindGained: gained, galleryTokens: earnedTokens, proof: supplementary ? "evidence" : "self_report", supplementary });
+      if (next === "done" || next === "skip") this.fillSlots(next === "skip" ? id : undefined);
       if (next === "done") {
         this.log("현실 미션 완료: " + m.title);
         const mindTxt = gained ? " · 마음 [" + AU.PERMA[m.perma] + "] +" + gained : "";
-        this.toast("현실 미션 완료! 갤러리 토큰 +" + earnedTokens + mindTxt, "good");
+        const rr = S.missions.states[id].reward, rw = this.missionReward(m);
+        const more = rr && !rr.verified && (rw.full.tokens - rr.tokens || rw.full.mind - rr.mind) ? " · 인증하면 토큰 +" + (rw.full.tokens - rr.tokens) + (rw.full.mind - rr.mind ? "·마음 +" + (rw.full.mind - rr.mind) : "") + " 더" : "";
+        this.toast("현실 미션 완료! [" + rw.name + "] 갤러리 토큰 +" + earnedTokens + mindTxt + more, "good");
       }
       this.save("mission"); this.changed(); return true;
     },
     repeatMission(id,feedback,evidence) {
       const S=this.S,m=this.mission(id),r=S.missions.states[id];
       if(!S.flags.missionsUnlocked||!m||!r||r.state!=="done")return false;
-      const reflection=this.validMissionFeedback(feedback)?{challenge:feedback.challenge,meaning:feedback.meaning,satisfaction:feedback.satisfaction,note:String(feedback.note||"").trim().slice(0,200)}:null;
+      const reflection=this.validMissionFeedback(feedback)?{challenge:feedback.challenge,meaning:feedback.meaning,satisfaction:feedback.satisfaction,efficacy:(Number.isInteger(feedback.efficacy)&&feedback.efficacy>=1&&feedback.efficacy<=5)?feedback.efficacy:null,mood:(typeof feedback.mood==="string"&&feedback.mood.length<=20)?feedback.mood:null,note:String(feedback.note||"").trim().slice(0,200)}:null;
       const supplementary=AU.MissionEvidence?AU.MissionEvidence.clean(evidence,m):null;
-      S.missions.log.push({t:AU.dateStr(),id,perma:m.perma,state:"done",repeat:true,points:0,capped:false,reflection,mindGained:0,galleryTokens:0,proof:"self_report",supplementary});
+      S.missions.log.push({t:AU.dateStr(),id,perma:m.perma,state:"done",repeat:true,points:0,capped:false,reflection,mindGained:0,galleryTokens:0,proof:supplementary?"evidence":"self_report",supplementary});
       this.log("현실 미션 반복 수행: "+m.title);this.toast("반복 수행 기록 완료 · 추가 점수와 토큰은 없습니다.","info");
       this.save("mission-repeat");this.changed();return true;
     },
     missionRepeatStats(id){
       const rows=this.S.missions.log.filter(e=>e.id===id&&e.state==="done");
       const reviews=rows.map(e=>e.reflection).filter(x=>x&&Number.isFinite(x.satisfaction)&&Number.isFinite(x.meaning)&&Number.isFinite(x.challenge));
-      const avg=k=>reviews.length?Math.round(reviews.reduce((n,x)=>n+x[k],0)/reviews.length*10)/10:null;
-      return {count:rows.length,repeats:rows.filter(x=>x.repeat).length,last:rows.length?rows[rows.length-1].t:null,satisfaction:avg("satisfaction"),meaning:avg("meaning"),challenge:avg("challenge")};
+      const avg=k=>{const v=reviews.filter(x=>Number.isFinite(x[k]));return v.length?Math.round(v.reduce((n,x)=>n+x[k],0)/v.length*10)/10:null;};
+      return {count:rows.length,repeats:rows.filter(x=>x.repeat).length,last:rows.length?rows[rows.length-1].t:null,satisfaction:avg("satisfaction"),meaning:avg("meaning"),challenge:avg("challenge"),efficacy:avg("efficacy")};
     },
     missionPlan(id){this.initMissions();return this.S.missions.plans[id]||{mode:"free"};},
     setMissionPlan(id,p){
@@ -516,7 +636,7 @@ window.AU = window.AU || {};
       const tried = {}; for (const m of AU.MISSIONS) if (M.states[m.id] && M.states[m.id].state === "done") tried[m.perma] = (tried[m.perma] || 0) + 1;
       const rows = [];
       for (const m of AU.MISSIONS) {
-        const st = (M.states[m.id] || {}).state; if (st === "done" || M.recoHidden.includes(m.id) || M.favorites.includes(m.id)) continue;
+        const st = (M.states[m.id] || {}).state; if (st !== "available" || M.recoHidden.includes(m.id) || M.favorites.includes(m.id)) continue;
         let sc = 0; const why = [];
         if (pr.areas.includes(m.functionArea)) { sc += 3; why.push("직접 고르신 관심 영역 '" + A[m.functionArea] + "'"); }
         if (pr.maxMin && m.minutes <= pr.maxMin) { sc += 2; why.push("권장 시간 " + m.minutes + "분 — 선택하신 " + pr.maxMin + "분 이내"); }
@@ -593,7 +713,7 @@ window.AU = window.AU || {};
       return n;
     },
     // 영역별 현재 목록에서 얻을 수 있는 최대치(막대 길이 기준). 미션이 늘면 자동으로 늘어남
-    mindMax(k) { return AU.MISSIONS.filter((m) => m.perma === k).reduce((a, m) => a + m.points, 0); },
+    mindMax(k) { return AU.MISSIONS.filter((m) => m.perma === k).reduce((a, m) => a + this.missionReward(m).full.mind, 0); },
     // 영역별(PERMA) 주간 완료 횟수: 마음 기록 화면용
     permaCounts() {
       const out = {}; for (const k of Object.keys(AU.PERMA)) out[k] = 0;
@@ -641,8 +761,15 @@ window.AU = window.AU || {};
         merged.mindStats = { P: 0, E: 0, R: 0, M: 0, A: 0 };
         for (const m of AU.MISSIONS) { const r = merged.missions.states[m.id]; if (r && r.rewarded && merged.mindStats[m.perma] != null) merged.mindStats[m.perma] += m.points; }
       } else merged.mindStats = Object.assign(base.mindStats, raw.mindStats);
+      if (merged.jobChanged || (merged.flags && merged.flags.awakened)) { const w = AU.skillsForLevel(merged.level); merged.skills.unlocked = w.slice(); merged.skills.slots = [0, 1, 2].map((i) => (w.includes(merged.skills.slots[i]) ? merged.skills.slots[i] : null)); for (const id of w) if (!merged.skills.slots.includes(id)) { const i = merged.skills.slots.indexOf(null); if (i >= 0) merged.skills.slots[i] = id; } }   // 레벨별 스킬 개방 규칙 적용(이전 저장 보정)
       merged.profile = AU.Profile ? AU.Profile.clean(raw.profile) : { name: "", gender: "" };
       merged.v = C.save.version; merged.inv = raw.inv || {}; merged.quests = raw.quests || {}; merged.visited = raw.visited || { arche: true };
+      delete merged.quests.q_job;
+      // 현재 게임에 없는 아이템(삭제·이름 변경된 항목)이 가방·장비에 남아 있으면 인벤토리/장비창 그리기가 예외로 멈춰 창이 안 열림 → 불러올 때 정리
+      { const bad = []; for (const id of Object.keys(merged.inv)) { if (!AU.ITEMS[id] || !(merged.inv[id] > 0)) { bad.push(id); delete merged.inv[id]; } }
+        for (const sl of Object.keys(merged.equip)) { const id = merged.equip[sl]; if (id && !AU.ITEMS[id]) { bad.push(id); merged.equip[sl] = null; } }
+        if (bad.length) console.warn("[autelia] 알 수 없는 아이템 정리:", bad.join(", ")); }
+      if (merged.quests.q_h1) AU.migrateHideout(merged);   // 아지트 퀘스트 6단계 분할: 이전 저장의 q_h1을 단계별 기록으로 옮김   // 전직 시험 폐지: 이전 저장의 기록 제거
       // 프롤로그 추가 전(v1) 저장: 이미 시작한 본편 진행을 그대로 유지하고 프롤로그는 '완료'로 간주(필요하면 제목 화면에서 다시 볼 수 있음)
       merged.prologue = raw.prologue && typeof raw.prologue === "object" ? raw.prologue : { state: "COMPLETED", flags: {}, seen: {}, legacy: true };
       return merged;

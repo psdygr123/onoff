@@ -11,7 +11,7 @@ const atkAt = (l) => l <= 10 ? atk(l) : atk(10) + 2 * 3 * (l - 10);
 const killSec = (m, l) => Math.ceil(m.hp / atkAt(l)) * C.combat.attackCooldown / 0.65 + 4; // 명중률 65% + 이동·조우 4초
 const grindMon = (l) => l < 3 ? "fox" : l < 5 ? "snake" : l < 7 ? "rat" : l < 10 ? "crab" : l < 11 ? "wolf" : l < 12 ? "hide_guard" : l < 13 ? "hide_beast" : "hide_keeper";
 const SUB = !!process.env.SUB; // SUB=1: 서브 퀘스트(쥐 소탕·짐 전하기·집게 게 퇴치)도 함께 진행하는 경우
-const MAIN = ["q_s1_silver", "q_s1_test", "q_first", "q_forest", "q_guild_talk"].concat(SUB ? ["q_guild_rats"] : [], ["q_a1_variant"], SUB ? ["q_a1_parcel"] : [], ["q_a1_traces"], SUB ? ["q_guild_crabs"] : [], ["q_a2_secret", "q_a3_scout", "q_a3_jepeto", "q_h1"]);
+const MAIN = ["q_s1_silver", "q_s1_test", "q_first", "q_forest", "q_guild_talk"].concat(SUB ? ["q_guild_rats"] : [], ["q_a1_variant"], SUB ? ["q_a1_parcel"] : [], ["q_a1_traces"], SUB ? ["q_guild_crabs"] : [], ["q_a2_secret", "q_a3_recon", "q_a3_scout", "q_a3_jepeto", "q_h1a", "q_h1b", "q_h1c", "q_h1d", "q_h1e", "q_h1f"]);
 const st = { L: 1, e: 0, kills: 0 };
 function gain(n) { n = Math.round(n); if (st.L >= CAP) return; st.e += n; while (st.L < CAP && st.e >= need(st.L)) { st.e -= need(st.L); st.L++; } if (st.L >= CAP) st.e = Math.min(st.e, need(st.L) - 1); }
 function kill(type) { const m = M[type]; const x = Math.max(1, Math.round(m.exp * gm(st.L, m.lv, m.boss))); gain(x); return killSec(m, st.L); }

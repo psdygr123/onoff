@@ -4,8 +4,9 @@ window.AU=window.AU||{};
 "use strict";
 const E=AU.MissionEvidence={
  labels:{self_report:"자기보고",timer:"타이머 경과 시간",record:"활동 내용",photo:"기기 내 사진"},
+ kind(m){return !m?"record":m.evidence==="self_report"||!m.evidence?"record":m.evidence},   // 자기보고형 활동은 한 줄 기록으로 인증
  clean(x,m){
-  if(!x||!m||x.method!==m.evidence)return null;
+  if(!x||!m||x.method!==this.kind(m))return null;
   if(x.method==="timer"&&Number.isInteger(x.seconds)&&x.seconds>0&&x.seconds<=86400)return {method:"timer",seconds:x.seconds};
   if(x.method==="record"&&typeof x.text==="string"&&x.text.trim())return {method:"record",text:x.text.trim().slice(0,200)};
   if(x.method==="photo"&&typeof x.photoId==="string"&&/^[a-z0-9-]{10,100}$/.test(x.photoId))return {method:"photo",photoId:x.photoId};
@@ -19,12 +20,12 @@ const E=AU.MissionEvidence={
  panel(m){
   const root=document.createElement("div");root.className="note";let start=0,seconds=0,timer=null,file=null;
   const add=(tag,txt)=>{const e=document.createElement(tag);if(txt)e.textContent=txt;root.append(e);return e};
-  add("p","선택형 보조 기록 · "+(this.labels[m.evidence]||"자기보고")+" (제출하지 않아도 동일한 보상)");
+  add("p","인증 · "+(this.labels[this.kind(m)]||"활동 내용")+" — 인증하면 보상을 전부 받고, 지금 건너뛰어도 나중에 일지에서 인증하면 나머지를 받아요.");
   let input=null;
-  if(m.evidence==="timer"){const clock=add("p","0초");const b=add("button","타이머 시작");b.type="button";b.className="btn";const update=()=>{clock.textContent=(seconds+(start?Math.floor((Date.now()-start)/1000):0))+"초"};b.onclick=()=>{if(start){seconds+=Math.floor((Date.now()-start)/1000);start=0;clearInterval(timer);b.textContent="다시 시작"}else{start=Date.now();timer=setInterval(update,500);b.textContent="타이머 멈춤"}update()};add("p","활동 시간은 참고 기록이며 최소 시간 조건이 없습니다.");}
-  if(m.evidence==="record"){input=add("textarea");input.maxLength=200;input.rows=2;input.placeholder="선택: 무엇을 했는지 한 줄로 기록";}
-  if(m.evidence==="photo"){add("p","선택: 사람이나 개인정보가 없는 결과물만 첨부하세요. 사진은 이 기기의 브라우저에만 보관됩니다.");input=add("input");input.type="file";input.accept="image/jpeg,image/png,image/webp";input.onchange=()=>{file=input.files[0]||null};}
-  return {root,dispose(){clearInterval(timer)},async value(){if(m.evidence==="timer")return E.clean({method:"timer",seconds:seconds+(start?Math.floor((Date.now()-start)/1000):0)},m);if(m.evidence==="record")return E.clean({method:"record",text:input.value},m);if(m.evidence==="photo"&&file)return {method:"photo",photoId:await E.put(file)};return null}};
+  if(this.kind(m)==="timer"){const clock=add("p","0초");const b=add("button","타이머 시작");b.type="button";b.className="btn";const update=()=>{clock.textContent=(seconds+(start?Math.floor((Date.now()-start)/1000):0))+"초"};b.onclick=()=>{if(start){seconds+=Math.floor((Date.now()-start)/1000);start=0;clearInterval(timer);b.textContent="다시 시작"}else{start=Date.now();timer=setInterval(update,500);b.textContent="타이머 멈춤"}update()};add("p","활동 시간은 참고 기록이며 최소 시간 조건이 없습니다.");}
+  if(this.kind(m)==="record"){input=add("textarea");input.maxLength=200;input.rows=2;input.placeholder="선택: 무엇을 했는지 한 줄로 기록";}
+  if(this.kind(m)==="photo"){add("p","선택: 사람이나 개인정보가 없는 결과물만 첨부하세요. 사진은 이 기기의 브라우저에만 보관됩니다.");input=add("input");input.type="file";input.accept="image/jpeg,image/png,image/webp";input.onchange=()=>{file=input.files[0]||null};}
+  return {root,dispose(){clearInterval(timer)},async value(){if(E.kind(m)==="timer")return E.clean({method:"timer",seconds:seconds+(start?Math.floor((Date.now()-start)/1000):0)},m);if(E.kind(m)==="record")return E.clean({method:"record",text:input.value},m);if(m.evidence==="photo"&&file)return {method:"photo",photoId:await E.put(file)};return null}};
  },
  display(e){const x=e.supplementary;if(!x)return null;const div=document.createElement("div");div.className="note";div.textContent=this.labels[x.method]||"보조 기록";
  if(x.method==="timer")div.textContent+=" · "+x.seconds+"초";

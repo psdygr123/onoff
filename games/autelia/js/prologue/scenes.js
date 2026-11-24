@@ -246,7 +246,7 @@ window.AU = window.AU || {};
         if (v.hand && v.hand.t < 1) { const h = v.hand, hx = e.x + e.face * 14, hy = G - 88; A.plank(ctx, h.x0 + (hx - h.x0) * h.t, h.y0 + (hy - h.y0) * h.t - Math.sin(h.t * Math.PI) * 8, 120, -0.05); }   // 주인공 손에서 아버지 손으로 천천히 건넴
         if (v.fhold && !A.has("pc_father_work")) A.plank(ctx, e.x + e.face * 14, G - 88 + Math.sin(P.time * 6) * (v.fwalk ? 1.5 : 0), 120, -0.03 * e.face);   // 건네받은 목재를 두 손으로 듦
         if (e.mark && !P.locked()) { const by = G - 204 + Math.sin(P.time * 4) * 4; ctx.fillStyle = "#E8B94E"; ctx.strokeStyle = "#fff"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(e.x - 11, by - 12); ctx.lineTo(e.x + 11, by - 12); ctx.lineTo(e.x, by + 4); ctx.closePath(); ctx.fill(); ctx.stroke(); } } });
-    const pile = P.addEnt({ id: "pile", x: L.pile, range: 90, layer: "mid", interact: { label: "목재 들기", off: true, fn: () => { if (st.carry) return; st.carry = true; v.carry = true; P.sfx("pick"); pile.mark = false; father.mark = true; father.interact.label = "목재 건네기"; P.hint("목재를 들었습니다. 아버지에게 가져가세요.", 3.5); } },
+    const pile = P.addEnt({ id: "pile", x: L.pile, range: 90, layer: "mid", interact: { label: "목재 들기", off: true, fn: () => { if (st.carry) return; st.carry = true; v.carry = true; P.sfx("wood_lift"); pile.mark = false; father.mark = true; father.interact.label = "목재 건네기"; P.hint("목재를 들었습니다. 아버지에게 가져가세요.", 3.5); } },
       draw(ctx, e, P) { for (let i = 0; i < v.pile; i++) A.plank(ctx, e.x + (i % 2) * 6, G - 10 - i * 15, 150, (i % 2 ? 0.01 : -0.01)); ctx.fillStyle = "#6e4a25"; ctx.fillRect(e.x - 66, G - 6, 8, 6); ctx.fillRect(e.x + 58, G - 6, 8, 6);
         if (e.mark && !P.locked()) { const by = G - 130 + Math.sin(P.time * 4) * 4; ctx.fillStyle = "#E8B94E"; ctx.strokeStyle = "#fff"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(e.x - 11, by - 12); ctx.lineTo(e.x + 11, by - 12); ctx.lineTo(e.x, by + 4); ctx.closePath(); ctx.fill(); ctx.stroke(); } } });
     const frame = P.addEnt({ id: "frame", x: L.joint, range: 100, layer: "mid", interact: { label: "이음새 망치질", off: true, fn: () => hammerJoint() },
@@ -267,7 +267,7 @@ window.AU = window.AU || {};
       if (!st.talk) { st.talk = true; await P.cutscene(async () => { await P.say(T.father1); }); pile.interact.off = false; pile.mark = true; father.mark = false; P.obj(OBJ.s1_lumber); return; }
       if (st.carry && !st.installed) { st.installed = true; await P.cutscene(async () => {
         father.working = false; father.faceP = false; father.face = AU.World.player.x < father.x ? -1 : 1; await P.wait(0.3); if (AU.Img.has(P.heroKey("work"))) { P.face(father.x >= AU.World.player.x ? 1 : -1); v.give = true; await P.wait(0.8); v.give = false; v.carry = false; P.sfx("pick"); }   // 새 그림: 주인공이 두 팔로 내밀고, 아버지가 받는 자세로 바뀜
-        else { v.hand = { t: 0, x0: AU.World.player.x + 4, y0: G - 96 }; v.carry = false; P.sfx("pick"); await P.tween(v.hand, { t: 1 }, 0.55, (k) => k * (2 - k)); }
+        else { v.hand = { t: 0, x0: AU.World.player.x + 4, y0: G - 96 }; v.carry = false; P.sfx("wood_lift"); await P.tween(v.hand, { t: 1 }, 0.55, (k) => k * (2 - k)); }
         v.fhold = true; await P.wait(0.25);   // 주인공이 목재를 건네면 아버지가 망치를 멈추고 받음
         const home = father.x, tx = L.joint - 150; father.face = tx >= father.x ? 1 : -1; v.fwalk = true; await P.tween(father, { x: tx }, Math.max(0.6, Math.abs(tx - father.x) / 110), (k) => k); v.fwalk = false; father.face = 1; await P.wait(0.25);   // 틀 앞까지 들고 걸어감
         if (A.has("pc_father_work")) { // 틀 앞에서 잠깐 숨을 고르고 → 두 팔을 내밀어 목재를 틀 위로 밀어 올려놓고 → 손을 거두며 자세를 바로 함
@@ -311,14 +311,14 @@ window.AU = window.AU || {};
     P.variant = variant;
     if (variant === "peace") return;
     { // BG-V01 마을길 습격 상태
-      P.tint = { color: "#c9a79f", a: 0.5 }; P.vig = 0.4; P.setPlatforms(LAY.road.obst);
+      P.tint = { color: "#c9a79f", a: 0.5 }; P.vig = 0.4; P.setPlatforms(scene === 3 ? [] : LAY.road.obst);
       flames(P, [{ x: 560, y: G, s: 1.1 }, { x: 760, y: G, s: 0.8 }, { x: 1240, y: G, s: 1.2 }, { x: 1900, y: G, s: 1.0 }, { x: 2130, y: G, s: 0.9 }, { x: 180, y: 300, s: 1.5 }, { x: 300, y: 285, s: 1.8 }, { x: 400, y: 310, s: 1.3 }]);
       fireEmitters(P, LAY.road.w, 150, 560, 1); for (const [i, r] of LAY.road.raiders.entries()) raider(P, "r" + (i + 1), r[0], r[1], 0.5 - i * 0.05, -1, r[2], r[3]); runnerSpawner(P, 2.2);
       P.trigger({ id: "jumphint", test: (p) => p.x <= 1700, fn: () => P.hint("장애물은 점프(" + P.keys().jump + ")로 넘을 수 있습니다.", 4, true) });
-      P.trigger({ id: "s3end", goal: LAY.road.doorX, test: (p) => p.x <= LAY.road.doorX + 60, fn: () => houseDoor() });
+      P.trigger({ id: "s3end", goal: LAY.road.doorX, test: (p) => p.x <= LAY.road.doorX + 60 && !P.v.roadAuto, fn: () => houseDoor() });
     }
   }
-  async function houseDoor() { const P = AU.Prologue, g = P.gen; await P.cutscene(async () => { await P.walkTo(LAY.road.doorX, 1); P.sfx("door"); await P.wait(0.5); }); if (live(P, g)) { P.frozen = true; P.advance(); } }
+  async function houseDoor() { const P = AU.Prologue, g = P.gen; if (P.v.doorBusy) return; P.v.doorBusy = true; await P.cutscene(async () => { await P.walkTo(LAY.road.doorX, 1); P.sfx("door"); await P.wait(0.5); }); if (live(P, g)) { P.frozen = true; P.advance(); } }
 
   SC.SCENE_01_TEMPLE = { name: "마지막 망치질", async enter(P) {
     const g = P.gen; P.room("pro_temple", LAY.temple.start, (P) => setupTemple(P));
@@ -332,6 +332,24 @@ window.AU = window.AU || {};
   /* ============================================================
      SCENE 02 — 빛의 승리 천 년 기념제 (축제 광장)
      ============================================================ */
+  /* 11-24 개편(B안): 아이를 일으켜 세우거나 지나치면, 이후 집 앞까지 자동으로 달려감 */
+  const KID = { hold: [["heroS", "비켜요! 놔요...! 아버지!"]], help: [["heroS", "괜찮아? 일어날 수 있겠어?"], ["florist", "아, 아저씨... 다리가 풀려서... 고, 고맙습니다!"], ["heroS", "어서 안전한 곳으로 가! 나는 아버지께 가야 해."]] };
+  async function helpKid(kid) {
+    const P = AU.Prologue, g = P.gen; if (kid.done || P.v.kidBusy) return; P.v.kidBusy = true; kid.done = true; kid.mark = false; kid.interact = null;
+    await P.cutscene(async () => {
+      await P.walkTo(kid.x + 75, 1.4); P.face(-1); P.pose("kneel"); await P.wait(0.4); await P.say(KID.help.slice(0, 1));
+      P.sfx("bag"); await P.tween(kid, { fall: 0 }, 0.8); P.pose(null); await P.say(KID.help.slice(1, 3)); kid.run = true; await P.wait(1.0);
+    }, { bars: false });
+    if (!live(P, g)) return; P.setFlag("fallen_kid_helped"); P.v.kidBusy = false; autoRun();
+  }
+  async function autoRun() {
+    const P = AU.Prologue, g = P.gen; if (P.v.autoRun) return; P.v.autoRun = true;
+    await P.cutscene(async () => { P.obj(""); await P.walkTo(70, 2.8); }, { bars: false });
+    if (!live(P, g)) return; await go(P, "pro_road", LAY.road.w - 100, (P) => setupRoad(P, "attack", 3));
+    if (!live(P, g)) return; P.v.roadAuto = true; P.v.autoRun = false;
+    await P.cutscene(async () => { await P.walkTo(LAY.road.doorX + 70, 2.8); }, { bars: false });
+    if (live(P, g)) houseDoor();
+  }
   function setupPlaza(P, variant) {
     const v = P.v, L = LAY.plaza; P.variant = variant;
     if (variant === "peace") {
@@ -340,8 +358,8 @@ window.AU = window.AU || {};
       P.limits = { min: 40, max: L.limit, msg: "먼저 주민과 이야기를 나눠 보세요. (마을길로는 돌아갈 수 없습니다)" };
       // 광장 전용 인물: 마을길에서 만난 주민(나이 든 주민·축제 어린이)과 겹치지 않도록 새 인물을 둠(빵을 나누는 주민은 마을길에서 "광장에서 보자"고 한 인물이라 그대로)
       const sT = standing("g", "villager_a"), sF = standing("l", "villager_b");
-      // 주민과 대화를 시작하면 군중이 환호하고(함성 1회), 그 뒤로는 계속 즐겁게 들떠 있음(가라앉지 않음)
-      const joy = () => { try { if (!P.flag("plaza_cheered")) { P.setFlag("plaza_cheered"); P.sfx("cheer"); } P.tween(P.v, { cheer: 0.75 }, 0.7); } catch (e) { /* 무시 */ } };
+      // 주민과 대화를 시작하면 군중이 들뜨고(그림만, 함성 소리는 기념제 문구가 나올 때), 그 뒤로는 계속 즐겁게 들떠 있음(가라앉지 않음)
+      const joy = () => { try { if (!P.flag("plaza_cheered")) P.setFlag("plaza_cheered"); P.tween(P.v, { cheer: 0.75 }, 0.7); } catch (e) { /* 무시 */ } };
       const elder = npc(P, "traveler", "traveler", sT.sprite, L.elder, sT.h, Object.assign({}, sT.extra, { range: 100, interact: { label: "대화: 먼 마을에서 온 할머니", fn: () => { joy(); return P.cutscene(() => P.say(T.plaza_traveler)); } } }));
       const child = npc(P, "florist", "florist", sF.sprite, L.child, sF.h, Object.assign({}, sF.extra, { range: 100, interact: { label: "대화: 꽃 심부름 온 사내아이", fn: () => { joy(); return P.cutscene(() => P.say(T.plaza_florist)); } } }));
       const vendor = npc(P, "vendor", "vendor", artSpr("pc_villager_b_actions", "baker"), L.vendor, 150, { frame: A.sprFrame("pc_villager_b_actions", "cheer2"), range: 110, mark: true, interact: { label: "대화: 소피아", fn: async () => {
@@ -357,14 +375,23 @@ window.AU = window.AU || {};
       flames(P, [{ x: 330, y: G, s: 1.0 }, { x: 640, y: G - 4, s: 0.9 }, { x: 930, y: G, s: 1.1 }, { x: 1250, y: G, s: 1.0 }, { x: 1520, y: G, s: 1.2 }, { x: 1830, y: G, s: 1.1 }, { x: 2050, y: G, s: 1.2 }]);
       fireEmitters(P, L.w, 120, 560, 1.2); raider(P, "r1", 560, 520, 0.55, -1, 420, 780); raider(P, "r2", 1100, 524, 0.5, -1, 900, 1180); raider(P, "r3", 1480, 520, 0.58, -1, 1380, 1560); raider(P, "r4", 1900, 522, 0.54, -1, 1760, 2040);
       runnerSpawner(P, 1.6);
-      P.trigger({ id: "jumphint", test: (p) => p.x <= L.obst[1].x + 230, fn: () => P.hint("장애물은 점프(" + P.keys().jump + ")로 넘을 수 있습니다.", 4, true) });
-      P.trigger({ id: "toroad", goal: 70, test: (p) => p.x <= 70, fn: () => go(P, "pro_road", LAY.road.w - 100, (P) => setupRoad(P, "attack", 3)) });
+      P.setPlatforms([]);   // 11-24 개편: 광장·마을길은 직접 달려 넘지 않고, 쓰러진 아이를 만난 뒤 자동으로 집 앞까지 이동(점프는 탈출 장면에서 안내)
+      const kid = P.addEnt({ id: "fallen_kid", x: L.w - 900, range: 120, mark: true, layer: "mid", fall: 1, run: false,
+        interact: { label: "쓰러진 아이를 일으켜 세운다", fn: () => helpKid(kid) },
+        update(e, dt, Q) { if (e.run) { e.x += 280 * dt; if (e.x > L.w + 200) Q.ents = Q.ents.filter((q) => q !== e); } },
+        draw(ctx, e, Q) { const sheet = "pc_villager_b_actions"; ctx.save(); ctx.translate(e.x, G - 4 - (e.run ? Math.abs(Math.sin(Q.time * 11)) * 3 : 0)); ctx.rotate(-Math.PI / 2 * (e.fall || 0));
+          if (!A.spr(ctx, sheet, e.run ? (Math.floor(Q.time * 5.5) % 2 ? "run1" : "run2") : "run1", 0, 0, e.run ? 1 : -1, 0.8)) { ctx.fillStyle = "#9A6F7A"; ctx.fillRect(-14, -70, 28, 60); ctx.fillStyle = "#E8C4A0"; ctx.beginPath(); ctx.arc(0, -82, 13, 0, 7); ctx.fill(); }
+          ctx.restore();
+          if (e.mark && !Q.locked()) { const by = G - 118 + Math.sin(Q.time * 4) * 4; ctx.fillStyle = "#E8B94E"; ctx.strokeStyle = "#fff"; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(e.x - 11, by - 12); ctx.lineTo(e.x + 11, by - 12); ctx.lineTo(e.x, by + 4); ctx.closePath(); ctx.fill(); ctx.stroke(); } } });
+      P.trigger({ id: "kidhint", test: (p) => p.x <= kid.x + 460, fn: () => P.hint("길에 쓰러진 아이가 있어요. 다가가 " + P.keys().act + " 키로 도울 수 있어요. 그냥 지나가도 됩니다.", 6, true) });
+      P.trigger({ id: "kidpass", test: (p) => p.x <= kid.x - 240 && !P.v.kidBusy, fn: () => autoRun() });
     }
   }
   async function centerEvent() {
     const P = AU.Prologue, g = P.gen, v = P.v;
     await P.cutscene(async () => {
-      P.obj(""); await P.tween(v, { cheer: 1 }, 1.0); P.zoomTo(1.12, 2.6, 640, 330); await P.caption(T.cap2, 4.4);
+      // 소피아와 대화한 뒤 기념제 문구가 나올 때 주민들이 환호(함성 소리)
+      P.obj(""); P.sfx("cheer"); await P.tween(v, { cheer: 1 }, 1.0); P.zoomTo(1.12, 2.6, 640, 330); await P.caption(T.cap2, 4.4);
       await P.tween(v, { cheer: 0 }, 0.8); P.zoomTo(1, 0.8); await P.wait(1.6); // 음악이 멈춘 듯한 짧은 정적
       P.sfx("boom"); P.shake(18, 1.6); await P.fade(1, 0.2, "#fff"); await P.wait(0.5);
     }, { id: "cs02a", skip: true, bars: true });
@@ -464,7 +491,7 @@ window.AU = window.AU || {};
     // 집에 들어서는 순간 아버지는 이미 간부 앞에서 쓰러져 있다(컷) → 간부가 검을 뽑아 주인공을 내려치려 한다 → 아버지가 일어나 대신 맞는다 → 간부 일행 퇴각 → 유언
     P.cut = { src: "assets/prologue/cut/strike.webp", a: 1, zoom: 0.012, t0: P.time };
     const fx = LAY.house.father, wait = (ms) => P.wait(ms);
-    for (const [id, dx, sc, wk] of [["off", 170, 0.66, null], ["rg1", 290, 0.54, "raider_axe"], ["rg2", 380, 0.52, "raider_spear"]]) {
+    for (const [id, dx, sc, wk] of [["off", 170, 0.66, null], ["rg1", -250, 0.54, "raider_axe"], ["rg2", -160, 0.52, "raider_spear"]]) {   // 11-24 개편: 부하 둘은 아버지 쪽이 아니라 주인공이 달려오는 길목(왼쪽)에서 막아섬
       const e = raider(P, id, fx + dx, G, sc, -1, null, null); if (wk) e.wk = wk; if (id === "off") e.pose = "ready"; e.pause = 1;
       e.update = (q, dt) => { if (q.go) { q.x += q.face * q.sp * dt; q.step += q.sp * dt; q.pause = 0; } else q.pause = 1; }; }
     const ent = (id) => P.ents.find((q) => q.id === id);
@@ -476,10 +503,12 @@ window.AU = window.AU || {};
       AU.World.player.dir = 1; P.pose("stagger"); await P.wait(0.55); P.pose(null);   // 아버지가 쓰러진 모습에 충격으로 굳음
       await P.say(T.officer.slice(1, 2));   // 주인공의 외침
       const p = AU.World.player, off = ent("off"), r1 = ent("rg1"), r2 = ent("rg2"), fa = ent("father");
-      // 아버지가 쓰러지는 것을 본 주인공이 충격으로 굳었다가 → 외치고 → 곧바로 달려가 곁에 주저앉음 → 그제야 간부가 반응
-      await P.walkTo(fx - 95, 2.2); P.pose("kneel"); await P.wait(0.5);
-      await P.say(T.officer.slice(2));      // 간부의 선언(아버지 곁에 무릎 꿇은 주인공을 향해)
-      walkTo(r1, fx + 165, 70); walkTo(r2, fx + 260, 70);            // 부하들이 무기를 든 채 한 걸음씩 다가옴
+      // 11-24 개편: 달려가는 주인공을 부하 둘이 막아서 붙잡음(맞서 싸우지 못함) → 간부가 다가옴 → 아버지가 일어나 막아섬
+      await P.walkTo(520, 2.2);   // 아버지를 향해 달려가다가
+      P.sfx("thud"); P.pose("stagger"); P.shake(6, 0.4);
+      await Promise.all([walkTo(r1, 575, 150), walkTo(r2, 640, 150)]);   // 길목의 부하들이 앞을 막고 붙잡음
+      await P.say(KID.hold);   // 주인공: 비켜요! 놔요! 아버지!
+      await P.say(T.officer.slice(2));      // 간부의 선언
       await walkTo(off, fx + 105, 80); off.pose = "raise"; P.sfx("hammer"); await P.wait(0.5); await P.say(T.officer2);   // 간부가 검을 치켜듦
       // 아버지가 마지막 힘으로 일어나 주인공 앞을 막아섬
       fa.fpose = "guard"; fa.face = 1; fa.rise = 0; P.sfx("slump"); await P.tween(fa, { rise: 1, x: fx - 6 }, 0.7, (k) => k * (2 - k)); await P.say(T.officer2b);
@@ -491,8 +520,9 @@ window.AU = window.AU || {};
       fa.fpose = "fall"; P.sfx("slump"); await P.wait(0.5);
       await P.tween(fa, { rise: 0, x: fx }, 0.5, (k) => k); fa.fpose = null; fa.rise = null; await P.wait(0.5);   // 쓰러져 누운 자리(유언 장면 위치)로
       off.pose = "ready"; await P.say(T.officer3);
-      // 간부 일행이 오른쪽으로 물러남
-      off.face = 1; r1.face = 1; r2.face = 1; off.sp = r1.sp = r2.sp = 75; off.go = r1.go = r2.go = true; await P.wait(2.2); P.ents = P.ents.filter((q) => q.id !== "off" && q.id !== "rg1" && q.id !== "rg2"); await P.wait(0.4);
+      // 간부 일행이 물러남(암전 사이에 사라지고, 주인공을 붙잡던 손도 풀림)
+      off.face = 1; off.sp = 75; off.go = true; await P.wait(1.6); await P.fade(1, 0.6);
+      P.ents = P.ents.filter((q) => q.id !== "off" && q.id !== "rg1" && q.id !== "rg2"); P.pose(null); await P.wait(0.4); await P.fade(0, 0.7);
     }, { id: "cs03a", skip: true, bars: true }); P.cut = null; if (!live(P, g)) return;
     P.v.brawl = false; P.limits = { min: 120, max: null, msg: "아버지를 먼저 찾아야 합니다." }; P.obj(OBJ.s3_dad);   // 이후 조작이 풀리면 곧바로 유언 장면(find 트리거)으로 이어짐
   } };
