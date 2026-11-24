@@ -35,7 +35,7 @@ const { chromium } = require('playwright');
     await open('rest'); const cards = await ev(() => document.querySelectorAll('.mission').length);
     ck('T9 쉼 화면에 활동 카드 5개', cards === 5, 'cards=' + cards);
     const rc = await ev(() => { const G = AU.G, S = G.S; S.flags.guideMet = true; G.setFatigue(80); const ids = G.restDaily().map((m) => m.id), n = { feeling: 'calm', note: '' }; const a = G.doRestMission(ids[0], n), f1 = S.fatigue, b = G.doRestMission(ids[0], n), f2 = S.fatigue, c = G.doRestMission(ids[1], n), f3 = S.fatigue; return { a, b, c, drop1: 80 - f1, same: f1 === f2 && f2 === f3, cnt: G.restDoneToday(ids[0]) }; });
-    ck('T10 쉼 활동은 하루에 여러 번 가능, 피로도 회복은 첫 1회만', rc.a && rc.b && rc.c && rc.drop1 > 0 && rc.same && rc.cnt === 2, JSON.stringify(rc));
+    ck('T10 쉼 활동은 하루에 여러 번 가능, 5번까지 현재 피로도의 절반씩 회복', rc.a && rc.b && rc.c && rc.drop1 === 40 && !rc.same && rc.cnt === 2, JSON.stringify(rc));
     ck('T99 페이지 오류 없음', errs.length === 0, errs.join(' | '));
   } catch (e) { console.log('FAIL EXC ' + e.message); fails++; } finally { await b.close(); }
   process.exit(fails ? 1 : 0);

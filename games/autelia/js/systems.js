@@ -373,17 +373,20 @@ window.AU = window.AU || {};
       return Array.from({ length: cnt }, (_, i) => pool[(start + i) % n]);
     },
     restMissionAvailable(id) { return this.S.flags.missionsUnlocked && this.S.skills.unlocked.length > 0; },   // 11-24: 쉼 활동은 하루에 몇 번이든 할 수 있음(피로도 회복만 하루 1회)
-    restRecoverLeft() { return this.S.rest.recoverDay !== AU.dateStr(); },
+    restCountToday() { const t = AU.dateStr(); return (this.S.rest.log || []).filter((e) => e.t === t).length; },   // 11-25: 오늘 한 쉼 활동 수(처음 N개만 피로도 회복: 현재 피로도의 절반씩, 초과분은 기록만)
+    restRecoverLeft() { return this.restCountToday() < C.fatigue.restRecoverCount; },
+    restRecoverLeftN() { return Math.max(0, C.fatigue.restRecoverCount - this.restCountToday()); },
     restDoneToday(id) { const t = AU.dateStr(); return (this.S.rest.log || []).filter((e) => e.t === t && e.id === id).length; },
-    restNoteOk(note) { return !!(note && typeof note === 'object' && ['calm', 'same', 'mixed', 'tense', 'other'].includes(note.feeling)); }, // 감정 선택 필수, 자유 소감은 선택
+    restNoteOk(note) { return note === null || this.validMissionFeedback(note) || !!(note && typeof note === 'object' && ['calm', 'same', 'mixed', 'tense', 'other'].includes(note.feeling)); }, // 11-25: 일상 활동과 같은 3문항 돌아보기(건너뛰기=null 허용). 예전 감정 선택형도 호환
     doRestMission(id, note) {
       const S = this.S, m = this.restMission(id); if (!m || !this.restMissionAvailable(id)) return false;
-      if (!this.restNoteOk(note)) { this.toast("활동 후 느낀 상태를 한 가지 선택해 주세요.", "warn"); return false; }
+      if (!this.restNoteOk(note)) { this.toast("돌아보기 답을 모두 골라 주세요.", "warn"); return false; }
+      note = note || {};
       const text = String(note.note || "").replace(/\s+/g, " ").trim().slice(0, C.fatigue.restNoteMax);
-      const first = this.restRecoverLeft(), rec = first ? m.recover : 0;   // 피로도 회복은 하루 첫 쉼 활동에만
-      S.rest.done[id] = AU.dateStr(); S.rest.log.push({ t: AU.dateStr(), id, recover: rec, feeling: note.feeling, note: text, proof: "self_report" }); if (S.rest.log.length > 200) S.rest.log.shift();
-      const before = S.fatigue; if (first) { S.rest.recoverDay = AU.dateStr(); this.relieve("mission", m.recover, m.title); }
-      this.log("쉼 미션 완료: " + m.title); this.toast(first ? "쉼 미션 완료! 피로도 −" + Math.round((before - S.fatigue) * 10) / 10 + " (현재 " + S.fatigue + " / " + S.fatigueMax + ")" : "쉼 활동을 기록했어요. 피로도 회복은 하루 한 번이에요.", "good");
+      const first = this.restRecoverLeft(), rec = first ? Math.ceil(S.fatigue * C.fatigue.restRecoverRatio) : 0;   // 11-25: 하루 처음 5개까지 현재 피로도의 절반씩 회복, 이후는 회복 없음
+      S.rest.done[id] = AU.dateStr(); S.rest.log.push({ t: AU.dateStr(), id, recover: rec, feeling: note.feeling || null, review: this.validMissionFeedback(note) ? { challenge: note.challenge, meaning: note.meaning, satisfaction: note.satisfaction } : null, note: text, proof: "self_report" }); if (S.rest.log.length > 200) S.rest.log.shift();
+      const before = S.fatigue; if (first && rec > 0) this.relieve("mission", rec, m.title);
+      this.log("쉼 미션 완료: " + m.title); this.toast(first ? "쉼 미션 완료! 피로도 −" + Math.round((before - S.fatigue) * 10) / 10 + " (현재 " + S.fatigue + " / " + S.fatigueMax + ")" : "쉼 활동을 기록했어요. 피로도 회복은 하루 " + C.fatigue.restRecoverCount + "번까지예요.", "good");
       this.save("rest"); return true;
     },
     refreshWeekly(force) {

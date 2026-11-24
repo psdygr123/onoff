@@ -978,6 +978,7 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
 .slots { flex-direction: column; align-items: flex-end; gap: 8px; } .slots .srow { display: flex; gap: 6px; }
 .slots .slot { width: 62px; height: 62px; } .slots .slot .sk { font-size: 11.5px; white-space: normal; line-height: 1.12; margin-top: 12px; } .slots .slot .skey { font-size: 10.5px; padding: 0 5px; } .slots .slot .scost { right: 5px; font-size: 11px; }
 .slots .srow.items .slot { background: rgba(236, 245, 240, .92); }
+.slots .srow.items .slot.quick { position: relative; left: auto; bottom: auto; width: 62px; height: 62px; } /* 11-25: 옛 절대배치(left 100/172px)가 남아 칸이 화면 밖으로 잘리던 문제 */
 
 /* 11-24 은화 동전 아이콘: 인라인(.sv, 의뢰 보상·판매가) · HUD 은화 칩(.hudsilver) */
 .sv::before { content: ""; display: inline-block; width: 1.15em; height: 1.15em; margin-right: 4px; vertical-align: -0.2em; background: url("../assets/item/silver_coin.webp") center / contain no-repeat; }
