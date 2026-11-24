@@ -81,7 +81,13 @@ window.AU = window.AU || {};
 
   // --- 프롤로그 컷신용 ---
   def("hammer", "망치로 못을 박는 소리", (c, b, t) => { const k = v(); N(c, b, t, { f: 2600 * k, q: 1.2, dur: 0.05, vol: 0.4 }); T(c, b, t, { f: 900 * k, f2: 420 * k, dur: 0.1, vol: 0.22 }); T(c, b, t, { f: 2450 * k, dur: 0.28, vol: 0.05, a: 0.002 }); T(c, b, t, { f: 3720 * k, dur: 0.2, vol: 0.035, a: 0.002 }); });
-  def("plank", "목재 판자를 내려놓는 둔탁한 소리", (c, b, t) => { const k = v(); T(c, b, t, { f: 150 * k, f2: 68, dur: 0.28, vol: 0.5 }); N(c, b, t, { type: "lowpass", f: 700, dur: 0.16, vol: 0.28 }); T(c, b, t, { f: 330 * k, f2: 200, dur: 0.08, type: "triangle", vol: 0.15 }); });
+  /* 나무 소리(11-24): 속이 찬 나무토막이 울리는 낮은 몸통 소리 + 짧은 딱 소리. 유리 같은 높은 톤은 쓰지 않음 */
+  const woodKnock = (c, b, t, k, vol) => { // 한 번 부딪힘: 짧은 충격(노이즈) + 나무가 울리는 배음 4개(빨리 사라짐)
+    N(c, b, t, { f: 1500 * k, q: 1.3, dur: 0.035, a: 0.001, vol: 0.34 * vol });
+    [[190, 0.3, 0.17], [410, 0.2, 0.11], [780, 0.12, 0.075], [1260, 0.07, 0.05]].forEach(([f, a, d]) => T(c, b, t, { f: f * k, f2: f * k * 0.96, dur: d, vol: a * vol, a: 0.0015, type: "sine" }));
+  };
+  def("plank", "목재를 내려놓는 소리(나무가 바닥·받침에 닿는 딱, 한 번 튕김)", (c, b, t) => { const k = v(); woodKnock(c, b, t, k, 1); woodKnock(c, b, t + 0.115, k * 1.12, 0.38); N(c, b, t, { type: "lowpass", f: 500, dur: 0.12, vol: 0.14 }); });
+  def("wood_lift", "목재를 들어 올리는 소리(나무가 쓸리는 소리 + 작은 딱)", (c, b, t) => { const k = v(); N(c, b, t, { f: 2100 * k, f2: 1000, q: 0.9, dur: 0.16, a: 0.03, vol: 0.12 }); woodKnock(c, b, t + 0.06, k * 1.05, 0.45); woodKnock(c, b, t + 0.17, k * 0.95, 0.25); });
   def("door", "나무 문이 닫히는 소리", (c, b, t) => { T(c, b, t, { f: 100, f2: 46, dur: 0.34, vol: 0.45 }); N(c, b, t, { type: "lowpass", f: 500, dur: 0.2, vol: 0.2 }); N(c, b, t + 0.13, { type: "highpass", f: 3200, dur: 0.03, vol: 0.18 }); });
   def("stone", "무거운 돌이 제자리에 끼워지는 소리", (c, b, t) => { N(c, b, t, { type: "lowpass", f: 520, f2: 240, dur: 0.55, a: 0.12, vol: 0.2 }); T(c, b, t + 0.5, { f: 62, f2: 34, dur: 0.45, vol: 0.5 }); N(c, b, t + 0.5, { type: "lowpass", f: 350, dur: 0.3, vol: 0.28 }); });
   // 신전 완공: 종 대신 '신비로운 울림'. 천천히 차오르고(약 1.6초) 길게 사라지는 지속음(드론). 따뜻하고 낮은 울림으로 확정(사용자 선택)
@@ -157,7 +163,7 @@ window.AU = window.AU || {};
   def("step", "발걸음(범용)", (c, b, t) => D.step_dirt.fn(c, b, t));
 
   /* 소리마다 크기를 맞춘 보정값(작은 소리는 키우고 큰 소리는 줄임). 시험으로 측정한 최대 크기를 목표 크기에 맞춘 값 */
-  const GAIN = {"hammer": 1.66, "plank": 1.24, "door": 1.1, "stone": 0.69, "temple_glow": 1, "boom": 0.69, "collapse": 0.87, "cloth": 0.87, "pick": 2.07, "item": 2.33, "keyitem": 1.16, "slump": 1.12, "fragment": 1.88, "bag": 1.85, "gull": 1.35, "step_dirt": 2.56, "step_wood": 3.93, "step_stone": 3.55, "jump": 1.91, "land": 3.08, "swing": 1.95, "skill": 1.07, "hit": 1.99, "crit": 1.6, "mon_fox": 1.32, "mon_mutfox": 1.3, "mon_snake": 1.15, "mon_rat": 1.94, "mon_crab": 2.9, "mon_trial_boss": 1.65, "hurt": 1.46, "kill": 2.63, "levelup": 0.8, "jobchange": 0.72, "potion": 1.71, "coin": 1.38, "drop": 5.0, "equip": 2.5, "click": 3.7, "menu_open": 1.54, "menu_close": 1.85, "blip": 3.89, "accept": 1.85, "complete": 1.2, "warn": 2.35, "save": 2.45, "death": 1.45, "revive": 1.04, "mapchange": 0.92, "boss": 0.86, "thud": 1.49, "step": 2.14, "select_a": 3.57, "select_b": 3.12, "select_c": 2.22};
+  const GAIN = {"hammer": 1.66, "plank": 1.0, "wood_lift": 1.3, "door": 1.1, "stone": 0.69, "temple_glow": 1, "boom": 0.69, "collapse": 0.87, "cloth": 0.87, "pick": 2.07, "item": 2.33, "keyitem": 1.16, "slump": 1.12, "fragment": 1.88, "bag": 1.85, "gull": 1.35, "step_dirt": 2.56, "step_wood": 3.93, "step_stone": 3.55, "jump": 1.91, "land": 3.08, "swing": 1.95, "skill": 1.07, "hit": 1.99, "crit": 1.6, "mon_fox": 1.32, "mon_mutfox": 1.3, "mon_snake": 1.15, "mon_rat": 1.94, "mon_crab": 2.9, "mon_trial_boss": 1.65, "hurt": 1.46, "kill": 2.63, "levelup": 0.8, "jobchange": 0.72, "potion": 1.71, "coin": 1.38, "drop": 5.0, "equip": 2.5, "click": 3.7, "menu_open": 1.54, "menu_close": 1.85, "blip": 3.89, "accept": 1.85, "complete": 1.2, "warn": 2.35, "save": 2.45, "death": 1.45, "revive": 1.04, "mapchange": 0.92, "boss": 0.86, "thud": 1.49, "step": 2.14, "select_a": 3.57, "select_b": 3.12, "select_c": 2.22};
   ["step_dirt", "step_wood", "step_stone", "jump", "land"].forEach((k) => { GAIN[k] = (GAIN[k] || 1) * 0.5; }); // 이동 소리(걷기·점프·착지)는 계속 들리므로 절반으로 낮춤(11-17 사용자 요청)
   S.DEFS = D; S.GAIN = GAIN;
   // 정식 음원(2026-11-16 받음) — 같은 이름의 합성음 대신 파일을 재생. [이름, 설명, 파일, 기본 음량]

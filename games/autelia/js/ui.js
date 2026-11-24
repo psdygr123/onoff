@@ -397,6 +397,9 @@ window.AU = window.AU || {};
       const d = this.dialog; if (!d) return;
       this.applyCut(d);
       const last = d.i >= d.lines.length - 1, cur = d.lines[d.i], isObj = cur && typeof cur === "object", np = isObj ? cur.npc : d.npc, text = AU.Profile.fmt(isObj ? cur.t : cur).replace(/\{(attack|jump|interact|skills)\}/g, (m, k) => keyOf(k));
+      if (np.portrait && !AU.Img.has(np.portrait) && !(d.waitPt && d.waitPt[np.portrait])) { // 본래 초상화가 아직 도착 전이면 도착하는 즉시 다시 그림(11-24: 대체 주민 그림으로 굳던 문제)
+        (d.waitPt = d.waitPt || {})[np.portrait] = true; AU.Img.onReady(np.portrait, () => { if (this.dialog === d) this.renderDialog(); });
+      }
       // 본래 초상화가 아직 오는 중이면 어른 대체 그림(alt) 대신 이름 첫 글자 표시(틀린 얼굴 방지). 대체 그림은 본래 그림 파일이 아예 없을 때만 사용
       const pend = np.portrait && AU.Img.map[np.portrait] && !AU.Img.map[np.portrait].done, ppk = AU.Img.has(np.portrait) ? np.portrait : (!pend && np.alt && AU.Img.has(np.alt) ? np.alt : np.portrait), pt = AU.Img.has(ppk) ? h("img", { src: AU.ASSETS[ppk].path, alt: "" }) : h("div", { class: "ptfallback", text: np.name.slice(0, 1) });
       const back = d.i > 0 ? btn("◀ 이전 (" + AU.keyLabel(AU.Input.bindings.left) + ")", "dback", () => this.backDialog()) : null;

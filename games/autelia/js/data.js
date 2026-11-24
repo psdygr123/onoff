@@ -101,7 +101,14 @@ AU.MAPS = {
     portals: [{ x: 40, to: "harbor_road", toX: 2330, label: "뱀길" }, { x: 2620, to: "docks", toX: 90, label: "선창 외곽" }, { x: 2430, to: "general_store", toX: 90, label: "해풍 잡화점" }, { x: 370, to: "weapon_store", toX: 90, label: "철파도 무기점" },
               { x: 1736, to: "guild_hall", toX: 110, label: "선창 길드" }, { x: 2080, to: "warehouse", toX: 110, label: "부두 창고" }],
     npcs: [{ id: "porto_dock", x: 600 }, { id: "guide_npc", x: 1250 }],
-    spots: [],
+    spots: [
+      { id: "porto_board", ambient: true, kind: "investigate", x: 230, label: "부두 게시판", lines: ["낡은 게시판에 쪽지가 여럿 붙어 있습니다. 잃어버린 고양이를 찾는다는 글, 짐꾼을 구한다는 글, 오래된 배 시간표가 보입니다.", "맨 위에는 새 종이가 한 장 붙어 있습니다. '길드 의뢰는 선창 길드 접수대에서'라고 적혀 있습니다."] },
+      { id: "porto_well", ambient: true, kind: "investigate", x: 880, label: "낡은 우물", lines: ["돌로 두른 낡은 우물입니다. 두레박 줄이 소금기에 하얗게 절었습니다.", "들여다보니 짠 바다 냄새가 올라옵니다. 바닷물이 스며들어 마실 수는 없는 모양입니다."] },
+      { id: "porto_fish", ambient: true, kind: "investigate", x: 1130, label: "생선 좌판", lines: ["이른 아침에 잡은 생선이 얼음 위에 늘어서 있습니다. 주인은 자리를 비운 듯합니다.", "손님을 부르는 소리가 멀리서 들려옵니다. 항구는 오늘도 바쁩니다."] },
+      { id: "porto_rope", ambient: true, kind: "investigate", x: 1480, label: "밧줄 더미", lines: ["굵은 밧줄이 두껍게 감겨 있습니다. 배를 묶는 데 쓰는 것입니다.", "매듭 하나하나가 단단합니다. 이곳 사람들의 솜씨인 듯합니다."] },
+      { id: "porto_anchor", ambient: true, kind: "investigate", x: 1940, label: "녹슨 닻", lines: ["부두 한쪽에 커다란 닻이 세워져 있습니다. 오래전 이 항구에 처음 닿은 배의 것이라고 합니다.", "손잡이 쪽에 파도 모양 무늬가 얕게 새겨져 있습니다."] },
+      { id: "porto_lamp", ambient: true, kind: "investigate", x: 2260, label: "부두 등대 불빛", lines: ["부두 끝에 선 등대가 바다 쪽을 비춥니다. 불빛은 안개 속에서도 멀리 닿습니다.", "저 불빛을 보고 배들이 돌아옵니다. 길을 잃은 사람에게도 이런 불빛이 하나쯤 있었으면 합니다."] }
+    ],
     spawns: [], start: 160,
     area: { x: 78, y: 40, desc: "중립 항구도시입니다. 선창 길드와 부두 창고, 상점이 모여 있습니다." }
   },
@@ -230,7 +237,7 @@ AU.JOB_GROUPS = [
   { id: "soon2", name: "???", open: false, icon: '<text x="12" y="18" text-anchor="middle" font-size="18" fill="currentColor">?</text>' }
 ];
 AU.JOB_LINES = [
-  { id: "warrior", name: "전사", open: true, job: "warrior", desc: "검과 방패로 가까이에서 버티며 싸웁니다.", icon: '<path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z"/>' },
+  { id: "warrior", name: "전사", open: true, job: "warrior", desc: "5명의 용사 중 한 명으로 검을 통해 적을 무찌릅니다.", icon: '<path d="M12 2l8 3v6c0 5-3.5 9-8 11-4.5-2-8-6-8-11V5z"/>' },
   { id: "mage", name: "마법사", open: false, icon: '<path d="M12 2l2.6 6.2 6.7.5-5.1 4.3 1.6 6.5L12 16l-5.8 3.5 1.6-6.5L2.7 8.7l6.7-.5z"/>' },
   { id: "archer", name: "궁수", open: false, icon: '<path d="M5 3c8 3 8 15 0 18M5 3v18M3 12h17m-4-3 4 3-4 3" fill="none" stroke="currentColor" stroke-width="2"/>' },
   { id: "rogue", name: "도적", open: false, icon: '<path d="M12 2c4 2 6 6 6 10l2 9H4l2-9c0-4 2-8 6-10z"/>' },
