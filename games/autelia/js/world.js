@@ -184,7 +184,7 @@ window.AU = window.AU || {};
       for (const n of map.npcs || []) if (Math.abs(p.x - n.x) < 90) { if (!this.nearNpc || Math.abs(p.x - n.x) < Math.abs(p.x - this.nearNpc.x)) this.nearNpc = n; }
       for (const pt of map.portals || []) if (Math.abs(p.x - pt.x) < 70 && p.onGround) this.nearPortal = pt;
       if (this.stealthOn()) for (const hs of map.hideSpots || []) if (Math.abs(p.x - hs.x) < 60 && p.onGround) this.nearHide = hs;
-      for (const sp of map.spots || []) if (Math.abs(p.x - sp.x) < 70 && p.onGround && AU.G.spotObjective(sp.id) && (!sp.needFlag || AU.G.S.flags[sp.needFlag])) this.nearSpot = sp;   // 진행 중인 조사·수리 목표가 있는 지점만
+      for (const sp of map.spots || []) if (Math.abs(p.x - sp.x) < 70 && p.onGround && (sp.ambient || AU.G.spotObjective(sp.id)) && (!sp.needFlag || AU.G.S.flags[sp.needFlag])) this.nearSpot = sp;   // 진행 중인 조사·수리 목표가 있는 지점만
       this.prompt = this.work ? "수리 중… (움직이면 멈춥니다)" : this.nearDrop ? "Space 줍기: " + AU.ITEMS[this.nearDrop.id].name.replace(" (임시)", "") + (this.nearDrop.n > 1 ? " ×" + this.nearDrop.n : "") : this.nearSpot ? "Space " + (this.nearSpot.kind === "repair" ? "수리" : "조사") + ": " + this.nearSpot.label : this.nearNpc ? "Space 대화: " + AU.NPCS[this.nearNpc.id].name : this.nearPortal ? "↑ 이동: " + this.nearPortal.label : "";
       if (this.nearHide && !this.work && !p.dead) this.prompt = p.hidden ? "숨는 중… (움직이거나 Space로 나오기)" : "Space 숨기"; else if (p.hidden) this.prompt = "숨는 중… (움직이거나 Space로 나오기)";
       if (AU.Prologue && AU.Prologue.on) AU.Prologue.scan(this);
@@ -270,6 +270,7 @@ window.AU = window.AU || {};
     /* ---------- 조사·수리 지점 ---------- */
     useSpot(sp) {
       if (this.work) return;
+      if (sp.ambient) { AU.UI.say({ name: sp.label, portrait: "" }, sp.lines || ["살펴보았습니다."], {}); return; }   // 분위기용 조사 지점: 목표와 무관, 언제나 같은 글만 보여 줌
       if (sp.kind === "investigate") { AU.UI.say({ name: sp.label, portrait: sp.portrait || "" }, sp.lines || ["살펴보았습니다."], { cuts: sp.cuts, end: () => { AU.G.completeSpot(sp.id); if (sp.onDone) sp.onDone(this); } }); return; }
       this.work = { sp, t: 0, dur: sp.dur || 1.5, x0: this.player.x };   // 목공 수리: 제자리에서 잠깐 작업. 움직이거나 맞으면 멈춤
       if (AU.Sfx && AU.Sfx.play) { try { AU.Sfx.play("hit"); } catch (e) { /* 소리 없음 */ } }
@@ -634,6 +635,10 @@ window.AU = window.AU || {};
       const y = GROUND;
       for (const sp of this.map.spots || []) {
         const act = AU.G.spotObjective(sp.id), done = !act && AU.G.spotDone(sp.id);
+        if (sp.ambient && !act) { // 분위기용 지점: 가까이 갔을 때만 작은 반짝임(그림 없음)
+          if (Math.abs(this.player.x - sp.x) < 220) { const t = 0.5 + 0.5 * Math.sin(this.time * 3); ctx.save(); ctx.globalAlpha = 0.35 + 0.4 * t; ctx.fillStyle = "#F3D78B"; ctx.beginPath(); ctx.arc(sp.x, GROUND - 70 - t * 6, 5, 0, 7); ctx.fill(); ctx.restore(); }
+          continue;
+        }
         if (!act && !(done && sp.kind === "repair")) continue;
         const x = sp.x;
         // 정식 그림이 있으면 그림으로(방책은 고치기 전·후 두 장이 같은 틀), 없으면 아래 임시 도형
