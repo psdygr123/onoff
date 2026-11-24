@@ -436,6 +436,7 @@ window.AU = window.AU || {};
     renderDialog() {
       const d = this.dialog; if (!d) return;
       this.applyCut(d);
+      const cap = !!(d.opt.narr && typeof d.lines[d.i] === "string" && /^\(.*\)$/.test(d.lines[d.i])); // 해설 문장: 초상화·이름표 없이 큰 글씨로만 표시
       const last = d.i >= d.lines.length - 1, cur = d.lines[d.i], isObj = cur && typeof cur === "object", np = isObj ? cur.npc : d.npc, text = AU.Profile.fmt(isObj ? cur.t : cur).replace(/\{(attack|jump|interact|skills)\}/g, (m, k) => keyOf(k));
       if (np.portrait && !AU.Img.has(np.portrait) && !(d.waitPt && d.waitPt[np.portrait])) { // 본래 초상화가 아직 도착 전이면 도착하는 즉시 다시 그림(11-24: 대체 주민 그림으로 굳던 문제)
         (d.waitPt = d.waitPt || {})[np.portrait] = true; AU.Img.onReady(np.portrait, () => { if (this.dialog === d) this.renderDialog(); });
@@ -444,7 +445,7 @@ window.AU = window.AU || {};
       const pend = np.portrait && AU.Img.map[np.portrait] && !AU.Img.map[np.portrait].done, ppk = AU.Img.has(np.portrait) ? np.portrait : (!pend && np.alt && AU.Img.has(np.alt) ? np.alt : np.portrait), pt = AU.Img.has(ppk) ? h("img", { src: AU.ASSETS[ppk].path, alt: "" }) : h("div", { class: "ptfallback", text: np.name.slice(0, 1) });
       const back = d.i > 0 ? btn("◀ 이전 (" + AU.keyLabel(AU.Input.bindings.left) + ")", "dback", () => this.backDialog()) : null;
       const choices = last && d.opt.choices ? h("div", { class: "choices" }, back, d.opt.choices.map((c) => btn(c.label + (keyOf(c.key) ? "  (" + keyOf(c.key) + ")" : ""), c.key === "interact" ? "primary" : "", () => this.finishDialog(c)))) : null;
-      this.dlgEl.innerHTML = ""; this.dlgEl.append(h("div", { class: "panel dlgbox" }, h("div", { class: "pt" }, pt), h("div", { class: "dtext" }, h("div", { class: "dname", text: AU.Profile.fmt(np.name) }), h("div", { class: "dline", text: text }), AU.G.S.flags.tipDlg ? null : h("div", { class: "dtip", text: keyOf("interact") + " : 다음 대사 · " + AU.keyLabel(AU.Input.bindings.left) + " : 이전 대사 (아래 버튼을 눌러도 됩니다)" }),
+      this.dlgEl.innerHTML = ""; this.dlgEl.append(h("div", { class: "panel dlgbox" + (cap ? " narr" : "") }, cap ? null : h("div", { class: "pt" }, pt), h("div", { class: "dtext" }, cap ? null : h("div", { class: "dname", text: AU.Profile.fmt(np.name) }), h("div", { class: "dline", text: cap ? text.replace(/^\(|\)$/g, "") : text }), AU.G.S.flags.tipDlg ? null : h("div", { class: "dtip", text: keyOf("interact") + " : 다음 대사 · " + AU.keyLabel(AU.Input.bindings.left) + " : 이전 대사 (아래 버튼을 눌러도 됩니다)" }),
         choices || h("div", { class: "dnext" }, back, btn(last ? "닫기 (" + keyOf("interact") + ")" : "다음 ▶ (" + keyOf("interact") + ")", "", () => this.advanceDialog())))));
     },
     backDialog() { const d = this.dialog; if (!d || d.i <= 0) return; d.i--; this.renderDialog(); },

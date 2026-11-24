@@ -271,7 +271,7 @@ window.AU = window.AU || {};
     useSpot(sp) {
       if (this.work) return;
       if (sp.ambient) { AU.UI.say({ name: sp.label, portrait: "" }, sp.lines || ["살펴보았습니다."], {}); return; }   // 분위기용 조사 지점: 목표와 무관, 언제나 같은 글만 보여 줌
-      if (sp.kind === "investigate") { AU.UI.say({ name: sp.label, portrait: sp.portrait || "" }, sp.lines || ["살펴보았습니다."], { cuts: sp.cuts, end: () => { AU.G.completeSpot(sp.id); if (sp.onDone) sp.onDone(this); } }); return; }
+      if (sp.kind === "investigate") { AU.UI.say({ name: sp.label, portrait: sp.portrait || "" }, sp.lines || ["살펴보았습니다."], { cuts: sp.cuts, narr: sp.narr, end: () => { AU.G.completeSpot(sp.id); if (sp.onDone) sp.onDone(this); } }); return; }
       this.work = { sp, t: 0, dur: sp.dur || 1.5, x0: this.player.x };   // 목공 수리: 제자리에서 잠깐 작업. 움직이거나 맞으면 멈춤
       if (AU.Sfx && AU.Sfx.play) { try { AU.Sfx.play("hit"); } catch (e) { /* 소리 없음 */ } }
     },

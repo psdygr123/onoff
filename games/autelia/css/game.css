@@ -983,3 +983,9 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
 .sv::before { content: ""; display: inline-block; width: 1.15em; height: 1.15em; margin-right: 4px; vertical-align: -0.2em; background: url("../assets/item/silver_coin.webp") center / contain no-repeat; }
 .sv { font-weight: 600; color: #8d6425; }
 .hudsilver { margin: 3px 0 0; padding: 0; font-size: 12px; text-align: left; white-space: nowrap; line-height: 1.3; }
+
+/* 해설 문장(엿듣기·추격 컷신): 초상화 없이 큰 글씨로 중앙에 */
+.dlgbox.narr { justify-content: center; text-align: center; min-height: 150px; }
+.dlgbox.narr .dtext { text-align: center; }
+.dlgbox.narr .dline { font-size: 30px; line-height: 1.5; font-weight: 700; letter-spacing: .02em; }
+.dlgbox.narr .dnext { justify-content: flex-end; }
