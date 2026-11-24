@@ -11,8 +11,9 @@ window.AU = window.AU || {};
       if (k % 2) { const b = document.createElement("b"); b.className = "rb-em"; b.textContent = part; out.push(b); return; }
       part.split(/(\{\{\+?[^}]+\}\})/).forEach((chunk) => {   // {{비어 있음}}=경고색(빨강), {{+끼고 있어요}}=좋은 상태(초록)
         const st = /^\{\{(\+?)([^}]+)\}\}$/.exec(chunk); if (st) { const s2 = document.createElement("span"); s2.className = st[1] ? "gstat ok" : "gstat warn"; s2.textContent = st[2]; out.push(s2); return; }
-      chunk.split(/(\[(?:[A-Za-z0-9]{1,6}|Shift|Space|Esc|Enter|Tab|[←→↑↓])\])/).forEach((seg) => {
-        if (/^\[(?:[A-Za-z0-9]{1,6}|Shift|Space|Esc|Enter|Tab|[←→↑↓])\]$/.test(seg)) { const s = document.createElement("span"); s.className = "gkey"; s.textContent = seg.slice(1, -1); out.push(s); }
+      chunk.split(/(\[(?:[A-Za-z0-9]{1,6}|Shift|Space|Esc|Enter|Tab|[←→↑↓]|[가-힣]{1,6})\])/).forEach((seg) => {
+        if (/^\[[가-힣]{1,6}\]$/.test(seg)) { const s = document.createElement("span"); const w = seg.slice(1, -1); s.className = "gact " + (w === "장착" ? "on" : w === "해제" ? "off" : ""); s.textContent = w; out.push(s); }   // 버튼 이름: 장착=초록, 해제=빨강, 그 밖=파랑
+        else if (/^\[(?:[A-Za-z0-9]{1,6}|Shift|Space|Esc|Enter|Tab|[←→↑↓])\]$/.test(seg)) { const s = document.createElement("span"); s.className = "gkey"; s.textContent = seg.slice(1, -1); out.push(s); }
         else if (seg) out.push(document.createTextNode(seg));
       });
       });
