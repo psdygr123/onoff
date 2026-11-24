@@ -944,3 +944,4 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #1F1A15; fon
 .linked-fold .lf-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; } .linked-fold .lf-head h3 { margin: 0; } .linked-fold .lf-head .note { margin: 0; flex: 1; } .linked-fold.folded { padding-top: 10px; padding-bottom: 10px; }
 
 .qlog .toast-row { padding: 7px 10px; margin: 4px 0; border-radius: 8px; background: rgba(255, 249, 232, .75); border-left: 3px solid var(--gold); font-size: 14px; } .qlog .toast-row.warn { border-left-color: #c0562f; } .qlog .toast-row.good { border-left-color: #4b8a66; } .qlog .tr-t { color: var(--ink2); font-size: 12px; margin-right: 6px; }
+.svhelp { margin: 8px 0; padding: 10px 14px; border: 1px solid var(--line); border-radius: 10px; background: rgba(255, 249, 232, .7); font-size: 14px; color: var(--ink2); } .svhelp b { color: var(--ink); } .svhelp ul { margin: 6px 0 0; padding-left: 18px; line-height: 1.7; }
